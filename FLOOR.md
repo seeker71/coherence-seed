@@ -30,9 +30,10 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   the answers do not change. The long recursion takes 0.75 s on the bootstrap's own operations,
   0.90 s on four machine-code leaves and 9.4 s on four written in form.
 - **A run makes itself faster.** A watcher written in form counts calls, has the emitter compile
-  a recipe at its hundredth call, binds the code and takes itself away. Under it the long
-  recursion starts on the walker and ends on machine code with the same answer, in 0.018 s and
-  18,523 walker steps where the walker alone takes 0.75 s and 158.6 million.
+  a recipe at its hundredth call and takes its place again above the code. Under it the long
+  recursion starts on the walker and ends on machine code with the same answer, in 0.03 s and
+  about 1.6 million walker steps for three recursions, where the walker takes 158.6 million for
+  the first alone. It stays for the next hot recipe and rests when nothing new comes.
 - **Emitted code is the walker or faster, never different.** It answers a number or declines,
   and the walker runs what it declines: through overflows, missing and wrong arguments and a
   recursion deeper than the machine stack, the answer, the reason and the fault were the
@@ -60,7 +61,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - **A compiler worth the name.** The emitter knows numbers, one shape of condition and calls of
   the recipe itself. It compiles a recipe whole or not at all and cannot hand a node back to the
   walker, so it compiles no call of another recipe, no backtracking and nothing that builds a
-  node. The watcher stops at the first recipe compiled.
+  node.
 - **The home lens.** The first lens's shapes are brackets only: nothing infix, no names for a
   recipe's arguments, no way to name a part and use it twice. Most stored programs were composed
   in numbers before it existed; they show through it and were not rewritten in it.

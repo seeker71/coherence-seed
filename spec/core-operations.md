@@ -257,11 +257,13 @@ one of them is gone before the next.
 
 With these a run can watch itself and change what runs it. `form/heat.ck` binds `heat.watch`,
 which puts a `lazy` on `call`: each call is counted in a note under its recipe, and at the
-hundredth the emitter is asked to compile that recipe; when it does, the code is bound and the
-watcher takes itself off `call`. `ground/warms-itself.ck` starts the long recursion on the walker
-under the watcher and ends it on machine code: the same answer, in 18,523 walker steps where the
-walker alone takes 158.6 million. The observer shows the three bindings afterwards: `call`
-watched, the recipe run by code, `call` released.
+hundredth the watcher steps off `call`, asks the emitter to compile that recipe, and takes its
+place again above the code that was bound. After ten thousand calls that bring nothing new it
+steps off for good. `ground/warms-itself.ck` runs three recursions under it: the long one starts
+on the walker and ends on machine code, a second is compiled the same way, and a third the
+emitter does not know stays on the walker until the watcher rests. The answers are the
+walker's, in 1.6 million walker steps where the first recursion alone takes 158.6 million
+there. The observer shows the bindings afterwards: watched, released, compiled, watched again.
 
 ## Entry 81: the step
 
@@ -413,8 +415,7 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   of condition, no answer of yes or no, no negative or large literal, and an expression nested
   deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
   walker: code may decline only before it has done anything, because a declined call is run
-  again from its start. The watcher that offers recipes by how often they run stops at the first
-  one compiled and watches only `call`.
+  again from its start. The watcher that offers recipes by how often they run sees only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the
   walker. It goes on computing while it unwinds, so a recursion that branches can spend long on
   answers it will discard.

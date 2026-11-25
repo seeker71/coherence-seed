@@ -374,10 +374,10 @@ at: 2026-11-25
 n: 5.14.35
 name: a-run-watches-itself-and-changes-what-runs-it
 kind: observation
-is: Observed on 2026-11-25. form/heat.ck, written in the lens, puts a lazy on call that counts each call in a note under its recipe and, at the hundredth, asks the emitter to compile that recipe; the code is bound and the watcher takes itself off call. Under it the long recursion started on the walker and ended on machine code with the same answer, 2178309, in 0.018 s and 18,523 walker steps where the walker alone takes 0.75 s and 158.6 million. The observer showed the bindings afterwards: call watched, the recipe run by code, call released.
+is: Observed on 2026-11-25. form/heat.ck, written in the lens, puts a lazy on call that counts each call in a note under its recipe. At the hundredth it steps off call, has the emitter compile that recipe, and takes its place again above the code; after ten thousand calls that bring nothing new it rests. Under it three recursions ran in one program: two ended on machine code, the third, which the emitter does not know, stayed on the walker. The answers were the walker's, in 0.03 s and 1.6 million walker steps; the first alone takes 158.6 million on the walker.
 status: observed
 src: 2.30.7 2.30.6 2.30.10
-limit: One recipe, one machine. The watcher stops at the first recipe compiled and sees only call.
+limit: Three recipes, one machine. The watcher sees only call, and pays its own cost on every call it sees.
 at: 2026-11-25
 
 n: 5.14.36
