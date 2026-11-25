@@ -10,107 +10,82 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
 | Bootstrap | [`bootstrap/`](bootstrap) | 1,125 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 60 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
-| Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
-| Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form, a module of named definitions: compiles a recipe over numbers, with lets, tests and its own recursion, to one machine-code leaf |
-| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, and rows that turn a surface into the core and back |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 60 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
+| In form | [`form/`](form) | four operations as recipes and as machine code, the reader and the printer of the print, a traced step, the watcher, and the emitter: a module of named definitions that compiles a recipe over numbers to one machine-code leaf |
+| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
-| Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, super that moves the view, and a view through an interface a shape fits by structure |
+| Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
+| Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 51 that witness the above; one more runs them and judges how each ends |
-| Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and programs in form show their own region or another process's through it, ask a running program to evaluate a node, and say where it spends its time |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,373 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,375 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
-- **`make check` passes.** The ground programs and the encoding's vectors are judged by programs
-  in form; freeze and thaw, in form, cross two processes; native code runs unsigned and hardened;
-  a live run is recorded from a second process, another is asked from one, and a search writes a
-  file only for the path that held.
-- **What runs can be exchanged while it runs.** An operation is replaced by a recipe or by machine
-  code and the programs answer the same; a replacement runs on what it replaced; a fail or an
-  `unbind` takes it away. A diagnostic sits on every use of an operation, or on every step, and
-  the answers do not change. The long recursion takes 0.75 s on the bootstrap's own operations,
-  0.90 s on four machine-code leaves and 9.4 s on four written in form.
-- **A run makes itself faster.** A watcher written in form counts calls, has the emitter compile
-  a recipe at its hundredth call and takes its place again above the code. Under it the long
-  recursion starts on the walker and ends on machine code with the same answer, in 0.03 s and
-  about 1.6 million walker steps for three recursions, where the walker takes 158.6 million for
-  the first alone. It stays for the next hot recipe and rests when nothing new comes.
-- **Emitted code is the walker or faster, never different.** It answers a number or declines,
-  and the walker runs what it declines. A program in form runs twenty-three recipes both ways,
-  through overflows, a division by zero, the most negative number and tests with a nothing
-  inside, and holds the outcomes equal; six faults planted in the emitter each turned it red.
-  Its first version compared the walker with the walker and saw none of them: its helper was a
-  bound entry, which does not see what is bound after it.
-- **The lens reads its own definition.** It shows its stored node, through its own rows and with
-  its own names, as 853 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 89 files of nodes here in 0.5 s. Its rows and their matcher were
-  written in it. Text it cannot read is a fault that names what and where.
-- **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
-  numbers in the node and names on a second line of its file. The definitions of the lens, the
-  objects, the region, the header, the ice and the watcher were given names with no byte of a
-  node changing by the naming. The emitter, which was one recipe of bare instruction numbers,
-  was written again as named definitions and emits byte for byte the code it did. The ground
-  programs composed in numbers before the lens were written again in names; two of them had
-  been binding entries 100 and 101, which have since become `let` and `outside`. A `let` keeps the arguments it stands among, so
-  a number means one thing through all of a recipe; a program in form rewrote the old lets of 26
-  stored files, and every ground program ended as before.
-- **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
-  what a cell held; a note is kept.
-- **What were C commands are programs.** The conformance check, freeze and thaw are written in
-  form; the form freeze wrote the same bytes as the C freeze it replaced.
-- **The region describes itself.** The layout of its records is a node. The C header is made
-  from it and from the lexicon, and the stored header equals what they generate. A program in
-  form shows its own region through it, or another process's, with every binding in words.
-- **The host is reached by name.** With no choice open, a program in form wrote a file through
-  the host's own functions; while a choice is open the call is refused, since it cannot be undone.
-- **A recipe inside another sees the outer names.** The walker calls a recipe closed over
-  values, and the lens closes an inner recipe over the outer arguments when it uses one: over
-  two arguments and a part a `let` named, over nine at once, through its own recursion and as
-  the handler of a `recover`.
-- **Reading and printing are programs.** The reader and the printer of the canonical print are
-  written in form from the page of the encoding. Bound in place of the bootstrap's own, they
-  hold the 142 vectors and every ground program ends as before. Running everything on them
-  found a fault of the walker older than they are: `step` evaluated its node in the activation
-  of whatever had computed it.
-- **A search can act on the world.** A call held back with `after` is made when every choice
-  open at the time is closed, and never if a fail returns past it: of five tries in a search,
-  each holding back a line to a file, the file holds the line of the one that held.
-- **A crash inside code is a fault.** Machine code that reads a bad address or runs off its
-  stack, or a host function that faults, gives the program a fault it can catch, and the run
-  goes on.
-- **Two parents are one shape.** In an object layer written in form, a shape with two parents
-  that share an ancestor holds the ancestor's slot once, sends to both parents through super
-  with the view moving, refuses a slot the view does not have, and refuses to choose between
-  two parents. Each of those tests turned red under a fault planted for it.
-- **A binding can stand outside the run.** Bound from outside, a diagnostic sits on every use of
-  an operation at every layer, inside implementations that a program's own binding does not
-  reach; no fail undoes it, and it is released from outside. A program in form shows the
-  bindings of its own region or another's with the names their arguments were given.
-- **A running program can be asked.** A second process hands it a node and gets back how it
-  ended, while the run goes on: the asker, in form, put a counter on every addition of the long
-  recursion, read it twice as it rose, took it off, and the recursion answered as it always
-  does. The first such run answered wrongly, which is how a fault older than the asking was
-  found: a lazy bound while an operation's arguments were being evaluated was handed their
-  answers.
-- **A running program can be told to make itself faster.** Asked from a second process to load
-  the watcher and the emitter, a recursion that takes 14.3 s on the walker ended 0.3 s after
-  the asking, with the same answer. What a module bound from outside binds is outside too, so
-  the watcher manages its own bindings there. With no watcher at all, a program in form looked at
-  the same run three hundred times, found it in one recipe, and asked it to compile that: it
-  ended at 1.3 s.
-- **A loop runs in the room of one round.** A call or a `let` in the last position gives back
-  the activations nothing can return to: three million rounds of a recursion ended with 5
-  activations in use where there had been three million.
-- **The framebuffer is a profiler.** A program in form looks at a running process once a
-  millisecond and says which recipes it was in and which nodes it was at. Read that way, the lens showing its own source was more than half its time in ending
-  small `all`s: each scanned what every `all` around it had gathered. Gathering only its own
-  took the showing from 0.28 s to 0.09 s.
-- **Being seen costs little.** Keeping the walker's registers and each record's writer in the
-  region costs about a quarter of its speed; recording every millisecond costs up to about 4%.
-- **The graph holds.** `./kg check`: no errors over 1,179 claims, none of them reviewed by a second
-  reader.
+Each line here is held by a program that runs under `make check`, or names how it was seen.
+
+**The walker**
+
+- **`make check` passes**, seven lines: the header against its nodes; 51 ground programs and the
+  142 vectors, judged by a program in form; ice across two processes; native code unsigned and
+  hardened; a run recorded from a second process; a run asked from one; and a search that writes
+  a file only for the path that held.
+- **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells and bindings; a
+  note is kept. A call held back with `after` is made when every choice open at the time is
+  closed, and never if a fail returns past it.
+- **A loop runs in the room of one round.** A call or a `let` in the last position gives back the
+  activations nothing can return to: three million rounds ended with 5 in use.
+- **A recipe inside another sees the outer names**, by being closed over them: over two arguments
+  and a part a `let` named, over nine at once, through its own recursion, as a handler.
+- **The host is reached by name**, and a crash inside code or a host function is a fault the
+  program can catch.
+
+**Replacing what runs**
+
+- **While it runs.** An operation, a recipe or the step is given another implementation and has
+  it taken away; a replacement runs on what it replaced. The long recursion takes 0.8 s on the
+  bootstrap's operations, 1.0 s on four machine-code leaves and 9.9 s on four written in form.
+- **From outside the run.** A binding made outside is seen at every layer and is not undone by
+  a fail. A second process asks a running program to evaluate a node and gets back how it
+  ended: it put a counter on every addition, read it twice as it rose and took it off.
+- **Reading and printing.** The reader and the printer of the canonical print, written in form
+  from the encoding's page, hold the vectors and run every ground program in place of the
+  bootstrap's own.
+- **Emitted code is the walker or faster, never different.** It answers a number or declines.
+  Twenty-three recipes end the same both ways; six faults planted in the emitter turned that red.
+- **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
+  hundredth call. From a second process, a program in form looked at a recursion that takes
+  14.3 s, found the recipe it was in, and asked the run to compile it: it ended at 1.3 s.
+
+**Seeing**
+
+- **The region describes itself.** The layout of its records is a node; the C header is made from
+  it. Programs in form show their own region or another's, with bindings in words and names.
+- **The framebuffer is a profiler.** Looked at once a millisecond, a run says which recipes it is
+  in. That found the walker scanning every enclosing `all`'s answers at the end of each small
+  one; gathering only its own took the lens's showing of itself from 0.28 s to 0.09 s.
+- **Being seen costs little.** Registers and writers kept in the region cost about a quarter of
+  the walker's speed; being recorded every millisecond, up to about 4%.
+
+**Writing**
+
+- **The lens reads its own definition**: 853 lines, shown and read back to the file it is, byte
+  for byte, as is each of the 89 files of nodes here, in 0.5 s. Text it cannot read is a fault
+  that names what and where.
+- **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
+  its file. Every module and ground program was named; naming changed no node. A sign stands
+  between two: `(n < 2)`.
+- **Objects.** Two parents that share an ancestor are one shape; super moves the view; a slot
+  outside the view is refused; a cell is seen through an interface it fits by structure.
+
+**Found by running real flows**, each older than the flow that found it: a lazy bound while an
+operation's arguments were being evaluated was handed their answers (found by asking a running
+program); `step` evaluated its node in the activation of whatever computed it (found by running
+everything on the reader in form); the emitter trusted a recipe's own name where it did not mean
+the recipe (found reading it back); a witness compared the walker with the walker because its
+helper could not see the code (found by planting faults that nothing noticed).
+
+- **The graph holds.** `./kg check`: no errors over 1,195 claims, none reviewed by a second reader.
 
 ## Not there
 

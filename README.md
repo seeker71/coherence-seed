@@ -36,7 +36,13 @@ stored node in words and names:
 ./ck text lens/to-words.ck lens/all.ck < lens/lens.ck
 ```
 
-and turns what is written in words into a node to store:
+`ground/recursion.ck`, which is stored as `(#37 (#36 (#40 (#39 (#42 (#44 (#50 ..`, shows as
+
+```
+(call {n | (if (n < 2) n ((call (self) (n - 1)) + (call (self) (n - 2))))} 10)
+```
+
+The lens turns what is written that way into a node to store:
 
 ```bash
 ./ck text lens/to-nodes.ck lens/all.ck < words.txt > new.ck
@@ -125,7 +131,13 @@ operations written as nodes, and a running program can put any of them, or a new
 ./ck run ground/recursion.ck form/add.ck form/sub.ck
 ```
 
-`ground/on-form.ck` and `ground/on-code.ck` do it from inside a program, with `bind`.
+`ground/on-form.ck` and `ground/on-code.ck` do it from inside a program, with `bind`. The reader
+and the printer of the stored form are operations like any other, and they too are written in
+form; this runs every ground program on them:
+
+```bash
+./ck run ground/check.ck form/read.ck form/print.ck
+```
 
 `ground/compiles-a-recipe.ck` loads an emitter written in form (`form/compile.aarch64.ck`), has it
 write machine code for a recipe, and runs the recipe on that code. `ground/warms-itself.ck` does
@@ -180,9 +192,9 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `spec/` | the node encoding and its vectors, the core operations, the framebuffer, the lens, and objects |
 | `lens/` | the lens as nodes: its reader, printer and matcher, its words, its rows, and two programs that run it on standard input |
 | `ice/` | freeze and thaw as nodes |
-| `region/` | the layout of the region's records as a node, and the programs that read a region and write the C header through it |
+| `region/` | the layout of the region's records as a node, and the programs that write the C header from it, show a region, ask a running program, and say where it spends its time |
 | `objects/` | shapes, cells and references as nodes |
 | `ground/` | programs that witness the floor; `check.ck` runs them against the outcomes in `expect.ck` |
-| `form/` | operations written in form and as machine code, the emitter, and the watcher |
+| `form/` | operations written in form and as machine code, the reader and printer of the stored form, the emitter, and the watcher |
 | `tools/` | the graph checker `kg`, the observer `fb`; both are C until generated code replaces them |
 | `graph/` | the claims |
