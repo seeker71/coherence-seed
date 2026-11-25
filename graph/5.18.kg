@@ -9,7 +9,7 @@ at: 2026-11-26
 n: 5.18.1
 name: an-emitter-in-form
 kind: decision
-is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf. It knows numbers, let, tests joined by if, calls among definitions (5.18.5) and, by asking the bootstrap, the parts of a node and the building of one (5.18.6). For any other node it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf. It knows numbers, let, tests joined by if, control that does not search (5.18.9), calls among definitions (5.18.5) and, by asking the bootstrap, the parts of a node and the building of one (5.18.6). For any other node it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
@@ -90,8 +90,30 @@ at: 2026-11-26
 n: 5.18.8
 name: code-on-nodes-is-held-to-the-walker
 kind: observation
-is: Observed on 2026-11-26. ground/code-on-nodes.ck runs sixty-seven recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: fifty-four did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
+is: Observed on 2026-11-26. ground/code-on-nodes.ck runs sixty-nine recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: fifty-six did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
 status: observed
 src: 2.30.6 2.30.7
-limit: Eleven faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
+limit: Twelve faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
+at: 2026-11-26
+
+n: 5.18.9
+name: a-failure-is-a-quiet-mark
+kind: decision
+is: Emitted code knows seq, need, fail and a first over alternatives that each answer once or fail. A failure is a mark beside the mark of a decline: what follows is passed over with no call made, until the condition of an if, the next alternative of a first or a part of a row takes it. What a failed stretch collected, an overflow or a nothing, goes with it; a decline stays. Between definitions compiled together a failure passes as one; where the walker called the code it is a decline, and the walker fails in its own way.
+status: inferred
+from: 5.18.1 5.18.7 5.4.6
+src: 2.30.6
+conf: mid
+why: Code runs straight on with no jump out of the middle of an expression, so one pass still writes it; calls are the only things that must not happen after a failure, and each already looks at the mark before it is made.
+flip: After a failure the rest of the definition is still stepped through, doing nothing. A definition that fails where the walker called it runs twice. Nothing that could answer twice is compiled.
+limit: ground/code-without-search.ck holds thirty-six recipes to the walker's outcome; ten planted faults each turned it red, one only after a case was written where failing and answering nothing differ.
+at: 2026-11-26
+
+n: 5.18.10
+name: the-emitter-compiles-part-of-itself
+kind: observation
+is: Observed on 2026-11-26. ground/compiles-its-own.ck asks the emitter for every definition the repository's modules bind: 103 of 292 compile, all 26 of its own instruction builders and 15 more of its 53 other definitions among them, and it goes on compiling on that code. Each compiles the same alone in a fresh process and after all the others. The reader of the print written in form read the lens's 19,780 bytes in 25 ms on the walker and 8 ms after, to the same node.
+status: observed
+src: 2.30.6 2.30.7
+limit: The count first differed between two programs, 85 and 102 against 103 alone: the root as a constant had been taken for a number, so a compiled test of the emitter's own answered no for every entry. One machine.
 at: 2026-11-26

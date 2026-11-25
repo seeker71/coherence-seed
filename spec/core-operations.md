@@ -603,6 +603,9 @@ under entry 52. What it knows:
   answers a node, which holds unless the node is `no` or there is none, `yes`, `no`, or an `if`
   of such tests. A nothing inside a test makes that test fail, as on the walker;
 - an `lt` or an `eq` as a value: `yes`, `no`, or nothing when a part of it is nothing;
+- control that does not search: `seq`, `need`, `fail`, and `(first (choice a b ..))` over
+  alternatives that each answer once or fail; any of these as the condition of an `if`; a part
+  of a row that fails is left out of it; `fault` and `nothing`;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
@@ -627,6 +630,13 @@ number was wanted or a decline from a call, no call is made, of the bootstrap or
 definition: the code is marked declined instead. So the bootstrap is never handed a value that
 means nothing, and a fault the code did not reach is the walker's to find.
 
+**A definition may fail.** Inside code a failure is a quiet mark: what follows it is passed
+over without a call being made, until something that takes a failure is reached, the condition
+of an `if`, the next alternative of a `first` or a part of a row. What was collected inside the
+failed stretch, an overflow or a nothing, goes with it; a decline does not. Between definitions
+compiled together a failure passes as a failure. Where the walker called the code, a failure is
+a decline: the walker runs the call again and fails in its own way, with its own reason.
+
 **The leaf answers a number or a node, or declines.** It declines when an overflow or a division by zero is
 left at its end, when it was given fewer arguments than the recipe reads, and when the machine
 stack, whose floor it reads from the region's head, has no room for its frame
@@ -647,13 +657,24 @@ aside while `add` is watched from outside and back after; an entry bound outside
 the walker; two definitions that call each other and a loop that calls a third, compiled
 together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
 answered by the walker. Nine faults planted in the emitter each turned it red.
-`ground/code-on-nodes.ck` does the same for sixty-seven recipes over nodes: reading, comparing
+`ground/code-on-nodes.ck` does the same for sixty-nine recipes over nodes: reading, comparing
 and building them, texts, lists and entries as constants, comparisons as values, a nothing and a fault at each place one
 can arise, a number where a node is wanted and the other way round, definitions that hand nodes
 to each other, and a chain of a hundred thousand pairs built by one and walked by another. For
 each it says whether the code answered or handed the call back: thirteen hand back, each one
-that ends in nothing or in a fault, and the rest the code answers. Eleven faults planted in the
-emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+that ends in nothing or in a fault, and the rest the code answers. Twelve faults planted in the
+emitter each turned it red. `ground/code-without-search.ck` holds thirty-six recipes that test,
+fail and choose a first alternative to the walker's outcome, a failure crossing between
+definitions and into a row among them; the ten that end with no path left are handed back, and
+ten more planted faults each turned it red.
+
+`ground/compiles-its-own.ck` asks the emitter for every definition the repository's own modules
+bind: 103 of 292 compile, all 26 of the emitter's instruction builders and 15 more of its own
+definitions among them, so from then on the emitter runs partly on code it made. Each compiles
+the same alone in a fresh process and after all the others. That count first came out
+differently in two programs, which is how a wrong kind for the root as a constant was found.
+The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 25 ms
+on the walker and in 8 ms after this, to the same node. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
@@ -682,11 +703,14 @@ would not be what the walker does there.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles what answers once. Nothing that searches: no `choice` but an `if`, no
-  `fail`, `seq`, `need`, `cut` or `recover`, and no `all` but over a row of parts. Nothing that
+- The emitter compiles what answers once. Nothing that searches: no `choice` that could answer
+  twice, no `range`, no `all` but over a row of parts, no `cut` of its own and no `recover`;
+  that is most of what stands between it and the rest of the system's definitions. Nothing that
   leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
-  An expression nested deeper than seven registers is not compiled. So the emitter does not yet compile itself.
+  An expression nested deeper than seven registers is not compiled. So the emitter compiles
+  part of itself and not the whole.
+- A definition that fails where the walker called it is run again on the walker.
 - Code for a recipe that is not an entry's is bound to the recipe as it read when the code was
   made. What the program binds afterwards, an operation or a definition the recipe calls, that
   code does not see, though the walker running the recipe where it is called would; and when
