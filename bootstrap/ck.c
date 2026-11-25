@@ -750,7 +750,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case ALL:
       if (c != 1) { fault("arity"); break; }
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter }; ncp++;
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, nafter, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
@@ -1003,8 +1003,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->reason = 0; W->mode = M_RET; break;
     }
     if (q->all) {                         /* every answer has been gathered */
-      uint32_t base = ntk, w = 0, id = q->coll;
-      for (uint32_t i = 0; i < ncoll; i++) {
+      uint32_t base = ntk, w = q->i, id = q->coll;       /* its answers lie above where it began: q->i */
+      for (uint32_t i = q->i; i < ncoll; i++) {
         if (coll[i].id == id) { room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = coll[i].v; } else coll[w++] = coll[i]; }
       ncoll = w; ncp--;
       W->v = mk(1, E(LIST), tk + base, ntk - base, &why); ntk = base; W->mode = M_RET; break;

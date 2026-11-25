@@ -44,8 +44,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   Its first version compared the walker with the walker and saw none of them: its helper was a
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
-  its own names, as 849 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 84 files of nodes here in 0.4 s. Its rows and their matcher were
+  its own names, as 853 lines and reads them back to the file it is stored as, byte for byte, and
+  does the same for each of the 84 files of nodes here in 0.5 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
   numbers in the node and names on a second line of its file. The definitions of the lens, the
@@ -101,6 +101,10 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back
   the activations nothing can return to: three million rounds of a recursion ended with 5
   activations in use where there had been three million.
+- **The framebuffer is a profiler.** A run recorded every millisecond says which node the walker
+  was at. Read that way, the lens showing its own source was more than half its time in ending
+  small `all`s: each scanned what every `all` around it had gathered. Gathering only its own
+  took the showing from 0.28 s to 0.09 s.
 - **Being seen costs little.** Keeping the walker's registers and each record's writer in the
   region costs about a quarter of its speed; recording every millisecond costs up to about 4%.
 - **The graph holds.** `./kg check`: no errors over 1,179 claims, none of them reviewed by a second

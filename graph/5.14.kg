@@ -581,3 +581,12 @@ why: A recipe is a node and holds no values (5.1.1), so what an inner recipe nee
 flip: Each closing makes a node that is never given back, so a closing inside a long loop fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
 limit: Witnessed by ground/closes-over.ck, turned red by two planted faults. At most forty arguments in all.
 at: 2026-11-26
+
+n: 5.14.53
+name: the-framebuffer-read-as-a-profiler
+kind: observation
+is: Observed on 2026-11-26. The lens showing its own source was recorded from a second process every millisecond, and the node the walker was at in each frame was counted. 94 of 169 frames stood at the end of a small all. The walker, ending an all, went through everything gathered by every all still open around it; it now goes through its own answers only, which lie above where it began. The showing took 0.28 s before and 0.09 s after, and the round trip of every file 0.80 s and 0.53 s. After it no node stood out.
+status: observed
+src: 2.30.7 2.30.10 2.30.11
+limit: A frame is a sample; a node that takes little time and is met often is seen, one met rarely is not. One program, one machine.
+at: 2026-11-26
