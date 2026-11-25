@@ -16,9 +16,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 56 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 57 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,387 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,388 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -26,7 +26,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, seven lines: the header against its nodes; 56 ground programs and the
+- **`make check` passes**, seven lines: the header against its nodes; 57 ground programs and the
   142 vectors, judged by a program in form; ice across two processes; native code unsigned and
   hardened; a run recorded from a second process; a run asked from one; and a search that writes
   a file only for the path that held.
@@ -56,8 +56,9 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **Emitted code is the walker or faster, never different.** It answers a number or a node, or declines. For
   an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
   and it steps aside while something from outside watches an operation it replaced.
-  Twenty-nine recipes over numbers, sixty-nine over nodes, thirty-six that test, fail and choose
-  and thirty-three that search end the same both ways; thirty-eight faults planted in the emitter turned that red.
+  Twenty-nine recipes over numbers, sixty-nine over nodes, thirty-six that test, fail and choose,
+  thirty-three that search and twenty-five that search other definitions end the same both
+  ways; forty-three faults planted in the emitter turned that red.
   Definitions that call each other are compiled into one leaf, and a recursion written as a loop
   runs as one: thirty million rounds, each calling a second definition, in 0.4 s.
 - **Code works on nodes by asking the bootstrap.** One address in the region does any operation
@@ -68,12 +69,14 @@ Each line here is held by a program that runs under `make check`, or names how i
   of a million pairs was built and summed in 0.13 s against 0.53 s.
 - **A search inside a definition runs as loops.** An `all` or a `first` over ranges, choices,
   tests and operations on their answers is compiled: the primes below 3,000 by trial division
-  and the pairs below 400 were counted in 79 ms on the walker and 2 ms compiled.
+  and the pairs below 400 were counted in 79 ms on the walker and 2 ms compiled. A definition
+  that answers more than once hands each answer to the search that called it, so a search
+  crosses definitions: one that calls itself handed up all 5,711 nodes of the lens's definition.
 - **The emitter compiles part of the system, itself included.** Asked for every definition the
-  repository's modules bind, it compiles 129 of 302, each the same alone and after all the
-  others: all 26 of its own instruction builders and 18 more of its definitions, so it goes on
-  compiling partly on code it made. The reader of the print written in form read the lens's
-  19,780 bytes in 20 ms on the walker and in 8 ms after.
+  repository's modules bind, it compiles 149 of 304, each the same alone and after all the
+  others: all 26 of its own instruction builders and 32 more of its 64 definitions, so it goes
+  on compiling partly on code it made. The reader of the print written in form read the lens's
+  19,780 bytes in 20 ms on the walker and in 7 ms after.
 - **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
   hundredth call. From a second process, a program in form looked at a recursion that takes
   14.3 s, found the recipe it was in, and asked the run to compile it: it ended at 1.3 s.
@@ -91,7 +94,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 853 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 96 files of nodes here, in 0.8 s. Text it cannot read is a fault
+  for byte, as is each of the 97 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -106,23 +109,24 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,205 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,206 claims, none reviewed by a second reader.
 
 ## Not there
 
 - **Everything swappable** (path: graph node 7.21). The store's own making of nodes, the host
   functions, and what carries a run between nodes, the continuation, the choice points and the
   undo, are C with no binding.
-- **A compiler worth the name.** The emitter compiles a definition that answers once, whole or
-  not at all: numbers, nodes, tests, lets, searches inside it, and calls among definitions
-  compiled together. It compiles no definition that answers more than once, which is how the
-  emitter and the lens hand bytes and nodes along, and nothing that leaves a mark; 173 of the
-  system's 302 definitions wait on those two. Code for a recipe that
+- **A compiler worth the name.** The emitter compiles a definition whole or not at all: numbers,
+  nodes, tests, lets, searches, and calls among definitions compiled together. It compiles
+  nothing that leaves a mark, no call of a recipe held as a value, no search as the condition
+  of an `if`, and nothing nested deeper than seven registers; 155 of the system's 304
+  definitions wait on those. It is itself mostly walked and slow: compiling 125 definitions
+  takes 1.6 s. Code for a recipe that
   is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 96
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 97
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 54 text files, and the axioms' text. Five of the checks are still lines of the

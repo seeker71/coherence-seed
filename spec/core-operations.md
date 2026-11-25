@@ -612,6 +612,7 @@ under entry 52. What it knows:
 - a search inside one definition: `(all x)` and `(first x)` where x is built of `range`,
   `choice`, `let`, `seq`, `need`, `fail`, `if` and operations whose parts are searches
   themselves;
+- a definition that answers more than once, called from such a search;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
@@ -652,6 +653,17 @@ stopped, under which loops end and no call is made until the `first` is left. Wh
 keeps from one answer to the next lies in the frame, which is 336 bytes for a definition that
 searches. An answer that is nothing is an answer, as on the walker.
 
+**A definition that answers more than once hands its answers on.** It is compiled as a search
+of its own. Where it has an answer it calls the code of the search that called it, which it was
+given together with the caller's frame; that code takes the answer, does what follows in the
+caller, and says whether to go on. A `first` that has its answer says stop, and so does
+anything that declined. So a search crosses from one definition into another, and a definition
+may call itself while answering: every node under a node, each handed up through the calls
+above it. What a search keeps between answers lies in its frame for this reason: the code that
+takes an answer runs beneath the definition that gave it. Such a definition is compiled only in
+the leaf of one that searches it; asked for by itself it is refused, since the walker takes one
+answer at a time.
+
 **The leaf answers a number or a node, or declines.** It declines when an overflow or a division by zero is
 left at its end, when it was given fewer arguments than the recipe reads, and when the machine
 stack, whose floor it reads from the region's head, has no room for its frame
@@ -686,15 +698,24 @@ searches: ranges within ranges, a search as a part of an operation, a `first` in
 tests and failures between the answers, a nothing and a fault among them. Two are handed back,
 one that ends with no path and one that divides by zero on its way; seven planted faults each
 turned it red. The primes below 3,000 by trial division and the pairs below 400 were counted in
-79 ms on the walker and 2 ms compiled.
+79 ms on the walker and 2 ms compiled. `ground/code-hands-answers.ck` does it for twenty-five
+recipes that search definitions which answer more than once: one handing on another's answers,
+one walking a tree by calling itself, answers of both kinds, a first that stops an endless one,
+a fault inside one. Three are handed back and one, such a definition asked for by itself, is
+refused. Five planted faults each turned it red, and a sixth made it never end. All 5,711
+nodes of the lens's definition were handed up by a definition calling itself, counted the same
+as on the walker.
 
 `ground/compiles-its-own.ck` asks the emitter for every definition the repository's own modules
-bind: 129 of 302 compile, all 26 of the emitter's instruction builders and 18 more of its own
+bind: 149 of 304 compile, all 26 of the emitter's instruction builders and 32 more of its own
 definitions among them, so from then on the emitter runs partly on code it made. Each compiles
 the same alone in a fresh process and after all the others. That count first came out
 differently in two programs, which is how a wrong kind for the root as a constant was found.
 The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 20 ms
-on the walker and in 8 ms after this, to the same node. `ground/compiles-a-recipe.ck` loads the
+on the walker and in 7 ms after this, to the same node; the lens showed its own definition and
+read it back in 54 ms and then in 44 ms. Compiling the 125 that were bound took 1.6 s: the
+emitter is itself mostly walked, and it compiles a definition again with each one that calls
+it. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
@@ -723,11 +744,13 @@ would not be what the walker does there.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles a definition that answers once. One that answers more than once is not
-  compiled, so a search cannot cross from one definition to another; the emitter's own
-  definitions answer a byte at a time and wait on that, as does most of the rest of the system.
-  No `cut` of its own and no `recover`. What comes after an answer is written again for each
-  alternative, so code for a wide search grows. Nothing that leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
+- A definition that answers more than once is compiled only inside the leaf of one that
+  searches it, and each answer passes through the code of every search above it, so answers
+  from deep inside a recursion cost their depth. A search stands only under an `all` or a
+  `first`, or as the whole of a definition: not as the condition of an `if`. No `cut` of its
+  own, no `recover`, and no call of a recipe held as a value, which is how the emitter passes
+  what follows an answer. What comes after an answer is written again for each alternative, so
+  code for a wide search grows. Nothing that leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
   An expression nested deeper than seven registers is not compiled. So the emitter compiles
   part of itself and not the whole.
