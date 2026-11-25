@@ -144,8 +144,13 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nob N(A_PRINT)
 #define ntext N(A_TEXT)
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
+/* An area that is full: while a program runs that is its fault, full and the area's name, which it can
+ * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
+ * the process. */
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
 static void room(int a, uint64_t need) {
   if (need <= fb->a[a].cap) return;
+  if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
 }
 static char fbname[64]; static int fbkeep;
@@ -163,7 +168,7 @@ static void fb_open(void) {
     [A_CELLS] = { WORD_TABLE, 4, 1u << 22 },                [A_TRAIL] = { TRAIL, sizeof(Trail), 1u << 22 },
     [A_READER_OPENED] = { WORD_TABLE, 4, 1u << 22 },             [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 1u << 22 },
     [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1u << 26 },               [A_PRINT] = { BYTE_TABLE, 1, 1u << 26 },
-    [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 1u << 22 },
+    [A_PRINT_NUMBERS] = { WORD_TABLE, 4, (1u << 22) + 8 },     /* one for each node, and one more */
     [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
     [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 },
     [A_AFTER] = { WORD_TABLE, 4, 1u << 20 } };
@@ -177,7 +182,7 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 10; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 11; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -508,7 +513,7 @@ static void *birth(H leaf) {              /* the leaf's instructions, runnable; 
  * Continuation frames are never changed once made, so a choice point can keep one and
  * return to it; fail drops whatever was made after it. */
 static uint32_t push(uint32_t t, H node, uint32_t i, uint32_t env, uint32_t cut, uint32_t vals, uint32_t k, uint32_t aux) {
-  room(A_FRAMES, (uint64_t)nfr + 1); fr[nfr] = (Frame){ E(FRAME), W->at, t, node, i, env, cut, vals, k, aux, nact }; return nfr++;
+  room(A_FRAMES, (uint64_t)nfr + 1); fr[nfr] = (Frame){ E(FRAME), W->at, t, node, i, env, cut, vals, k, aux, nact, nlink }; return nfr++;
 }
 /* Before a call or a let in the last position makes its activation: the activations made since the
  * frame it answers to are given back when no open choice and no user above (up) can return to
@@ -602,7 +607,6 @@ static H seen_as(const char *word, H v) { const char *why; H p[2] = { txt(word),
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
 /* Code a program gave is called under watch: when the processor faults inside it, the walker goes
  * on and the program has a fault, crash, like any other. A fault anywhere else ends the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding;
 static void crashed(int sig) {
   (void)sig; if (coding) siglongjmp(in_code, 1);
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
@@ -690,11 +694,15 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
   if (!W->v) W->reason = txt(why);
 }
 
-static void run(H top) {                  /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
+static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
   W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~0u, 0, 0 }; W->one = 0;
-  if (sigsetjmp(in_code, 1)) { coding = 0; fault("crash"); }      /* the processor faulted inside code: the walker goes on */
+  switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
+  case 1: coding = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
+  case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
+    ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
+  }
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
     if (nafter && !ncp) {                 /* every choice is closed: what was held back for that is done now */
@@ -1024,6 +1032,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     Frame f = fr[j];
     if (f.t == F_OUTCOME) { cp[f.aux].coll = seen_as("fault", W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
     if (ncp > f.aux) ncp = f.aux;
+    nfr = j + 1; if (f.mlink < nlink) nlink = f.mlink;     /* the faulted body's frames, values and calls are given back */
+    if (f.mact < nact) { nargp = act[f.mact].off; nact = f.mact; }
     nafter = f.i;                         /* what the faulted body held back is dropped with it */
     ncoll = f.vals;                       /* what the alls inside it had gathered goes with them */
     W->k = push(F_HANDLER, W->reason, 0, f.env, f.cut, 0, f.k, 0);
@@ -1031,6 +1041,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   default: return;
   }
 }
+
+static void run(H top) { walking = 1; walk(top); walking = 0; }
 
 /* ---- commands: a program is run, and everything else is a program -------------------------- */
 static H file_node(const char *path) {      /* a print file: one node on its first line */
@@ -1042,6 +1054,7 @@ static H file_node(const char *path) {      /* a print file: one node on its fir
 static int command(int argc, char **argv) {
   const char *cmd = argc > 1 ? argv[1] : "";
   store_init();
+  for (int i = 0; i < A_COUNT; i++) full_at[i] = seen_as("full", txt(AREA_NAME[i]));
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
     for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
     run(file_node(argv[2]));

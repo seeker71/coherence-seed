@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,132 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,145 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 65 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles a recipe over numbers to one machine-code leaf |
@@ -16,7 +16,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 51 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 52 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
 | Claim graph | [`graph/`](graph) | 1,375 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
@@ -26,7 +26,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, seven lines: the header against its nodes; 51 ground programs and the
+- **`make check` passes**, seven lines: the header against its nodes; 52 ground programs and the
   142 vectors, judged by a program in form; ice across two processes; native code unsigned and
   hardened; a run recorded from a second process; a run asked from one; and a search that writes
   a file only for the path that held.
@@ -38,7 +38,8 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
   and a part a `let` named, over nine at once, through its own recursion, as a handler.
 - **The host is reached by name**, and a crash inside code or a host function is a fault the
-  program can catch.
+  program can catch. So is an area of the region that is full: a recursion that never returns
+  is caught, twice, and the program goes on.
 
 **Replacing what runs**
 
@@ -71,7 +72,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 853 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 91 files of nodes here, in 0.6 s. Text it cannot read is a fault
+  for byte, as is each of the 92 files of nodes here, in 0.6 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -101,7 +102,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   them, do not see it.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 91
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 92
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 52 text files, and the axioms' text. Five of the checks are still lines of the
@@ -113,9 +114,9 @@ helper could not see the code (found by planting faults that nothing noticed).
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
-- **Bounds that give way.** The region's areas have fixed capacities: a wrong recursion runs until
-  one is full, and no node a run made is given back, so a loop that counts to ten million fills
-  the store.
+- **Bounds that give way.** The region's areas have fixed capacities. A program that fills one
+  has a fault it can catch, and gets its frames back; no node a run made is given back, so a
+  loop that counts to ten million fills the store, and that stays full.
 
 ## Guidance
 

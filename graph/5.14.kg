@@ -608,3 +608,16 @@ status: observed
 src: 2.30.3 2.30.6 2.30.7
 limit: An id in form takes about a tenth of a millisecond a node on the walker; the lens's round trip is not run on it. Nodes are made by the bootstrap's store. The first run of the vectors failed four, all under entry 32: the reader asked whether a node was there with if, and the node no reads as no.
 at: 2026-11-26
+
+n: 5.14.56
+name: a-full-area-is-a-fault
+kind: decision
+is: When an area of the region has no room left while a program runs, the program has the fault full with the area's name, caught by recover and seen by outcome; before, the process ended. The walker leaves what was half made and goes on from its loop, as after a crash in code. A recover that catches a fault gives back the frames, the gathered values and the activations of the body that faulted. Observed on 2026-11-26: a recursion that never returns was caught at four million frames, twice in one program, which then ran a recursion of its own a thousand deep.
+status: inferred
+from: 5.4.5 5.14.41 5.9.3 7.13
+src: 2.30.7 2.30.6 2.30.11
+conf: mid
+why: A program that runs away should cost a fault and not the process, most of all when something from outside is watching it or asking it.
+flip: Nodes are never given back, so a full store stays full and what catches that can do little. A full area while a fault is being handled still ends the process.
+limit: Witnessed by ground/full-is-a-fault.ck. Frames grew by a word to hold the mark for values.
+at: 2026-11-26

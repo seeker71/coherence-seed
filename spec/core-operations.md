@@ -118,6 +118,13 @@ none, a recursion in machine code that runs off its stack: each is a fault like 
 caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is-a-fault.ck`). A
 fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
+`full` is the fault of an area of the region that has no room left; its reason is
+`(list "full" name)`, the area's name beside it. A recursion that never returns ends this way
+and not with the process. Where a `recover` catches a fault, the frames, the gathered values and
+the activations of the body that faulted are given back, so a program that ran out of frames goes
+on (`ground/full-is-a-fault.ck` does it twice). Nodes are not given back: a store that is full
+stays full, and what catches that fault can do little.
+
 ## Entries 53 to 63: the floor's own records
 
 Everything the floor keeps in memory is a record whose first word is one of these entries

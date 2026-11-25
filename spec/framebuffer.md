@@ -202,8 +202,9 @@ in it was complete when its count was read.
 - **A frame is a sample.** What a cell held between two frames is not kept, apart from its last
   writer. The journal that undo needs (stage 5) will keep old values inside the region.
 - **The stack is recorded as raw bytes**, its newest 256 KiB, and the observer does not yet read it.
-- **Areas have fixed sizes.** A run that outgrows one stops with the area's name. A process that is
-  killed leaves its region behind until `fb drop NAME`.
+- **Areas have fixed sizes.** A program that outgrows one has a fault, `full`, with the area's
+  name; a `recover` that catches it gets the frames, values and activations back, and no nodes.
+  A process that is killed leaves its region behind until `fb drop NAME`.
 - One hand wrote the layout, the writer and the observer, and only this Mac ran them.
 - **One asker at a time.** Two processes asking at once can overwrite each other's request. The
   asker waits by looking, not by an event. A request is answered between two steps of the walker,
