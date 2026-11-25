@@ -13,7 +13,7 @@
  * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
  * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
  * getenv getpid atexit exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
- * siglongjmp snprintf memcpy memcmp memset strlen strcmp
+ * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
  * pthread_jit_write_protect_np and sys_icache_invalidate.
  */

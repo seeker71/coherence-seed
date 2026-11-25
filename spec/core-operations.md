@@ -439,7 +439,8 @@ the program's own bindings:
   a layer's do.
 - **It acts from outside.** What an implementation bound from outside binds or releases, however
   deep inside it, is bound and released outside too. So a whole module can be loaded from
-  outside and manage its own bindings there: the watcher and the emitter are, below.
+  outside and manage its own bindings there, as the watcher and the emitter do when a running
+  program is asked to load them (`spec/framebuffer.md`).
 
 The limit an activation runs under holds both counts, the program's own bindings and the ones
 from outside, and whether what is bound under it is the program's own. At most 127 can be bound
