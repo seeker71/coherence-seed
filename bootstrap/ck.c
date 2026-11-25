@@ -52,6 +52,7 @@ typedef struct {
   int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap);
   Ret (*call)(void *fn, const int64_t *a);
   int64_t (*clock)(void);                          /* nanoseconds that only move forward */
+  void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -92,7 +93,13 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
 static Ret h_call(void *fn, const int64_t *a) {
   return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock };
+static void *h_watch(const char *name) {
+  int fd = shm_open(name, O_RDONLY, 0); struct stat st;
+  if (fd < 0) return NULL;
+  void *p = fstat(fd, &st) ? MAP_FAILED : mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  close(fd); return p == MAP_FAILED ? NULL : p;
+}
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -152,7 +159,7 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 7; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 8; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -737,6 +744,23 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (nd[a[0]].comp) { fault("kind"); break; }
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
+      }
+      if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
+        int64_t o = 0, n = 0; uint32_t mark = ntext;
+        if (c != 3) { fault("arity"); break; }
+        if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault("kind"); break; }
+        room(A_CELLS, (uint64_t)E(LOOK) + 1); if (N(A_CELLS) <= E(LOOK)) N(A_CELLS) = E(LOOK) + 1;
+        if (held[E(LOOK)] != a[0]) {
+          char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
+          void *p = host.watch(s); ntext = mark;
+          if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = txt("no-region"); break; }
+          W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0];
+        }
+        const Head *far = (const Head *)(uintptr_t)W->watch;
+        if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = txt("range"); break; }
+        uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
+        W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
       }
       if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
         int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;

@@ -85,6 +85,12 @@ disagree: the size of each kind of record against the size its area states, the 
 and the two places code relies on. `ground/region-describes-itself.ck` runs that check; a
 description with a field widened or two fields changed over is reported.
 
+The same program reads another process's region. `look` maps it to be read only, and
+`region/watch.ck` shows it: every handle it meets is a place in the other process's node table,
+so the node is built again here from its record, its blueprint first, and what is shown is the
+node and not the number. The address of the mapping is the machine's `watch`, the one address
+kept in the region beside where code pages lie.
+
 ## Frames, recording and replay
 
 A **frame** is a copy of the head page and of the used part of every area, taken by a second

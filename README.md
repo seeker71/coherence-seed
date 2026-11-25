@@ -63,6 +63,12 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 ./fb show /ck.demo
 ```
 
+or, from a program written in form, with every binding shown in the lens's words:
+
+```bash
+printf /ck.demo | ./ck text region/watch.ck
+```
+
 ## Check it
 
 ```bash
