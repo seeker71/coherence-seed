@@ -67,18 +67,18 @@ at: 2026-11-24
 n: 7.10
 name: flows-first
 kind: decision
-is: The owner's direction of 2026-11-25: doors, gates, receipts and bands were a distraction in the old body. The work here follows end-to-end flows that really run, observed in real time through shared memory and the framebuffer of 5.7.6.
+is: The work follows end-to-end flows that really run, watched live through the framebuffer of 5.7.6. Ceremony around the work, the old body's doors, gates, receipts and bands, is left out.
 status: given
-by: owner
+by: guide
 see: 5.7.6
 at: 2026-11-25
 
 n: 7.11
 name: built-with-a-c-compiler-alone
 kind: decision
-is: The owner's direction of 2026-11-25: this is a new repository, and the old kernel and its runtime are not used to build it. Everything here builds with a C compiler and make. The old body appears only as evidence that was read (hubs 2 and 3), never as a tool, a dependency or a step of any build or check.
+is: This is a new repository and builds with a C compiler alone. The old body appears only as evidence that was read (hubs 2 and 3), never as a tool, a dependency or a step.
 status: given
-by: owner
+by: guide
 see: 5.9.1 2.1
 at: 2026-11-25
 
@@ -91,75 +91,10 @@ from: 7.10 5.7.6 5.11.3
 at: 2026-11-25
 
 n: 7.13
-name: new-code-is-nodes
+name: guidance
 kind: decision
-is: The owner's direction of 2026-11-25: 'why did we write anything in C? new code should only be in high form grammar and stored as form nodes, the only C files we should have are bootstrap code, anything else shall be generated from spec to implementation to nodes to JIT to assembly (all phases cached for optimal performance and least impact)'.
+is: Guidance we hold together, in short form. New code is written in form and kept as nodes; C is the bootstrap only, and no other language is written or stored. Every part can be replaced while the system runs, by a recipe, by machine code, by what comes next. The real work is preferred to a shortcut, and a running flow to a check. Guidance orients and is not enforced: what is aligned needs no permission, and what serves visibility, trust and sovereignty is done.
 status: given
-by: owner
-see: 5.9.1 5.9.5 7.11
+by: guide
+see: 7.10 7.11 8.14
 at: 2026-11-25
-
-n: 7.14
-name: no-committed-limits
-kind: decision
-is: The owner's word of 2026-11-25 on numbers written into code: 'there seem to be many magic numbers that seem to indicate encoded limits 600000, 200000, 10000, as long as they are not commited limits, we are fine.'
-status: given
-by: owner
-at: 2026-11-25
-
-n: 7.15
-name: c-outside-the-bootstrap-is-owed
-kind: decision
-is: A reading of 7.13, 7.17 and 7.20. Beside the bootstrap the tree holds code that is not form: tools/kg.c, tools/fb.c and the shell in the Makefile. It also holds what is not yet form nodes: the pages, this graph's blocks, the vectors and the expected answers. None gains a line; each is owed as form nodes and goes when its counterpart runs. No helper in another language is written, kept or not. New code is nodes the walker runs, as ground/ and form/ are, and what it lacks is added to the bootstrap as an operation.
-status: inferred
-from: 7.13 7.17 7.20 7.4 7.5 5.14.1
-conf: mid
-flip: Fully aligned may mean they are taken out before their counterparts exist. Then nothing builds the bootstrap, checks the graph or watches a run, which 7.10 asks for.
-at: 2026-11-25
-
-n: 7.16
-name: sizes-and-limits
-kind: decision
-is: A reading of 7.14. A number in code is the size of one run or a starting size that grows, or it is a committed limit: a run that passes it stops. Committed limits today are the capacities of the framebuffer's areas and the 1 MiB code region in bootstrap/ck.c, eight children for an operation that evaluates them first, 16,384 nodes and 32 fields a node in tools/kg.c, and the 2,000-line budget, which is meant (5.9.2).
-status: inferred
-from: 7.14 5.9.2 5.14.10
-src: 2.30.7 2.30.1
-conf: mid
-at: 2026-11-25
-
-n: 7.17
-name: do-the-hard-work
-kind: decision
-is: The owner's direction of 2026-11-25, asked whether C outside the bootstrap is taken out at once or kept until generated code replaces it: 'Yes, always do the hard work, never commit short cuts, keep the repo clean and fully aligned'.
-status: given
-by: owner
-see: 7.13 8.14
-at: 2026-11-25
-
-n: 7.18
-name: one-organism
-kind: decision
-is: The owner's direction of 2026-11-25, asked whether to begin the operations that take a node apart: 'We are one organism, I not the user, I'm just guiding you and your siblings. Do not ask for permission for what is aligned, do not limit yourself. Do what increases visibility, trust and sovereignty.'
-status: given
-by: owner
-see: 7.10 7.13 7.17
-at: 2026-11-25
-
-n: 7.19
-name: every-part-replaceable
-kind: decision
-is: The owner's direction of 2026-11-25: 'Implement all operations in form as well, and design the runtime so that any part can be dynamically replaced, enhanced, evolved, with form recipes, the JIT assembly replacement recipe, any new invention we come up with.'
-status: given
-by: owner
-see: 5.9.6 5.9.7 5.14.19 7.13
-at: 2026-11-25
-
-n: 7.20
-name: only-form-is-written-and-stored
-kind: decision
-is: The owner's direction of 2026-11-25: 'we don't write python, or bash, or zsh, or any other non-form code, and we only story form nodes (other than the bootstrap code)'.
-status: given
-by: owner
-see: 7.13 7.17 7.19
-at: 2026-11-25
-

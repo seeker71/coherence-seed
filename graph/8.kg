@@ -37,7 +37,7 @@ at: 2026-11-24
 n: 8.5
 name: status
 kind: term
-is: Status says how a claim is known. given: the acknowledged ground, or a decision in the owner's own words, which names them in 'by'. observed: someone in this project read the file at that line or ran the command. relayed: read through a tool that summarises, such as a web fetch, or through another report. inferred: reasoned from the nodes named in 'from'. assumed: not verified. A question is open or answered.
+is: Status says how a claim is known. given: the acknowledged ground, or guidance we hold together, kept in short form with 'by' naming where it came from. observed: someone in this project read the file at that line or ran the command. relayed: read through a tool that summarises, such as a web fetch, or through another report. inferred: reasoned from the nodes named in 'from'. assumed: not verified. A question is open or answered.
 status: assumed
 why: Web quotations reach a reader through a fetch tool that summarises; 'relayed' keeps that visible instead of calling it observed.
 at: 2026-11-24
@@ -110,9 +110,9 @@ at: 2026-11-24
 n: 8.14
 name: only-what-is
 kind: decision
-is: The owner's direction of 2026-11-25: 'do not track history or corrections in documents, only keep what is, history shall only be in git, the git content shall always be like a green field, clean sheet without any trail on how we got here. we can keep a north star as direction, and we can keep a floor with observation date, and everything that is not aligned with what is now, shall be released and composted'. And: 'we just keep what is needed to close the gap to the north star from the now floor. everything else can be composted.'
+is: The guide's direction of 2026-11-25: 'do not track history or corrections in documents, only keep what is, history shall only be in git, the git content shall always be like a green field, clean sheet without any trail on how we got here. we can keep a north star as direction, and we can keep a floor with observation date, and everything that is not aligned with what is now, shall be released and composted'. And: 'we just keep what is needed to close the gap to the north star from the now floor. everything else can be composted.'
 status: given
-by: owner
+by: guide
 see: 8.7 7.10
 at: 2026-11-25
 

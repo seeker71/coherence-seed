@@ -44,13 +44,14 @@ static void die(const char *m) { put(2, "ck: "); put(2, m); put(2, "\n"); exit(2
 static void say(const char *a, const char *b) { put(1, a); put(1, b); put(1, "\n"); }
 
 /* ---- the host: every capability the floor takes from it, one function each ------- */
+typedef struct { int64_t v, k; } Ret;              /* what code answers: v, and k saying what v is */
 typedef struct {
   void *(*region)(const char *name, uint64_t n);   /* the one shared region, zeroed */
   void *(*code_map)(size_t);                       /* reserve the one executable region */
   void (*code_write)(int on);                      /* this thread may write code / may run it */
   void (*code_flush)(void *, size_t);              /* instruction cache */
   int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap);
-  int64_t (*call)(void *fn, const int64_t *a);
+  Ret (*call)(void *fn, const int64_t *a);
 } Host;
 static void *h_region(const char *name, uint64_t n) {
   shm_unlink(name);
@@ -87,8 +88,8 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
   while ((uint64_t)n < cap && (r = read(fd, to + n, cap - (uint64_t)n)) > 0) n += r;
   close(fd); return r < 0 ? -1 : n;
 }
-static int64_t h_call(void *fn, const int64_t *a) {
-  return ((int64_t (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5]);
+static Ret h_call(void *fn, const int64_t *a) {
+  return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5]);
 }
 static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call };
 
@@ -501,14 +502,19 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
+/* Call code and take its answer: k 0 a number, k 1 yes or no, any other k out of range. */
+static void landed(void *fn, const int64_t *arg) {
+  if (!fn) { W->v = 0; W->reason = txt("no-native"); return; }
+  Ret r = host.call(fn, arg);
+  if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO); else { W->v = 0; W->reason = txt("range"); }
+}
 /* Run binding b on values already in hand: a recipe is entered on the bindings beneath b,
  * a code leaf is called with the values as integers. */
 static void apply(uint32_t b, const H *a, uint32_t c) {
   H impl = bd[b-1].impl; int64_t arg[6] = {0};
   if (nd[impl].comp) { W->env = enter(impl, a, c, b - 1); W->cut = ncp; W->x = KID(impl, 0); W->mode = M_EVAL; return; }
   for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) { fault("kind"); return; }
-  void *fn = birth(impl);
-  W->mode = M_RET; if (fn) W->v = mki(host.call(fn, arg)); else { W->v = 0; W->reason = txt("no-native"); }
+  W->mode = M_RET; landed(birth(impl), arg);
 }
 /* Entries 64 to 71: a node taken apart, a node built from parts, and an entry bound. A build
  * the encoding refuses answers nothing, and the reason is the refusal's word. */
@@ -639,9 +645,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (c > 7 || !a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE)) { fault("kind"); break; }
         for (uint32_t j = 1; j < c; j++) if (!geti(a[j], &arg[j-1])) fault("kind");
         if (W->mode == M_FAULT) break;
-        void *fn = birth(a[0]);
-        if (!fn) { W->v = 0; W->reason = txt("no-native"); break; }
-        W->v = mki(host.call(fn, arg)); break;
+        landed(birth(a[0]), arg); break;
       }
       if (op >= BLUEPRINT) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }

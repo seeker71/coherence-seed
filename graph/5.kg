@@ -79,7 +79,7 @@ status: inferred
 from: 3.15.2.2 3.15.2.3 3.15.4.4 3.15.8.1 3.15.8.2 4.4.8.1 4.5.3.1 3.13.8.2 1.3
 conf: mid
 why: Measured on the first machine: 16 ns per 40-byte node through the CPU's SHA instructions, against 97 ns for the system library call. 64 bits collide with probability 0.39 at 2^32 nodes.
-limit: Nobody asked for SHA-256: it is this node's own choice, standing on measurements, and the owner has not given it.
+limit: Nobody asked for SHA-256: it is this node's own choice, standing on measurements, and the guide has not given it.
 flip: A target without SHA instructions, or very large leaves, would favour BLAKE3; neither case was measured.
 open: 6.1.18 6.1.14 6.1.4 6.1.31
 at: 2026-11-24
@@ -242,9 +242,9 @@ at: 2026-11-24
 n: 5.4.2
 name: fail-is-backtracking
 kind: decision
-is: Fail is not a value. The owner's word of 2026-11-24: 'fail means backtrack, undo and reverse all changes until a new choice or a sequence is tried, as it is defined in BML.' A fail turns execution around: every change made since the nearest open choice is reversed, newest first, and that choice's next option runs forward from the state the choice was entered with. Asked the same day whether an offer receives nothing when every option of a choice has failed, the owner answered 'Yes, nothing'.
+is: Fail is not a value. The guide's word of 2026-11-24: 'fail means backtrack, undo and reverse all changes until a new choice or a sequence is tried, as it is defined in BML.' A fail turns execution around: every change made since the nearest open choice is reversed, newest first, and that choice's next option runs forward from the state the choice was entered with. Asked the same day whether an offer receives nothing when every option of a choice has failed, the guide answered 'Yes, nothing'.
 status: given
-by: owner
+by: guide
 see: 3.5.2.2 3.5.2.4 3.5.2.6 5.4.7 5.4.8 5.4.9
 why: This is the 2000 machine's reading, where failure is a mode of the machine and undo is what the machine does in it.
 at: 2026-11-24
@@ -267,7 +267,7 @@ status: inferred
 from: 5.4.2 5.4.4 1.7.17 1.7.19 3.3.4.2 3.3.4.3
 conf: high
 see: 3.3.4.1 3.3.4.10 4.5.1.3
-limit: The owner confirmed the reading of nothing after an exhausted choice (5.4.2). That 0 is an answer a recipe stands by, with its changes kept, is still this design's inference.
+limit: The guide confirmed the reading of nothing after an exhausted choice (5.4.2). That 0 is an answer a recipe stands by, with its changes kept, is still this design's inference.
 why: A path that failed has been reversed, so nothing of it stands: the axioms file and the old running core read fail as a silence for this reason. 'Said no' and 'no path survived' stay apart in the value; 'no path survived' and 'timed out' stay apart in the reason.
 open: 6.1.2
 at: 2026-11-24
@@ -399,9 +399,9 @@ at: 2026-11-24
 n: 5.5.4
 name: several-parents
 kind: decision
-is: A blueprint with several parents means one composed shape: one cell that holds the slots of every parent. The owner's word of 2026-11-24, asked whether two parents mean separate base objects or one composed shape: 'One composed shape.' Delegation to a separate cell is not what a parent means; it stays writable as a slot that holds another cell and a recipe that forwards to it.
+is: A blueprint with several parents means one composed shape: one cell that holds the slots of every parent. The guide's word of 2026-11-24, asked whether two parents mean separate base objects or one composed shape: 'One composed shape.' Delegation to a separate cell is not what a parent means; it stays writable as a slot that holds another cell and a recipe that forwards to it.
 status: given
-by: owner
+by: guide
 see: 3.12.2.4 3.12.8.5 3.12.4.8 3.12.5.2 4.5.8.6 4.5.2.4 4.5.2.5 3.5.3.3 5.5.7
 why: This is what the 2026 code does and the one reading with a record of running; separate base objects with self kept while this moves have no recorded execution in either era.
 at: 2026-11-24
@@ -413,7 +413,7 @@ is: Composing is done once, when the blueprint is made: an ancestor reached thro
 status: inferred
 from: 5.5.4 3.12.5.2 4.5.2.4 4.5.2.5
 conf: mid
-limit: That a shared ancestor is held once is this design's choice; the owner's answer does not say it.
+limit: That a shared ancestor is held once is this design's choice; the guide's answer does not say it.
 at: 2026-11-24
 
 n: 5.5.5
@@ -448,18 +448,18 @@ is: A node's state is separate from whether it is a blueprint, a recipe or a cel
 status: inferred
 from: 3.14.3.3 3.14.3.2 3.8.3.4 3.8.3.5
 conf: high
-why: The owner's words of 2026-06-08: blueprints exist in water and gas as well, and recipes in all three states.
+why: The guide's words of 2026-06-08: blueprints exist in water and gas as well, and recipes in all three states.
 at: 2026-11-24
 
 n: 5.6.2
 name: ice-water-gas
 kind: term
-is: Ice is the small essential part that must persist; water is a held working form; gas is transient and derivable; each is a state of any node. The owner acknowledged this wording as his on 2026-11-24 ('Yes, that is mine'). This design reads further: ice is immutable, identified by content and shareable as it is; water is held and changeable by one holder and lost with the holder unless frozen; gas is private, in memory and discardable because it can be derived again.
+is: Ice is the small essential part that must persist; water is a held working form; gas is transient and derivable; each is a state of any node. The guide acknowledged this wording as his on 2026-11-24 ('Yes, that is mine'). This design reads further: ice is immutable, identified by content and shareable as it is; water is held and changeable by one holder and lost with the holder unless frozen; gas is private, in memory and discardable because it can be derived again.
 status: given
-by: owner
+by: guide
 see: 3.14.1.1 3.14.1.3 3.14.3.6 3.14.8.2 3.14.3.7
-why: It agrees with the oldest definition on disk, in commits under the owner's own name from September 2025: ice is essential persisted facts, water is materialized caches, gas is derivable and transient; only ice needs to persist.
-limit: The owner acknowledged the first sentence. The further reading after it is this design's and has not been put to him.
+why: It agrees with the oldest definition on disk, in commits under the guide's own name from September 2025: ice is essential persisted facts, water is materialized caches, gas is derivable and transient; only ice needs to persist.
+limit: The guide acknowledged the first sentence. The further reading after it is this design's and has not been put to him.
 open: 6.1.29
 at: 2026-11-24
 
@@ -566,18 +566,18 @@ at: 2026-11-24
 n: 5.7.6
 name: framebuffer
 kind: decision
-is: The owner's definition of 2026-11-25: 'all memory of all object, all nodes, all stack, everything is read and written into a shared memory space that can be recorded w/o any impact at all as video (hence framebuffer), and can be played back to analyze what is happening when and where.' The framebuffer is the runtime's working memory itself, not a channel the runtime writes records into.
+is: The guide's definition of 2026-11-25: 'all memory of all object, all nodes, all stack, everything is read and written into a shared memory space that can be recorded w/o any impact at all as video (hence framebuffer), and can be played back to analyze what is happening when and where.' The framebuffer is the runtime's working memory itself, not a channel the runtime writes records into.
 status: given
-by: owner
+by: guide
 see: 5.7.7 5.7.8 5.8.6 5.14.10 5.14.11
 at: 2026-11-25
 
 n: 5.7.7
 name: framebuffer-describes-itself
 kind: decision
-is: The owner's definition of 2026-11-25, continued: 'the idea is to store the blueprint and type next to cell / object, and it can even include a source pointer (smallest physical footprint) on who last wrote, so that diagnostics becomes live and free of any impact of the runtime.'
+is: The guide's definition of 2026-11-25, continued: 'the idea is to store the blueprint and type next to cell / object, and it can even include a source pointer (smallest physical footprint) on who last wrote, so that diagnostics becomes live and free of any impact of the runtime.'
 status: given
-by: owner
+by: guide
 see: 5.7.6 5.7.4
 at: 2026-11-25
 
@@ -589,7 +589,7 @@ status: inferred
 from: 5.7.6 5.7.7 5.7.3
 src: 2.30.9
 conf: mid
-limit: The owner has not acknowledged the five rules word for word. Values held only in machine registers are seen once stored. Executable pages and the C library's own memory lie outside the region (5.14.12).
+limit: The guide has not acknowledged the five rules word for word. Values held only in machine registers are seen once stored. Executable pages and the C library's own memory lie outside the region (5.14.12).
 at: 2026-11-25
 
 n: 5.8

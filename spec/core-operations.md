@@ -120,7 +120,7 @@ kept as nodes: given candidate bytes it answers the `nat` leaf they are, or the 
 composite under e evaluates its children in order and hands their answers to i.
 
 - **i is a recipe or a code leaf.** A recipe is called with the answers as its arguments. A leaf
-  under entry 52 is called with them as up to six integers and its result is the answer.
+  under entry 52 is called with them as up to six integers and answers as `native` does.
 - **e is an operation that evaluates its children first, or an entry with no meaning yet.** That is
   37 `call`, 46 to 51, 64 to 71, and every entry from 73 up, so a program can bring a new operation
   into being. The control entries (34 `quote`, 35 `arg`, 38 to 45), the data entries and the
@@ -147,16 +147,16 @@ Each file under `form/` is one `bind` node.
 | 50 lt | `form/lt.ck`: when the signs differ, whether a is negative; otherwise whether a minus b is | `form/lt.aarch64.ck` |
 
 `lt` in form reads the sign from the encoding: a byte from 128 up is an `int` leaf of two bytes, so
-a number is negative when `(count (byte d last))` is 2. The code versions are recipes around two
-leaves each: one answers whether the result leaves the 64-bit range, and the recipe then answers
-nothing with `range` as the bootstrap does; the other computes it.
+a number is negative when `(count (byte d last))` is 2. Each code version is one leaf bound
+directly: it computes, and says in its second result whether the answer is a number, a yes or no,
+or out of range.
 
 Not yet written in form: 37 `call`, 49 `eq`, 51 `native`, 64 to 71. The control entries cannot be
 replaced yet, so they have no form either.
 
 ## Fail, choice and cut
 
-The owner's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
+The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
 until a new choice is tried.
 
 - `choice` remembers where it stands before running an option.
@@ -181,7 +181,9 @@ language's. An argument that is nothing answers nothing. An argument of another 
 ## Native code
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
-integers in x0 to x5 and returns one in x0. `native` copies it once into the process's code
+integers in x0 to x5 and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
+unless x0 is zero), anything else no answer, which is nothing with the reason `range`. So one
+leaf can be a whole operation. `native` copies it once into the process's code
 region and calls it. On a host that cannot run it, `native` answers nothing with the reason
 `no-native`.
 

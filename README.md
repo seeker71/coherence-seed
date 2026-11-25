@@ -96,7 +96,7 @@ cc -O2 -o kg tools/kg.c
 | 9 reviews | independent readings that confirm single claims; none at present |
 
 A node is one block of `key: value` lines. Its address (`n`) is the handle other nodes cite.
-`status` says how the claim is known: `given` (the owner's word), `observed`, `relayed`, `inferred`,
+`status` says how the claim is known: `given` (the guide's word), `observed`, `relayed`, `inferred`,
 `assumed` or `open`.
 
 | Command | Does |

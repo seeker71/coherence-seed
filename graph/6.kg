@@ -3,7 +3,7 @@
 n: 6.1
 name: questions
 kind: hub
-is: The open questions. None blocks the node encoding or the floor; each can be settled by building and measuring, or by the owner's word.
+is: The open questions. None blocks the node encoding or the floor; each can be settled by building and measuring, or by the guide's word.
 at: 2026-11-25
 
 n: 6.1.2
@@ -17,7 +17,7 @@ at: 2026-11-24
 n: 6.1.29
 name: edges-of-the-three-states
 kind: question
-is: Within the owner's definition of ice, water and gas: may something derivable be pinned as ice, is water one state or two (a read-only cache and a changeable working copy), and does gas have a body or only a recipe that can derive it?
+is: Within the guide's definition of ice, water and gas: may something derivable be pinned as ice, is water one state or two (a read-only cache and a changeable working copy), and does gas have a body or only a recipe that can derive it?
 status: open
 see: 5.6.2 3.14
 at: 2026-11-24
@@ -33,7 +33,7 @@ at: 2026-11-25
 n: 6.1.31
 name: who-asked-for-sha-256
 kind: question
-is: The owner asked on 2026-11-25: 'Who asked for sha256?' Nobody did. 5.2.2 chose it from a timing and a collision estimate, and the encoding page, the ice file and the vectors follow it. What should a node's id be, and must it be a digest? An id that needs operations on bits also asks them of every reader written in form.
+is: The guide asked on 2026-11-25: 'Who asked for sha256?' Nobody did. 5.2.2 chose it from a timing and a collision estimate, and the encoding page, the ice file and the vectors follow it. What should a node's id be, and must it be a digest? An id that needs operations on bits also asks them of every reader written in form.
 status: open
 see: 5.2.2 6.1.4 6.1.18 7.2
 at: 2026-11-25
@@ -132,7 +132,7 @@ kind: question
 is: In the request's list 'choice, fail, stop, store', does store mean a checkpoint to return to, or persistence? In the dialect the old body actually runs, store and restore are identity functions over immutable values.
 status: open
 see: 3.5.2.7
-needs: owner
+needs: guide
 at: 2026-11-24
 
 n: 6.1.17
@@ -146,7 +146,7 @@ at: 2026-11-24
 n: 6.1.18
 name: collision-resistance-inside
 kind: question
-is: Does identity inside one process on one owner's machine need resistance to deliberate collisions, or only identity that crosses a wire? This decides between storing 128 and 256 bits.
+is: Does identity inside one process on one machine need resistance to deliberate collisions, or only identity that crosses a wire? This decides between storing 128 and 256 bits.
 status: open
 see: 5.2.2 3.15
 at: 2026-11-24
@@ -165,13 +165,13 @@ kind: question
 is: Does an executable NUMS exist anywhere, such as the C++ original the Go code was ported from? Neither NUMS.Go nor the 2026 miniature evaluates anything, and no C++ source is on this disk.
 status: open
 see: 3.1.1.8 3.8
-needs: owner
+needs: guide
 at: 2026-11-24
 
 n: 6.1.21
 name: fault-at-a-recover-point
 kind: question
-is: How does a recover point see a fault: as a node acknowledgment whose blueprint is 'fault', or as a separate channel? And how are 'no refusals' and 'no silent recovery', both asked for by the owner, met together?
+is: How does a recover point see a fault: as a node acknowledgment whose blueprint is 'fault', or as a separate channel? And how are 'no refusals' and 'no silent recovery', both asked for by the guide, met together?
 status: open
 see: 5.4.5 3.7.3.3
 at: 2026-11-24
@@ -410,7 +410,7 @@ at: 2026-11-25
 n: 6.3.13
 name: free-recording-is-not-a-free-layout
 kind: limit
-is: The owner's definition asks for recording with no impact at all. The floor adds no instruction to the runtime for a reader, and two costs remain. A reader copying pages every millisecond slowed the writer by up to about 4% through shared cache lines. The walker keeps its registers and each record's writer in memory, which cost it about a quarter of its speed on one program (5.14.13); whether compiled code can keep that near zero is not known.
+is: The guide's definition asks for recording with no impact at all. The floor adds no instruction to the runtime for a reader, and two costs remain. A reader copying pages every millisecond slowed the writer by up to about 4% through shared cache lines. The walker keeps its registers and each record's writer in memory, which cost it about a quarter of its speed on one program (5.14.13); whether compiled code can keep that near zero is not known.
 status: inferred
 from: 5.14.13 5.7.6
 conf: mid
