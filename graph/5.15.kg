@@ -3,13 +3,13 @@
 n: 5.15
 name: word-lens
 kind: hub
-is: The first lens: words beside the catalogue's numbers and the common leaves written as people write them, read forwards into nodes and shown backwards as text by one module written in form. The canonical print stays what is stored. It is the first step of the home lens of 5.3.5 and not that lens: it has rows of words only.
+is: The first lens, one module written in form. Words beside the catalogue's numbers and leaves written as people write them turn text into nodes and back; rows of two shapes turn a surface into the core and back. The canonical print stays what is stored. It is a step toward the home lens of 5.3.5 and not that lens: its shapes are brackets only.
 at: 2026-11-25
 
 n: 5.15.1
 name: words-are-rows-beside-the-nodes
 kind: decision
-is: An entry's word is a row, a word and the entry it names, in a list a bound entry answers (lens/words.ck). No node holds its own word, so renaming changes no id and a second lexicon can name the same entries otherwise. Entries below 128 are named by the bootstrap's pages; from 128 up by modules written in form, and 129 to 161 are the lens's own.
+is: An entry's word is a row, a word and the entry it names, in a list a bound entry answers (lens/words.ck). No node holds its own word, so renaming changes no id and a second lexicon can name the same entries otherwise. Entries below 128 are named by the bootstrap's pages; from 128 up by modules written in form, and 129 to 184 are the lens's own.
 status: inferred
 from: 5.3.2 5.13.3 5.1.5
 src: 2.30.14 2.30.15
@@ -32,8 +32,21 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens was brought into being once, by substituting numbers for words in its source. It then showed its own stored node as 8,197 bytes of text and read that text back to the same canonical print, byte for byte. ground/lens-round-trip.ck, the first program written in words, shows and reads back each of the 50 files of nodes in the repository and names none that differs, in 0.08 s and 14 million walker steps. Six malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens was brought into being once, by substituting numbers for words in its source. Since then it shows its own stored node, through its own rows, as 382 lines of text and reads that text back to the same canonical print, byte for byte; its matcher and rows were written in it. ground/lens-round-trip.ck raises, shows, reads and lowers each of the 52 files of nodes in the repository and names none that differs, in 0.3 s and 56 million walker steps. Six malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
+at: 2026-11-25
+
+n: 5.15.4
+name: a-row-is-two-shapes-run-both-ways
+kind: decision
+is: A row is a pair of nodes with holes: the surface a person writes and the core it stands for. One matcher written in form runs it both ways. Reading lowers surface to core, showing raises core to surface; the first row that fits is used, what is under quote is left alone, and a hole named rest holds the remaining children. Rows are a list a bound entry answers (lens/rows.ck), written in the lens itself: if, first, when, not, let and def. Adding a row adds both its reading and its showing.
+status: inferred
+from: 5.3.2 5.1.5 5.15.2 5.14.30
+src: 2.30.14 2.30.15
+conf: mid
+why: 5.3.2 asks for rows read forwards and run backwards with no printer written by hand. Between two shapes of nodes that is matching and substitution, and it leaves text to the words and leaves beneath. A surface word is an entry of a higher namespace that lowers into the core (5.1.5).
+flip: A pattern over text, as an infix operator or a host language needs, is not a pair of node shapes; that part of 5.3.2 is not built.
+limit: A hole may stand once on each side. Every row is tried at every node.
 at: 2026-11-25

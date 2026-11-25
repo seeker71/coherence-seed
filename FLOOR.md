@@ -13,10 +13,10 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 42 operations: control with backtracking and a program's own fault, arithmetic with division, a node's parts, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
 | Programs as nodes | [`ground/`](ground) | 33 programs that witness the above; one more, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
-| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | the first lens, written in form: words beside the numbers, read into nodes and shown back; it reads its own definition |
+| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | the first lens, written in form: words beside the numbers, and rows that turn a surface into the core and back; it reads its own definition |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region and what is bound in it, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,343 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,344 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -50,13 +50,15 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   seventeen trials by hand the answer, the reason and the fault were the walker's own, through
   overflows, missing and wrong arguments and a recursion a million deep. A recipe the emitter
   does not know stays on the walker.
-- A lens written in form shows its own stored definition as text and reads that text back to the
-  same node, byte for byte. A program written in words does the same for each of the 50 files of
-  nodes here, in 0.08 s. Text it cannot read is a fault that names what and where. Its 32
-  definitions call each other by name because they were bound as one layer.
+- A lens written in form shows its own stored definition, through its own rows, as 382 lines of
+  text and reads that text back to the same node, byte for byte. A program written in it does the
+  same for each of the 52 files of nodes here, in 0.3 s. Six rows (if, first, when, not, let,
+  def) are read and shown by one matcher; the matcher and the rows were written in the lens.
+  Text it cannot read is a fault that names what and where. Its definitions call each other by
+  name because they were bound as one layer.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,164 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,165 claims, none of them reviewed by a second reader.
 
 ## Not there
 
@@ -65,7 +67,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   between nodes: the continuation, the choice points and the undo. A binding comes only from the
   running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. Stored here are the bootstrap (two C
-  files and an entitlements list) and 51 files of nodes in the canonical print, each of which
+  files and an entitlements list) and 53 files of nodes in the canonical print, each of which
   reads and prints back to itself. Everything else stored is neither: the observer and the graph's
   checker (664 lines of C under `tools/`), the Makefile's 59 lines, nine pages, the claim graph
   as 50 text files, the table of the encoding's vectors and the axioms' text.
@@ -73,9 +75,10 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   calls of the recipe itself. It compiles a recipe whole or not at all, runs only when a program
   asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
   backtracking and nothing that builds a node.
-- **The home lens.** The first lens is words and leaves. It has no rule rows of pattern and
-  template, no names for a recipe's arguments, and no way to name a part and use it twice; it
-  shows on one line. Most stored programs were composed in numbers before it existed.
+- **The home lens.** The first lens's shapes are brackets only: no pattern over text, nothing
+  infix, no names for a recipe's arguments, and no way to name a part and use it twice. Most
+  stored programs were composed in numbers before it existed; they show through it and were not
+  rewritten in it.
 - **Checks in form.** One check is in form, the ground programs'; the vectors, the ice, the
   hardened run and the recording are still checked by C and the Makefile's shell. There is no
   observer written in form.
