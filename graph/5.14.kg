@@ -85,7 +85,7 @@ at: 2026-11-24
 n: 5.14.8
 name: ice-file
 kind: decision
-is: An ice file is eight bytes of magic and then records, each a 32-bit little-endian length and one node's canonical bytes, children before parents, the top node last. Only the root is left out. Thaw reads records in order, refuses a record whose blueprint or child it has not yet seen, and computes each id from the bytes it read. A write goes to a temporary file that is renamed.
+is: An ice file is the eight bytes 'CKICE1', a line feed and a zero, and then records, each a 32-bit little-endian length and one node's canonical bytes. Freeze writes each node once: its blueprint, then its children in order, then the node, so the top node is last; only the root is left out. Thaw reads records in order, refuses a record whose blueprint or child it has not yet seen, and computes each id from the bytes it read. A write goes to a temporary file that is renamed.
 status: inferred
 from: 5.7.1 5.13.1
 src: 2.30.7
@@ -106,7 +106,7 @@ at: 2026-11-25
 n: 5.14.10
 name: floor-is-a-framebuffer
 kind: observation
-is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 127 encoding vectors hold and the 14 ground programs answer as expected.
+is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 14 ground programs answer as expected.
 status: observed
 src: 2.30.7 2.30.9 2.30.11
 see: 5.14.12 5.14.13

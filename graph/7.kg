@@ -3,9 +3,9 @@
 n: 7.2
 name: stage-1-answers-and-encoding
 kind: plan
-is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 127 conformance vectors, 81 of them malformed. Stage 1 closes when a second hand has implemented a reader from the page alone and the vectors hold in it; that has not been done.
+is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 142 conformance vectors, 93 of them malformed. A second reader written from the page holds them and agrees with the bootstrap's on ice and on 200,000 variations (5.13.8, 5.13.9). Both hands are sessions of one model (6.3.14). Stage 1 closes on the owner's answer to 6.1.30: whether that reader is the second hand, or one by a person or another model is still owed.
 status: inferred
-from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4
+from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 5.13.8 5.13.9 6.3.14 6.1.30
 at: 2026-11-25
 
 n: 7.3

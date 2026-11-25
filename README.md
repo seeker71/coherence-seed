@@ -53,9 +53,20 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 make check
 ```
 
-Five lines: the 127 encoding vectors through the bootstrap's own reader, the 14 ground programs, a
+Seven lines: the 142 encoding vectors through the bootstrap's own reader, the 14 ground programs, a
 freeze and thaw across two processes, a machine-code leaf both unsigned and under the hardened
-runtime, and a live run recorded from a second process.
+runtime, a live run recorded from a second process, the same vectors through a second reader, and
+the two readers together.
+
+[`tools/second.c`](tools/second.c) is that second reader: written from
+[`spec/node-encoding.md`](spec/node-encoding.md) without sight of the bootstrap. Each ground program
+frozen by one reader thaws in the other, and 200,000 variations of the vectors hold in both.
+
+```bash
+make hands
+```
+
+That shows the bootstrap reading the second reader's variations, recorded from outside.
 
 ## The knowledge graph
 
@@ -102,5 +113,5 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `bootstrap/` | the C bootstrap and the framebuffer's layout |
 | `spec/` | the node encoding, the core operations, the framebuffer, and the vectors |
 | `ground/` | programs that witness the floor, with their expected answers |
-| `tools/` | the graph checker `kg`, the encoding's reference reader `enc`, the observer `fb` |
+| `tools/` | the graph checker `kg`, the second reader of the encoding `second`, the observer `fb` |
 | `graph/` | the claims |

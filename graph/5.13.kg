@@ -3,8 +3,8 @@
 n: 5.13
 name: node-encoding
 kind: hub
-is: Version 1 of the node encoding. A node's canonical bytes are a kind byte, its blueprint's id and either leaf bytes or child ids; its content id is SHA-256 of those bytes. The id of 32 zero bytes is nothing. The catalogue is numbers under one root, with names beside it. The canonical print has four forms and writes a repeated node as a back-reference. A reader refuses whatever is not canonical.
-at: 2026-11-24
+is: Version 1 of the node encoding. A node's canonical bytes are a kind byte, its blueprint's id and either leaf bytes or child ids; its content id is SHA-256 of those bytes. The id of 32 zero bytes is nothing. The catalogue is numbers under one root, with names beside it. The canonical print has four forms and writes a repeated node as a back-reference. A reader refuses whatever is not canonical. Two readers by two hands hold its 142 vectors.
+at: 2026-11-25
 
 n: 5.13.1
 name: canonical-bytes
@@ -67,10 +67,39 @@ at: 2026-11-24
 n: 5.13.6
 name: reader-refuses-what-is-not-canonical
 kind: decision
-is: A reader accepts only the one canonical form of a node, as bytes and as text, and names the first rule broken with one of sixteen words. Reading and printing are therefore inverse: a printed node reads back to the same node, and accepted text prints back to the same text.
+is: A reader accepts only the one canonical form of a node, as bytes and as text, and names the first rule broken with one of seventeen words. It reads text once from left to right, checks a node when its bracket closes, and stops at the first fault it meets. Reading and printing are therefore inverse: a printed node reads back to the same node, and accepted text prints back to the same text.
 status: inferred
 from: 5.3.4 5.3.8 5.11.4
 src: 2.30.3#7
 conf: mid
-at: 2026-11-24
+at: 2026-11-25
+
+n: 5.13.7
+name: a-reader-holds-what-it-accepts
+kind: decision
+is: A reader that takes nodes in from bytes keeps each one it accepts, and refuses as 'unknown' a node whose blueprint or child is the id of no node it holds. It holds the root and entries 1 to 31 from the start and may hold more; the bootstrap starts with entries 0 to 63. This is the one refusal that depends on what was read before, so the lines of a vector file are read in order.
+status: inferred
+from: 5.13.1 5.14.7 5.13.8
+src: 2.30.3#7
+conf: mid
+why: A store places a node under a blueprint and over children it has. The word was on no page until two readers were run on the same bytes and one of them said it.
+at: 2026-11-25
+
+n: 5.13.8
+name: two-readers-hold-the-vectors
+kind: observation
+is: Observed on 2026-11-25 with 'make check': tools/second.c, a reader, printer and store written from the page by a session that had not opened the bootstrap, holds the 142 vectors, as the bootstrap's reader does. Each of the 14 ground programs frozen by either reader thaws in the other to the same id and print, and the two write the same ice bytes.
+status: observed
+src: 2.30.13 2.30.7 2.30.3
+see: 6.3.14 6.1.30
+at: 2026-11-25
+
+n: 5.13.9
+name: two-readers-agree-on-variations
+kind: observation
+is: Observed on 2026-11-25 with 'make check' and 'make hands': the second reader writes 200,000 variations of the vectors with its verdict on each, as text and as bytes, and all 200,049 lines hold in both readers. The bootstrap reads them in about 30 ms; a second process recording its region sees the node table grow from 65 records to 8,788, which is its 64 entries, the record for nothing and the 8,723 nodes the second reader holds.
+status: observed
+src: 2.30.13 2.30.7 2.30.10
+limit: The variations are small edits of the vectors from one seed. A planted fault they caught and the vectors then missed: a 32-bit integer taken as eight bytes wide. One they missed: an overlong three-byte text, now a vector.
+at: 2026-11-25
 

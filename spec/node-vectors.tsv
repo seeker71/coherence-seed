@@ -3,7 +3,8 @@
 #   bad-print  text    the refusal a reader names
 #   bad-bytes  bytes   the refusal a reader names
 # An ok line holds when the print reads to those bytes and that id and prints back unchanged.
-# Run: ./enc vectors spec/node-vectors.tsv
+# A reader keeps the nodes of the lines it accepts, so the lines of a file are read in order.
+# Run: ./ck vectors spec/node-vectors.tsv and ./second vectors spec/node-vectors.tsv
 
 # the root and catalogue entries
 ok	#0	000000000000000000000000000000000000000000000000000000000000000000	7f9c9e31ac8256ca2f258583df262dbc7d6f68f2a03043d5c99a4ae5a7396ce9
@@ -32,8 +33,11 @@ ok	[#4 7fff]	00fc3df5250daa26603fc16da6413a723a56940574aeb4f8b8614128a861de167b7
 ok	[#4 7f]	00fc3df5250daa26603fc16da6413a723a56940574aeb4f8b8614128a861de167b7f	20906c35bbb298978b320f0d85c541cbb31df22b683be57cabd1a4c5223b9f69
 ok	[#5 ff]	00c6566cb31d08d982298b5e9d236ac69c7d414d2336c3036c8a5ebd651e60bba4ff	aab8ae7beea19658887ddee8bedccdf556600886f622f01bbd95c9de9108fb26
 ok	[#6 0100]	0084edc0981cc7846594565f5239243bc2c97d8e72ca5b7aa3ca7ebc9d75bb9e220100	6a01ea59bed139f388a439ca136ad50da812a7d7fbf44a5470245a723fd531d3
+ok	[#7 01000000]	00abdb5230cd0771877045a05e36865cbfcc880ea276e5e70c6a58a081f100223101000000	76b9d07e217765905c617906209a1c4198e64506facf60c74f26bf09b5780d39
 ok	[#8 0100000000000000]	00b6b99ac0e1db125d3804cab6241c2534ab72979087c3ad2e32d7c7a2d8d62d640100000000000000	60b9d733b918dfb0bf8c8dd0a327c0168fe323cd425d3a879d3e4b68d4485114
 ok	[#9 80]	0085daf6248305918884bf78247dffdf2e71462e3beada4818978a5d551780f93780	68de606c0a40bcd4571c201c6cdc594608476aebd2d0d9555e0945854e1f4e2c
+ok	[#10 0080]	001aeb47fef059db2d2f1883e081f18d525e67d3cfbf38381000ae7b506773efbd0080	12d776318934395a34780229752f8edc321a65a200c70a99ba8c0125f6d86d16
+ok	[#11 ffffffff]	009b68ebf7a6138a2c5ba5553eb72958db8b8b1f1e6035a311d5cfa7fcbabab449ffffffff	1a1918316bc53f93bb3c43f33a5f36ca933e15b8a8c605fdefa97debbc952fec
 ok	[#12 ffffffffffffffff]	003fb8b6763b791a77a0de0b2025c05d89a959d4ff69255d0dc5f7cbf61937197effffffffffffffff	3eed572ae0dc54d5575022da7b4c6da659c0bb5a47b95fcec2cdd0f26689a94c
 ok	[#13 0000c07f]	00217f40b061c37208896c81325435b30c692b96ab816a295eb1fe8d3e788a17a10000c07f	2e8f5ff06aff0f8ad9f5aeb789bdd631f18d9b442cee69a4d7b99e2febc6f239
 ok	[#13 00000080]	00217f40b061c37208896c81325435b30c692b96ab816a295eb1fe8d3e788a17a100000080	7f2e8a37c71ab45b28dc402b98589b447633f16b92b2c7dc992c072e2286064a
@@ -80,6 +84,8 @@ bad-print	[#4 80ff]	minimal
 bad-print	[#5]	width
 bad-print	[#5 0000]	width
 bad-print	[#7 000000]	width
+bad-print	[#10 00]	width
+bad-print	[#11 0000000000000000]	width
 bad-print	[#12 00]	width
 bad-print	[#13 00]	width
 bad-print	[#14 010000000000f07f]	nan
@@ -91,6 +97,9 @@ bad-print	[#2 c0af]	utf8
 bad-print	[#2 eda080]	utf8
 bad-print	[#2 f4908080]	utf8
 bad-print	[#2 e282]	utf8
+bad-print	[#2 e09fbf]	utf8
+bad-print	[#2 f08fbfbf]	utf8
+bad-print	[#2 f8888080]	utf8
 bad-print	^0	forward
 bad-print	(#16 ^0)	forward
 bad-print	(^0)	forward
@@ -116,6 +125,8 @@ bad-print	#1 	syntax
 bad-print	 #1	syntax
 bad-print	#1#1	syntax
 bad-print	(#16 #1]	syntax
+bad-print	(#16 [#3 00] x)	minimal
+bad-print	(#16 ^5 x	forward
 
 # bytes a reader refuses
 bad-bytes		short
@@ -141,3 +152,8 @@ bad-bytes	00fc3df5250daa26603fc16da6413a723a56940574aeb4f8b8614128a861de167bffff
 bad-bytes	00c6566cb31d08d982298b5e9d236ac69c7d414d2336c3036c8a5ebd651e60bba4	width
 bad-bytes	009cecc9ed4ad3a5efe03f5f61265dfeaec77e526b3ae96658adac9b00157b5f46ff	utf8
 bad-bytes	0058d3d8964543758140d4198938bdfb2a51ff0bc76dc6ea50276539d013f35795010000000000f07f	nan
+bad-bytes	00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	unknown
+bad-bytes	01dfa213a43169506f7221af4b781914908e9f1d06b4bced6fb18f1b2d931fed6caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	unknown
+bad-bytes	010ebcd44f78787e425104e304bd331f5a2b26943aecc79a1e9a60dd67f17ee0f9aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa	unknown
+bad-bytes	01aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa00	child-length
+bad-bytes	01dfa213a43169506f7221af4b781914908e9f1d06b4bced6fb18f1b2d931fed6caaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0000000000000000000000000000000000000000000000000000000000000000	nothing-child

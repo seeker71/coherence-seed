@@ -1,9 +1,10 @@
 # Node encoding, version 1
 
 This fixes what a node is as bytes, what its identity is, how it is written as text, and which
-nodes exist before any other. It is meant to be enough to write a second implementation from this
-page alone. `spec/node-vectors.tsv` holds the conformance vectors and `tools/enc.c` is the
-reference reader; where the three disagree, this page is right and the other two are wrong.
+nodes exist before any other. It is enough to write a reader from this page alone:
+`tools/second.c` was written that way, by a hand that had not seen the bootstrap.
+`spec/node-vectors.tsv` holds the conformance vectors. Where the page, the vectors and a reader
+disagree, this page is right and the others are wrong.
 
 Design nodes this stands on: 5.1.1, 5.1.4, 5.1.5, 5.2.2, 5.2.4, 5.3.4. Choices made here that
 those nodes left open are listed under "Choices" at the end.
@@ -110,12 +111,19 @@ Rules that make it canonical:
 A reader refuses text that breaks any of these, so reading and printing are inverse: a printed
 node reads back to the same node, and accepted text prints back to the same text.
 
+A reader goes through the text once, left to right, and stops at the first fault it meets. A
+number is read to its last digit before it is used, so `^00` is outside the grammar whatever `^0`
+would name. A node is checked when its closing bracket is read: first its bytes against section 7,
+then rule 2, then rule 4. Text that leaves the grammar only after such a fault is refused for that
+fault: `(#16 [#3 00] x)` is refused as `minimal`.
+
 The print has no forms of its own beyond these four. Nobody writes in it except to bring the
 first seed into being.
 
 ## 7. Refusals
 
-A reader names the first rule broken. The vectors use these words:
+A reader names the first rule broken. For a node's bytes that is the first in the order of this
+table. The vectors use these words:
 
 | word | meaning |
 | --- | --- |
@@ -124,6 +132,7 @@ A reader names the first rule broken. The vectors use these words:
 | `nothing-blueprint` | blueprint is nothing and the node is not the root |
 | `child-length` | a composite's bytes after the blueprint are not a multiple of 32 |
 | `nothing-child` | a child id is nothing |
+| `unknown` | the blueprint id or a child id is the id of no node the reader holds |
 | `leaf-only` | a composite under the root or under entries 1 to 14 |
 | `composite-only` | a leaf under entry 16 |
 | `kept` | a node under entry 15 or 17 to 31 |
@@ -135,6 +144,12 @@ A reader names the first rule broken. The vectors use these words:
 | `syntax` | text outside the grammar of section 6 |
 | `not-canonical` | text inside the grammar that breaks rule 2 or 4 |
 | `forward` | `^k` naming a node not yet closed or never opened |
+
+Sixteen of these depend only on the bytes or the text at hand. `unknown` depends on what the reader
+holds: a reader that takes nodes in from bytes keeps each one it accepts, and can place a node
+only under a blueprint and over children it already has. It holds the root and entries 1 to 31
+from the start, and may hold more; the bootstrap starts with entries 0 to 63. A node read from
+text is never `unknown`, because its blueprint and children are written before it closes.
 
 ## Choices
 
@@ -156,7 +171,12 @@ Made here, not given by the owner or measured. Each can be reopened; changing an
 
 ## Limits
 
-- One hand wrote this page, the reader and the vectors. The ids in the vectors were checked
-  against the system's `shasum`; no second implementation has been written from the page.
+- Two readers hold the vectors: the bootstrap's, by the hand that wrote this page, and
+  `tools/second.c`, written from this page. Both hands are sessions of one language model on one
+  machine, so they share habits a person or another model would not. No such reader exists.
+- The second hand read the vectors together with the page. Where the page was silent, it chose as
+  the first hand had: the order of the refusals, and a fault met before the text leaves the
+  grammar. Both are now written above; `unknown` was on no page and was found by running the two
+  readers on the same bytes.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).
 - The core operations are not named. That belongs to stage 2, with the walker's laws.
