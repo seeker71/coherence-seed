@@ -198,7 +198,9 @@ have.
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
   implementation stands, with its arguments and in its cut scope, from however deep inside the
-  implementation they are used. Under `base` the node's own entry means what it meant
+  implementation they are used. The user is whoever stands at the node a `lazy` or a step was
+  given; a recipe called with answers has no user of its own and passes on its caller's
+  (`ground/user-kept.ck`). Under `base` the node's own entry means what it meant
   beneath this binding, and everything inside it is as the user sees it: a `lazy` that records
   something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
@@ -454,8 +456,11 @@ not know.
 
 - A cell holds a node and has a trail, and that is all: it has no blueprint it is declared with,
   no access or constructor recipe and no view. Those belong to stage 5.
-- A call in the last position of a recipe keeps no frame. The activations and gathered values of
-  calls that have returned are given back as soon as no open choice can return to them.
+- A call or a `let` in the last position keeps no frame, and gives back the activations made
+  since the frame it answers to unless an open choice, or the user of an implementation, could
+  return to them. So a loop written as a recursion runs in the room of one round
+  (`ground/loop-in-place.ck`). The nodes a run makes are not given back: a loop that counts to
+  ten million fills the store with its integers.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct
   recursion only.
 - A recipe does not capture the arguments of a recipe around it. A `let` is not a recipe: its
@@ -465,8 +470,6 @@ not know.
 - An operation that evaluates its children first takes at most eight, so a call passes at most
   seven arguments.
 - There is no operation on the bits of a number.
-- A recursion that never returns keeps an activation for every round until it does, so a loop
-  written as a recursion is bounded by the activations area. Counting with `range` is not.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.

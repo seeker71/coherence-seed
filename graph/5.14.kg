@@ -461,7 +461,7 @@ from: 5.4.7 5.14.6 7.13
 src: 2.30.7 2.30.6
 conf: mid
 why: Every loop over indices was a recipe calling itself, one activation and one choice point a round, and a loop that does not return keeps them all.
-limit: Other loops are still recursions, and a recursion that never returns still keeps an activation for every round.
+limit: Other loops are still recursions; one whose call stands in the last position runs in the room of one round (5.14.44).
 at: 2026-11-25
 
 n: 5.14.43
@@ -476,3 +476,16 @@ why: Bound variables are referred to by position (5.2.4), and a position that mo
 flip: Each let makes an activation that copies the arguments it stands among. Where that copy is felt, the activation can be extended in place when nothing can return to its older form.
 limit: A let takes one value; several are lets inside each other, which the lens writes flat.
 at: 2026-11-25
+
+n: 5.14.44
+name: a-loop-runs-in-the-room-of-one-round
+kind: decision
+is: A call or a let in the last position gives back the activations made since the frame it answers to, unless an open choice or the user of an implementation could return to them. Observed on 2026-11-26: three million rounds of a recursion, by self, by a bound entry and through lets, each ended with 5 activations in use where there had been three million; with a choice left open in every round they are all kept, and failing back into them gave every answer. A recipe called with answers passes on its caller's user, so it can be given back; before, it kept its caller alive as its own.
+status: inferred
+from: 5.14.6 5.14.43 5.4.9 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: Loops are written as recursions here. Without this every round of one stayed until the loop returned, and a let made it worse.
+flip: Nodes a run made are still never given back, so the store is the bound a long loop meets next.
+limit: Witnessed by ground/loop-in-place.ck and ground/user-kept.ck, each turned red by a planted fault. One machine.
+at: 2026-11-26

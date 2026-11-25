@@ -505,6 +505,15 @@ static void *birth(H leaf) {              /* the leaf's instructions, runnable; 
 static uint32_t push(uint32_t t, H node, uint32_t i, uint32_t env, uint32_t cut, uint32_t vals, uint32_t k, uint32_t aux) {
   room(A_FRAMES, (uint64_t)nfr + 1); fr[nfr] = (Frame){ E(FRAME), W->at, t, node, i, env, cut, vals, k, aux, nact }; return nfr++;
 }
+/* Before a call or a let in the last position makes its activation: the activations made since the
+ * frame it answers to are given back when no open choice and no user above (up) can return to
+ * them. So a loop written as a recursion runs in the room of one round. */
+static void last(uint32_t up) {
+  uint32_t keep = W->k ? fr[W->k].mact : 1;
+  if (ncp && cp[ncp-1].mact > keep) keep = cp[ncp-1].mact;
+  if (up >= keep) keep = up + 1;
+  if (keep < nact) { nargp = act[keep].off; nact = keep; }
+}
 static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t up, uint32_t cut) {
   room(A_ACTIVATIONS, (uint64_t)nact + 1); room(A_ARGUMENTS, (uint64_t)nargp + n);
   memcpy(argp + nargp, a, sizeof(H) * n); act[nact] = (Activation){ E(ACTIVATION), W->at, recipe, nargp, n, lim, up, cut }; nargp += n;
@@ -574,7 +583,9 @@ static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = bd[r-1].impl;
   }
   if (nd[impl].comp) {
-    W->env = enter(impl, a, c, bd[b-1].sees, from, W->cut); if (!node || !is_lazy(impl)) W->cut = ncp;
+    uint32_t up = node ? from : act[from].up, cut = node ? W->cut : act[from].cut;      /* given answers, it has no user */
+    if (!node) last(up);                                                                /* of its own: its caller's */
+    W->env = enter(impl, a, c, bd[b-1].sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
   if (node) { arg[0] = node; arg[1] = from; }
@@ -720,8 +731,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case F_RECOVER: break;
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
       uint32_t j = (uint32_t)argn(KID(f.node, 0)); Activation o = act[f.env]; uint32_t n = o.n > j ? o.n : j + 1;
-      room(A_ACTIVATIONS, (uint64_t)nact + 1); room(A_ARGUMENTS, (uint64_t)nargp + n);
-      memset(argp + nargp, 0, sizeof(H) * n); memcpy(argp + nargp, argp + o.off, sizeof(H) * o.n); argp[nargp + j] = W->v;
+      last(o.up); room(A_ACTIVATIONS, (uint64_t)nact + 1); room(A_ARGUMENTS, (uint64_t)nargp + n);
+      memmove(argp + nargp, argp + o.off, sizeof(H) * o.n);        /* its own arguments may be the ones just given back */
+      for (uint32_t i = o.n; i < n; i++) argp[nargp + i] = 0;
+      argp[nargp + j] = W->v;
       o.by = W->at; o.off = nargp; o.n = n; act[nact] = o; nargp += n;
       W->env = nact++; W->cut = f.cut; W->x = KID(f.node, 2); W->mode = M_EVAL; break; }
     case F_LAYER: for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind; break;    /* made together, they see each other */
@@ -755,7 +768,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         for (lim = f.aux; nbind && (b = bound(a[0], 0, lim)) && !apply(b, a + 1, c - 1, f.env, 0); lim = b - 1, b = 0) on = b - 1;
         if (b) break;
         if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
-        W->env = enter(a[0], a + 1, c - 1, on, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
+        uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
+        W->env = enter(a[0], a + 1, c - 1, on, up, cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
         int64_t arg[8] = {0}; uint32_t j = 1;
