@@ -35,7 +35,7 @@ at: 2026-11-24
 n: 7.6
 name: stage-5-control-and-objects
 kind: plan
-is: Choice with commit, the trail, declared reversibility, the reference pair, composed parents and templates. A cell that holds a node and a trail that a fail unwinds exist (5.14.34); the rest does not. Closes when the thesis example of a class with two parents runs as one composed shape with the view moving on a super-send, a failed option's effects are undone, and each of those tests has been turned red by a planted fault.
+is: Choice with commit, the trail, declared reversibility, the reference pair, composed parents and templates. Closes when the thesis example of a class with two parents runs as one composed shape with the view moving on a super-send, a failed option's effects are undone, and each of those tests has been turned red by a planted fault. Cells with a trail exist (5.14.34), and on them, in form, composed parents, the reference pair, send and super; an example of this repository's own meets those tests (5.16.2). Whether it stands for the thesis's is the guide's to say.
 status: inferred
 from: 5.4.6 5.4.7 5.4.8 5.4.9 5.5.1 5.5.2 5.5.5 5.11.1
 at: 2026-11-24

@@ -269,3 +269,12 @@ date: 2000
 got: 2026-11-24
 at: 2026-11-24
 
+
+n: 2.30.16
+name: objects.md
+kind: source
+is: Objects in form: shapes, several parents composed into one shape, a reference as a cell and a view, send, super and cast, how they are known, and their limits.
+path: coherence-seed/spec/objects.md
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25

@@ -1,0 +1,28 @@
+# Design: objects written in form. The page spec/objects.md is the authority; these nodes say what it chose and what was seen.
+
+n: 5.16
+name: objects-in-form
+kind: hub
+is: Shapes, cells and references as one layer of definitions written in form on cells and their trail, with no operation added to the bootstrap: several parents composed into one shape, a reference as a cell and a view, slots reached only through the view, send, and super that moves the view.
+at: 2026-11-25
+
+n: 5.16.1
+name: a-shape-is-a-node-and-parents-compose
+kind: decision
+is: A shape is a node: a name, its parents, the slots it adds and its methods. Its line is itself and its ancestors, each once; its slots are those of the whole line, so an ancestor reached through two parents is held once. A reference is a cell and the shape through which it is seen. A slot is reached only when the view has it. Send finds the one definition no other in the cell's line overrides and declines to choose between two parents; super names a parent and moves the view to where the method is defined.
+status: inferred
+from: 5.5.1 5.5.2 5.5.4 5.5.7 5.14.34
+src: 2.30.16
+conf: mid
+why: The object model needs nothing of the walker but cells that a fail restores, so it is written where it can be read, changed and replaced: in form.
+flip: A view through an interface a shape conforms to by structure (5.5.3) is a second kind of view; this one only walks the line.
+at: 2026-11-25
+
+n: 5.16.2
+name: two-parents-run-as-one-shape
+kind: observation
+is: Observed on 2026-11-25. A shape with two parents that share an ancestor ran as one composed shape: five slots, the ancestor's once; a describe that sends to both parents through super; a method reached through super that answers the parent's name as its view; a slot of the other parent refused through that view; a set inside a failed option undone; and the same two parents with no describe of their own refused as ambiguous. Each of the six turned red under a fault planted for it in the object layer and green again when it was taken out.
+status: observed
+src: 2.30.16 2.30.7
+limit: The example is this repository's own; the thesis example 7.6 names was not at hand. One machine.
+at: 2026-11-25

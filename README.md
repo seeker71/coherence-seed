@@ -141,10 +141,11 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | --- | --- |
 | `axioms/` | the five axioms, the only fixed thing |
 | `bootstrap/` | the C bootstrap and the framebuffer's layout |
-| `spec/` | the node encoding and its vectors, the core operations, the framebuffer, and the lens |
+| `spec/` | the node encoding and its vectors, the core operations, the framebuffer, the lens, and objects |
 | `lens/` | the lens as nodes: its reader, printer and matcher, its words, its rows, and two programs that run it on standard input |
 | `ice/` | freeze and thaw as nodes |
-| `region/` | the layout of the region's records as a node, and the program that reads the region through it |
+| `region/` | the layout of the region's records as a node, and the programs that read a region and write the C header through it |
+| `objects/` | shapes, cells and references as nodes |
 | `ground/` | programs that witness the floor; `check.ck` runs them against the outcomes in `expect.ck` |
 | `form/` | operations written in form and as machine code, the emitter, and the watcher |
 | `tools/` | the graph checker `kg`, the observer `fb`; both are C until generated code replaces them |
