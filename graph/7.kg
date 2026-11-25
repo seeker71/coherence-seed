@@ -11,7 +11,7 @@ at: 2026-11-25
 n: 7.3
 name: stage-2-floor
 kind: plan
-is: The C bootstrap under its budget: the framebuffer, store, canonical reader, walker, page birth and host table. It stands (5.14.10): the ground programs run, a frozen node thaws to the same id, a machine-code leaf runs both unsigned and under the hardened runtime, the build fails over its line count, and a second process records a live run and replays it. It closes when the host functions for symbol lookup, the framework trampoline, threads and the clock are written (5.14.9).
+is: The C bootstrap under its budget: the framebuffer, store, canonical reader, walker, page birth and host table. It stands (5.14.10): the ground programs run, a frozen node thaws to the same id, a machine-code leaf runs both unsigned and under the hardened runtime, the build fails over its line count, and a second process records a live run and replays it. It closes when the host functions for symbol lookup, the framework trampoline and threads are written (5.14.9); the clock is.
 status: inferred
 from: 5.9.1 5.9.2 5.9.3 5.9.4 5.11.4 5.7.6
 at: 2026-11-25
@@ -102,7 +102,7 @@ at: 2026-11-25
 n: 7.21
 name: every-part-swappable
 kind: plan
-is: The path to a system where anything can be exchanged while it runs. One table says what runs for each operation and each recipe (5.14.19); what is left is to bring the rest under it. Next, each thing the bootstrap does beyond the operations becomes an entry with a binding: reading, printing, the id, the store, ice, files, the clock, and then the walker's own step, so that a compiled or a tracing evaluator is one more implementation. After that: bindings that arrive from outside through the region, bindings with a scope, and recipes that try implementations, measure them and keep what serves.
+is: The path to a system where anything can be exchanged while it runs. One table says what runs for each operation and each recipe (5.14.19); what is left is to bring the rest under it. Reading, printing, the id, files and the clock are entries, and a program already times two implementations and keeps the faster. Next the store and ice become entries, and then the walker's own step, so that a compiled or a tracing evaluator is one more implementation. After that: bindings that arrive from outside through the region, bindings with a scope, and choosing among many implementations by more than time.
 status: inferred
 from: 7.13 5.14.19 5.14.23 5.9.6
 at: 2026-11-25

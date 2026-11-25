@@ -23,3 +23,5 @@ traced-choice	node (#16 [#4 01] [#4 02] [#4 03])
 tracked-recipe	node (#16 [#4 37] ^1)
 invented-control	node (#16 [#2 79] [#2 6e])
 new-kind	node [#4 2a]
+runs-a-file	node [#4 37]
+keeps-the-faster	node [#2 636f6465]

@@ -29,6 +29,7 @@
 #include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <time.h>
 #include "fb.h"
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <libkern/OSCacheControl.h>
@@ -52,7 +53,9 @@ typedef struct {
   void (*code_flush)(void *, size_t);              /* instruction cache */
   int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap);
   Ret (*call)(void *fn, const int64_t *a);
+  int64_t (*clock)(void);                          /* nanoseconds that only move forward */
 } Host;
+static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
   shm_unlink(name);
   int fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600);
@@ -91,7 +94,7 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
 static Ret h_call(void *fn, const int64_t *a) {
   return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5]);
 }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call };
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -526,8 +529,18 @@ static void apply(uint32_t b, const H *a, uint32_t c, uint32_t from) {
  * the encoding refuses answers nothing, and the reason is the refusal's word. */
 static void parts(long long op, const H *a, uint32_t c) {
   const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
-  if (c != (op == BLUEPRINT || op == COUNT || op == LEAF ? 1u : 2u)) { fault("arity"); return; }
+  if (c != (op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault("arity"); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  if (op == PRINT) { print(x); W->v = mk(0, E(2), ob, nob, &why); return; }
+  if (op == ID) { W->v = mk(0, E(1), idof(x), 32, &why); return; }
+  if (op == READ || op == FILEOP) {       /* a leaf's bytes as a print to read, or as the path of a file */
+    if (nd[x].comp) { fault("kind"); return; }
+    uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
+    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
+    else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
+      if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(1), text + ntext, (uint32_t)got, &why); }
+    ntext = m; return;
+  }
   if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
     long long e = catn(x);
     int data = e >= 0 && (e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY);
@@ -567,7 +580,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n;
     uint32_t lim = W->one ? W->one - 1 : act[W->env].lim; W->one = 0;
     uint32_t b = nbind && op >= QUOTE ? bound(nd[x].bp, lim) : 0;
-    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op == BINDING || op > BASE)) { answer(x); break; }
+    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op == BINDING || op == LAZY || op > CLOCK)) { answer(x); break; }
     if (b && is_lazy(bd[b-1].impl)) {     /* it is given the node itself and keeps the cut scope it was used in */
       a[0] = x; W->env = enter(bd[b-1].impl, a, 1, b - 1, W->env); W->x = KID(bd[b-1].impl, 0); break;
     }
@@ -606,8 +619,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, 0, W->k, ncp); W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
-      if (c > 8 || (!c && !b)) { fault("arity"); break; }
-      if (!c) { apply(b, a, 0, W->env); break; }
+      if (c > 8 || (!c && !b && op != CLOCK)) { fault("arity"); break; }
+      if (!c) { if (b) apply(b, a, 0, W->env); else answer(mki(host.clock())); break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, lim); W->x = KID(x, 0); break;
     }
     break; }

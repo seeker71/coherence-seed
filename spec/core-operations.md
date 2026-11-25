@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 44 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
-the floor's own records, 64 to 70 take a node apart and build one, and 71 to 75 let a program
-replace what runs. It does not yet name operations that hold an offer or bind a cell; those come
-with the stage that first needs them.
+it. This page names 49 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
+what runs, and 76 to 80 are what the bootstrap does for itself. It does not yet name operations
+that hold an offer or bind a cell; those come with the stage that first needs them.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -162,6 +162,23 @@ kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked
 then released (`tracked-recipe.ck`), a control operation brought into being (`invented-control.ck`),
 and a new kind of implementation (`new-kind.ck`).
 
+## Entries 76 to 80: what the bootstrap does for itself
+
+What the commands of `ck` do is also an operation, so a program can do it, and it can be replaced
+like any other.
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 76 | read | t | the node whose canonical print is the bytes of leaf t; a refused print answers nothing with the refusal's word |
+| 77 | print | x | a text leaf holding x's canonical print |
+| 78 | id | x | a bytes leaf holding x's content id |
+| 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |
+| 80 | clock | | nanoseconds on a clock that only moves forward |
+
+`ground/runs-a-file.ck` reads a program from a file, reads its print into a node and runs it: what
+`ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
+and on `add` as machine code, and binds the one that took less.
+
 ## Fail, choice and cut
 
 The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
@@ -218,8 +235,8 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - A `lazy` keeps the cut scope it was used in, but a recipe it calls starts a new one. A control
   operation rewritten from nothing in form therefore cannot yet pass a `cut` through a helper;
   wrapping with `base` has no such limit.
-- What is not an operation has no binding yet: the store, the reader, the printer, freeze, thaw,
-  the host functions and the walker's own step.
+- What is not an operation has no binding yet: the store, freeze and thaw, the other host
+  functions and the walker's own step. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.

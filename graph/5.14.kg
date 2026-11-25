@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 31 operations whose registers are a record in the region and whose operations a running program can replace, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 36 operations whose registers are a record in the region and whose operations a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19), and 76 to 80 are reading, printing, the id, a file and the clock.
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -96,7 +96,7 @@ at: 2026-11-25
 n: 5.14.9
 name: host-functions-so-far
 kind: decision
-is: Six host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, and call a function with six integers. Symbol lookup, the trampoline for host frameworks, thread start and the clock in 5.8.1 are not written.
+is: Seven host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function with six integers, and read a clock. A program reaches the file and the clock as operations. Symbol lookup, the trampoline for host frameworks and thread start in 5.8.1 are not written.
 status: inferred
 from: 5.8.1 5.9.4
 src: 2.30.7
@@ -106,7 +106,7 @@ at: 2026-11-25
 n: 5.14.10
 name: floor-is-a-framebuffer
 kind: observation
-is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 25 ground programs answer as expected.
+is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 27 ground programs answer as expected.
 status: observed
 src: 2.30.7 2.30.9 2.30.11
 see: 5.14.12 5.14.13
@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation and every recipe can be replaced, and only add, sub, mul and lt are written in form. What is not an operation has no binding: the store, the reader, the printer, freeze, thaw, the host functions and the walker's own step are C. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own. A control operation rewritten from nothing in form cannot pass a cut through a helper recipe.
+is: Every operation and every recipe can be replaced, and only add, sub, mul and lt are written in form. Reading, printing, the id, files and the clock are operations too, so a program loads and runs a file and times what it tries. What is not an operation has no binding: the store, freeze, thaw, the other host functions and the walker's own step are C. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own. A control operation rewritten from nothing in form cannot pass a cut through a helper recipe.
 status: inferred
 from: 5.14.19 7.13 5.9.3
 conf: high

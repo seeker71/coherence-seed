@@ -8,11 +8,11 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 884 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 898 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 31 operations: control with backtracking, arithmetic, a node's parts, native code, and replacing what runs |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 36 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, and reading, printing, files and the clock |
 | Swapping | [`form/`](form) | any operation, control included, and any recipe can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code |
-| Programs as nodes | [`ground/`](ground) | 25 programs that witness the above |
+| Programs as nodes | [`ground/`](ground) | 27 programs that witness the above |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region, records it and replays it |
 | Claim graph | [`graph/`](graph) | 1,329 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
@@ -32,15 +32,18 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   operation and a new kind of implementation are brought into being by a program. The
   long recursion takes 9.3 s on four form operations, 0.80 s on four machine-code leaves, and
   0.75 s on the bootstrap's own.
+- A program reads another program from a file, turns its print into a node and runs it. A program
+  times one workload on two implementations of `add`, 36 ms in form and 15 ms as machine code,
+  and binds the faster.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
 - `./kg check`: no errors over 1,151 claims, none of them reviewed by a second reader.
 
 ## Not there
 
-- **Everything swappable** (path: graph node 7.21). Operations and recipes are; the store, the
-  reader, the printer, ice, the host functions and the walker's own step are C with no binding.
-  A binding comes only from the running program and has no scope of its own.
+- **Everything swappable** (path: graph node 7.21). Operations and recipes are, reading, printing
+  and the clock among them; the store, ice, the other host functions and the walker's own step are
+  C with no binding. A binding comes only from the running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. The Makefile's shell, the two C tools,
   these pages, the graph's blocks and the tables are not form nodes.
 - **A compiler.** Machine code is written by hand, one leaf an operation; the walker still drives
@@ -49,7 +52,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   lens, and no check or observer written in form.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
-- **Cells and the journal**, recipes that name each other, threads, the clock, symbol lookup.
+- **Cells and the journal**, recipes that name each other, threads, symbol lookup.
 - **Bounds that give way.** The region's areas have fixed capacities; a wrong recursion runs until
   one is full.
 
