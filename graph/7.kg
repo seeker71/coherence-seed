@@ -1,0 +1,99 @@
+# Path: stages from an empty repository to the hardware's speed. Each stage names the evidence that closes it.
+
+n: 7.1
+name: stage-0-ground
+kind: plan
+is: Done on 2026-11-24: the axioms carried, the references read and run where they could be, this graph and its checker. Closes when './kg check' is clean and a review round is recorded under hub 9.
+status: observed
+src: 2.30.1
+at: 2026-11-24
+
+n: 7.2
+name: stage-1-answers-and-encoding
+kind: plan
+is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 127 conformance vectors, 81 of them malformed. Stage 1 closes when a second hand has implemented a reader from the page alone and the vectors hold in it; that has not been done.
+status: inferred
+from: 5.13 9.8 6.1.1 6.1.3 6.1.8 5.2.2 5.3.4 5.1.5 5.11.4
+at: 2026-11-24
+
+n: 7.3
+name: stage-2-floor
+kind: plan
+is: The C bootstrap under its budget: the framebuffer, store, canonical reader, walker, page birth and host table. Observed on 2026-11-24 and again on the framebuffer on 2026-11-25 (9.9, 9.11): the ground programs run, a frozen node thaws to the same id, a machine-code leaf runs both unsigned and under the hardened runtime, the build fails over its line count, and a second process records a live run and replays it. Still to write: the host functions for symbol lookup, the framework trampoline, threads and the clock (5.14.9).
+status: inferred
+from: 5.9.1 5.9.2 5.9.3 5.9.4 5.11.4 5.7.6
+at: 2026-11-25
+
+n: 7.4
+name: stage-3-home-lens
+kind: plan
+is: The home lens as rows written in the grammar, read forwards and printed backwards. Closes when the lens reads its own definition, prints it, and the reprint reads to the same nodes.
+status: inferred
+from: 5.3.2 5.3.5 5.3.3
+at: 2026-11-24
+
+n: 7.5
+name: stage-4-self-compile
+kind: plan
+is: The one-pass emitter written in the grammar compiles the compiler. Closes when the system regenerates its own seed byte for byte, cold and compiled runs print the same values over the whole core, and the walker is off the running path after the cold start.
+status: inferred
+from: 5.10.4 5.10.1 5.10.8 5.9.5 5.10.5
+at: 2026-11-24
+
+n: 7.6
+name: stage-5-control-and-objects
+kind: plan
+is: Choice with commit, the trail, declared reversibility, the reference pair, composed parents and templates. Closes when the thesis example of a class with two parents runs as one composed shape with the view moving on a super-send, a failed option's effects are undone, and each of those tests has been turned red by a planted fault.
+status: inferred
+from: 5.4.6 5.4.7 5.4.8 5.4.9 5.5.1 5.5.2 5.5.5 5.11.1
+at: 2026-11-24
+
+n: 7.7
+name: stage-6-speed
+kind: plan
+is: The optimizing tier, then matrix instructions, then the GPU backend. Closes on measurements against optimized C for the same kernels on this machine, with lines of meaning and lines of speed reported apart.
+status: inferred
+from: 5.10.6 5.10.7 5.10.10
+at: 2026-11-24
+
+n: 7.8
+name: stage-7-lenses
+kind: plan
+is: A first host-language lens, Go, since NUMS.Go mapped it; then a second; then the first human-language lens. Closes when one program read through two host lenses yields nodes whose shared and differing blueprints are both shown, and the lens declines by name what it cannot print.
+status: inferred
+from: 5.3.6 5.3.7 6.1.19
+at: 2026-11-24
+
+n: 7.9
+name: stage-8-self-replacement
+kind: plan
+is: The system writes its own signed executable image and starts from it. Closes when every piece of the C file has a compiled counterpart running in its place and the C file is needed only for a cold start on a new host.
+status: inferred
+from: 5.9.6 5.9.7
+at: 2026-11-24
+
+n: 7.10
+name: flows-first
+kind: decision
+is: The owner's direction of 2026-11-25: doors, gates, receipts and bands were a distraction in the old body. The work here follows end-to-end flows that really run, observed in real time through shared memory and the framebuffer of 5.7.6.
+status: given
+by: owner
+see: 5.7.6
+at: 2026-11-25
+
+n: 7.11
+name: built-with-a-c-compiler-alone
+kind: decision
+is: The owner's direction of 2026-11-25: this is a new repository, and the old kernel and its runtime are not used to build it. Everything here builds with a C compiler and make. The old body appears only as evidence that was read (hubs 2 and 3), never as a tool, a dependency or a step of any build or check.
+status: given
+by: owner
+see: 5.9.1 2.1
+at: 2026-11-25
+
+n: 7.12
+name: each-stage-closes-on-a-watched-run
+kind: plan
+is: From stage 3 on, a stage closes on a real run of the thing it adds, recorded from a second process through the framebuffer and replayed, in addition to the evidence its own node names. 'make watch' is the first such run.
+status: inferred
+from: 7.10 5.7.6 5.11.3
+at: 2026-11-25

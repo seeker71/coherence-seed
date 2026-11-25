@@ -1,0 +1,434 @@
+# What the study of the old body's host-language grammars found (study/r2/gap-host-language-grammars.md, closing gap G4 of the first-round critique).
+
+n: 3.11
+name: host-language-grammars
+kind: hub
+is: The old body's five host-language files (Go, Rust, TypeScript, Prolog, Python: 276 rules, 180 KB) hold flat fixed phrases with no rule references, emit per-language node categories and reverse through hand-written closures to tokens. Their one test shares two integers. A Go, Java and BML one-node test was deleted on 2026-09-29. A 360-line C probe read one rule set both ways: three surfaces gave one node that printed and re-read to itself, at 9 shared rules plus 7 or 8 per language. Type-dependent operators, scope, comments and scale stay open.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1
+name: today
+kind: hub
+is: What stands in the old body at commit b8ff978c9: five host-language rule files with 276 flat phrase rules, per-language node categories, a Python scanner and layout step that nothing calls, and the body's own audit, which sets full parsing to 0. The cut of 2026-09-29 removed the recursive Go and Java grammars and the Python path that ran text.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.1
+name: five-files
+kind: observation
+is: The old body holds five host-language rule files under form/form-stdlib/grammars. Go: 223 lines, 21,091 bytes, 32 rules. Rust: 114, 12,019, 20. TypeScript: 252, 26,809, 33. Prolog: 135, 12,786, 15. Python: 1,118, 107,012, 176. Rules that name a reverse: 32, 10, 33, 15 and 139. Last commits: 2026-10-01 for Python, 2026-10-03 for the other four.
+status: observed
+src: 2.19.2#181-212 2.19.3#84-103 2.19.4#195-227 2.19.5#110-124 2.19.6#926-1101 2.19.1#1
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.2
+name: flat-phrase-rules
+kind: observation
+is: Every rule in the five host-language files is one flat sequence of quoted tokens and typed holes (name, int, string; Python also float, bytes and fstring). No rule holds alternation, repetition, an optional part or a reference to another rule, and no file defines the rule-reference constructor. A Go function is readable only with an empty body or with exactly the body return a + b.
+status: observed
+src: 2.19.2#181-212 2.19.3#84-103 2.19.4#195-227 2.19.5#110-124 2.19.6#926-1101 2.19.8#463-465 2.19.1#2
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.3
+name: python-file
+kind: observation
+is: The Python rule file adds a token scanner, a layout step with a fixed dedent of 4 and a statement grouper before its 176 rules. Eleven rules cover eleven binary operators between two names, and the rule sample-module matches the token sequence of one specific sample file. No file outside the grammar file calls python-parse-module or any pybmf name.
+status: observed
+src: 2.19.6#29-118 2.19.6#126 2.19.6#140-201 2.19.6#1059-1080 2.19.6#1098 2.19.1#2
+limit: The file that joined the grouper to the rules, python-bmf-lift.fk (1,214 lines), was removed on 2026-09-29 and was not read. The absence of callers rests on one repository-wide search.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.4
+name: per-language-categories
+kind: observation
+is: The five rule files emit nodes in per-language categories numbered in dialect-categories.fk: Python 501 to 575 (75), TypeScript 601 to 637 (37), Go 631 to 653 (23), Rust 661 to 675 (15), Prolog 676 to 684 (9). The TypeScript and Go ranges share 631 to 637. A Python binary expression keeps its operator as a string child of one PY-BMF-BINOP node.
+status: observed
+src: 2.19.10#40-63 2.19.10#69-78 2.19.10#80-154 2.19.10#155-170 2.19.10#172-208 2.19.6#276
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.5
+name: body-own-audit
+kind: observation
+is: The old body's own records mark the host-language work unfinished. The port table in compiler.fk lists Python as in-motion and TypeScript, Go and Rust as seed. pl-lenses-13.fk sets full-parse, AST-roundtrip, typecheck, compile, execute, arbitrary-transpile and identifier-escape to 0. The tree holds no grammar file for C, C++ or Java.
+status: observed
+src: 2.19.9#60 2.19.17#4-16 2.19.17#85 2.19.1#1
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.1.6
+name: cut-removed
+kind: observation
+is: Commit 115fea55e of 2026-09-29, whose subject line reads 14,729 files to 1,628 (its trees hold 14,693 and 1,663 tracked files), removed recursive Go and Java grammars (32 lines each), their one-node test (49 lines), a Python lift, evaluator, compiler and emitter (1,214, 1,258, 777 and 534 lines) and front ends for Go, Rust and TypeScript written in TypeScript (2,018, 2,377 and 1,898 lines).
+status: observed
+src: 2.19.18 2.19.19 2.19.20 2.19.1#1.1
+limit: Read with git show from the tree one commit before the cut. Only the two grammars, the test, one sample folder and one note were read; the other figures are line counts of files that were not opened.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2
+name: rule-forms
+kind: hub
+is: How the old body holds a grammar rule. The object engine's rule is a token pattern plus two closures, one building the node and one rebuilding tokens: both directions, each written as code. The cursor engine's rule is a pattern and a template as data over text: one direction. The home language's grammar runs on the cursor engine, which carries that language's particulars. The two engines were never joined.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.1
+name: text-and-object-rule
+kind: observation
+is: A host rule is written name ::= pattern => action <= reverse; and is split by substring search for those four marks in source-compiler.fk. A rule compiles to a five-element list: name, sequence pattern, action, identity inverse, reverse. Action and reverse are closures over token objects, never text. Rule lines are 12 to 19% of each file's bytes.
+status: observed
+src: 2.19.8#477-499 2.19.7#2102 2.19.7#2127-2143 2.19.7#5-7 2.19.2#17-21 2.19.1#4
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.2
+name: cursor-rule
+kind: observation
+is: The cursor engine in bmf-grammar.fk holds a rule as the list (name pattern template), both parts data. There are 17 pattern forms, among them ref, cap, rep, sep, seq, alt and infix with an operator table, and 10 template forms, among them emit, splice and const. Choice is ordered with no re-entry. The engine has no reverse direction.
+status: observed
+src: 2.19.12#51 2.19.12#58-59 2.19.12#1109-1137 2.19.12#817-826 2.19.1#3
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.3
+name: cursor-engine-particulars
+kind: observation
+is: The old body's home language grammar, form-bml.fk, runs on the cursor engine with 84 lines naming rule3 and one 17-row operator table. Parts of that language sit inside the engine: every primitive skips only // and /* */ comments, the keyword edge uses the bmlname class, the chain operation builds $bml-slice calls and the bind template builds $bml-typed calls.
+status: observed
+src: 2.19.15#41-48 2.19.11#390-404 2.19.12#582-594 2.19.12#338 2.19.12#930-979 2.19.12#1053-1059
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.4
+name: name-table-two-copies
+kind: observation
+is: The cursor engine's table of blueprint names is kept in two hand-held copies. bmf-core.fk answers a name missing from its copy with category 0.0.0.0 and no report, so a parsed node and a constructed node with identical children get different identities. The file's own comment records this for the natural-language names.
+status: observed
+src: 2.19.11#93-102 2.19.11#161-168
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.5
+name: reverse-closure-pair
+kind: observation
+is: In the old body a reversible rule names two hand-written closures. For Rust's let-int rule one closure builds an RS-BMF-LET node from the captures name and value, and the other rebuilds five tokens from the node's two children, typing the literal tokens a second time. bmf-roundtrip runs forward, backward, forward and compares the two nodes.
+status: observed
+src: 2.19.3#97 2.19.3#49-53 2.19.7#2444-2464 2.19.7#2556-2579 2.19.16#86-90
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.6
+name: reverse-yields-tokens
+kind: observation
+is: The reverse of an old host rule returns a list of token objects; the five files hold 209 such source closures. No function joining tokens into text was found in engine.fk, source-compiler.fk or compiler.fk, and the Go, Rust and Prolog files hold no text scanner. A rule with no reverse returns the token span its object was parsed from.
+status: observed
+src: 2.19.7#92-97 2.19.7#1924-1930 2.19.8#487-489 2.19.1#4 2.19.1#7
+limit: The absences rest on searches by name for to-text, source-text, render, objects-text and scan.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.2.7
+name: halves-never-joined
+kind: finding
+is: The old body holds the two halves of a reversible grammar in two engines and never joined them. The object engine applies a rule in both directions, with each direction written as a closure over tokens. The cursor engine holds pattern and template as data over text and applies a rule in one direction only.
+status: inferred
+conf: high
+from: 3.11.2.1 3.11.2.2 3.11.2.5 3.11.2.6
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.3
+name: shared-identity
+kind: hub
+is: Whether equivalent programs in two languages reach one node in the old body. Today no test asks: the one live test compares token-fold programs built from the integers 10 and 3. Before the cut of 2026-09-29 a test asserted one node for a method in Go, Java and BML, through recursive grammars sharing 13 rules that read types without keeping them. A sample named for cross-language identity built its trees by hand.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.3.1
+name: band-shares-two-integers
+kind: observation
+is: The only test that loads the five host rule files, language-packs-band.fk, applies one rule per language to a statement holding an integer, reads the integer from the last child, and compares five token-fold programs built from the values 10 and 3. The five statement nodes are never compared. Verdict 31 is pinned with the date 2026-10-01.
+status: observed
+src: 2.19.16#20-77 2.19.13#20-30 2.1.6#448 2.19.1#5.1
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.3.2
+name: one-node-test-before-cut
+kind: observation
+is: Before the cut, lang-convergence-band.fk asserted that each of two methods parsed from Go, Java and BML text equals its own hand-built node, and that the two nodes differ (three cells of 100, expected total 300). Go and Java each supplied three rules (method, param, ifs) over 13 shared rules; BML used its own 78-rule grammar, and by its rule text the BML third is not shown to reach the hand-built node. Types were read and not captured, so func f(x int) and func f(x string) gave the same node.
+status: observed
+src: 2.19.20 2.19.18 2.19.19 2.19.14#20 2.19.23 2.19.1#5.2
+limit: Read through git show and not run. The one receipt found, of 2026-07-17, says three sibling kernels agreed and fkwu did not report. The 13 shared rules survive on line 20 of lang-common.fk with no caller; their rules for - and / are right-recursive, so a - b - c reads as a - (b - c), which a tree-equality test cannot see.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.3.3
+name: hand-built-sample
+kind: observation
+is: The sample folder 02-cross-language-content-addressing, removed in the cut, interned one tree twice through two helper routes, labelled them the Python and the TypeScript author's, and printed that the node ids match. Its README lists Python to node id through python-bmf.fk as not reachable. Nothing read its factorial.py and factorial.ts.
+status: observed
+src: 2.19.21 2.19.22 2.19.1#5.3
+limit: Read through git show from the tree one commit before the cut; not run.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4
+name: lens
+kind: hub
+is: The smallest mechanism the study found for one definition that reads, prints and translates. A lens is a list of rows (rule NAME PATTERN TEMPLATE) plus lexicon rows, all data; one interpreter matches the pattern to read and runs the template as a destructor to print. A 360-line C probe did so for Go, Java and Python texts of one method. A 2010 paper builds the same construction. Type-dependent operators, scope and text fidelity lie outside the rows.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.1
+name: nums-op-templates
+kind: observation
+is: In NUMS.Go, labels.yaml (298 lines) carries 81 _Op templates on neutral labels, for example Equal '{0} == {1}' and Ternary '{0} ? {1} : {2}': a literal sequence with numbered holes bound to the children of one label. The Go table Go.yaml (282 lines) carries none. Both files were last committed on 2023-04-05.
+status: observed
+src: 2.19.24#79 2.19.24#151 2.19.24#200 2.19.25 2.19.30#4 2.19.31#8 2.19.1#7
+limit: That NUMS.Go used the templates in one direction only, and that its printer is a hand-written Go switch that does not use them, comes from the two first-round NUMS reports, not from a reading in the host-language study.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.2
+name: lens-definition
+kind: finding
+is: A host-language lens is a list of rows (rule NAME PATTERN TEMPLATE), pattern and template both data, plus rows (lex NEUTRAL spelling). One interpreter reads by matching the pattern and interning the template, prints by running the template as a destructor and walking the pattern, and translates by reading with one lens and printing with another.
+status: inferred
+conf: mid
+from: 3.11.2.2 3.11.2.7 3.11.4.1 3.11.4.4 3.11.4.5
+limit: Shown on about 15 constructs in one probe; no full host language was measured. A construct the target lens has no row for is refused; translating it needs a node-to-node recipe, a third artefact the mechanism does not supply.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.3
+name: inverse-from-content-addressing
+kind: finding
+is: Nodes are content-addressed, so interning a blueprint with children and reading both back are inverses, and a template built from interning alone needs no second definition to print. A row can print when all variable text is captured, each capture appears exactly once in the template, and parentheses print only when the plain alternatives fail.
+status: inferred
+conf: mid
+from: 1.3 3.11.4.5 3.11.4.6 3.11.4.8
+limit: The study marks the three conditions as inferred and the first as demonstrated. The printing guard, a rule asked to print the node it is already printing answers no, was tried on one grammar.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.4
+name: probe-one-node-three-surfaces
+kind: observation
+is: The study's probe lens.c, 360 lines of C built with address and undefined-behaviour sanitizers (no warning, exit 0, verdict 31), read Go, Java and Python texts of one typed two-parameter method to the same node, number 22. The store held 22 nodes after all three reads. The type words int64, long and int met at one leaf, i64, through lexicon rows.
+status: observed
+src: 2.19.1#8.2
+limit: One machine, one method. The probe files sit in a session scratch directory, not in a repository.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.5
+name: probe-print-and-parentheses
+kind: observation
+is: In the study's probe, node 22 printed through each of three lenses and read again through the same lens gave node 22, so translating is printing. (a + b) * c printed with parentheses and a + b * c without, with no rule written for printing parentheses. a - b - c and a - (b - c) were different nodes, 31 and 33, and each printed back to its own form.
+status: observed
+src: 2.19.1#8.2
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.6
+name: probe-refusals
+kind: observation
+is: In the study's probe a Python function using / read to a node with blueprint truediv. The Go lens has no row for truediv and refused to print, answering no row for blueprint 13 (truediv). A Go lens that reads types without capturing them gave a different node, 44, for the same text and could not print: an uncaptured run has nothing to print from.
+status: observed
+src: 2.19.1#8.2
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.7
+name: probe-cost
+kind: observation
+is: The study's probe used 9 shared rules in 17 lines; Go 7 rules and 2 lexicon rows in 13 lines; Java 7 and 2 in 13; Python 8 and 2 in 19, plus a layout pre-pass of 15 lines of C. The old flat files cost 600 to 850 bytes per fixed shape. The probe gave no error report: its first run answered node 0 for the Go text with no position and no reason.
+status: observed
+src: 2.19.1#8.2 2.19.1#6 2.19.1#8.4
+limit: Speed, comments and any construct beyond typed methods, assignment, four operators, calls, if and return were not shown. The old engine's traced mode, which keeps the farthest place a rule could not begin, is named as the part to carry for error reports.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.8
+name: invertible-syntax-paper
+kind: observation
+is: The 2010 paper Invertible Syntax Descriptions builds one description that is parser and printer from partial isomorphisms: a constructor one way, a destructor the other; the printer takes alternatives in order, the parser keeps all of them. A priority filter prints parentheses only where the parser needs them. Stated limits: round trip up to equivalence classes; exponential worst case.
+status: relayed
+src: 2.19.26#3.1 2.19.26#4.4 2.19.26#6.4 2.19.1#8.3
+limit: The study read pages 1 to 12 of the PDF, and review 9.5.16.24 read all 12 pages again.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.9
+name: bnfc-and-sdf3
+kind: observation
+is: BNFC generates abstract syntax, lexer, parser and printer from one labelled grammar for six target languages; its printer drops redundant separators, comments do not reach the parser, and layout syntax exists only in the Haskell-family back ends. A Spoofax SDF3 template production carries its layout; without templates the printer writes one line.
+status: relayed
+src: 2.19.27 2.19.28 2.19.29 2.19.1#8.3
+limit: Read through a summarising fetch on 2026-11-24.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.10
+name: types-and-names-outside-rows
+kind: finding
+is: Two things a lens row cannot decide are not syntax. Operator meaning by operand type: Go's / is integer or real division, and the probe's Go lens is wrong for float64 operands. Names: the probe keeps names as string leaves, so f(x) and f(y) are different nodes and a rename changes identity; a side table needs a reader that resolves scope.
+status: inferred
+conf: high
+src: 2.19.17#13-14
+from: 3.11.4.4 3.11.4.6 3.11.1.5
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.4.11
+name: round-trip-on-nodes-not-text
+kind: finding
+is: A lens round trip holds on nodes: reading a printed node gives that node. Printing a read text gives a canonical spelling: one space between tokens, the lens's layout, no redundant parentheses, no comments. Python layout is a pre-pass outside the rows, a name equal to a target keyword re-reads wrongly, and ordered choice needs hand-ordered rules.
+status: inferred
+conf: mid
+from: 3.11.4.5 3.11.4.7 3.11.2.2
+limit: Spacing and parentheses were seen in the probe; the loss of comments and the keyword collision are reasoned, not run.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8
+name: keep
+kind: hub
+is: Five things the study carries forward: rules as data in the cursor engine's shape, read without a separate scanner; a shared rule core with each language supplying only where its surface differs; the read, print, read round trip as the test of a lens; a fixed neutral vocabulary with numbered-hole templates as in NUMS.Go; and an audit that writes 0 where a capability is 0.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8.1
+name: cursor-rule-shape
+kind: finding
+is: Keep rules as data in the cursor engine's shape: a named rule, a pattern list, a template list and operator table rows of symbol, node name and precedence, read without a separate scanner by ordered choice with first-byte pruning. A print walk over the same rows is the one addition the lens mechanism needs.
+status: inferred
+conf: high
+from: 3.11.2.2 3.11.2.3 3.11.4.2
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8.2
+name: shared-rule-core
+kind: finding
+is: Keep the shared-core arrangement: one list of rules for what imperative languages have in common (13 rules in the old body, 9 in the probe) and, per language, only the rules where its surface differs (3 in the old body, 7 or 8 plus 2 lexicon rows in the probe).
+status: inferred
+conf: high
+from: 3.11.3.2 3.11.4.7
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8.3
+name: round-trip-as-lens-test
+kind: finding
+is: Keep the round-trip check as the test of a lens: read, print, read again and compare the two nodes. The old object engine's bmf-roundtrip does so on token lists, and the probe did so on text for three languages.
+status: inferred
+conf: high
+from: 3.11.2.5 3.11.4.5
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8.4
+name: neutral-catalogue-and-hole-template
+kind: finding
+is: Keep a fixed neutral catalogue, as in NUMS.Go, as the vocabulary that lens rows emit into, and the NUMS.Go numbered-hole template as the form of a row, moved to the per-language side with typed holes. NUMS.Go attached the template to the neutral label, which gives one spelling for all languages.
+status: inferred
+conf: mid
+from: 3.11.4.1 3.11.4.2
+limit: The fixed catalogue of NUMS.Go (19 level-2 recipe types) is taken from the first-round NUMS reports, not read in the host-language study.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.8.5
+name: capability-vector-audit
+kind: finding
+is: Keep the audit style of pl-lenses-13.fk: a vector of capabilities per language area that writes 0 for each capability that is absent, such as full parse, round trip, type check and identifier escape, beside the 1 for what does run.
+status: inferred
+conf: high
+from: 3.11.1.5
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9
+name: drop
+kind: hub
+is: Seven things the study lets go: per-language node categories; emit and source closures over token objects; fixed phrase rules; two hand-kept name tables with a silent zero; engine operations that belong to one language; one-node results reached by not keeping what differs; and counting a language as supported because a grammar file exists.
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.1
+name: category-per-language
+kind: finding
+is: Drop per-language node categories such as GO-BMF and PY-BMF. Node identity is category plus children, so equivalent statements of two languages get different nodes above the leaf. Where two category numbers coincide, as TypeScript and Go do on 631 to 637, an equal node would follow from the numbering and not from shared meaning.
+status: inferred
+conf: high
+src: 2.19.11#527-528
+from: 3.11.1.4 3.11.3.1
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.2
+name: closures-over-tokens
+kind: finding
+is: Drop the emit and source closures written per rule, and token objects as a grammar's input and output. Each closure pair writes one mapping twice by hand, and only a round-trip test per rule checks that the pair agrees. One template read in both directions replaces both closures, and a lens takes text in and gives text out.
+status: inferred
+conf: high
+from: 3.11.2.1 3.11.2.5 3.11.2.6 3.11.4.3
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.3
+name: phrase-rules
+kind: finding
+is: Drop fixed phrase rules: one rule per whole statement shape, one rule per operator between two names, one rule matching one sample program. The five old files are lists of fixed phrases, not grammars; they cost 600 to 850 bytes per shape and grow with the number of shapes, where a recursive form costs a rule per construct and a row per operator.
+status: inferred
+conf: high
+from: 3.11.1.2 3.11.1.3 3.11.4.7
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.4
+name: name-table-copies
+kind: finding
+is: Drop the two hand-kept copies of the blueprint name table, in which a name missing from one copy receives category 0.0.0.0 without a report and nodes with identical children then never share identity.
+status: inferred
+conf: high
+from: 3.11.2.4
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.5
+name: one-language-sugar-in-engine
+kind: finding
+is: Drop from the general reader the operations that belong to one language's surface: the $bml-slice and $bml-typed builders, the bmlname keyword edge, and the skipping of C-family comments for every grammar.
+status: inferred
+conf: high
+from: 3.11.2.3
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.6
+name: one-node-by-not-keeping
+kind: finding
+is: Drop one-node results reached by reading what differs between languages and not keeping it, as the removed Go and Java grammars did with types. Keep the differing part and map it through a lexicon row, or do not claim the node is the program. In the probe a lens that reads types without capturing them could not print.
+status: inferred
+conf: high
+from: 3.11.3.2 3.11.4.4 3.11.4.6
+at: 2026-11-24
+by: r2/gap-host-language-grammars
+
+n: 3.11.9.7
+name: support-by-file-presence
+kind: finding
+is: Drop counting a language as supported because a grammar file for it exists. The five old files are present and read only fixed phrases, and the old body's own audit sets full parse and AST round trip to 0.
+status: inferred
+conf: high
+from: 3.11.1.1 3.11.1.2 3.11.1.5
+at: 2026-11-24
+by: r2/gap-host-language-grammars

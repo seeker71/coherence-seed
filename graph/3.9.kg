@@ -1,0 +1,442 @@
+# What the study of the machine-code emitters written in the old body's own language found (study/r2/gap-inlanguage-emitter.md), with the encoder's spot-check corrections applied.
+
+n: 3.9
+name: in-language-emitter
+kind: hub
+is: The old body has three AArch64 writers in its own language and one object-file writer, sharing no encoder code. Only jit-page.bml (396 lines) is offered by the runtime's heat, at 4096 calls: it compiles node by node, keeps the walker's tagged word and frame, calls a 38-word helper table numbered ABI 4 and hands uncovered nodes back to the walker. Recorded gain: about 20x on a tight int loop, 1.6x on compiler work. No wrong answer of the page is on record; a page is never unbound. form-macho.fk writes a 251-byte unsigned object that needs the system linker.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.1
+name: writers
+kind: hub
+is: Five writers of machine code or code text stand in the old body's own language beside the C loop lane. Only the 396-line page emitter is offered by the runtime's heat; the leaf compiler runs by explicit call or through a heat gate kept in Form, the CPU images by explicit call, and the C lane fires first at 1024 calls. Two doors of the runtime accept raw machine bytes with no content check.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.1.1
+name: writers-map
+kind: observation
+is: Machine code is written in the old body's own language by three writers: jit-page.bml (396 lines, 32-bit words as ints), form-asm.fk (306) with form-lower.fk (678) as byte lists, and CPU images such as sha256-arm64-jit.fk (138). form-macho.fk (74) writes an object file; jit-tensor-emit.fk (401) writes Rust, Metal and CUDA source text.
+status: observed
+src: 2.1.14#30 2.17.2#26-35 2.17.3#28-29 2.17.8#14 2.17.4#1-6 2.17.20 2.17.7#39-42 2.17.1#2
+limit: jit-tensor-emit.fk was read to line 92 and body-fingerprint.bml in part. bml-demand-jit.bml (799 lines), which holds a persisted artifact for the leaf lane, was not opened.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.1.2
+name: heat-wiring
+kind: observation
+is: Of the in-language writers the runtime's heat offers only the page emitter, at every 4096th call of a defn or 32nd time sample; the leaf compiler has its own heat count in Form and CPU images run by explicit call. The C loop lane (380 hex-word sites) fires at 1024 calls; the page offer skips a body wearing tag 194, which a bound page wears too.
+status: observed
+src: 2.1.7#10281 2.1.7#10296-10299 2.1.7#24094 2.1.7#24350 2.1.7#1034 2.1.7#31791-31792 2.1.7#10518 2.1.6#1381-1382 2.17.7#47 2.17.6#16-17 2.17.21#16-21 2.17.1#2
+see: 3.9.1.4
+limit: The 380 is a count of lines matching fk_f64_put(words, wn, 0x in the runtime file. The C loop lane itself was not read by the study. The leaf compiler's heat count is a gate in Form that a program must call (3.9.1.4); the runtime's pulse knows nothing of it.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.1.4
+name: leaf-heat-gate
+kind: observation
+is: The leaf compiler is not offered by the runtime. A gate in Form, jit-heat-gate.fk, counts requests per program identity at its door, answers through the interpreter below the mark, and compiles once through the leaf compiler when a lowerable program's count reaches 5; a program reaches it only by calling the gate.
+status: observed
+src: 2.17.21#16-21 2.17.21#39-46 2.17.21#65-78 2.17.21#79-92 2.17.22#98 2.17.22#109 2.17.22#119-133 2.17.23#14-16 2.17.7#49-56
+limit: Read, not run. Lowerable means every row is a literal, the argument, add, sub, mul or a division by a nonzero literal. The cool step halves every count and drops an entry whose count falls below 2 from the registry it threads; it does not call the door's release, which jit-once-born.fk sends only from its sweep on a new epoch or a changed image. Callers found by search: form-cli-jit.bml, rest-force-jit.fk and two tests.
+at: 2026-11-24
+by: r3/review-in-language-emitter
+
+n: 3.9.1.3
+name: raw-byte-doors
+kind: observation
+is: Two doors of the old runtime take raw machine bytes from any program in the language. jit_leaf_inram (tag 146) checks only that a list holds ints 0 to 255 and that its length is a multiple of 4, then maps and calls it; jit_cpu_run takes an image string of up to 1 MiB. The runtime comment 'It never accepts a byte image' describes tag 215 only.
+status: observed
+src: 2.1.7#5269-5289 2.1.7#5385-5447 2.1.7#10883 2.1.7#4883-4886 2.1.10#157 2.1.10#299
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2
+name: page
+kind: hub
+is: jit-page.bml is a partial compiler that works node by node and never refuses a defn for holding a node it cannot say. By the study's count it handles about 55 node kinds and writes instructions for the int path of 28; the rest go to the walker's own C functions. Floats, closures, indirect calls, attempt and record_new stay walked. Values stay the walker's tagged words in the walker's frame.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.1
+name: own-words
+kind: observation
+is: jit-page.bml writes with no helper call: int literals below 2^61, nil, a pinned string literal's word, parameter and let reads, let, do, and behind an int test the int paths of add sub mul div mod, band bor bxor, le lt eq and five u32 ops. An if reads condition words 0 and 2 in place and calls the truth helper (table word 3) for any other word.
+status: observed
+src: 2.1.14#134-143 2.1.14#173-206 2.1.14#234-238 2.1.14#256-277
+limit: The int test is orr then tbnz bit 0, and tbnz alone for the one-operand bnot_u32 (line 237). A non-int operand or a zero divisor calls the op's helper, except that an eq with a nil side is answered in page words (line 263).
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.2
+name: calls
+kind: observation
+is: In jit-page.bml a self tail call becomes a loop: arguments go to temporaries, move to the parameter slots, the deadline tick helper runs, then a branch back. A callee whose tail spine makes no call is written in place of its call, two deep and up to 768 words. Any other call evaluates arguments left to right into slots and calls helper 6 or 7.
+status: observed
+src: 2.1.14#299-370 2.1.14#373
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.3
+name: mirror
+kind: observation
+is: For a node with no arm of its own, jit-page.bml asks the runtime door jit_node for the node's value children, evaluates each into a frame temporary, has the runtime mint a new walker node whose children read those slots, and has the walker run only that node. Which nodes may be split this way is a table in C beside the walker (fk_jit_plain_kids).
+status: observed
+src: 2.1.14#144-172 2.1.7#10535-10546 2.17.13#23
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.4
+name: declines-and-handoff
+kind: observation
+is: A node jit-page.bml cannot say is walked in place in value position or in tail position handed back through the table's next cell to the walker in the same frame. A whole defn is declined if no node was taken in page words, the frame needs over 4095 slots or has no readable slot count, the offer is malformed or not ABI 4, or the bind door refuses.
+status: observed
+src: 2.1.14#104-107 2.1.14#114 2.1.14#379 2.1.14#384 2.1.14#388-393 2.1.7#10456-10482 2.1.7#11065-11078
+limit: A malformed offer is nothing or a list of fewer than four items (line 390). The bind door refuses a value that names no defn, a defn already bound, words not headed by ABI 4, a word outside 0 to 2^32-1, an empty word list, and everything on a host other than Darwin arm64.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.5
+name: registers-and-frame
+kind: observation
+is: A page is entered as page(fp, table). x19 holds the helper table, x20 the frame index, x21 the frame's address, recomputed after every helper call because a helper can grow the value stack; x0 holds the current value. Parameters, lets and the page's temporaries are all value-stack cells, so no value lives in a register across a helper call.
+status: observed
+src: 2.1.14#10-13 2.1.14#97-100 2.1.14#374-383 2.1.7#10249
+limit: That a stop raised inside a helper unwinds safely over a page's native frame is inferred by the study from this convention; the recover point's restore was not read against the in-place frame-chain push.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.2.6
+name: tagged-word-in-code
+kind: observation
+is: Page code uses the walker's value word unchanged: an int n is the even word 2n, a compare answers 0 or 2, nil is the word 1; pairs, strings and floats are odd words that page code never builds or opens. Node ids, defn ids and pinned string words stand in the code as immediates, so a page is valid only in the process that made it.
+status: observed
+src: 2.1.14#104-108 2.1.14#137-143 2.1.14#257-263 2.1.7#15386-15393 2.17.14#50-53 2.17.1#5
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3
+name: host-contract
+kind: hub
+is: The page's contract with the C runtime is a 38-word helper table numbered ABI 4, a bind door, a node-reading door and the mirror door. A defn is offered at a heat or time mark to the emitter running as a cell in the same process. A bound page is never released, a failing offer stops the user's program, and a decline carries no reason. The study derives a replacement of ten functions and one callback.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3.1
+name: helper-table
+kind: observation
+is: Page code calls the runtime through one static 38-word table, ABI 4: stack base, next node, walk, truth, tick, enter, call, tail, 26 operations shared with the walker's arms, and 4 frame-chain words (3 addresses and a capacity number). Every offer carries the number; the emitter declines another and the bind door refuses words not headed by it.
+status: observed
+src: 2.1.7#10250-10280 2.1.7#10470 2.1.7#10498-10516 2.1.7#15410-15411 2.1.7#15565-15572 2.1.7#31793 2.1.14#92-96 2.1.14#388-393
+limit: The three addresses are of the running defn, of the chain's depth and of the chain array; the fourth word, fr_cap, is the chain's capacity FK_FR_CAP as a number (lines 10275-10278, 10512-10515). Nine of the 26 operations, eight bit ops and value_kind, are one-line wrappers over a function that the walker's code calls at lines 21008 and 21318.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3.2
+name: offer-and-queue
+kind: observation
+is: The runtime offers a defn when its call count reaches a nonzero multiple of 4096, or when the sampler has posted 32 time samples for a never-offered defn. The offer runs jit-page.bml as a cell in the same process with [defn, body, arity, 4]. While the emitter is busy a defn waits once in a line of 64. FK_NO_JIT turns the lane off.
+status: observed
+src: 2.1.7#10281-10300 2.1.7#31730 2.1.7#31788-31793 2.1.7#31838-31854 2.17.1#7
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3.3
+name: bind-and-no-release
+kind: observation
+is: jit_fn_bind checks the defn, that no page stands, the ABI head and that every word is an int in 0 to 2^32-1, then maps the words and replaces the defn's body by a node (194, defn, old body). It binds only on Darwin arm64. Nothing unbinds or unmaps a page: lowering one unit bound 160 pages, each at least 16,384 bytes mapped, 2,621,440 bytes in all.
+status: observed
+src: 2.1.7#10453-10522 2.1.6#1346 2.17.1#7
+limit: The absence of an unbind rests on a search of the runtime file for assignments to the page table. The byte total is arithmetic from the floor record's 160 pages and this machine's page size, not a measurement.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3.4
+name: failure-and-refusals
+kind: observation
+is: If the emitter stops during an offer, the runtime writes a native-failure diagnostic and raises a stop in the program that crossed the heat mark. A declined defn is value 0 with no reason: a note of 2026-10-11 records every offer declined that way while the emitter's imports were not found. Only the jit_node door keeps a reason code, 1 to 10.
+status: observed
+src: 2.1.7#31807-31818 2.1.14#389-393 2.1.7#10644-10649 2.17.15#18
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.3.5
+name: proposed-interface
+kind: finding
+is: The study proposes an emitter interface for a C bootstrap: ten functions (reserve, commit, release code; bind, unbind, query a recipe; the helper table; read a cell, a recipe's shape, an operation's row) and one callback, emit, whose failure is a counted decline with a reason. The table is per activation, numbered in word 0, literals by index.
+status: inferred
+from: 3.9.3.1 3.9.3.2 3.9.3.3 3.9.3.4 3.9.2.3 3.9.2.6
+conf: mid
+limit: A proposal: nothing of it was built or run, and the names are the study's. It assumes a first tier on the interpreter's frame and tagged word; unboxed registers, saved native code and an executable-file writer lie outside it.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4
+name: encoders
+kind: hub
+is: Instruction encoding exists twice in the language: 33 parametrized forms with decimal bases inside jit-page.bml, and 71 encoders in form-asm.fk, 61 of them data rows through one packer. Neither has labels, a register allocator or relocations. form-lower.fk compiles small integer trees in 32-bit registers; form-macho.fk writes an unsigned object file only. A probe confirmed 47 words and the object layout.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.1
+name: page-encoders
+kind: observation
+is: jit-page.bml holds its own instruction table: 33 parametrized forms and 8 fixed words. Each form is a function answering base + field * 2^position, the base a decimal literal with the hex in a comment, for example jp-ldr = 4181721088 + slot * 1024 + rn * 32 + rt (f9400000). The file imports only core.fk; form-asm.fk line 183 repeats the same base.
+status: observed
+src: 2.1.14#30 2.1.14#41-102 2.1.14#110-111 2.1.14#369-373 2.17.2#183
+limit: There are no general labels: branch distances are computed from list lengths at each site. The one fixup is the self tail call's branch, written as the placeholder word -1 and replaced by jp-link with a backward branch when the page is assembled.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.2
+name: asm-rows
+kind: observation
+is: form-asm.fk has 83 definitions: 71 instruction encoders and 12 helpers. 61 encoders are data rows through one packer, fa-asm(base, multipliers, arguments), which answers four little-endian bytes; 8 are fixed byte rows. A comment says every word of the floating-point rows was verified byte for byte against clang's output.
+status: observed
+src: 2.17.2#26-35 2.17.2#40 2.17.2#215-216 2.17.2#301-304
+limit: The verification claim is the file's own comment; the study did not rerun it.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.3
+name: leaf-compiler
+kind: observation
+is: form-lower.fk compiles a small tree in its own tag space to AAPCS64 code. It computes in 32-bit registers and sign-extends the result, so f(2000000000) answers 1705032711 where the walker answers 6000000007. A piece it cannot lower is nothing(), carried upward by lo-app. By its comments, compiled bytes cannot call back into the runtime.
+status: observed
+src: 2.17.3#32-35 2.17.3#243-254 2.17.3#414-423 2.17.12#13-15
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.4
+name: anf-rows
+kind: observation
+is: anf-lower.bml turns a defn's nodes into rows in which every call's arguments are bound to temporaries in order before the call row, so a lowering has no argument expression left to substitute or drop. A defn holding an unknown node, a closure or a short-circuit operator answers nothing() whole, and anf-why names the node and the reason.
+status: observed
+src: 2.17.5#1-16
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.5
+name: object-writer
+kind: observation
+is: form-macho.fk writes one thing: a Mach-O 64-bit arm64 relocatable object (file type 1) with two load commands, the code at file offset 208, one exported symbol and a string table. It writes no executable, no relocation and no signature; its header comment names the system linker ld as the step that makes the object runnable and signed.
+status: observed
+src: 2.17.4#1-6 2.17.4#31-38 2.17.4#69-72 2.17.11#11-19
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.4.6
+name: transcription-probe
+kind: observation
+is: The study transcribed 39 sample encodings and the 8 fixed words of jit-page.bml into a C probe; Apple's otool decoded each to the instruction its comment names. A 251-byte object rebuilt from form-macho.fk's layout linked with ld (one warning), ran with exit status 40 and carried an ad-hoc linker signature.
+status: observed
+src: 2.17.1#8.1 2.17.1#10
+limit: The probe checks the study's transcription of the recipes' arithmetic against Apple's tools on one machine; the recipes themselves were not run, and the probe sat in a session scratch directory.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5
+name: speeds-and-faults
+kind: hub
+is: On record the page lane is about 20 times the walker on a tight int loop and about 1.6 times on compiler work; the C loop lane reaches about 60 times on a loop. The study measured none of these. No wrong answer is recorded for jit-page.bml; recorded miscompiles belong to the C loop lane, to form-lower.fk, or to a second copy of an operation that drifted from the first. A fault of 2026-11-24 at call 1024 is open.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.1
+name: page-speeds
+kind: observation
+is: The old body's floor record gives, walker against pages: a 3-million-step tail loop 156 ms against 7 ms, fingerprinting 232 KB 36 ms against 2 ms, lowering form-find.bml 2.1 s against 1.26 s and form-path.bml 1.65 s against 1.0 s. Lowering form-find made 171 offers, bound 160 pages and spent 0.15 s offering, about 0.9 ms an offer.
+status: observed
+src: 2.1.6#1339-1346
+limit: The numbers are the record's own, dated 2026-10-11 by the study, on one machine. Neither the study nor this encoding ran the runtime; the 0.9 ms is 0.15 s divided by 171.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.2
+name: other-lane-speeds
+kind: observation
+is: On record for other lanes: the leaf door ran 1.2 times the walker on 400,000 calls and covered none of the hot worklist (2026-09-02); the C loop lane took a 20-million-iteration int loop from 0.63 s to 0.01 s; a 17-instruction CPU image fingerprints 1.39 MB in 2 ms against 18 ms as a recipe; the CPU's SHA-256 instructions read 2.02 GB in 659 ms.
+status: observed
+src: 2.17.16#117-119 2.17.16#179 2.1.6#1352-1354 2.1.6#1361-1363 2.17.9#18-19
+limit: All four are the sources' own numbers from one machine; none was rerun.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.3
+name: second-copy-faults
+kind: observation
+is: Recorded wrong answers outside the page: the C loop lane inlined callees by substituting argument expressions, so past 1024 calls a plain build landed 3,936 of 780,000 effects (found 2026-10-03, guarded in C). In a former Go sibling kernel len answered 311 cold and 310 hot, because the primitive existed twice and one copy was healed (2026-07-17).
+status: observed
+src: 2.17.17#11-12 2.1.7#14728-14732 2.17.19#13-15
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.4
+name: leaf-compiler-faults
+kind: observation
+is: form-lower.fk's comments record past wrong answers: an unsigned divide answered 2147483644 for -7/2; an uncovered tag lowered to an empty list and the image answered with a node missing; -3 arrived as 4294967293 before sign extension; a cond over a non-compare compared garbage registers; x19 to x22 were used unsaved. Each is described as fixed.
+status: observed
+src: 2.17.3#32-33 2.17.3#88-89 2.17.3#139-140 2.17.3#243-253 2.17.3#268-276
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.5
+name: page-fault-record
+kind: observation
+is: The study found no recorded wrong answer from jit-page.bml in its ten commits or the notes. A fault noted on 2026-11-24, a closure over locals mapped over 317 names that stops near its 1024th call with 'order: only numbers have an order', appears at the C lane's heat mark and not at the page's 4096. The note says the kernel fault is not repaired.
+status: observed
+src: 2.17.18#12-16 2.1.7#1034 2.17.1#12
+limit: The study did not reproduce the fault and its root cause is unknown; that it belongs to a C lane is inferred from the call count alone. The study names the shared scratch for captured values (runtime lines 10352-10354) as the first place to look.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.5.6
+name: cold-hot-band
+kind: observation
+is: The test jit-page-band.bml calls each defn of a family on 4000 inputs cold, then on the same 4000 again, so that heat passes 4096 and the rest of the pass runs as a page, and compares both passes through the printed value. It reads verdict 63 when its six claims land, with the default lanes and with the C loop lane held by FK_NO_F64.
+status: observed
+src: 2.17.10#1-20 2.17.15#45
+limit: Read, not run. The test needs heat 4096 inside one process and is the page's only miscompile detector besides comparing lowered bytes with the emitter off.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8
+name: keep
+kind: hub
+is: Seven things the study would carry into a new emitter: per-node fallback to the interpreter; the interpreter's frame as the compiled frame; one definition per operation; a numbered helper table whose number travels both ways; arguments bound once in order, with a decline carried as nothing; encodings as checked data rows; and a cold-equals-hot check with a board that shows where compiled code is absent.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.1
+name: per-node-fallback
+kind: finding
+is: Keep fallback per node instead of refusal per defn: a walk(node, frame) helper and a hand-off cell let an emitter start with about ten node kinds and grow one arm at a time, with the uncovered share measured by node kind. The 396-line page emitter was usable on compiler work with this design.
+status: inferred
+from: 3.9.2.4 3.9.2.1 3.9.5.1
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.2
+name: interpreter-frame
+kind: finding
+is: Keep the interpreter's frame as the compiled code's frame: every live value in a frame cell across any call out, and the frame address reloaded after every helper. A moving collector then needs no stack maps and no register roots. A self tail call becomes a loop that still ticks the deadline.
+status: inferred
+from: 3.9.2.5 3.9.2.2
+conf: high
+limit: Every temporary is then a memory slot. The recorded gain of this design is about 1.6 times on compiler work against about 60 times for untagged registers on a loop, and no measurement separates helper cost from slot traffic.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.3
+name: one-definition-per-operation
+kind: finding
+is: Keep one definition per operation, called by the interpreter's arm and by compiled code's slow path, compiled code adding only an inline fast path behind a tag test. Recorded wrong answers after a heat mark whose cause is known came from a drifted second copy of a meaning; the fault of 2026-11-24 also appears at a heat mark, its cause unknown.
+status: inferred
+from: 3.9.3.1 3.9.2.1 3.9.5.3 3.9.5.5
+conf: high
+limit: The known-cause cases are those of 3.9.5.3. The study's own table lists the 2026-11-24 fault (3.9.5.5) with root cause not known and marks the shared pattern as inferred, so that fault does not yet support the rule.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.4
+name: numbered-helper-table
+kind: finding
+is: Keep a numbered helper table whose number is handed out with each offer and comes back in the bind, so an emitter written for one layout never binds code against another. The runtime's stated reason: a checked-out binary is not rebuilt by a merge, so emitter and runtime can differ in age.
+status: inferred
+from: 3.9.3.1
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.5
+name: ordered-temporaries-and-nothing
+kind: finding
+is: Keep argument order as a property of the intermediate form: every call's arguments bound once, in order, to temporaries before the call. Keep a decline as nothing carried upward, never an empty or partial image; the leaf compiler answered wrongly with full confidence while absence was an empty list.
+status: inferred
+from: 3.9.4.4 3.9.4.3 3.9.5.4 3.9.5.3 1.9.1
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.6
+name: encoding-rows-checked
+kind: finding
+is: Keep instruction encodings as data rows, a base and field multipliers through one packer, in one table for every writer, each row checked once against an outside assembler. The study's check of 47 words of the page emitter took a C probe of 80 lines, of which the encoder part is the first 58 and the rest the object-file layout.
+status: inferred
+from: 3.9.4.2 3.9.4.6 3.9.4.1
+conf: high
+limit: The 80 and the 58 are wc -l and a reading of the study's probe file gen.c in a session scratch directory on 2026-11-24; the file is kept in no repository.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.8.7
+name: cold-equals-hot-check
+kind: finding
+is: Keep a cold-equals-hot check over the whole vocabulary that compares through the printed value, and the rule that output bytes are the same with the emitter off. Keep offering by time as well as by call count, with a board that names where compiled code is absent.
+status: inferred
+from: 3.9.5.6 3.9.3.2
+conf: high
+limit: The old check needs 4096 calls inside one process; the open fault of 2026-11-24 appeared at another lane's mark in a process serving several requests and was worked around in the caller.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9
+name: drop
+kind: hub
+is: Five things the study would leave behind: three encoders, two heat lanes and two value models for one instruction set; the mirror door that mints walker nodes at emit time; process-wide state in the code and its table, with no release; an emitter failure that stops the user's program and a decline with no reason; and an outside linker as the only route to an executable.
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9.1
+name: duplicate-encoders-and-lanes
+kind: finding
+is: Drop three encoders for one instruction set (decimal bases in jit-page.bml, byte rows in form-asm.fk, hex words at 380 call sites in C), two heat lanes in which the C lane at 1024 calls pre-empts the in-language page at 4096, and a second, 32-bit value model for the same integers.
+status: inferred
+from: 3.9.4.1 3.9.4.2 3.9.1.2 3.9.4.3
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9.2
+name: mirror-door
+kind: finding
+is: Drop the mirror door: it mints new walker nodes at emit time, keeps a strictness table in C beside the walker's arms, and is one reason pages cannot be saved. With one table row per operation, strictness is a column of that row and the emitter evaluates strict children itself.
+status: inferred
+from: 3.9.2.3 3.9.2.6 3.9.3.5
+conf: mid
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9.3
+name: process-wide-state
+kind: finding
+is: Drop process-wide state in compiled code: node ids, defn ids and string words as immediates; a helper table that is one static struct with one next cell, which forbids a second thread of compiled code; and one mapping per defn that is never released.
+status: inferred
+from: 3.9.2.6 3.9.3.1 3.9.3.3
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9.4
+name: silent-failure-modes
+kind: finding
+is: Drop an emitter failure that surfaces as a stop in the user's program at the heat mark, and a decline that is value 0 with no reason. Both break the rule that heat changes speed and never meaning: the first changes a program's outcome, the second once hid a whole lane's absence.
+status: inferred
+from: 3.9.3.4
+conf: high
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter
+
+n: 3.9.9.5
+name: outside-linker
+kind: finding
+is: Drop object files for an outside linker as the route to an executable. If emitted code is to replace the bootstrap, the body needs its own executable writer and its own ad-hoc signature, or a stated dependence on ld and codesign. Nothing in the old body writes a signed executable.
+status: inferred
+from: 3.9.4.5 3.9.4.6
+conf: mid
+at: 2026-11-24
+by: r2/gap-inlanguage-emitter

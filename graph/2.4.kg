@@ -1,0 +1,234 @@
+# Sources of the nums-core study (hub 3.1). NUMS.Go files were read at the repository head 9e6bbb4; line ranges sit in the citing claim.
+
+n: 2.4
+name: nums-core-sources
+kind: hub
+is: The primary sources behind hub 3.1: the study report on the NUMS.Go core package, the fifteen Go files of that package with its module file, the workspace file, a design note, the repository's own driver and sample, the pinned tree-sitter Go grammar, the first-round critique, and one Go file and the module file of the http/ tree.
+at: 2026-11-24
+
+n: 2.4.1
+name: nums-core.md
+kind: source
+is: The study report on the NUMS.Go core package, 540 lines: what the package represents, how it stores nodes and names, whether it builds and runs, and the experiments the study ran on a scratch copy.
+path: coherence-seed/study/r1/nums-core.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.2
+name: nums_nodes.go
+kind: source
+is: The node ID struct, the constructors of catalogue IDs, the recipe and blueprint node structs, the level rule and the serialization of a node, 886 lines.
+path: NUMS.Go/nums/nums_nodes.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.3
+name: nums_consts.go
+kind: source
+is: The fixed catalogue: levels, recipe and blueprint types and instances, their name tables and the blueprint edge bits, 908 lines.
+path: NUMS.Go/nums/nums_consts.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.4
+name: nums_db.go
+kind: source
+is: The in-memory node databases and the function that records a node under its serialized string, 272 lines.
+path: NUMS.Go/nums/nums_db.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.5
+name: nums_symbols.go
+kind: source
+is: The per-recipe and per-module symbol tables that map names and literal text to ordinals, 205 lines.
+path: NUMS.Go/nums/nums_symbols.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.6
+name: parser.go
+kind: source
+is: The tree-sitter front: the language list, the file parser with its dispatch table, the tree walk and the import stubs, 657 lines.
+path: NUMS.Go/nums/parser.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.7
+name: go.go
+kind: source
+is: The Go handlers, 1,502 lines: 65 handler functions, a table of 213 grammar symbol numbers at lines 1209-1423 and the registration of 75 dispatch entries at lines 1425-1502.
+path: NUMS.Go/nums/go.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.8
+name: emit.go
+kind: source
+is: The builder for a named recipe: its symbol table helpers, the mapping of cell attributes to edge bits and the one log call that prints a body as Go, 435 lines.
+path: NUMS.Go/nums/emit.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.9
+name: emit_recipe.go
+kind: source
+is: The builder for one expression or statement: identifier resolution, automatic declaration and bottom-up minting of IDs, 618 lines.
+path: NUMS.Go/nums/emit_recipe.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.10
+name: emit_module.go
+kind: source
+is: The builder for a module: stacks of open blueprints and recipes, build modes, and the declaration of globals and functions, 335 lines.
+path: NUMS.Go/nums/emit_module.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.11
+name: emit_blueprint.go
+kind: source
+is: The builder for a blueprint: collecting fields and methods and writing them as child edges, 195 lines.
+path: NUMS.Go/nums/emit_blueprint.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.12
+name: recipe.go
+kind: source
+is: The recipe handle, the writer that prints a recipe as a labelled tree or as Go-like text, and the NamedCell_t struct, 545 lines.
+path: NUMS.Go/nums/recipe.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.13
+name: module.go
+kind: source
+is: The module struct with its two node databases, and the functions that turn a blueprint ID back into a name or a struct layout, 200 lines.
+path: NUMS.Go/nums/module.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.14
+name: blueprint.go
+kind: source
+is: The blueprint handle: fetching fields and members as named cells and the map element type, 263 lines.
+path: NUMS.Go/nums/blueprint.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.15
+name: reflect.go
+kind: source
+is: Six lines holding the two-field struct Cell_t (a blueprint pointer and a value).
+path: NUMS.Go/nums/reflect.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.16
+name: debugging.go
+kind: source
+is: The assertion and break helpers of the nums package, 18 lines.
+path: NUMS.Go/nums/debugging.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.17
+name: nums-go.mod
+kind: source
+is: The module file of the nums package, 12 lines: Go 1.19, a pinned tree-sitter binding and a replace line that points at a sibling directory.
+path: NUMS.Go/nums/go.mod
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.18
+name: go.work
+kind: source
+is: The workspace file of the NUMS.Go repository, 9 lines, listing four local modules and one sibling directory.
+path: NUMS.Go/go.work
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.19
+name: sample-id-space.txt
+kind: source
+is: A 62-line outline of a module holding packages as blueprints with a blueprint database and a recipe database, added on 2023-02-22 in commit 45322b7. No code reads the file.
+path: NUMS.Go/nums/sample id space.txt
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.20
+name: test.go
+kind: source
+is: The repository's own driver, 19 lines: it loads sample/sample.go and processes all nodes.
+path: NUMS.Go/test/test.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.21
+name: test-sample.go
+kind: source
+is: A 41-line Go sample whose lines 6-24 carry, as comments, a builder-style description of what each line declares.
+path: NUMS.Go/test/sample.go
+rev: 9e6bbb4
+date: 2023-04-05
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.22
+name: go-tree-sitter-golang-parser.c
+kind: source
+is: The generated Go grammar (golang/parser.c) of the tree-sitter binding at the version the nums module pins, v0.0.0-20230113054119-af7e2ef5fed6. The study read the copy in the local Go module cache.
+url: https://github.com/smacker/go-tree-sitter
+rev: af7e2ef5fed6
+date: 2023-01-13
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.23
+name: critic.md
+kind: source
+is: The completeness critique of the first study round, 471 lines: gaps, 47 spot-checks, contradictions between reports and what is ready to decide. Sections G2, N1 to N10 and C2 concern the nums-core study.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.24
+name: http-playground.go
+kind: source
+is: A 161-line Go file of the http/ tree that imports [org]/nums at line 14 and holds test_nums at lines 60-62, the one call from http/ into the nums parser; no code calls test_nums.
+path: NUMS.Go/http/playground.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.4.25
+name: http-go.mod
+kind: source
+is: The module file of the http/ tree, 44 lines: Go 1.20, a replace line that points [org]/nums at ../nums (line 5) and a require line for it (line 13).
+path: NUMS.Go/http/go.mod
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24

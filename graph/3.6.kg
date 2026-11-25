@@ -1,0 +1,438 @@
+# What the study of the old runtime fkwu and its machine-code emitters found (r1/runtime-jit). The full report is 2.9.1.
+
+n: 3.6
+name: fkwu-runtime
+kind: hub
+is: The old runtime fkwu is one C file of 34,149 lines built by one cc command in 3.7 to 8.5 s: an evaluator over 4-word code nodes with 256 tags, C and in-language emitters of AArch64 into MAP_JIT pages through one 20-line page allocation, an image cache, and 5,850 lines of host interfaces. fib(32) takes 0.54 s evaluated and about 0.05 s compiled. Its recorded faults sit where compiled and evaluated meaning differ. A 1,199-line carrier with no evaluator is in the tree; the study estimates a C bootstrap of 1,400 to 1,600 lines.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1
+name: runtime
+kind: hub
+is: What the old runtime is: one C file of 34,149 lines that grew from 160 in five months while a banner bounds only its source-runner parser; a start through one large-stack thread and a 1 ms sampler; a value word classified by parity and magnitude; two node stores and a separate NodeID word; three unrelated uses of the words ice, water and gas; a moving pair collector beneath C code. The study inferred from a text search that C holds no choice point and no trail: choice and undo are written in the language over one recover point.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.1
+name: one-unit-one-command
+kind: observation
+is: The old runtime fkwu is one C translation unit, runtime/fkwu-uni.c, of 34,149 lines and 1,634,539 bytes, plus two generated headers of 37 and 302 lines. One command builds it: cc -O2 -o fkwu runtime/fkwu-uni.c. Its core is a tree-walking evaluator over code nodes of 4 words: a tag from 0 to 255 and three operands.
+status: observed
+src: 2.1.7#561 2.1.7#665 2.9.2#14-16 2.1.10 2.1.11
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.2
+name: boot-path
+kind: observation
+is: At start fkwu arms fatal-signal handlers, runs the evaluator on one thread with a 256 MB stack, and makes the first thread a sampler that wakes every 1 ms. Source in the higher grammar BML is lowered to Form text by a Form program of 23 units run as a cell inside the same process, with no pipe and no fork; the process then starts itself again.
+status: observed
+src: 2.1.7#34114-34145 2.1.7#33187-33194 2.1.7#33988-34003
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.3
+name: size-by-subsystem
+kind: finding
+is: The study's division of the 34,149 lines of fkwu-uni.c: host interfaces (files, processes, sockets, HTTP, audio, camera) 5,850 or 17%; machine-code emitters in C 4,950; images and caches 4,800; shared-memory store 4,150; evaluator 3,900; reader 3,400; cell runs and diagnostics 3,350; values and memory 3,100; GPU interfaces 820.
+status: inferred
+from: 3.6.1.1
+conf: mid
+limit: Boundaries are approximate to about 150 lines per class; classes were assigned from function names and banner comments in 500-line windows.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.4
+name: growth-under-bounded-banner
+kind: observation
+is: runtime/fkwu-uni.c had 160 lines at its first commit on 2026-06-28, 1,954 at commit 766519b6c of 2026-06-30, 13,647 before 2026-08-01, 25,570 before 2026-10-01 and 34,149 on 2026-11-24; 400 commits touch it. A banner calls its built-in source runner a one-time bootstrap and bounds that parser, not the file, against becoming a full C flattener.
+status: observed
+src: 2.9.1#section-8 2.1.7#23277-23285
+limit: 766519b6c (09:42 -0600) is the last commit before 2026-07-01 00:00 in the reading machine's zone, +0800. By the commits' own dates the last commit of 2026-06-30 is e394e1ac0 (16:50 -0600), with 1,977 lines.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.5
+name: tag-space-and-op-table
+kind: observation
+is: A code node's tag in fkwu selects the evaluator's branch and has 256 values. The generated operation table holds 287 rows: 221 operations and 66 reader rewrites. A private note records the tag space as nearly full: a tag picked by mistake takes over another operation's branch unreported. Later operations share one tag under a mode number.
+status: observed
+src: 2.1.7#665 2.1.10#7-302 2.9.8#13 2.9.1#section-10.1
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.6
+name: value-word-bands
+kind: observation
+is: A value in fkwu is one signed 64-bit word classified by parity and magnitude: even is a 63-bit integer; 1 is the empty list; odd positive indexes a pair; -8999999999999999999 is nothing; odd negative bands near -9e18, -8.5e18, -8e18 and -7e18 hold float boxes, strings, function values and records. Comments record two repairs of aliasing kinds.
+status: observed
+src: 2.1.7#735-770 2.1.7#941-949 2.1.7#1640-1662 2.9.18#50-51
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.7
+name: node-stores-and-node-word
+kind: observation
+is: Besides code nodes, fkwu keeps value nodes in column arrays addressed by index and interned by a hash of category and children, so the same category and children give the same node. A separate NodeID word has one mode bit, then either a 63-bit integer or package 6 bits, level 13, type 12 and instance 32.
+status: observed
+src: 2.1.7#5649-5662 2.1.7#5758-5778 2.1.7#16944 2.1.11#6-14
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.8
+name: phase-words-three-uses
+kind: observation
+is: The old body uses the words ice, water and gas three ways. In the runtime: three homes of the value-node population (host-wide shared store, per-process shared store, private heap). In cache.fk: source file, in-memory recipe, lookup result. In substrate-phase.fk: a state computed from counts, declared independent of the kind of cell.
+status: observed
+src: 2.1.7#22929-22943 2.9.5#10-17 2.9.6#1-14
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.1.9
+name: memory-and-stops
+kind: observation
+is: In fkwu a copying collector compacts pairs at 90% fill and frees unreferenced strings in the same pass, so C code holding a pair or string index across a nested evaluation must push it first; a private note counts eleven branches repaired for held string indices. The float pool never reclaims a slot; a stop longjmps to the nearest recover point.
+status: observed
+src: 2.1.7#6438-6446 2.1.7#9596 2.1.7#22953-22956 2.1.7#23613-23640 2.9.10#25-31
+limit: Live strings never move: the string pass frees unmarked slots for reuse, and the hazard the note names is a freed slot, not a moved string.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2
+name: machine-code
+kind: hub
+is: How the old runtime makes and runs machine code: one 20-line page allocation shared by every emitter; two emitters in C of about 3,000 lines that start at a call count of 1,024; a 396-line emitter in the body's own language that starts at 4,096 and never receives what the C emitters took; a compiled function kept as a node of tag 194 with its original body as fallback; no page of these emitters saved to disk, while a document records native code on disk for two other paths written in the language.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.1
+name: page-allocation
+kind: observation
+is: All fkwu emitters get executable memory from two C functions of 20 lines: mmap read-write-execute with MAP_JIT (0x1802 on Apple), pthread_jit_write_protect_np off and on around the copy, an instruction-cache clear; the carrier membrane-boot.c repeats it in 27 lines. A function from the C emitters gets one 16 KB page; others size it to their code.
+status: observed
+src: 2.1.7#4905-4929 2.1.7#12330-12331 2.1.7#14435 2.1.7#10485-10492 2.1.7#5415-5430 2.1.7#5618 2.1.8#558-584
+limit: The in-language emitter and the in-memory leaf map their code rounded up to whole host pages; the C leaf of tag 215 maps a fixed 4,096 bytes.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.2
+name: c-emitters
+kind: observation
+is: Two emitters in C, about 3,000 lines of fkwu, write AArch64 words: one starts when a function has boxed 1,024 floats, the other at every 1,024th call of a function, closure calls excepted. Limits: 6 parameters (8 if all float), 24 slots, 8 string literals, up to four signatures; pages install only on Apple arm64, and a refusal is a numbered code.
+status: observed
+src: 2.1.7#12313-12342 2.1.7#12367 2.1.7#12458-12479 2.1.7#2040-2044 2.1.7#14434-14463 2.1.7#14838-14844 2.1.7#10379 2.1.7#10403 2.1.7#15062-15065 2.1.7#14415 2.1.7#564-567 2.1.7#14967-14990 2.1.7#11083-11094 2.1.7#4883-4885 2.1.7#5600-5602 2.9.9#13
+limit: The second emitter compiles a body with a self call as a loop and one without as a typed expression. The comment at 12475-12476 that only the first-seen signature is compiled is outdated. C holds a third emitter outside these 3,000 lines: for tag 215 it admits a small tree and emits a register-only image itself.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.3
+name: tag-194-fallback
+kind: observation
+is: A compiled function stays in fkwu's function table as a tag-194 node holding its index and original body; its branch runs the page, or evaluates the body when no compiled signature matches. A body marked -1 is not asked again; a refusal coded below -1 reopens, at most 4 times, when a call's argument shape differs; a reload unmaps every page.
+status: observed
+src: 2.1.7#12322-12326 2.1.7#11083-11094 2.1.7#15023-15046 2.1.7#14997-15019 2.1.7#12498-12511
+limit: A function declined because a function it calls was not yet compiled is set back to unasked. The comment at 12325-12326 still says a declined body is never asked again; that holds for the mark -1 only.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.4
+name: in-language-emitter-offer
+kind: observation
+is: A third emitter is written in the old body's own language: jit-page.bml, 396 lines. When a function's call count reaches a multiple of 4,096, or its sampler hits a multiple of 32, fkwu offers the function to that program as a cell in the same process and binds the AArch64 words returned. The offer skips a function the C emitters already compiled.
+status: observed
+src: 2.1.7#10227-10231 2.1.7#10281 2.1.7#10296-10300 2.1.7#31791-31801 2.1.14
+limit: The study counted the emitter's lines and read the C side; it did not read the emitter's body and could not run this path, so no speed figure exists for it.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.5
+name: page-helper-table
+kind: observation
+is: A page from fkwu's in-language emitter is called with a table of 38 words: the value stack, a continue-at node, six C helpers, 26 operations and four frame words. The layout's number, 4, goes with every offer; an emitter written for another number declines. The page keeps values in the evaluator's frame, where the collector sees them.
+status: observed
+src: 2.1.7#10233-10279
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.2.6
+name: machine-code-not-saved
+kind: observation
+is: Pages from the emitters of 3.6.2.2 and 3.6.2.4 are not saved: the old body's document says emitted words contain current function and node indices and literal-pool words, so saving raw pages is insufficient, and every process emits again. It records native code on disk for two in-language paths: the scalar demand JIT and compiled GPU programs.
+status: observed
+src: 2.9.3#48-53 2.9.3#73-87 2.9.3#109-113 2.1.7#27808
+limit: The on-disk image, format version 9, stores the evaluator's node graph. The scalar path selects 'a current disk image' and keeps 'a SHA-256 sealed admission'; one .metalbin 'contains the native archive'. Both are read from the document; neither path was run for this node.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3
+name: measures-and-records
+kind: hub
+is: Timings the study took on one machine, and what the old body's documents and private notes record: a build of 3.7 to 8.5 s; fib(32) at 0.54 s evaluated and about 0.05 s compiled, with a 2.2 to 4.0 s spread on one evaluated loop; an image 645 times its source because the cache unit is the whole closure; image identity from content with a 64-bit key; eight copies of each primitive; two recorded cases of compiled code changing meaning near the 1,024th call.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.1
+name: build-and-startup
+kind: observation
+is: On an Apple M4 Max with Apple clang 17.0.0 on 2026-11-24, cc -O2 built fkwu-uni.c at commit b8ff978c9 in 3.7 to 8.5 s across runs into a binary of 745,624 bytes with the linker's ad-hoc signature and no entitlements. In the study's runs it ran machine code in MAP_JIT pages, and a process evaluating (add 40 2) from source ended in 10 to 11 ms.
+status: observed
+src: 2.9.1#section-7.1 2.9.1#section-5.1
+limit: One machine. The 8.5 s (8.2 s user) is the study's single build at load average 3.6 and did not repeat: three rebuilds in the review round took 3.67 to 3.87 s wall (3.6 to 3.7 s user) at load average 4.4. The MAP_JIT run and the start time are the study's own and were not repeated. A private note of 2026-11-09 records 3.6 s and 711 KB for the file of that day. Whether a hardened-runtime or notarized build needs the allow-jit entitlement was not tested.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.2
+name: evaluator-vs-compiled
+kind: observation
+is: In fkwu with the C emitters switched off, fib(32) (7,049,155 calls) took 0.54 s, about 13 million calls a second; with them on, 0.046 to 0.056 s. A self tail loop of 50 million iterations took 2.2, 3.1, 3.6, 3.8 and 4.0 s in five evaluator-only runs and 0.08 to 0.09 s compiled.
+status: observed
+src: 2.9.1#section-7.1
+limit: One machine; the in-language emitter was not reachable in these runs. The evaluator's own spread on one program is wider than several speedups the old body's notes report.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.3
+name: closure-image-645-times
+kind: observation
+is: A document of the old body, measured 2026-11-13: a 59,464-byte unit became 201,998 bytes of lowered text and a 38,391,347-byte image, 645 times its source, because its closure of 351 units is assembled whole. A cold build cost 0.37 s per MiB of image. The document says one edit invalidates a whole closure while the unit of meaning is the recipe.
+status: observed
+src: 2.9.4#5-8
+limit: The figures are the document's own measurements; the study did not repeat them.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.4
+name: cache-identities
+kind: observation
+is: fkwu stores its binary under a digest of three source files and build flags, with a SHA-256 seal checked before use; a comment says builds of one version are byte-identical when file name and layout are fixed. An image's identity binds the builder, the unit's path, and the paths, sizes and digests of its closure; the store key is 64-bit FNV-1a.
+status: observed
+src: 2.1.7#33691-33710 2.1.7#28246-28262 2.9.3#58-66
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.5
+name: cache-defects-recorded
+kind: observation
+is: Private notes record: on 2026-09-12 every fkwu rebuild changed the builder identity, so images were refused and recompiled, and per-process board files were 7,329 of 7,403 entries in a checkout root; on 2026-11-09 lowered text was not deterministic on one host and dead images came to 5.1 GiB. With caching off the study's run still left five files.
+status: observed
+src: 2.9.14#11-16 2.9.11#14-16 2.9.15#11 2.9.16#26 2.9.1#section-7.1 2.1.7#28164-28193 2.1.7#33705-33707
+limit: The notes' figures are their own; the study re-measured none of them. The first record is superseded: the present source names a store-built kernel by the digest of its source and its target, and only a plain cc build follows its executable bytes, so identity changes when the runtime's source changes. The 5.1 GiB is each checkout judged against its own kernel version; judged against the current loader a design agent had counted 40 GB. The board note says a later commit removes ended processes' boards.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.6
+name: compiled-code-changed-meaning
+kind: observation
+is: Two private notes record compiled code in fkwu differing from evaluated code. 2026-10-03: past 1,024 calls an inlining step dropped the effects of arguments the callee did not read; 3,936 of 780,000 effects happened. 2026-11-24: a closure over locals stopped with a wrong error at about its 1,024th call; the note says the fault is not repaired.
+status: observed
+src: 2.9.12#11 2.9.13#11-17
+limit: Read as records; the study reproduced neither fault.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.3.7
+name: primitive-copies-drift
+kind: observation
+is: The study lists eight places one fkwu primitive is written: evaluator branch, operation function, C emitter, page slot, mirror table, image arity table, flattener row, manifest row. Private notes record two drifts: a node field past the arity table kept pointing into the first image's nodes; in the retired Go kernel a compiled len undid a repair.
+status: observed
+src: 2.9.1#section-10.1 2.9.14#18-20 2.9.17#13-15
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4
+name: carrier-and-bootstrap
+kind: hub
+is: The carrier already in the old tree and the study's bootstrap estimate. membrane-boot.c, 1,199 lines, has a word of 0, 1, nothing or node, immutable cells identified by canonical bytes, offer as its only act and no evaluator; its end-to-end proof runs cc on the 34,149-line old runtime. The study weighs three forms of stored compiler, estimates 1,400 to 1,600 lines of C for an evaluator over stored numeric cells, and concludes for C.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4.1
+name: carrier-word-and-acks
+kind: observation
+is: The carrier membrane-boot.c defines a 64-bit word: 0 is state 0, 1 is state 1, 2 is nothing, (slot<<2)|3 is a node. Offer is its only act, acknowledged by one of those four. Held work is not a word: offer sets arrived=0 and writes no ack. A timeout is an arrived nothing. An unoffered interface acknowledges state 0 and records a breach row.
+status: observed
+src: 2.1.9#10-29
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4.2
+name: carrier-cells-leaves-proof
+kind: observation
+is: In the carrier membrane-boot.c a cell is immutable; its identity is the canonical bytes of kind, children and payload, and a digest only indexes the store. Its C evaluates no recipe and has no arithmetic: a leaf is machine code the image supplies. Limits: 8,192 cells, 32 children, one page per leaf. Its proof runs cc on the 34,149-line fkwu-uni.c.
+status: observed
+src: 2.1.9#17-37 2.1.8#22-26 2.1.8#562 2.9.7#1-12 2.9.19#449-453
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4.3
+name: seed-options-and-size
+kind: finding
+is: Something must run the compiler first. The study weighs three stored forms: source read by a C reader and slow evaluator; a machine-code image per target; or canonical numeric cells with a C evaluator and no C parser. For the third it estimates 1,400 to 1,600 lines of C; a reader for a small notation adds about 250; image-only needs 800 to 900.
+status: inferred
+from: 3.6.4.2 3.6.1.4 3.6.2.1
+conf: mid
+limit: An estimate from the sizes of existing code; nothing was built. The study found no path in the old tree from the language to the carrier's machine-code leaves that avoids the old runtime.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4.4
+name: bootstrap-budget-items
+kind: finding
+is: The study's C line budget for a bootstrap over numeric cells: entry and thread 40; page allocation 30; six host calls 80; dlopen with one call trampoline 80; word and cell store 300; thaw and freeze 150; evaluator with about 25 primitives 600 to 800; bump allocator 60; fault handler 60. Parser, collector, emitters and caches go to the language.
+status: inferred
+from: 3.6.4.3 3.6.2.1 3.6.4.2 3.6.1.4
+conf: mid
+limit: Each figure is read off a comparable piece of existing code (the 20-line page allocation, the carrier's store, the old evaluator's 53 main branches in about 550 lines); none was written or run.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.4.5
+name: c-for-bootstrap
+kind: finding
+is: The study concludes that C is the smallest and most portable language for a bootstrap of about 1,500 lines that calls a few libc functions and is then replaced by code the language emits, and that the old runtime's fragility came from growing the C, not from C. A private note records that the retired Go kernel kept each compiled primitive twice.
+status: inferred
+from: 3.6.3.1 3.6.2.1 3.6.4.3 3.6.1.4 3.6.3.7
+conf: mid
+limit: The study's points against Go (per-thread write toggle, movable stacks, a runtime that owns signals and collection) and about Rust came from general knowledge and were not checked in the study.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8
+name: keep
+kind: hub
+is: Six things the study would carry forward from the old runtime: a one-command build with no dependency; a compiled function kept as an ordinary node with its original body as fallback; one page allocation for all machine code; a numbered helper table with the emitter written in the language; call counts and a sampler as compile triggers; identity from content with a sealed binary store. The study's list also names in-process cells, interfaces that answer a value or nothing with a reason word, handles of index plus generation, and a fault handler that writes one row.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.1
+name: one-command-build
+kind: finding
+is: Keep a bootstrap that one compiler command builds with no dependency beyond a C compiler. The old runtime shows the property at 34,149 lines: 3.7 to 8.5 s across runs to a 745,624-byte binary, with byte-identical rebuilds when file name and layout are fixed.
+status: inferred
+from: 3.6.1.1 3.6.3.1 3.6.3.4
+conf: high
+limit: The 8.5 s is the study's single run and did not repeat. Byte-identical rebuilds were seen in the review round: three builds with the product named fkwu, written to three folders, share one SHA-256.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.2
+name: compiled-function-is-a-node
+kind: finding
+is: Keep the dispatch form in which a compiled function is an ordinary node the evaluator already reads, holding the machine code's index and the original body. Dispatch costs nothing extra, and a call the compiled code does not cover falls back to the original body instead of failing.
+status: inferred
+from: 3.6.2.3
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.3
+name: one-page-allocation
+kind: finding
+is: Keep one page-allocation routine for every producer of machine code. In the old runtime the whole host contract for executable memory on Apple arm64 (MAP_JIT mapping, per-thread write toggle, cache clear) is 20 lines, and a comment in the runtime names that routine as what stays in C once the evaluator is written in the language.
+status: inferred
+from: 3.6.2.1
+src: 2.1.7#10246-10247
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.4
+name: numbered-helper-table-and-in-language-emitter
+kind: finding
+is: Keep two parts of the old in-language machine-code path: the emitter is a program in the language (396 lines emit AArch64 in process), and the table of helpers a page may call carries a layout number, so an emitter written for another layout declines instead of producing wrong code.
+status: inferred
+from: 3.6.2.4 3.6.2.5
+conf: mid
+limit: The emitter's body was not read and its path was not run in the study.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.5
+name: call-count-and-time-triggers
+kind: finding
+is: Keep per-function call counts and a 1 ms sampler as the signals that decide what is compiled, so a function called seldom but running long is found as well as one called often, and keep a refusal to compile reported as a code that names what the emitter lacked.
+status: inferred
+from: 3.6.1.2 3.6.2.2 3.6.2.4
+conf: mid
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.8.6
+name: identity-from-content-and-sealed-store
+kind: finding
+is: Keep cache identity computed from content (ordered paths, sizes and digests of what was read, plus the builder) and never from timestamps, and keep a store in which a binary runs only when its bytes match a SHA-256 seal.
+status: inferred
+from: 3.6.3.4 1.3
+conf: high
+limit: The old image key is a 64-bit non-cryptographic hash, which the study lists as a defect.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9
+name: drop
+kind: hub
+is: Six things the study would leave behind: the closure as the unit of caching, with text as the joint between stages; machine-code emitters in C as a second copy of meaning; eight copies of each primitive in a 256-tag space; a value word classified by magnitude under a moving collector; operating-system interfaces and unbounded growth in the bootstrap file; cache files beside sources with identities that changed on rebuild until the old body repaired that. The study's list also names one translation unit with global state and the loss of a second independent reader.
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.1
+name: closure-as-cache-unit
+kind: finding
+is: Drop the closure as the unit of compiling and caching, and text as the joint between stages. In the old body BML becomes Form text, then parsed nodes, then one image per closure, so one edit rebuilt a 38 MB image. The study's replacement: machine code and cache entries addressed by content per recipe, and relocatable.
+status: inferred
+from: 3.6.3.3 3.6.1.2 3.6.2.6
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.2
+name: c-emitters-as-second-meaning
+kind: finding
+is: Drop machine-code emitters written in C beside the evaluator. In fkwu they are a second copy of meaning, take functions before the in-language emitter is asked, and both recorded changes of meaning sit at their 1,024-call threshold. The study wants the bootstrap evaluator as the only second implementation, checked against compiled code or retired.
+status: inferred
+from: 3.6.3.6 3.6.2.2 3.6.2.4
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.3
+name: many-copies-in-256-tags
+kind: finding
+is: Drop writing one primitive in eight places selected by an 8-bit tag. The copies drifted apart in recorded cases and the nearly full tag space pushed new operations into modes of one tag; a tag chosen by mistake takes over another operation's branch unreported, and a mode carrying more children than its tag's arity was silently misread on import.
+status: inferred
+from: 3.6.3.7 3.6.1.5
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.4
+name: banded-word-under-moving-collector
+kind: finding
+is: Drop a value word whose kind is read from magnitude bands, boxed floats that are never reclaimed, and a moving collector beneath C code that holds raw indices. The old tree carries three incompatible 64-bit words (evaluator value, NodeID, carrier word); only the carrier's word maps one to one onto the three states of axiom 1 plus node.
+status: inferred
+from: 3.6.1.6 3.6.1.7 3.6.1.9 3.6.4.1 1.1
+conf: mid
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.5
+name: operating-system-in-the-bootstrap
+kind: finding
+is: Drop host interfaces from the bootstrap file: the study's budget leaves six host calls and one dynamic-library trampoline in C. In fkwu 17% of the C is host code, and the file grew from 1,954 lines (766519b6c, 2026-06-30) to 34,149 while a banner still calls its source-runner parser a one-time bootstrap that must not grow into a full C flattener.
+status: inferred
+from: 3.6.1.3 3.6.1.4 3.6.4.4
+conf: high
+at: 2026-11-24
+by: r1/runtime-jit
+
+n: 3.6.9.6
+name: cache-files-and-unstable-identity
+kind: finding
+is: Drop cache files beside sources, per-process files in the working directory, and identities that change on rebuild or depend on allocation order. The old body's notes record 7,329 board files in one checkout root and a recompile after every rebuild on 2026-09-12, and 5.1 GiB of dead images and allocation-dependent lowered text on 2026-11-09.
+status: inferred
+from: 3.6.3.5 3.6.3.4
+conf: mid
+limit: Two of the four were later repaired in the old body: a store-built kernel is now named by the digest of its source and its target, so images are refused when the runtime's source changes and not at each rebuild, and a later commit removes ended processes' board files. The allocation-order dependence of lowered text stands as recorded.
+at: 2026-11-24
+by: r1/runtime-jit

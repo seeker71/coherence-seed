@@ -1,0 +1,308 @@
+# Sources of the ice-water-gas origin study (hub 3.14). Commit messages are cited on the repository node as '#commit-<hash>'; line ranges sit in the citing claim.
+
+n: 2.22
+name: ice-water-gas-origin-sources
+kind: hub
+is: The primary sources behind hub 3.14: the study report; the Living Codex repository of 2025 with its first spec, phase engine, phase module, registry, tests and audit module; one spec of a sibling repository of 2026-02; eight files of the parent repository that define or bind the three words; twelve files of the old body that use them; and one private memory note. Commit messages of the old body and the parent repository are cited on 2.1 and 2.3.
+at: 2026-11-24
+
+n: 2.22.1
+name: gap-ice-water-gas-origin.md
+kind: source
+is: The study report on the origin and definitions of ice, water and gas, 334 lines: a table of 22 uses, the owner's statements in date order, the conflicts, a proposed single definition and eight open questions.
+path: coherence-seed/study/r2/gap-ice-water-gas-origin.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.2
+name: Living-Codex-CSharp
+kind: source
+is: The Living Codex repository, a C# system whose nodes carry a content state: 222 commits from 2025-09-09 to 2025-10-13, read at its head. Its first commit is 5fc24ba; commit 721e2c7 of 2025-09-12 adds the spec-driven architecture.
+url: https://github.com/seeker71/Living-Codex-CSharp
+path: Living-Codex-CSharp
+rev: 758dcb5
+date: 2025-10-13
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.3
+name: FRACTAL_UNFOLDING_SPEC.md
+kind: source
+is: The spec shipped in the first commit of the Living Codex, read at that commit. It defines ice, water and gas in one line and names melt, refreeze and hydrate. The file is absent from the working tree at the repository head.
+path: Living-Codex-CSharp/FRACTAL_UNFOLDING_SPEC.md
+rev: 5fc24ba
+date: 2025-09-09
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.4
+name: Phase.cs
+kind: source
+is: The PhaseEngine of the Living Codex with its Melt and Refreeze methods, cited at the first commit. The copy at the repository head is 32 lines and carries the same two methods at lines 7-13.
+path: Living-Codex-CSharp/src/CodexBootstrap/Runtime/Phase.cs
+rev: 5fc24ba
+date: 2025-09-09
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.5
+name: stay-generic.mdc
+kind: source
+is: The standing rule file for a coding assistant kept in the Living Codex repository, 60 lines at the head; it ships in the first commit.
+path: Living-Codex-CSharp/.cursor/rules/stay-generic.mdc
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.6
+name: SpecDrivenArchitecture.cs
+kind: source
+is: The Living Codex class that regenerates code and binaries from specs, 617 lines; added by commit 721e2c7 on 2025-09-12.
+path: Living-Codex-CSharp/src/CodexBootstrap/Core/SpecDrivenArchitecture.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.7
+name: PhaseModule.cs
+kind: source
+is: The Living Codex module that exposes melt and refreeze as routes and refuses them from the wrong state, 566 lines.
+path: Living-Codex-CSharp/src/CodexBootstrap/Modules/PhaseModule.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.8
+name: NodeRegistry.cs
+kind: source
+is: The Living Codex node registry, 1,465 lines: one storage backend per state and the rule for the state of an edge.
+path: Living-Codex-CSharp/src/CodexBootstrap/Core/NodeRegistry.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.9
+name: StateTransitionTests.cs
+kind: source
+is: The Living Codex tests of edge persistence by endpoint state and of edge migration on a node's state change, 354 lines.
+path: Living-Codex-CSharp/src/CodexBootstrap.Tests/Core/StateTransitionTests.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.10
+name: IceNodeAuditModule.cs
+kind: source
+is: The Living Codex module that converts generated or regenerable nodes from ice to water, 392 lines; added by commit 6392424 on 2025-09-29.
+path: Living-Codex-CSharp/src/CodexBootstrap/Modules/IceNodeAuditModule.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.11
+name: MetaNodeSystem.cs
+kind: source
+is: The Living Codex file that creates the core meta-nodes, among them one node per content state, 332 lines.
+path: Living-Codex-CSharp/src/CodexBootstrap/Core/MetaNodeSystem.cs
+rev: 758dcb5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.12
+name: FRAMEWORK-architecture-spec.md
+kind: source
+is: An architecture spec in the sibling repository Crypo-Coin-Coherency-Network, 723 lines, added by commit 148beed: states of matter as a persistence model with six named phase transitions.
+path: Crypo-Coin-Coherency-Network/FRAMEWORK-architecture-spec.md
+rev: 148beed
+date: 2026-02-12
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.13
+name: nums-go-2023-README.md
+kind: source
+is: The README of the parent repository's earlier study of NUMS.Go, 194 lines; its phase column and transition table were written by commit 02dd37592 on 2026-05-08.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/README.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.14
+name: graph.py
+kind: source
+is: The graph models of the parent repository's application, 365 lines, holding the LifecycleState enum and a legacy NodePhase enum.
+path: Coherence-Network/api/app/models/graph.py
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.15
+name: breath_service.py
+kind: source
+is: The service of the parent repository's application that classifies each spec of an idea as gas, water or ice and scores the distribution, 186 lines.
+path: Coherence-Network/api/app/services/breath_service.py
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.16
+name: substrate-thermodynamics.form
+kind: source
+is: The parent repository's teaching file on state and substance as two axes, 137 lines; written and corrected in four commits on 2026-06-08.
+path: Coherence-Network/docs/coherence-substrate/substrate-thermodynamics.form
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.17
+name: federation-addressing.form
+kind: source
+is: The parent repository's file on which address crosses between runtimes, 57 lines; created by commit cfbfec072 on 2026-06-10.
+path: Coherence-Network/docs/coherence-substrate/federation-addressing.form
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.18
+name: cache-as-thermodynamic-substrate.form
+kind: source
+is: The parent repository's file that treats a cache entry as a cell with an identity facet and a droppable materialized facet, 142 lines; created by commit 499611ffc on 2026-06-17.
+path: Coherence-Network/docs/coherence-substrate/cache-as-thermodynamic-substrate.form
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.19
+name: UNIVERSAL_TRANSLATOR_AUDIT.md
+kind: source
+is: An audit in the parent repository of its artifacts against a goal restated on 2026-05-27, 518 lines; added by commit 0ae5bae2a.
+path: Coherence-Network/kernels/UNIVERSAL_TRANSLATOR_AUDIT.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.20
+name: coherence-substrate-INDEX.md
+kind: source
+is: The index page of the parent repository's substrate documents, 416 lines.
+path: Coherence-Network/docs/coherence-substrate/INDEX.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.21
+name: host-kernel.form
+kind: source
+is: The old body's axioms-directory file on the host kernel, 250 lines; it describes installing a compiled composite as a callable leaf and melting it when it cools.
+path: coherence-kernel/axioms/host-kernel.form
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.22
+name: substrate-phase.fk
+kind: source
+is: The old body's phase recipe, 54 lines: the three states and plasma as integer values, and two pure functions that read a state from counts and name the move invited.
+path: coherence-kernel/form/form-stdlib/substrate-phase.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.23
+name: cache.fk
+kind: source
+is: The old body's file cache keyed by modification time, 51 lines; first seen in the parent repository at commit 402acf0bc on 2026-05-26.
+path: coherence-kernel/form/form-stdlib/cache.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.24
+name: jit-heat-gate.fk
+kind: source
+is: The old body's heat gate, 101 lines: requests are counted per identity, a hot one is compiled once, a cooled one is dissolved.
+path: coherence-kernel/form/form-stdlib/jit-heat-gate.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.25
+name: lane-motion.bml
+kind: source
+is: The old body's motion report for a working lane, 158 lines, including a census of compiled images and sources on disk.
+path: coherence-kernel/form/form-stdlib/lane-motion.bml
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.26
+name: living-equation.fk
+kind: source
+is: A grammar file of the old body, 118 lines, whose header binds Blueprint to ice, Recipe to water and NamedCell to gas.
+path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.27
+name: source-resonance-stream.fk
+kind: source
+is: The old body's file that adds plasma as a fourth phase with its own read and invite functions, 150 lines; first seen at commit a25a7cbf2 on 2026-08-14.
+path: coherence-kernel/form/form-stdlib/source-resonance-stream.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.28
+name: resident-async-ingress.fk
+kind: source
+is: The old body's resident ingress channels, 317 lines, with a projection of a channel's fill level onto the three phase values.
+path: coherence-kernel/form/form-stdlib/resident-async-ingress.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.29
+name: channel-flow.fk
+kind: source
+is: The old body's channel-flow model, 123 lines, which labels each of seven layers with a phase string and codes gas 1, water 2, ice 3.
+path: coherence-kernel/form/form-stdlib/channel-flow.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.30
+name: form-lift.fk
+kind: source
+is: The grammar of the old body's lift dialect, 112 lines, with the literals ice, liquid and compost.
+path: coherence-kernel/form/form-stdlib/grammars/form-lift.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.31
+name: form-glass-live.bml
+kind: source
+is: The old body's live observation surface, 1,423 lines, with a classifier from a resource's lifecycle word to a phase index.
+path: coherence-kernel/form/form-stdlib/form-glass-live.bml
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.32
+name: nl-translate.fk
+kind: source
+is: The old body's neutral-lexicon translator, 70 lines, whose seed rows carry a phase column.
+path: coherence-kernel/form/form-stdlib/nl-translate.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.22.33
+name: project-per-recipe-jit-slice.md
+kind: source
+is: A private memory note on the per-recipe JIT, which records a direction of 2026-09-01 on where compiled pages live.
+path: coherence-seed/sources/notes/project-per-recipe-jit-slice.md
+got: 2026-11-24
+at: 2026-11-24

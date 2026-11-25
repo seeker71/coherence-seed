@@ -1,0 +1,341 @@
+# Independent review of 3.12.kg (object-model witness). Paths beginning BMCPU/, Java/, classes/ or src/ lie in the 2000 archive on local disk outside every repository, the one the report 2.20.1 calls A.
+
+n: 9.5.17
+kind: hub
+name: review-of-object-model-witness
+is: All 38 claims of 3.12.kg (22 observations, 16 findings) were read against their sources: 32 confirmed, 6 amended (3.12.1.4, 3.12.1.8, 3.12.3.3, 3.12.4.2, 3.12.4.5, 3.12.9.4), none disputed, none left unreviewed; the file holds no relayed node. The primary files behind the report 2.20.1 were opened and nothing was run.
+limit: Opened: the 2000 machine and compiler source, the six instruction-count logs, the five load logs and the 202 class files in the archive (the stub scan was re-run); the 2026 grammar, lowering, fixtures and bands at b8ff978c9; commits 1044906a5, 30cb80408 and 115fea55e through read-only git. The reference manual copy the report calls BMA lies in the study's scratch and was not opened; no node in scope cites it.
+at: 2026-11-24
+
+n: 9.5.17.1
+kind: review
+re: 3.12.1.1
+saw: 0cf5b31a
+ack: 1
+limit: Read in sgb-bml-objects.txt at lines 486, 490, 492, 493 and 495 and in sgb-thesis-another-object-model.txt at line 93. The text copy prints the object limit as '231', the superscript of 2^31 lost.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.2
+kind: review
+re: 3.12.1.2
+saw: 96a30836
+ack: 1
+limit: Read in the archive: BMCPU/Include/bmvm.h:124-125, 149, 180-183; BMCPU/CPU/descriptor.hpp:141-149, 165, 181, 884-895; BMCPU/CPU/bmvm.cpp:952-992; BMCPU/CPU/instructions.hpp:235-282. The width of GUID is taken from sizeof( GUID ) in the comparison at bmvm.cpp:982; its declaration was not opened.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.3
+kind: review
+re: 3.12.1.3
+saw: ff6969fc
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.4
+kind: review
+re: 3.12.1.4
+saw: 42cb701f
+ack: node
+is: The frame, the field read and the send, self-call and super-call forms are as stated (BMCPU/CPU/cpu.hpp:35-46; instructions.hpp:191-220, 1148-1243). The last sentence holds only as: CALLD and FDC are the only forms that move refThis to another object while keeping self (instructions.hpp:1250-1285, 1317-1392). The super call also keeps self and changes refThis, in its interface half only: Super() returns REF( base interface, refThis.Object()) at instructions.hpp:100-103, and CallSuperReg and CallSuperConstant pass CPU.Self() unchanged at 1169-1182 and 1230-1243.
+why: The node's own third clause says a super call moves refThis, so 'only CALLD and FDC change refThis while keeping self' contradicts it as written.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.5
+kind: review
+re: 3.12.1.5
+saw: 12c59c10
+ack: 1
+limit: Read in the archive: the push at BMCPU/CPU/cpu.cpp:771, the restore at cpu.cpp:780-786, the flags at instructions.hpp:1156-1157, 1258-1259 and 1279-1280, the FDC redo and undo raising ILLEGAL_STATE at instructions.hpp:1381-1387. Redo and undo of a call both run DestroyContextFrameUndo (instructions.hpp:164-174).
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.6
+kind: review
+re: 3.12.1.6
+saw: 5fef4eb1
+ack: 1
+limit: Case (a) also needs a fact neither premise states: FDC pops the stub's frame before it makes the callee's (CreateContextFrameUndo then CreateContextFrameDo, instructions.hpp:1376-1377), so the instruction re-entered is the plain CALL that reached the stub. Case (c) rests on Enter() writing only pBase and pParam (BMCPU/CPU/stack.hpp:169-183). Read, not run.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.7
+kind: review
+re: 3.12.1.7
+saw: b07db0d3
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.8
+kind: review
+re: 3.12.1.8
+saw: cc56fc62
+ack: node
+is: The grammar sentence holds only as: no property spells delegate or shared inheritance, and the super-class loop reads neither (Java/jbml/Components/Class.java:495-521). A super-class clause does carry a property list: SuperClass ::= ClassDecl( 3 ) and ClassDecl( context ) ::= FullClassName( id ) Properties( context ) (Java/jbml/JBML.BMF:42, 44, 157), and the compiler reads one property there, moving a super class marked 'class' to the common object's parents (Class.java:177-184). The rest of the node is as stated.
+why: The report's line 219 says the rule 'carries no property list'; it quotes JBML.BMF line 44 without line 42. Context 3 is named SUPER_CLASS (Properties/Common.java:11). 'delegate' is a member property (JBML.BMF:149) and 'shared' an array property (JBML.BMF:137).
+limit: Confirmed in the archive: the hidden delegate field (ObjectModel/BMLInstanceDefinition.java:99-110), the constructor parameter (Class.java:524-532), the fdc and fcx stub (Class.java:311-337; ASM/Method.java:90-99) and the common-object field (Class.java:477-489).
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.9
+kind: review
+re: 3.12.2.1
+saw: 43c14437
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.10
+kind: review
+re: 3.12.2.2
+saw: 3e1b2c4b
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.11
+kind: review
+re: 3.12.2.3
+saw: 6c8308d9
+ack: 1
+limit: The 13 lines are a case-insensitive count over grammars/bml.fk (12 hold lowercase 'cast', line 792 holds TypeCastOp); bml-form-lower.bml has none. A read-only git grep at b8ff978c9 finds the three definitions' names in grammars/bml.fk alone.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.12
+kind: review
+re: 3.12.2.4
+saw: 87293aed
+ack: 1
+limit: The receipt's sentence begins on line 234 of 676 and ends on line 235, read from the parent of 115fea55e.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.13
+kind: review
+re: 3.12.2.5
+saw: 6017c4c4
+ack: 1
+limit: In the parent of 115fea55e only bml-class-field-delegate.bml and bml-class-delegate-private.bml hold a field marked delegate; each forwards Name(), which returns 7, and declares 10. No fixture at b8ff978c9 holds the word delegate.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.14
+kind: review
+re: 3.12.3.1
+saw: 58e17865
+ack: 1
+limit: Read in the archive: Java/jbml/Components/Template.java:30-55, FullClassName.java:84-88, classes/BML/lang/Array[BML.lang.String].bmc dated 2000-04-27, and a 'Loading' line naming that file in each of the five bml.log containers.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.15
+kind: review
+re: 3.12.3.2
+saw: 2a41ea00
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.16
+kind: review
+re: 3.12.3.3
+saw: afa04701
+ack: node
+is: The 2026 sentence is true word for word and does not bear on bounds: template-kind-constraints names which kinds of definition a template may wrap. What shows that 2026 enforces no bound is the grammar: a template keeps parameter names only, skipping the one word Object (form/form-stdlib/grammars/bml.fk:1425-1427, 4096), and instantiation compares the count of parameters and arguments and nothing else (bml.fk:4155-4160). The 2000 half is as stated.
+why: The support list glosses the row as 'which kinds a template may wrap (757)' (grammars/bml-native-north-star.form:32-33), and bml-template-valid-kind? tests for a class or an interface (bml.fk:541-543). The hub 3.12.3 carries the same reading ('listed unsupported in 2026').
+limit: The 2000 half was read at Java/jbml/Components/TemplateParameter.java:16, 21-29 and 33. That bounds were syntax only in 2000 is an inference by the node's own limit, under status observed.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.17
+kind: review
+re: 3.12.4.1
+saw: 8f07c047
+ack: 1
+limit: All six logs reread from word/document.xml. Casts 1867, 1909, 785, 785, 785, 426; interface forwards 260, 2322, 406, 406, 406, 92; self calls 2435, 2814, 1216, 1216, 1216, 610; super calls 272, 281, 90, 90, 90, 44. The three logs under BMCPU/Performance named original, fast bit push and slow bit push share every count and differ in times. Cast share recomputed: 20.3, 10.0, 4.1, 11.9, 9.4 and 19.0 percent.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.18
+kind: review
+re: 3.12.4.2
+saw: dca54aa9
+ack: node
+is: No log holds a row whose name contains 'deleg', the logger skips a timer of the requested group only when its count is 0 (BMCPU/CPU/performance.cpp:22-23), and every instruction handler's timer is in group 0 (BMCPU/CPU/instruction.hpp:165), so zero recorded executions of CALLD and FDC follows. The last sentence holds only as: the two instructions that make self and the structural base name different objects. A super call also makes the two references differ, in the interface half only (instructions.hpp:100-103), and CallSuperConstant has 44 to 281 recorded executions per log.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.19
+kind: review
+re: 3.12.4.3
+saw: d14546c7
+ack: 1
+limit: The byte pattern of the report's appendix was re-run over all 202 files under classes/: 64 fdc pairs (BMFTest 16, FilterInputStream 8, FileInputStream 8, BufferedInputStream 16, LineNumberInputStream 16) and 250 fic pairs in 33 files. The six class headers were read in src/BML/io and src/Test/BMFTest.bml; the five bml.log containers hold no line naming ClassTest, DTest or C.bmc. The class-file format was not parsed.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.20
+kind: review
+re: 3.12.4.4
+saw: bdf9c442
+ack: 1
+limit: Read through git: the band head at 1044906a5, 139 fixtures named bml-*.bml of which 119 hold 'Answer:', the fixture text, and the message of 30cb80408. 2026-09-15 19:45 and 16:47 in the source nodes 2.20.14 and 2.20.18 are committer times; the author times are 15:36 and 16:39 (+0800).
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.21
+kind: review
+re: 3.12.4.5
+saw: 06177423
+ack: node
+is: '14,729 files to 1,628' is the wording of the commit's subject line. The trees hold other counts: git ls-tree -r lists 14,693 files in the parent of 115fea55e and 1,663 in the commit, and the diff is 13,031 deleted, 1 added, 530 modified. The commit deletes 41 fixtures named bml-class-*: the five whose names hold 'deleg' and 36 others, where the node says about 30. The two proof bands, 173 fixtures, 152 declaring an answer and the head still reading Verdict 119 are as stated.
+why: The source node 2.20.15 and the hub 3.12.4 carry the subject line's two numbers as counts.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.22
+kind: review
+re: 3.12.4.6
+saw: c260e61e
+ack: 1
+limit: Counted at b8ff978c9: 28 files named bml-*.bml under tests/fixtures, 26 holding 'Answer:'; band-verdicts.txt has 98 lines and none names the fixture band. Not run.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.23
+kind: review
+re: 3.12.4.7
+saw: 8cc859eb
+ack: 1
+limit: The band was read in full. Its lines 226-227 make three plain Form records for a member-read check; no class instance is built and no method is called.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.24
+kind: review
+re: 3.12.4.8
+saw: eb9a45c8
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.25
+kind: review
+re: 3.12.5.1
+saw: e936d0f6
+ack: 1
+limit: The six kinds match the table at lines 399-406 of the report. The 'one prefix parent' of a structure blueprint rests on single structural inheritance, which is 3.12.1.7 and is not among the node's premises.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.26
+kind: review
+re: 3.12.5.2
+saw: e20e2fbd
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.27
+kind: review
+re: 3.12.5.3
+saw: 92bb9397
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.28
+kind: review
+re: 3.12.8.1
+saw: 87251e02
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.29
+kind: review
+re: 3.12.8.2
+saw: 80442ff7
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.30
+kind: review
+re: 3.12.8.3
+saw: 4ca9f669
+ack: 1
+limit: 5.1 to 11.7 is what the logs' three-decimal per-execution columns give (0.127 over 0.025; 0.303 over 0.026), as the node's limit says. From the logs' totals and counts the same ratios come to 5.2 to 11.5.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.31
+kind: review
+re: 3.12.8.4
+saw: 0f2e37c7
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.32
+kind: review
+re: 3.12.8.5
+saw: 78e56ae4
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.33
+kind: review
+re: 3.12.8.6
+saw: ce5bc13c
+ack: 1
+limit: The 2000 record is of a compile and a load, as 3.12.3.1 says; 'record of running' in this node means that for 2000.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.34
+kind: review
+re: 3.12.8.7
+saw: 5eb78c4f
+ack: 1
+limit: Counted in the archive: 243 files ending .bml in all, 125 under src. The counting cell is stated in the band head (2.20.9, lines 6-12); the door's head (2.20.11, lines 1-13) states the declared answer.
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.35
+kind: review
+re: 3.12.9.1
+saw: d30929a6
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.36
+kind: review
+re: 3.12.9.2
+saw: 08efe1fa
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.37
+kind: review
+re: 3.12.9.3
+saw: fc209ed3
+ack: 1
+by: r3/review-object-model-witness
+at: 2026-11-24
+
+n: 9.5.17.38
+kind: review
+re: 3.12.9.4
+saw: a3949d60
+ack: node
+is: The first two sentences follow from 3.12.1.5 and 3.12.1.6. The third does not follow from them, and the report says less: its line 469 reads 'A slot write under an open choice needs an undo entry; 3.3 shows the 2000 machine did not get self right there', and its line 528 lets go 'self reconstructed instead of saved'. The premises are about a frame re-entered under backtracking, so what follows is that a re-entered activation must restore both bases, self saved with the frame. That a slot write's undo entry restores bases is in neither premise nor the report.
+by: r3/review-object-model-witness
+at: 2026-11-24

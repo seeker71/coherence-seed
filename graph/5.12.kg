@@ -1,0 +1,153 @@
+# Design: a model on the GPU reading, choosing and creating nodes inline. Proposals; see 6.3.11.
+
+n: 5.12
+name: model-and-substrate
+kind: hub
+is: A model running on the GPU answers each step with a node: a token is one kind of node. Node rows sit beside the vocabulary in the output projection, nodes enter as input rows, and every added capability is a cell kept beside frozen weights. The budget is stated in four currencies. Nothing here is built or measured as a whole.
+at: 2026-11-24
+
+n: 5.12.1
+name: a-step-answers-with-a-node
+kind: decision
+is: A decode step is an offer to the model, and its acknowledgment is a node. A vocabulary token is a leaf node; a recipe to run, a piece of knowledge and a feature are nodes chosen by the same step. The model never spells a node's address as text.
+status: inferred
+from: 5.4.1 3.16.6 3.16.9
+conf: mid
+why: The text route cost the old body 54 tokens for an average call and let the model write names that do not exist; a choice among real rows cannot name a node that is not there.
+limit: It does not remove wrong choices among real nodes, weak plans, or new leaf content, which still has to be written token by token.
+at: 2026-11-24
+
+n: 5.12.2
+name: node-rows-beside-the-vocabulary
+kind: decision
+is: The output projection scores the vocabulary rows and, in the same pass, a table of node rows projected to a narrow width. A gate row decides between token and node. The table offered to a run is that run's interface: the model can choose only what was offered.
+status: inferred
+from: 3.16.3 3.16.4 3.16.9 3.16.7 1.9.4
+conf: mid
+why: A million rows of width 256 cost about 1 percent of a step by arithmetic, and an exact scan of a million vectors measured 2.5 to 2.9 ms on the first machine.
+flip: Above about ten million offered rows an index or a two-level choice is needed.
+open: 6.1.26
+at: 2026-11-24
+
+n: 5.12.3
+name: rows-are-computed-not-trained-per-node
+kind: decision
+is: A node's row is computed from the node, by a generator that is itself a node, so a node made a moment ago can be chosen at once. Only two small projectors per model, one into the model and one out of it, are trained.
+status: inferred
+from: 3.16.9 3.16.11
+conf: low
+limit: That one shared out-projector lets a frozen model choose nodes it never saw is the central unproven step; the published 33.7 percent top-5 on unseen tools is the nearest evidence.
+open: 6.1.26
+at: 2026-11-24
+
+n: 5.12.4
+name: digest-is-identity-row-is-address
+kind: decision
+is: The content id stays the node's identity and is never a target the model generates. What the model emits is a position in the offered table, which the system resolves to a handle. A node's vector has geometry; its digest has none.
+status: inferred
+from: 3.16.10 5.2.1 5.2.2
+conf: high
+at: 2026-11-24
+
+n: 5.12.5
+name: three-derived-vectors
+kind: decision
+is: A node has up to three vectors, each derived and never identity: a structural sketch computed at freeze from name-free content; a learned embedding composed bottom-up from the children's embeddings, so a shared subtree is embedded once; and a lens embedding that includes attached names. Each is cached under content id and generator id, as compiled code is.
+status: inferred
+from: 3.16.4 3.16.18 5.6.4 5.2.4 5.10.2
+conf: low
+limit: No source was found that caches embeddings per subtree content id; one vector holds only about its width divided by 64 exact role and filler pairs.
+at: 2026-11-24
+
+n: 5.12.6
+name: nodes-enter-as-input-rows
+kind: decision
+is: A node is read by the model as one or a few input positions made from its vector through the in-projector, or as key and value rows in attention. A chosen node's row can be the next step's input in place of a token's embedding, at no added cost.
+status: inferred
+from: 3.16.11 3.16.2
+conf: low
+limit: One vector per document lost on questions needing several hops; exact recall from a compressed node is not shown.
+at: 2026-11-24
+
+n: 5.12.7
+name: creating-a-node-inline
+kind: decision
+is: The model creates a node by choosing a blueprint row and then filling its children step by step, each child a token or a node, under a mask built from the blueprint's shape. The new node is gas until it is frozen. Its row is computed and added to the offered table without compiling anything.
+status: inferred
+from: 3.16.12 3.16.14 5.6.6 5.12.3
+conf: low
+at: 2026-11-24
+
+n: 5.12.8
+name: mask-from-the-grammar
+kind: decision
+is: At each step a mask built from the lens rows and the expected blueprint removes every row that cannot stand at this place. The mask is computed on the CPU while the GPU runs the layers.
+status: inferred
+from: 3.16.12 5.3.2 3.16.6
+conf: mid
+at: 2026-11-24
+
+n: 5.12.9
+name: base-model-is-ice
+kind: decision
+is: A model's weights are never written. Every added capability is a cell beside them: a low-rank pair, a scale, a residual vector, a key-value row, a cached attention block, a node row. Its blueprint names the base model's content id and the place it attaches. A merged weight or a cached block is a materialization, kept or dropped like compiled code.
+status: inferred
+from: 3.16.13 3.16.15 5.6.4 5.6.2 1.9.3
+conf: mid
+why: Published in-place edits collapse after hundreds to thousands of edits, while units kept beside the weights and routed hold.
+at: 2026-11-24
+
+n: 5.12.10
+name: capability-is-offered-and-repointed
+kind: decision
+is: Attaching a capability is an offer the running model's holder accepts by repointing a name; removing it is repointing back. A unit that changes meaning under composition is refused by a check on real data, never summed in blindly.
+status: inferred
+from: 1.9.7 3.16.15 5.12.9 5.11.1
+conf: mid
+at: 2026-11-24
+
+n: 5.12.11
+name: variants-are-branches-of-one-pass
+kind: decision
+is: Comparing variants is a set of branches that share one cached prefix and one pass over the weights, each with its own units applied after the branching point. The choice-point and region machinery of the kernel holds the branches, and a commit keeps one.
+status: inferred
+from: 3.16.16 3.16.15 5.4.9 5.7.2
+conf: mid
+limit: Measured cost of extra branches ranges from 1.5 percent to 33 percent of a step per branch across sources; in a model with recurrent layers, state composes only as a prefix.
+at: 2026-11-24
+
+n: 5.12.12
+name: dreams-mint-candidates
+kind: decision
+is: When idle the system generates its own material and distils it into a new side unit. The unit is a candidate cell in water. It is frozen and offered only after a check on real data accepts it; it never replaces real data and never edits the base.
+status: inferred
+from: 3.16.17 5.12.9 5.6.6
+conf: low
+at: 2026-11-24
+
+n: 5.12.13
+name: four-currencies
+kind: decision
+is: 'About the cost of a next-token step' is held to four limits: added weight bytes under about 1 percent of the model's; no added wait for the GPU; no added small dispatch, so every unit is fused into a kernel the step already runs; and each extra branch priced as a share of a step. Budgets are stated as shares of a step, since readings on the first machine move 2 to 4 times with load.
+status: inferred
+from: 3.16.2 3.16.5 3.16.3 3.16.16
+conf: mid
+at: 2026-11-24
+
+n: 5.12.14
+name: kernels-come-from-nodes
+kind: decision
+is: GPU kernels for a model are generated from nodes by the system's own emitter and addressed by content id. A unit attaches by regenerating the fused kernel it joins.
+status: inferred
+from: 3.16.5 5.10.7 5.10.2
+conf: low
+why: The old body's kernels are hand-written shader text held in strings and addressed by position in a list; a merge once shifted the list and the wrong kernel ran.
+at: 2026-11-24
+
+n: 5.12.15
+name: first-experiment
+kind: plan
+is: The cheapest test of this hub: on the frozen 27B, append computed node rows and a gate row to the output head, mask by blueprint, and measure on nodes never seen in fitting how often the right node is chosen and what the step then costs. The old body's rank-one overlay of 2026-10-02 is the starting point.
+status: inferred
+from: 3.16.7 5.12.2 5.12.3
+at: 2026-11-24

@@ -1,0 +1,141 @@
+# How this graph is written, read, checked and reviewed. The checker is tools/kg.c.
+
+n: 8.1
+name: node
+kind: term
+is: A node is one block of 'key: value' lines closed by a blank line. It holds one claim: one sentence or two in 'is', what kind of claim it is, how it is known, where it comes from, and the day it was written. Every node has this same shape at every depth, a hub included.
+status: inferred
+from: 4.3
+at: 2026-11-24
+
+n: 8.2
+name: address
+kind: term
+is: The 'n' line is the node's address, a path of numbers such as 5.2.1. It is the stable handle other nodes cite. An address is never reused and never renumbered; a child is added by taking the next free number under its parent, so the graph grows at any depth without restructuring.
+status: inferred
+from: 4.3 1.3
+why: An address is a name in the sense of axiom 3: a pointer that may move to new content. The numbers carry no meaning beyond position.
+at: 2026-11-24
+
+n: 8.3
+name: digest
+kind: term
+is: A node's digest is the first 8 hex digits of SHA-256 over its lines without the 'n' line. It is the node's present content. It is computed by the checker on every run and stored nowhere except in a review, which names the digest it read.
+status: inferred
+from: 1.3 8.2
+why: Address and digest are the two identities of axiom 3 kept apart: the name that moves and the blueprint that is. Storing the digest in the node would make every wording fix cascade through every citation.
+flip: When the kernel can hold this graph as cells, the digest becomes the cell's own identity and this text becomes one lens over it.
+at: 2026-11-24
+
+n: 8.4
+name: kinds
+kind: term
+is: Kinds are: hub (a part of the graph with a summary of its children), axiom and theorem (the given ground), term (a definition), source, observation (what a source shows), finding (what a study concluded from observations), decision, question, assumption, limit, plan, review.
+status: assumed
+at: 2026-11-24
+
+n: 8.5
+name: status
+kind: term
+is: Status says how a claim is known. given: the acknowledged ground, or a decision in the owner's own words, which names them in 'by'. observed: someone in this project read the file at that line or ran the command. relayed: read through a tool that summarises, such as a web fetch, or through another report. inferred: reasoned from the nodes named in 'from'. assumed: not verified. A question is open or answered.
+status: assumed
+why: The first study round found that web quotations reached every reader through a summarising fetch tool; 'relayed' keeps that visible instead of calling it observed.
+at: 2026-11-24
+
+n: 8.6
+name: sources-are-nodes
+kind: decision
+is: A source is a node under hub 2 with a 'path' or a 'url', the source's own 'date' where it has one, the revision read ('rev'), and the day it was read ('got'). A claim cites it as 'src: <address>#<locator>', where the locator is a line range or a section. A URL or path is written once, in its source node.
+status: inferred
+from: 4.3
+at: 2026-11-24
+
+n: 8.7
+name: present-not-history
+kind: decision
+is: The graph holds what is known now. A node that turns out wrong is corrected in place and its 'at' date moves; the earlier wording stays in git, which already keeps every referenced state. The tree carries no chains of superseded nodes.
+status: inferred
+from: 1.3 2.1.3
+alt: Immutable nodes with 'supersedes' links, as the knowledge-representation study recommended. Set aside because early design rounds rewrite most nodes and the superseded copies would outweigh the living ones.
+flip: If several writers work on separate branches for long stretches, immutable blocks merge more safely than edited ones.
+at: 2026-11-24
+
+n: 8.8
+name: review
+kind: term
+is: A review is a node under hub 9 with 're' (the address reviewed), 'saw' (the digest it read), 'ack' and 'by'. ack 1 confirms against the source; ack 0 disputes and says why in 'is'; ack node means the claim holds only as amended, and 'is' carries the amendment. No review is the state unreviewed, which is not a verdict. A review whose 'saw' no longer equals the node's digest is stale.
+status: inferred
+from: 1.5 1.7.19 8.3
+at: 2026-11-24
+
+n: 8.9
+name: reduced-description
+kind: decision
+is: Each hub's 'is' line is a bounded summary of everything under it, so a part carries the shape of its whole at lower resolution. Reading node 0 and the hubs gives the entire graph in one screen; './kg brief' prints that view. This is what 'holographic' means here: a reduced description at every level, and the same node shape at every depth.
+status: inferred
+from: 4.3
+limit: In the vector sense of the word, a text file with fields is the opposite of a holographic representation; the claim here is self-similarity with summaries, nothing stronger.
+at: 2026-11-24
+
+n: 8.10
+name: files
+kind: decision
+is: A graph file is named by a node address and holds that node's descendants, the node itself included when it is not in its parent's file. File 0.kg holds the root and the top hubs. When a file passes 48 KB, a child hub moves to its own file; no address changes. Directory and file names carry no identity.
+status: assumed
+at: 2026-11-24
+
+n: 8.11
+name: english-is-one-lens
+kind: limit
+is: Addresses and digests are language-free, and every sentence in this graph is English. The graph is therefore one lens over claims whose language-neutral form does not exist yet. Names ('name' lines) are query keys and carry no authority.
+status: inferred
+from: 1.3 1.7.18
+at: 2026-11-24
+
+n: 8.12
+name: format-is-unmeasured
+kind: limit
+is: The token cost of this block format under the tokenizers that will read it has not been measured, and neither has how reliably a local model writes it. Published comparisons of other formats and a byte count of one node are the only evidence behind the choice of key-value lines.
+status: inferred
+from: 4.3
+at: 2026-11-24
+
+n: 8.13
+name: writing-a-node
+kind: plan
+is: To add a claim: pick its parent, take the next free number, write the block with its source or its premises, and run './kg check'. To change a claim: edit it in place and set 'at' to today; the checker then lists every review of it as stale. A claim without a source or premises is written as assumed, never left unmarked.
+status: assumed
+at: 2026-11-24
+
+n: 8.14
+name: rounds
+kind: plan
+is: Work on the graph moves in rounds recorded under hub 9: a study round reads sources and writes observations; a design round writes decisions, questions and limits from them; a review round checks nodes against their sources and writes review nodes. A round's hub says who read what and what it could not reach.
+status: assumed
+at: 2026-11-24
+
+n: 8.16
+name: sources-resolve
+kind: observation
+is: Since 2026-11-25 the checker also enforces that every source can be reached. A path starts with a repository's name; that repository is itself a source node carrying the web address and the revision it was read at; a path into this repository must be a file that exists. './kg link N' prints where the sources of node N can be read: a file here, or a web address pinned to a revision. A source file renamed away turned the check red that day.
+status: observed
+src: 2.30.1
+limit: NUMS.Go has no published home: its node says 'url: unpublished', and its files were read from a checkout on the first machine at the revision named. A link pinned to a revision breaks if that repository's history is rewritten.
+at: 2026-11-25
+
+n: 8.17
+name: a-removed-name
+kind: decision
+is: The owner's direction of 2026-11-25: an organisation that no longer exists is not used or named in this work. Its address is on no commit, its repositories are not cited, and its name is removed from nodes, reviews and study reports. Where NUMS.Go's own code carries that name inside an identifier, such as a module path, a helper or a directory, the text here writes '[org]' in its place.
+status: given
+by: owner
+see: 2.2 8.16
+at: 2026-11-25
+
+n: 8.15
+name: checked-rules
+kind: observation
+is: The checker enforces: every node has an address, kind, statement and date; addresses are unique and each has its parent; every reference resolves; 'src' points at a source node; an observation has a source; an inferred claim has premises; a review names a digest and an acknowledgment; a node lives in a file named by one of its ancestors.
+status: observed
+src: 2.30.1
+at: 2026-11-24

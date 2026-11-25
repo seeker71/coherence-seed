@@ -1,0 +1,345 @@
+# Sources of the natural-language lane study (hub 3.10). Old-body files were read at head b8ff978c9 unless a node names an earlier revision; 'rev' is the last commit that touched the file. Line ranges sit in the citing claim.
+
+n: 2.18
+name: natural-language-lane-sources
+kind: hub
+is: The primary sources behind hub 3.10: the study report on the old body's natural-language lane, the translator with its lexicon, projector, coverage lens and band, the grammar engine and text normaliser under it, two files read at the revision before the cut of 2026-09-29, the word, code, phrase and wordnet tables beside the translator, the dictionary of numeric meaning recipes with its crossing cell, the first-round critique, and two files the review of the hub added: a sample grammar for arithmetic sentences and the one band that calls the dictionary's names.
+at: 2026-11-24
+
+n: 2.18.1
+name: gap-natural-language-lane.md
+kind: source
+is: The study report on the old body's natural-language lane, 584 lines: what the translator does, which claims a standing test covers, the neighbouring tables, seven separate neutral-id schemes, and what to carry forward or drop. The study ran no Form or BML program; every verdict number in the report is a number recorded in a file.
+path: coherence-seed/study/r2/gap-natural-language-lane.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.2
+name: nl-translate.fk
+kind: source
+is: The translator the north star names, 70 lines: two language grammars, seven seed lexicon rows, lookup, normalisation to a pivot node, and one decoder per language.
+path: coherence-kernel/form/form-stdlib/nl-translate.fk
+rev: c93650c9e
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.3
+name: nl-lexicon-data.fk
+kind: source
+is: The translator's corpus lexicon, 19 lines: 40 rows c0..c39 and 5 rows m1257..m1261, each (symbol, phase, English, Indonesian).
+path: coherence-kernel/form/form-stdlib/nl-lexicon-data.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.4
+name: nl-lexicon-grow.fk
+kind: source
+is: The projector that turns two parallel JSON message texts into lexicon rows, 83 lines.
+path: coherence-kernel/form/form-stdlib/nl-lexicon-grow.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.5
+name: pivot-coverage.bml
+kind: source
+is: The coverage lens, 119 lines: counts the words minted by the homecoming corpus that have, or lack, a row in the translator's lexicon.
+path: coherence-kernel/form/form-stdlib/pivot-coverage.bml
+rev: 936d946e8
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.6
+name: pivot-coverage-band.fk
+kind: source
+is: The one test file at head that calls the translator, 82 lines, sixteen bits, header verdict 65535.
+path: coherence-kernel/form/form-stdlib/tests/pivot-coverage-band.fk
+rev: e549e4a9f
+date: 2026-10-01
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.7
+name: bmf-grammar.fk
+kind: source
+is: The grammar engine, 1,138 lines: grammars as list values of named rules, patterns and templates, with a prefix parser g-parse and a whole-source parser g-parse-full.
+path: coherence-kernel/form/form-stdlib/bmf-grammar.fk
+rev: c5f4aa3a1
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.8
+name: bmf-core.fk
+kind: source
+is: The cursor and node core under the grammar engine, 553 lines: character classes and a hand-kept table of blueprint coordinates that mirrors form-ontology-bp.fk.
+path: coherence-kernel/form/form-stdlib/bmf-core.fk
+rev: c5f4aa3a1
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.9
+name: form-ontology-bp.fk
+kind: source
+is: The table that resolves a blueprint name to its four-number coordinate, 1,495 lines.
+path: coherence-kernel/form/form-stdlib/form-ontology-bp.fk
+rev: 034b68d9a
+date: 2026-11-17
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.10
+name: string-case.fk
+kind: source
+is: Lowercasing by a 26-letter map and removal of six punctuation marks, 30 lines; the translator's only text normalisation.
+path: coherence-kernel/form/form-stdlib/string-case.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.11
+name: homecoming-distillation-corpus.fk
+kind: source
+is: The old body's corpus of invented English words, 11,684 lines, one hdc-row per word with a numeric row id.
+path: coherence-kernel/learn/homecoming-distillation-corpus.fk
+rev: c7d45f228
+date: 2026-11-20
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.12
+name: nl-translate-band.fk
+kind: source
+is: The removed test of the translator, 48 lines, fifteen bits, header verdict 32767; read at the parent of the cut commit 115fea55e.
+path: coherence-kernel/form/form-stdlib/tests/nl-translate-band.fk
+rev: f2d317f5d
+date: 2026-09-28
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.13
+name: nl-tongues.fk
+kind: source
+is: The removed file that added thirteen languages to the translator's one construction, 207 lines; its header at line 8 still says eleven. Read at the parent of the cut commit 115fea55e.
+path: coherence-kernel/form/form-stdlib/nl-tongues.fk
+rev: f2d317f5d
+date: 2026-09-28
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.14
+name: wisdom-is-tended-pivot-row.md
+kind: source
+is: A receipt of 2026-08-04, 77 lines, that describes nl-wisdom-row.fk and its test as landed; both files were removed on 2026-11-10.
+path: coherence-kernel/receipts/2026-08-04-wisdom-is-tended-pivot-row.md
+rev: 2f697afad
+date: 2026-08-04
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.15
+name: core-lexicon.fk
+kind: source
+is: 64 English words each defined by a token list over the same 64 words plus twelve glue words, with a closure check and eight index-arithmetic query lanes, 263 lines.
+path: coherence-kernel/form/form-stdlib/core-lexicon.fk
+rev: f426beec9
+date: 2026-11-15
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.16
+name: core-lexicon-derived.fk
+kind: source
+is: Four words derived from the 64 core words, each with a declared depth, 137 lines.
+path: coherence-kernel/form/form-stdlib/core-lexicon-derived.fk
+rev: 936d946e8
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.17
+name: core-lexicon-domains.fk
+kind: source
+is: 36 words in 11 domains defined over the core and derived words, with a depth that is recomputed and compared with the declared one, 131 lines.
+path: coherence-kernel/form/form-stdlib/core-lexicon-domains.fk
+rev: 936d946e8
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.18
+name: meaning-codes.bml
+kind: source
+is: A codebook of 36 symbols, 166 lines: each symbol carries an English phrase, a hash anchor and one code per language column of the locale row files.
+path: coherence-kernel/form/form-stdlib/meaning-codes.bml
+rev: bed3f3923
+date: 2026-10-01
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.19
+name: meaning-codes-table-band.fk
+kind: source
+is: The test of the codebook, 137 lines, eight bits; its header records 255 on fkwu and 195 on three other readers.
+path: coherence-kernel/form/form-stdlib/tests/meaning-codes-table-band.fk
+rev: 7c255c921
+date: 2026-10-01
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.20
+name: symbol-words.rows
+kind: source
+is: One of three locale row files the codebook reads, 9 lines: a header naming english, persian, german, french, portuguese and romanian, then 8 rows.
+path: coherence-kernel/form/form-stdlib/locale-rows/symbol-words.rows
+rev: db10dea46
+date: 2026-09-07
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.21
+name: nl-lenses-13.fk
+kind: source
+is: Detection and generation of four fixed phrase meanings across thirteen locales by exact string match, 78 lines.
+path: coherence-kernel/cognition/nl-lenses-13.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.22
+name: nl-lenses-13-data.fk
+kind: source
+is: The thirteen phrase rows read by nl-lenses-13.fk, with a provenance word per row, 24 lines.
+path: coherence-kernel/cognition/nl-lenses-13-data.fk
+rev: aa3df5d19
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.23
+name: nl-lenses-13-band.fk
+kind: source
+is: The test of the thirteen phrase rows, 31 lines, thirteen bits, header verdict 8191.
+path: coherence-kernel/cognition/tests/nl-lenses-13-band.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.24
+name: concept-nl-semantic-13.fk
+kind: source
+is: Indexed access to the 10,000-row label table, 94 lines: locale columns, provenance letters and a review summary.
+path: coherence-kernel/cognition/concept-nl-semantic-13.fk
+rev: cbc50311b
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.25
+name: concept-nl-semantic-13-omw.tsv
+kind: source
+is: A table of 10,001 lines: a header, then 10,000 rows of a WordNet 3.0 synset key or an empty field, an English word and one label for each of twelve other locales.
+path: coherence-kernel/cognition/concept-nl-semantic-13-omw.tsv
+rev: ebc744d1f
+date: 2026-07-18
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.26
+name: concept-nl-semantic-13-sources.dat
+kind: source
+is: 130,000 bytes: one provenance letter for each of the 10,000 x 13 cells of the label table.
+path: coherence-kernel/cognition/concept-nl-semantic-13-sources.dat
+rev: 72e17608c
+date: 2026-07-17
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.27
+name: concept-nl-semantic-13-metadata.fk
+kind: source
+is: Generated provenance of the label table, 8 lines: the pinned upstream commit, hashes, and the name of a directory of per-source licence files.
+path: coherence-kernel/cognition/concept-nl-semantic-13-metadata.fk
+rev: aa3df5d19
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.28
+name: core-frequency-lift-dictionary.fk
+kind: source
+is: A dictionary of 470 lines in which a meaning is an interned recipe of numeric role edges rooted in the five axioms, a surface is a separate node, and a mapping carries context and provenance.
+path: coherence-kernel/cognition/core-frequency-lift-dictionary.fk
+rev: d306e601e
+date: 2026-10-07
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.29
+name: core-frequency-lift-form-neutral-crossing.fk
+kind: source
+is: The one cell that joins the dictionary, the label table and the phrase rows, 142 lines; it records what each projection lost as residue bits.
+path: coherence-kernel/cognition/core-frequency-lift-form-neutral-crossing.fk
+rev: aa3df5d19
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.30
+name: language-neutral-symbol-identity.fk
+kind: source
+is: Alias rows that resolve a surface in a natural or programming language to a node written as one decimal number, 71 lines.
+path: coherence-kernel/cognition/language-neutral-symbol-identity.fk
+rev: aa3df5d19
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.31
+name: language-neutral-inquiry-induction.fk
+kind: source
+is: Resolution of locale tokens to one of four numbered meanings, 57 lines.
+path: coherence-kernel/cognition/language-neutral-inquiry-induction.fk
+rev: aa3df5d19
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.32
+name: critic.md
+kind: source
+is: The first-round completeness critique, 471 lines. Its gap G3 says no report opened the old body's natural-language files; its section 5 lists what is ready to decide and what is not.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.33
+name: nl-arithmetic-demo.fk
+kind: source
+is: A sample of 191 lines outside the translator: a character grammar of four rules reads four English arithmetic sentences, among them "twice 5 plus 3" and "negate 12", and emits arithmetic recipe nodes. Its only prelude is grammar-chars.fk.
+path: coherence-kernel/form/form-samples/cross-modal/05-nl-to-recipe/nl-arithmetic-demo.fk
+rev: 115fea55e
+date: 2026-09-29
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.18.34
+name: form-neutral-language-world-model-band.fk
+kind: source
+is: The one test file at head that calls names of the dictionary of meaning recipes, 268 lines, sixteen bits, header verdict 65535 witnessed 2026-08-14. It reaches the dictionary through model/form-neutral-language-world-model.fk line 31 and the crossing cell.
+path: coherence-kernel/model/tests/form-neutral-language-world-model-band.fk
+rev: d76d72007
+date: 2026-08-14
+got: 2026-11-24
+at: 2026-11-24

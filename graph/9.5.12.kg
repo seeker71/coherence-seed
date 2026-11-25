@@ -1,0 +1,373 @@
+# Independent review of graph/4.5.kg (semantic machinery). One review node per claim, each naming the digest it read. PDF sources were read in the study's pdftotext copies (icon.txt, verse.txt, schulte.txt, traits.txt, bacon.txt, sel4.txt); web pages were fetched again as raw page bytes on 2026-11-24.
+
+n: 9.5.12
+kind: hub
+name: review-of-semantic-machinery
+is: All 40 claims of 4.5.kg (24 observations, 16 findings) were read against their sources: 30 confirmed, 10 amended (4.5.1.2, 4.5.1.10, 4.5.3.7, 4.5.4, 4.5.8.1, 4.5.8.5, 4.5.8.6, 4.5.8.7, 4.5.9.3, 4.5.9.4), none disputed, none left unreviewed. The 6 PDFs were read in the study's text copies at the cited lines and all 25 web sources were fetched again as raw bytes, the two relayed ones (the WAM copy and the Erlang manual) included; five of the amendments are limit lines that second-round nodes under 3.12, 3.14 and 3.15 have overtaken.
+at: 2026-11-24
+
+n: 9.5.12.1
+kind: review
+re: 4.5.1.1
+saw: c55aa3cb
+ack: 1
+limit: Read as raw bytes of the cited page on 2026-11-24, not through a summarising fetch. The page carries the frame as slots B (n), B+1..B+n (A1..An), B+n+1 CE, B+n+2 CP, B+n+3 B, B+n+4 BP, B+n+5 TR, B+n+6 H, and 'newE = B + STACK[B] + 7', so n+7 words; and 'only bindings of heap (resp., stack) variables whose addresses are less than HB (resp., B) need be recorded in the trail'. The page footer reads 'PAGE 37 OF 129'. The node's limit that the frame layout was not confirmed by a direct read no longer holds; cut was not read here either.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.2
+kind: review
+re: 4.5.1.2
+saw: d2eec1b6
+ack: node
+is: The book names four operations that undo a change, not three: tab(), move(), the reversible assignment '<-' and the reversible exchange '<->' ('There is also a reversible exchange operation, <->, which is like :=: except that the assignments are reversed if it is resumed', icon.txt 4436-4437, ch. 7 p. 90). Its own wording is 'Only a few Icon expressions perform data backtracking' (icon.txt 4392). Goal-directed evaluation (icon.txt 1399-1402, p. 18) and the bounded expression (icon.txt 4458-4462, p. 90) are as stated.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.3
+kind: review
+re: 4.5.1.3
+saw: efa8c8e0
+ack: 1
+limit: Fig. 1 (verse.txt 121) lists eight alternatives: v, 'eq; e', exists, fail, choice, 'v1 v2', one{e}, all{e}; the study report's line 44 lists the same eight and then says 'Seven expression forms', so the node rightly follows the paper. Section 2.2 is verse.txt 246-252.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.4
+kind: review
+re: 4.5.1.4
+saw: e3857b33
+ack: 1
+limit: The specification of one is in section 2.5 (verse.txt 351-352) and all as a tuple in section 2.6 (verse.txt 389), neither among the cited locators; 'if' as sugar is in Fig. 1 (verse.txt 141), split in 5.3 (verse.txt 1170-1189), the transactional sentence in the conclusion (verse.txt 1449-1451) and appendix F (verse.txt 4407-4424).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.5
+kind: review
+re: 4.5.1.5
+saw: 0b16e972
+ack: 1
+limit: Section 4.8 (schulte.txt 2014-2066) lists the six operations; the abstract (schulte.txt 96-105) carries copying, recomputation and 'establishes the competitiveness of copying by a rigid comparison with trailing'. The search engine as ordinary code is the Solve procedure at schulte.txt 1943-1954, which lies before section 4.8 and is not under either cited locator. The title page reads 'Saarbruecken, 2000' with copyright February 2001.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.6
+kind: review
+re: 4.5.1.6
+saw: b809063e
+ack: 1
+limit: Raw page read 2026-11-24: sections 7.1 (the six categories and the lattice), 7.2 (inference for procedures local to a module, declared determinism compared against inferred) and 7.5 ('committed choice annotations allow the compiler to generate much more efficient code').
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.7
+kind: review
+re: 4.5.1.7
+saw: 0568b0b7
+ack: 1
+limit: Raw file read 2026-11-24 from the master branch: lines 980-981 (yield to the innermost handler, unwind, only then evaluate), 1140 (cost very similar to virtual method calls), 1719-1720 (invoke more than once; backtracking).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.8
+kind: review
+re: 4.5.1.8
+saw: b1f30665
+ack: 1
+limit: Four pages read as raw bytes on 2026-11-24: the OCaml 5.3 manual ('resumed ... exactly once', Continuation_already_resumed), the arXiv abstract ('imposes a mean 1% overhead on a comprehensive macro benchmark suite that does not use effect handlers', submitted 1 Apr 2021), the explainer's section 'One-shot continuations' (lines 908-915) and the proposals readme (Stack Switching under Phase 3).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.9
+kind: review
+re: 4.5.1.9
+saw: 3164950c
+ack: 1
+limit: Raw page of stm-2.5.3.1 read 2026-11-24; the sentence on catchSTM ('only the changes enclosed by the catch are rolled back') stands under throwSTM on that page.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.10
+kind: review
+re: 4.5.1.10
+saw: 22d16520
+ack: node
+is: Two amendments. The claim should read that the five parts cover every system read, as hub 4.5.1 says, not that every system combines all five: the WAM frame of 4.5.1.1 has no suspension and Icon in 4.5.1.2 no not-yet result. And the limit should name the store rule 'old-value log' beside the persistent-value rule as resting on sources not encoded: 4.5.1.9 shows rollback and says nothing of a log.
+why: The report's sentence is 'Every system above is a combination of five things' (web-semantics-machines.md line 101). Its source for the old-value log is the AutoRTFM page it could not open (line 51: HTTP 403, a search summary only; line 106 names 'STM, AutoRTFM').
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.11
+kind: review
+re: 4.5.2.1
+saw: 76cb93af
+ack: 1
+limit: Raw page read 2026-11-24, dated December 1, 2009: 'a two-word pair', the itable per interface type and concrete type, 'O(ni + nt)' by sorting and walking the two method tables, 'The runtime caches the itable', 'a couple of memory fetches and a single indirect call instruction'. The table is computed or found in the cache at the assignment into the interface.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.12
+kind: review
+re: 4.5.2.2
+saw: 786f6cc6
+ack: 1
+limit: Three pages read as raw bytes on 2026-11-24. The methods 'of SomeTrait and its supertraits' are on the reference page; size, alignment, drop_in_place and 'comparing vtable pointers is unreliable' on the DynMetadata page; the Swift struct OpaqueExistentialContainer (fixedSizeBuffer[3], type, witnessTables[]) at lines 263-280 of TypeLayout.rst.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.13
+kind: review
+re: 4.5.2.3
+saw: b6de3bd3
+ack: 1
+limit: Raw page read 2026-11-24: definitions of thunk, virtual table group and secondary virtual table in 1.1; vcall offsets, vbase offsets, offset to top and typeinfo pointer in 2.5.2; the VTT, 'a table of virtual table pointers', in 2.6.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.14
+kind: review
+re: 4.5.2.4
+saw: 7141628f
+ack: 1
+limit: traits.txt 94-111 (no state variables; a class means what it would if the methods were defined in it), 375-384 (flattening property; super has no special semantics), 471-482 (conflicts explicitly resolved; alias and exclusion); line 9 gives ECOOP 2003, LNCS 2743, pp. 248-274.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.15
+kind: review
+re: 4.5.2.5
+saw: 038047de
+ack: 1
+limit: Raw pages read 2026-11-24. Python page: 'L[C(B1 ... BN)] = C + merge(L[B1] ... L[BN], B1 ... BN)', 'Python 2.3 will refuse to create the class C and will raise an exception', 'TypeError: MRO conflict among bases Y, X'. Eiffel page: the subclauses rename, export, undefine, redefine and select, and the Repeated Inheritance rule (shared under one name, replicated under different names).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.16
+kind: review
+re: 4.5.2.6
+saw: 20c33735
+ack: 1
+limit: Raw text of both pages read 2026-11-24. Design document: same gcshape 'if and only if they have the same underlying type or they are both pointer types'; a dictionary 'is needed whenever a generic function/method is called'; sub-dictionaries and itabs among its entries. Release notes: 'arrives in August 2026'; 'methods of interfaces may not declare type parameters nor can interface methods be implemented by generic methods'.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.17
+kind: review
+re: 4.5.2.7
+saw: 3024d5b0
+ack: 1
+limit: Matches section 2.2 of the report (lines 197-201) and follows from the five premises; the shape examples the report gives (Self map, V8 Map) are among the evidence the node's limit already marks as not encoded.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.18
+kind: review
+re: 4.5.3.1
+saw: a6db4bed
+ack: 1
+limit: Raw page read 2026-11-24: '512-bit SHA3 hashes', 'positionally-numbered variable references', 'names are just separately stored metadata that don't affect the function's hash', 'a proper database which knows the type of everything it stores'.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.19
+kind: review
+re: 4.5.3.2
+saw: 0d333463
+ack: 1
+limit: Raw page read 2026-11-24; the three consequences stand in one paragraph, in the node's words.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.20
+kind: review
+re: 4.5.3.3
+saw: 6e0b003a
+ack: 1
+limit: Abstract in bacon.txt lines 8-22; the venue line 'OOPSLA 04, Oct. 24-28, 2004' at bacon.txt 64.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.21
+kind: review
+re: 4.5.3.4
+saw: cfd965cd
+ack: 1
+limit: Abstract on the publication page read as raw bytes on 2026-11-24; the page carries MSR-TR-2020-42. Nothing beyond the abstract was read here either.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.22
+kind: review
+re: 4.5.3.5
+saw: b0477155
+ack: 1
+limit: sel4.txt 16 (Revision 1.4.1 of 2026-07-17), 240-241 and 249-250 (20 MSLOC, 10 kSLOC), 850-857 (object reference, fat pointers, encapsulation, 'the one and only way'). The locator txt170 points at 'the world's fastest microkernel', which the node does not state.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.23
+kind: review
+re: 4.5.3.6
+saw: 5496820f
+ack: 1
+limit: Raw page read 2026-11-24: the six capabilities with their long names, 'you can store and compare tags to check object identity and share tag variables with other actors', and the sentence on sharing only immutable and exchanging only isolated data.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.24
+kind: review
+re: 4.5.3.7
+saw: a1e83d90
+ack: node
+is: The announcement is dated 'Jun 11, 2026' and says 'The WASI Subgroup voted to ratify WASI 0.3.0'; it gives no day for the vote. The node should say 'announced 2026-06-11 as ratified', not 'ratified and announced 2026-06-11'. The rest is as the pages show: 'a component may not export a memory' (component model page), stream, future and async 'as first-class constructs to the canonical ABI', 'In WASI 0.2 each component needed its own event loop/async runtime' (announcement), and Component Model under Phase 1 (proposals readme, read 2026-11-24).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.25
+kind: review
+re: 4.5.3.8
+saw: b94d5cc3
+ack: 1
+limit: Both pages answered on 2026-11-24 with full bodies marked OTP 29.1.2 and were read as raw bytes: 'Sending a message to a pid never fails, even if the pid identifies a non-existing process'; 'The first message from the start of the message queue that matches will be selected'; 'if no matching message has arrived within ExprT milliseconds, then BodyT is evaluated instead'; an integer from 0 or the atom infinity; 'Links are bidirectional'; 'Monitors are unidirectional'. The node's limit that the wording is unconfirmed no longer holds, and its status could be observed.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.26
+kind: review
+re: 4.5.4
+saw: b8715a78
+ack: node
+is: The numbers are the report's but two wordings claim more than it does. Line 19 lists eight 'Sources I tried and could not read', not sources that could not be opened at all: the Koka book page was fetched (834 KB, mostly inline image data) and the Verse failure page rendered empty. Line 349 names six papers read as abstracts only; that is the study's own count, and at least three more of its sources are abstract pages.
+why: The three further abstract pages are arXiv 1312.1399 (report line 76), 2104.00250 (lines 79 and 137) and 2509.11901 (line 83). The cost sentence (line 347) and the critic's four unmeasured items (critic.md 149-152) are as the node states.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.27
+kind: review
+re: 4.5.5
+saw: 020fe36d
+ack: 1
+limit: Matches the closing paragraph of section 4 of the report (line 322) word for word in content; the four identifications are the study's reasoning and no premise tests them, as the node's limit says.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.28
+kind: review
+re: 4.5.8.1
+saw: c9cfc066
+ack: node
+is: The limit should add that the node's own premise 1.7.17 is on the other side: the axioms file says 'The core had read the nothing-ground twice, and both readings were terminal: FAIL ("it did not land") and STOP' (coherence-kernel/axioms/core-axioms.form 169-171), so the acknowledged ground reads fail as nothing. The half '0 triggers backtracking' departs from a given theorem and follows only from 4.5.1.3, not merely from a disagreement with another study.
+why: The rest holds: the proposal is R1 and R7 of the report (lines 151 and 157); the critic's C1, C3 and N1 are as the limit says; in the old body control/offer-ack-core.fk 27-28 has oac-fail() = fail and oac-failed? = oac-nothing?, and form/form-stdlib/minimal-surface.fk 14 and 32 pop choice on ack 0.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.29
+kind: review
+re: 4.5.8.2
+saw: ee4c052f
+ack: 1
+limit: R2 and R3 of the report (lines 152-153); the critic's C6 and N4 are as the limit says.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.30
+kind: review
+re: 4.5.8.3
+saw: b1c182f8
+ack: 1
+limit: R4 and R5 of the report (lines 154-155); 'restore is repointing' is 1.7.8.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.31
+kind: review
+re: 4.5.8.4
+saw: 3c38b413
+ack: 1
+limit: R6 and R8 of the report (lines 156 and 158); the lattice is on the Mercury page read for 4.5.1.6; the packrat sentence is marked assumed at report line 68, as the limit says.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.32
+kind: review
+re: 4.5.8.5
+saw: 3d43a75c
+ack: node
+is: The proposal is R9 to R11 of the report (lines 227-229) as stated. The limit is overtaken inside this graph: the critic's G6 (critic.md 112-122) did say the reference pair had no running witness, but node 3.12.4.1 of the second round records six instruction-count logs of the 2000 machine with interface casts executed 426 to 1,909 times per run and interface-forwarded calls 92 to 2,322. The limit should read that the pair has a record of running in 2000 (3.12.4.1) and none in the 2026 body, where one record with a class id is used (3.12.2.1, 3.12.2.2).
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.33
+kind: review
+re: 4.5.8.6
+saw: d9185cdf
+ack: node
+is: The proposal is R12 and R13 of the report (lines 230-231) and the critic's C5 and N5 are quoted fairly. The limit's 'no running reference exists for either in the old body' is overtaken inside this graph for the flattening half: 3.12.2.4 finds that the 2026 body reaches a second class base by flattening into one record, and 3.12.4.4 records a fixture for it under a pinned Verdict 119 at commit 1044906a5 of 2026-09-15, cut by the head commit (3.12.4.8). Only delegation to separate base objects has no record of running in either era.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.34
+kind: review
+re: 4.5.8.7
+saw: 88d88c2c
+ack: node
+is: Two limit sentences are overtaken inside this graph. 'The hash function and its cost are unmeasured' is contradicted by hub 3.15: 3.15.2.2 measures direct SHA-256 at 16.0 ns for a 40-byte digest on one Apple M4 Max. And the ice, water and gas mapping no longer rests on two lines of AGENTS.md alone: hub 3.14 traces the words to 2025-09-09 and counts 21 uses on 12 axes. The limit should point at 3.14 and 3.15.
+why: The proposal itself is R16, R17 and R19 of the report (lines 300-303) with the counting argument from its section 3.2 item 3 (line 275), not 3.4; coherence-kernel/AGENTS.md lines 575 ('rides its ice') and 585 ('freezing ice or leaving gas') read as cited.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.35
+kind: review
+re: 4.5.8.8
+saw: 26efb065
+ack: 1
+limit: R20 to R22 of the report (lines 304-306); the critic's G11 (critic.md 163-168) and the model-memory mark on eventual sends and promise pipelining (report line 261) are as the limit says.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.36
+kind: review
+re: 4.5.9.1
+saw: de42de08
+ack: 1
+limit: First finding of section 1.3 of the report (line 144); the last sentence is R5 in section 1.4 (line 155). That backtracking copies no stack is the report's inference from the frame and the three instructions (line 32), which the node's limit covers.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.37
+kind: review
+re: 4.5.9.2
+saw: cd2dcf32
+ack: 1
+limit: The reading of the ABI is at report line 173 (section 2.1) and the hashed-content argument at line 203 (section 2.2); both follow from 4.5.2.3, 4.5.2.1 and 1.3.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.38
+kind: review
+re: 4.5.9.3
+saw: 905d243f
+ack: node
+is: True, but not from the premises listed: neither 4.5.1.2 nor 4.5.1.3 says anything about booleans. The sources do, in places no node cites: the Icon book's introduction (icon.txt 504-505, p. xvi) and the Verse paper's section 2.5 (verse.txt 340-341). The node needs 'src: 2.15.4#intro-pxvi 2.15.5#2.5', or those two sentences added to 4.5.1.2 and 4.5.1.3. 'No True and False constructors' is the Verse wording only.
+why: Icon: 'Icon, however, uses the concept of the success or failure of a computation, not Boolean values, to drive control structures'. Verse: 'There are no data constructors True and False; instead failure (returning zero values) plays the role of falsity'. The Erlang half follows from 4.5.3.8, and R7 is at report line 157.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.39
+kind: review
+re: 4.5.9.4
+saw: 0b33044e
+ack: node
+is: The sentence is the report's caution at line 294, but it does not follow from 4.5.3.1 and 4.5.3.2, which say nothing about run-time cost. The limit 'without a measurement' is overtaken inside this graph: 3.15.4.1 measures a 40-byte node at 1.2 to 2.3 ns without identity against 28.1 to 44.8 ns minted with one into a store of 16.8 million nodes. The node should take 3.15.4.1 as its premise and carry that figure.
+why: The report's own source for hash consing (line 242) says only that equality becomes a pointer comparison and that a hash table of weak references is usual; 'pays off only for immutable, frequently compared structure' is the study's inference.
+by: r3/review-semantic-machinery
+at: 2026-11-24
+
+n: 9.5.12.40
+kind: review
+re: 4.5.9.5
+saw: 3e6e4102
+ack: 1
+limit: R21 and R22 of the report (lines 305-306); follows from 4.5.3.5, 4.5.3.7 and 1.4.
+by: r3/review-semantic-machinery
+at: 2026-11-24

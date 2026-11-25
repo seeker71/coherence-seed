@@ -1,0 +1,14 @@
+add	node [#4 2a]
+choice-all	node (#16 [#4 01] [#4 02] [#4 03])
+choice-reentered	node (#16 [#4 0b] [#4 0c] [#4 15] [#4 16])
+cut-first-only	node (#16 [#4 01])
+exhausted	nothing [#2 7370656e74]
+fault	fault [#2 6b696e64]
+native-add	node [#4 2a]
+need-moves-on	node [#4 07]
+no-is-an-answer	node #32
+numeric-list	node (#16 [#4 01] [#14 0000000000000440] (#16 [#4 03] [#4 04]))
+range	nothing [#2 72616e6765]
+recover	node [#2 6b696e64]
+recursion	node [#4 37]
+long-recursion	node [#4 053d21]

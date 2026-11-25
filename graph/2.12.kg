@@ -1,0 +1,422 @@
+# Sources of the study r1/web-jit-and-performance. Web pages were read through a summarising fetch tool.
+
+n: 2.12
+name: sources-self-compiling-systems
+kind: hub
+is: Sources of the first-round web study of JIT compilation, small self-hosting systems, images and host efficiency: the study report itself, 41 public pages and papers fetched on 2026-11-24 through a summarising fetch tool, and one file of the old body.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.1
+name: web-jit-and-performance.md
+kind: source
+is: The study report: bootstrapping a small system to the hardware's full efficiency, 573 lines, with a table of 64 web sources and 3 local ones. Its local commands (sysctl, sw_vers, compiler versions, the powermetrics manual) are recorded in it.
+path: coherence-seed/study/r1/web-jit-and-performance.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.2
+name: copy-and-patch-paper
+kind: source
+is: The paper Copy-and-Patch Compilation, arXiv 2011.13127, DOI 10.1145/3485513; version 1 of 2020-11-26, version 3 of 2021-09-15. Abstract page only.
+url: https://arxiv.org/abs/2011.13127
+date: 2020-11-26
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.3
+name: baseline-jit-for-lua-post
+kind: source
+is: The blog post Building a baseline JIT for Lua automatically, by the first author of the copy-and-patch and Deegen papers.
+url: https://sillycross.github.io/2023/05/12/2023-05-12/
+date: 2023-05-12
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.4
+name: pep-744
+kind: source
+is: PEP 744, JIT Compilation, for CPython; status Draft when read.
+url: https://peps.python.org/pep-0744/
+date: 2024-04-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.5
+name: whats-new-python-3.15
+kind: source
+is: What's New in Python 3.15, as published with the 3.15.2 documentation; Python 3.15 was released 2026-10-09. The JIT section lies past character 100,000 of the page text.
+url: https://docs.python.org/3.15/whatsnew/3.15.html
+date: 2026-10-09
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.6
+name: pep-836
+kind: source
+is: PEP 836, JIT Go Brrr: The Path to a Supported JIT Compiler for CPython; created 2026-07-02, status Withdrawn, resolution 2026-10-19.
+url: https://peps.python.org/pep-0836/
+date: 2026-07-02
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.7
+name: lwn-pause-for-the-python-jit
+kind: source
+is: The LWN article A pause for the Python JIT.
+url: https://lwn.net/Articles/1090385/
+date: 2026-09-01
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.8
+name: pep-836-discussion-thread
+kind: source
+is: The discuss.python.org thread on PEP 836; the study read posts 41 to 80, dated 2026-07-17 to 2026-10-30.
+url: https://discuss.python.org/t/pep-836-jit-go-brrr-the-path-to-a-supported-jit-compiler-for-cpython/108010
+date: 2026-10-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.9
+name: deegen-paper
+kind: source
+is: The paper Deegen: A JIT-Capable VM Generator for Dynamic Languages, arXiv 2411.11469; version 1 of 2024-11-18, version 2 of 2024-11-24. Abstract page only.
+url: https://arxiv.org/abs/2411.11469
+date: 2024-11-18
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.10
+name: v8-sparkplug-post
+kind: source
+is: The V8 blog post Sparkplug, on V8's non-optimizing baseline compiler.
+url: https://v8.dev/blog/sparkplug
+date: 2021-05-27
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.11
+name: tpde-paper
+kind: source
+is: The paper TPDE: A Fast Adaptable Compiler Back-End Framework, arXiv 2505.22610. Abstract page only.
+url: https://arxiv.org/abs/2505.22610
+date: 2025-05-28
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.12
+name: in-place-interpreter-paper
+kind: source
+is: The paper A fast in-place interpreter for WebAssembly, arXiv 2205.01183. Abstract page only.
+url: https://arxiv.org/abs/2205.01183
+date: 2022-05-02
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.13
+name: tracing-vs-partial-evaluation-paper
+kind: source
+is: The OOPSLA 2015 paper Tracing vs. Partial Evaluation, comparing meta-tracing and partial evaluation on one language, as an HTML page.
+url: https://stefan-marr.de/papers/oopsla-marr-ducasse-meta-tracing-vs-partial-evaluation/
+date: 2015
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.14
+name: rpython-jit-overview
+kind: source
+is: The RPython documentation's JIT overview, which describes the 2009 move from partial evaluation to tracing. Undated page.
+url: https://rpython.readthedocs.io/en/latest/jit/overview.html
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.15
+name: weval-paper
+kind: source
+is: The paper Partial Evaluation, Whole-Program Compilation (the weval tool), arXiv 2411.10559. Abstract page only.
+url: https://arxiv.org/abs/2411.10559
+date: 2024-11-15
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.16
+name: v8-maglev-post
+kind: source
+is: The V8 blog post Maglev - V8's Fastest Optimizing JIT.
+url: https://v8.dev/blog/maglev
+date: 2023-12-05
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.17
+name: v8-leaving-sea-of-nodes-post
+kind: source
+is: The V8 blog post Land ahoy: leaving the Sea of Nodes.
+url: https://v8.dev/blog/leaving-the-sea-of-nodes
+date: 2025-03-25
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.18
+name: qbe-home
+kind: source
+is: The QBE compiler backend's home page. Its releases page lists 1.0 on 2022-06-22 and 1.3 on 2026-06-01; the home page itself is undated.
+url: https://c9x.me/compile/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.19
+name: cranelift-home
+kind: source
+is: The Cranelift code generator's home page. Undated.
+url: https://cranelift.dev/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.20
+name: cranelift-egraph-rfc
+kind: source
+is: The accepted Bytecode Alliance RFC for Cranelift's acyclic e-graph mid-end. Undated on the page; it refers to a 2022 roadmap.
+url: https://github.com/bytecodealliance/rfcs/blob/main/accepted/cranelift-egraph.md
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.21
+name: stoke-paper
+kind: source
+is: The paper Stochastic Superoptimization (STOKE), arXiv 1211.0557, ASPLOS 2013. Abstract page only.
+url: https://arxiv.org/abs/1211.0557
+date: 2012-11-02
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.22
+name: souper-paper
+kind: source
+is: The paper Souper: A Synthesizing Superoptimizer, arXiv 1711.04422; version 1 of 2017-11-13, version 2 of 2018-04-06. Abstract page only.
+url: https://arxiv.org/abs/1711.04422
+date: 2017-11-13
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.23
+name: maru-page
+kind: source
+is: The project page of Maru, a self-hosting s-expression language and compiler; it covers 2010 to 2012, with version 2.4 dated 2012-08-24. Its size and speed figures stand in the section on the original version.
+url: https://piumarta.com/software/maru/
+date: 2012-08-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.24
+name: steps-2012-final-report
+kind: source
+is: VPRI Technical Report TR-2012-001, STEPS Toward the Reinvention of Programming, 2012 final report, a PDF. The study read pages 4 to 6 as page images.
+url: https://tinlizzie.org/VPRIPapers/tr2012001_steps.pdf
+date: 2012-10
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.25
+name: squeak-oopsla-1997-paper
+kind: source
+is: The OOPSLA 1997 paper Back to the Future: The Story of Squeak, as an HTML page.
+url: http://files.squeak.org/docs/OOPSLA.Squeak.html
+date: 1997
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.26
+name: sectorforth-readme
+kind: source
+is: The README of sectorforth, a Forth in a 512-byte boot sector. Undated.
+url: https://github.com/cesarblum/sectorforth
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.27
+name: dusk-os-home
+kind: source
+is: The home page of Dusk OS, a Forth-based operating system. Undated.
+url: https://duskos.org/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.28
+name: stage0-posix-readme
+kind: source
+is: The README of stage0-posix, a bootstrap chain from a hex seed toward a C compiler. Undated.
+url: https://github.com/oriansj/stage0-posix
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.29
+name: v8-startup-snapshots-post
+kind: source
+is: The V8 blog post Custom startup snapshots.
+url: https://v8.dev/blog/custom-startup-snapshots
+date: 2015-09-25
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.30
+name: unison-the-big-idea
+kind: source
+is: The Unison documentation page The big idea, on code identified by a hash of its syntax tree. Undated.
+url: https://www.unison-lang.org/docs/the-big-idea/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.31
+name: capnproto-home
+kind: source
+is: The home page of Cap'n Proto, a serialization format that is also an in-memory layout. Undated.
+url: https://capnproto.org/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.32
+name: py-lmdb-docs
+kind: source
+is: The py-lmdb documentation, read for its description of LMDB because the LMDB site itself failed with a TLS error. Undated.
+url: https://lmdb.readthedocs.io/en/release/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.33
+name: apple-porting-jit-compilers
+kind: source
+is: Apple's developer page Porting just-in-time compilers to Apple silicon, read in the JSON form of the documentation page. Undated.
+url: https://developer.apple.com/tutorials/data/documentation/apple-silicon/porting-just-in-time-compilers-to-apple-silicon.json
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.34
+name: wikipedia-aarch64
+kind: source
+is: The Wikipedia article AArch64, a secondary source and a live page.
+url: https://en.wikipedia.org/wiki/AArch64
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.35
+name: hello-sme-paper
+kind: source
+is: The paper Hello SME! Generating Fast Matrix Multiplication Kernels Using the Scalable Matrix Extension, arXiv 2409.18779. Abstract page only.
+url: https://arxiv.org/abs/2409.18779
+date: 2024-09-27
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.36
+name: metal-make-library-from-source
+kind: source
+is: Apple's reference page for MTLDevice makeLibrary(source:options:), read in the JSON form of the documentation page. Undated.
+url: https://developer.apple.com/tutorials/data/documentation/metal/mtldevice/makelibrary(source:options:).json
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.37
+name: spirv-specification
+kind: source
+is: The Khronos SPIR-V specification, version 1.6 revision 8, copyright 2014 to 2026.
+url: https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.38
+name: tinygrad-readme
+kind: source
+is: The README of tinygrad, a tensor library with its own kernel compiler. Undated.
+url: https://github.com/tinygrad/tinygrad
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.39
+name: halide-home
+kind: source
+is: The home page of Halide, a language that separates an image algorithm from its schedule. Undated.
+url: https://halide-lang.org/
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.40
+name: mlx-readme
+kind: source
+is: The README of MLX, an array framework for Apple silicon. Undated.
+url: https://github.com/ml-explore/mlx
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.41
+name: energy-of-languages-paper
+kind: source
+is: The paper It's Not Easy Being Green: On the Energy Efficiency of Programming Languages, arXiv 2410.05460, accepted to ASE 2025; version 1 of 2024-10-07, version 4 of 2025-10-03. Abstract page only.
+url: https://arxiv.org/abs/2410.05460
+date: 2024-10-07
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.42
+name: arena-allocator-post
+kind: source
+is: The essay Untangling Lifetimes: The Arena Allocator.
+url: https://www.dgtlgrove.com/p/untangling-lifetimes-the-arena-allocator
+date: 2022-09-23
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 2.12.43
+name: host-kernel.form
+kind: source
+is: The old body's host-kernel file, 250 lines, which describes a hot pure composite crystallizing into a native leaf and melting when cool.
+path: coherence-kernel/axioms/host-kernel.form
+rev: 4a69d6b1f
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/web-jit-and-performance

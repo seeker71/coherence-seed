@@ -1,0 +1,441 @@
+# What the lessons study (study/r1/lessons.md) found. Sources are under 2.10; the old body's own documents are 2.1.x; the critic's report is 2.31.
+
+n: 3.7
+name: lessons
+kind: hub
+is: The old body at b8ff978c9: 4,775 commits in five months, 2,572 files, 308,944 lines of .fk and .bml, and a C seed that went from 160 to 34,149 lines under a written rule that it shrinks. An 89% cut of files regrew by 55 to 58% in eight weeks. The study ranks twelve root causes, led by hand-kept copies of one meaning, meaning that changed with heat, value kinds read from number ranges, and failure recovered silently into a value. The owner's asks stayed constant from July. Evidence is git counts and dated notes; the old runtime was not run.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.1
+name: shape
+kind: hub
+is: The old repository measured with git and wc on 2026-11-24: its totals, the seed file's line count at nine samples beside the written rule that it shrinks, and the file cut of 2026-09-29 with the regrowth after it. Both the seed and the file count rose again after the one structural cut.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.1.1
+name: repository-totals
+kind: observation
+is: At commit b8ff978c9 the old body has 4,775 commits from 2026-06-28 to 2026-11-24 by 4 authors, a 1.43 GiB pack and 2,572 tracked files: 1,105 .bml, 974 .fk, 221 .md, 73 .jsonl. Its .fk and .bml files hold 308,944 lines; form/ alone holds 1,723 files; commits per month peak at 1,655 in September.
+status: observed
+src: 2.10.1#1 2.1
+limit: Counted by file suffix and directory, not by role: the study did not separate language and runtime from application code.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.1.2
+name: seed-grew-under-shrink-rule
+kind: observation
+is: runtime/fkwu-uni.c had 160 lines on 2026-06-28, 8,821 on 2026-07-01, 16,589 on 2026-09-05, 26,459 on 2026-10-04 and 34,149 on 2026-11-20, larger at each of nine samples over 400 commits. AGENTS.md line 337 titles its section 'temporary C seed, shrinking to zero' and line 404 says a patch that grows the file carries its shrink path.
+status: observed
+src: 2.10.1#1.1 2.1.7 2.1.4#337 2.1.4#404 2.1.6#74-75 2.31#r1/critic.md-R9
+limit: Counts across 2026-07-01 are not like for like: one commit that day, e39e8aba8, titled as a reformat, took the file from 1,977 to 8,783 lines; from 8,821 the growth is 3.9-fold. The critic tied that step to the import commit 6151af27c of 2026-07-02, which does not touch the file. Re-run with git on 2026-11-24.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.1.3
+name: cut-and-regrowth
+kind: observation
+is: Commit 115fea55e of 2026-09-29 is titled 'Cut the repo to its end-to-end healthy flow: 14,729 files to 1,628'. Tracked files at every 800th commit: 13,217 on 2026-09-12, 1,721 on 2026-10-01, 2,270 on 2026-10-28 and 2,572 on 2026-11-24, which is 58% above the 1,628 the title names.
+status: observed
+src: 2.10.1#1.2 2.1#115fea55e
+limit: git ls-tree -r at 115fea55e counts 1,663 files (14,693 in its parent), against which 2,572 is 55% above. The samples are commits 2401, 3201 and 4001 of git log --reverse numbered from 1 (735f1b872, a9423e3b1, 1eff6d7b2); a re-count on 2026-11-24 gave the study's figures there, and 13,217, 1,720 and 2,268 one position earlier.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2
+name: causes
+kind: hub
+is: Twelve root causes of complexity and fragility in the old body, ranked by the study by how many recorded failures trace to each and how silent they were; the first four are copies of one meaning, heat changing meaning, kinds read from number ranges and silent recovery. The evidence is mostly dated notes, read and not re-run.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.1
+name: copies-of-one-meaning
+kind: observation
+is: A native of the old runtime stood on four mirrors, three kept by hand (manifest row, flt-ops row, serializer arm) and one generated (fkwu-optable.h). The body had two grammars (.fk s-expressions and BML), inside BML two readers (the cursor grammar and the fsc-* statement walker) and, until 2026-10-03, four kernels (C, Go, Rust, TypeScript).
+status: observed
+src: 2.10.2#81-94 2.10.6#31 2.1.6#407-409 2.10.7#13-16 2.10.1#RC1 2.1#d8c27d222
+limit: The page of 2026-10-03 records that for the fourth time in three days a census verdict of 'mint a native' was answered by a routing, for four names (substring, nth-rec, find-loop, str_find); it records an orphaned C arm for str_find only. A unit took the BML route when it carried a 'section [' block, whatever its extension.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.2
+name: heat-changed-meaning
+kind: observation
+is: The old runtime's C loop lane inlined a hot callee by argument substitution, so an unread argument lost its effects after 1,024 calls: a plain build landed 3,936 of 780,000 effects. Two machine-code tiers stood at the end, the C loop lane (fk_f64_*) at heat 1,024 and the Form-written page JIT at 4,096; removing the C lane waited at rung R8 of 8.
+status: observed
+src: 2.1.6#1002-1005 2.10.9#11 2.10.9#16 2.1.6#1276-1278 2.1.6#1381-1384 2.10.11#36-45 2.1.7#557 2.1#270c6f355 2.1#7643c1db4 2.1#80874fd56
+limit: Name-bound recipe twins at heat 1,024 were a third tier only from 2026-09-06 (commit 270c6f355) to 2026-09-12 (commit 7643c1db4; the seed's line 557 says the twins left that day). jit-page.bml was first committed on 2026-10-11 (80874fd56), so the twins never stood beside the Form page JIT.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.3
+name: hot-closure-fault-open
+kind: observation
+is: A note of 2026-11-24 records a map over a closure holding locals that went wrong at about its 1,024th call in one process; the note says the kernel fault is not repaired and the caller was rewritten as a recursion. The subject line of head commit b8ff978c9 describes that rewrite.
+status: observed
+src: 2.10.10#11-17 2.1#b8ff978c9
+limit: No root cause is recorded. The study read the note and did not reproduce the fault.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.4
+name: kinds-from-number-ranges
+kind: observation
+is: The old runtime read a value's kind from ranges of one machine word: any even word an integer, an odd non-negative word a list, strings, floats and functions at large negative bases. eq answered 1 for any two integers at or below -2 until 2026-09-10; (add "abc" 0) answered "abc" until 2026-09-12; (add 9223372036854775807 1) is 0.
+status: observed
+src: 2.10.6#33 2.10.12#3 2.10.12#11-27 2.10.13#12-28 2.10.14#21-23
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.5
+name: unresolved-call-became-a-value
+kind: observation
+is: In the old body an unresolved call was lowered to literal 0 or to pool string 0 and the run continued; one note lists eight shapes of this found from 2026-07-17 to 2026-07-31. In one, 22 JIT bands answered their all-ones masks while hundreds of calls did nothing; in another, fixing one prelude line moved 19 bands to their declared verdicts.
+status: observed
+src: 2.10.8#11-29
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.6
+name: reader-and-harness-accepted-failure
+kind: observation
+is: Until 2026-09-02 the old runtime ran only the last top-level form of a unit; its reader accepted a source missing a closing parenthesis and, before 2026-07-02, cut sources over 262,144 bytes. The validation script exited 0 on every run until 2026-09-11 and compared kernels with each other only: one band answered 42 against a declared 63 and passed.
+status: observed
+src: 2.10.16#11 2.10.17#41-46 2.10.18#17 2.10.19#11-17 2.10.19#57-59
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.7
+name: dependencies-by-comment-and-order
+kind: observation
+is: In the old body a comment line '; preludes: a.fk, b.fk' was a load directive of one line; 151 band files that wrapped it loaded an empty list and ran without their dependencies. A loader's incidental prelude could satisfy a callee, a home-index.txt table linked units by called name, and fkwu and its siblings ran from different working directories.
+status: observed
+src: 2.10.15#9-37 2.10.8#19-23 2.10.20#30-33 2.10.21#70-71
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.8
+name: cache-identity-apart-from-content
+kind: observation
+is: Compiled images (.fkb) of the old body were bound to path and, on one lane until 2026-08-31, to mtime: of 864 files hashed in two checkouts of one tree no .fkb matched across them. Lowerings were cached per unit by content, the image per whole closure and path: a one-definition edit rebuilt 37,490 KiB in 12.94 s, and the cache held 1,655 images, 14 GB.
+status: observed
+src: 2.10.22#11-16 2.10.23#12-14 2.10.24#40 2.10.25#18-21 2.10.25#23-24
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.9
+name: node-identity-not-stable
+kind: observation
+is: In the old body a row built with raw-word children read back from disk as a different node, node_eq of built against read answering 0 (note of 2026-10-12). make_nodeid had no lookup: one category minted once per sample made 99.7% of the cells of the host-wide shared field, whose ceiling is 2^26 cells and in which nothing was ever freed.
+status: observed
+src: 2.10.28#16 2.10.29#34-40 2.10.30#13
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.10
+name: verification-became-bulk
+kind: observation
+is: Of 2,079 .fk and .bml files at b8ff978c9, 584 are band files and 220 are run doors; 686 tracked files sit under a tests/ directory and receipts/ holds 148 .md documents. The owner asked for fewer bands, gates, doors or guards at least five times between 2026-09-29 and 2026-11-17; a note of 2026-11-17 says each fix added a new check while the cause was generic.
+status: observed
+src: 2.10.1#RC8 2.1 2.10.40#11-13 2.1.4#100-105 2.10.44#14 2.10.5#11 2.10.39#11-13
+limit: The five dated asks are of 2026-09-29, 10-05, 11-12, 11-16 and 11-17. The study counts a sixth, of 2026-11-20; the two notes it cites for that day speak of refusals and of .jsonl, not of bands or gates.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.11
+name: text-and-processes-inside
+kind: observation
+is: The old body passed JSON text between its parts and spawned itself as child processes, parsing stdout, stderr and exit code. The owner asked on 2026-10-08 and 2026-10-12 to remove JSON inside the system; on 2026-11-20 removal stood at layer 2a of 4 and 73 .jsonl files are tracked; str_find has 1,596 call sites in form-stdlib alone.
+status: observed
+src: 2.10.4#3-4 2.10.32#13 2.10.31#11-17 2.10.2#8-9 2.10.1#RC9
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.12
+name: shared-state-across-checkouts
+kind: observation
+is: As witnessed on 2026-09-11, every checkout of the old body ran its own build of the runtime against one host-wide roster and one host-wide node field, so a fix on a branch reached no running kernel. Per-process report files were 7,329 of 7,403 entries in one worktree root on 2026-09-12, and a stale binary still passed the ground check while lacking newer evaluator capabilities.
+status: observed
+src: 2.10.33#11-17 2.10.29#3 2.10.29#34-38 2.10.34#11 2.1.4#382-385 2.10.24#3
+limit: A state of September, not of the head: a note of 2026-11-09 records a sealed, reproducible kernel store from which ./fkwu is a clone.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.13
+name: rent-and-document-mass
+kind: observation
+is: A ledger of 72 hosted-model sessions read on 2026-10-13 shows 126,098 requests, 37.6 billion cache-read tokens and a mean context of 298,000 tokens per request. The three entry documents are 62, 167 and 104 KB and the 245 notes 1,018,037 bytes; CURRENT_FLOOR.md line 3 says read on 2026-09-29, line 180 carries an entry of 2026-11-19.
+status: observed
+src: 2.10.35#17-24 2.10.1#RC11 2.1.6#3 2.1.6#180
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.2.14
+name: fixed-capacities-and-switches
+kind: observation
+is: Fixed sizes sat in the old runtime: closure captures capped at 8 names until 2026-09-15, C loop lane bodies at 8 frame slots and 6 register slots, a JIT wait line of 64 definitions, a one-byte tag space recorded as full, and host doors reached as numbered modes of one leaf node. A census of 2026-08-03 counted 69 plus 9 environment switches.
+status: observed
+src: 2.10.36#27-28 2.1#ec801f4c8 2.10.37#17 2.10.37#21 2.1.6#1284 2.1.7#10294 2.10.11#36 2.1.6#1296-1310 2.1.6#1361-1379 2.10.38#27-31
+limit: Commit ec801f4c8 of 2026-09-15 deletes '#define FK_CLOSURE_CAP_MAX 8' and the name is absent from the seed at b8ff978c9. The slot limits are those of the C lane (fk_f64_body_of, registers x10 to x15), not of the Form-written emitter.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.3
+name: asks
+kind: hub
+is: What the owner asked for between 2026-07-02 and 2026-11-20 as recorded in dated notes, and how the study reads that record: one constant direction, pursued as layered migrations while seed lines, band files and tracked files kept rising, and one tension between a system that does not refuse and a system that never recovers silently.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.3.1
+name: owner-direction
+kind: observation
+is: Dated notes record the owner's asks: core recipes in the language over a minimal C bootstrap (2026-09-12); one runtime, and repair the language instead of its use (09-15); node ids instead of serialising, and no child processes (10-04); no JSON inside (10-08, 10-12); rented tokens down 10 to 100 times (10-13); design the architecture once (11-12).
+status: observed
+src: 2.10.41#13 2.10.42#11 2.10.43#13 2.10.32#13 2.10.4#3-4 2.10.35#11-12 2.10.44#13-16 2.10.1#3
+limit: Each ask is as a note records it. The study's table has 35 rows from 2026-07-02 to 2026-11-20; the rows outside the dates named here were not re-opened for this node.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.3.2
+name: asks-did-not-bend-the-counts
+kind: finding
+is: A written rule or repeated ask did not bring down the seed, the band files or the .jsonl files of the old body: the seed grew under its shrink rule, band files went from 259 to 584 through five dated asks for fewer, .jsonl files from 38 at the first ask to 73. Of the study's sampled counts only the cut of 2026-09-29 lowered one, and it rose again.
+status: inferred
+conf: mid
+src: 2.1#115fea55e 2.1#d8c27d222 2.1#78acc2a4f
+from: 3.7.1.2 3.7.1.3 3.7.2.2 3.7.2.10 3.7.2.11 3.7.3.1
+limit: By git ls-tree on 2026-11-24: band files 259 at the cut (115fea55e), 445 on 2026-10-08, 480 on 10-28, 554 on 11-12, 560 on 11-16, 584 at the head; .jsonl files 21 at the cut, 38 on 10-08, 77 on 11-12, 73 at the head, a fall of 4. Two asks completed: four kernels became one on 2026-10-03 (d8c27d222) and the validation script left on 2026-10-04. The study infers that a restart keeping the architecture and working loop would regrow.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.3.3
+name: refusal-against-silent-recovery
+kind: finding
+is: The owner's direction of 2026-09-09, 'form native does not refuse, it heals and integrates or releases', and the lesson that failure was recovered silently into a value, the study's fourth-ranked cause, are compatible only if a fault is a loud, named signal carrying its repair, which the running flow answers with another choice. A fault must never turn into a number.
+status: inferred
+conf: mid
+src: 2.10.45#8 2.10.45#26-29 2.10.1#RC4
+from: 3.7.2.5 3.7.2.6 1.1
+limit: The study did not verify that the new grammar's fail, stop and choice can meet this obligation. Its line 287 calls silent recovery 'the most damaging failure class' without a measure; its own ranking at lines 87 and 132 puts it fourth of twelve.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4
+name: worked
+kind: hub
+is: Seven things the records show working in the old body: node ledgers with atomic writes, control words with journaled undo, one definition per operation, an emitter in the language beside a 1 ms sampler, content-keyed stores, a second reader that exposed faults, in-process cells with event waits. Most figures are its own records on one machine.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.1
+name: node-ledgers-and-atomic-write
+kind: observation
+is: The old body measured 3,000 ledger rows held as nodes: built in 25 to 34 ms, written in 2 ms and read back in 3 ms with the same ids, against 130 ms to write and 55 ms to read the same rows as text. write_form_binary writes beside the file and renames over it, so a reader meets a whole file or the last whole one.
+status: observed
+src: 2.10.4#47-48 2.10.4#52-54 2.10.28#13
+limit: The figures are the document's record of 2026-10-12; the study did not re-run the measurement.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.2
+name: control-vocabulary-with-undo
+kind: observation
+is: The old body's floor document lists its control words (choice {} or {}, fail, cut, stop, try {} catch {}, timeout N {}, store()/undo()) and says a failed option's writes are undone by a journal, printed lines included, and its finding reaches the next option. A rule of 2026-11-12 adds that a retry must differ and carry what the last attempt saw.
+status: observed
+src: 2.1.6#1198-1199 2.10.46#16
+limit: Read in the floor document; the study ran no program that uses these words.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.3
+name: one-definition-per-operation
+kind: observation
+is: The old body's repair for heat-dependent meaning: every strict op is one C function (fk_op_*) called by walker and compiled page alike, a call has one meaning, all machine code is born through one page door, and anf-lower.bml binds every argument, in order, before its call. substring and str_find are specified as total, clamping and byte-indexed.
+status: observed
+src: 2.1.6#1296-1310 2.1.6#1004 2.10.3#15-26 2.10.2#16-30
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.4
+name: emitter-in-the-language
+kind: observation
+is: jit-page.bml, written in the old body's own language, reads a definition's nodes in-process, writes AArch64 words and binds them; a 3-million-step tail loop took 156 ms walked and 7 ms as a page, plus 7 ms for the first offer. Its tier-up counts time as well as calls, the C loop lane's decline codes name the missing arm, and a 1 ms sampler credits each sample to a phase or recipe.
+status: observed
+src: 2.1.6#1276-1282 2.1.6#1337-1344 2.1.6#1222-1234 2.10.37#13-21 2.1.7#12602 2.1.7#14476-14479
+limit: The figures are the floor document's records on one machine. The decline code -(1000 + tag) is set in the C lane's fk_f64_* functions of the seed, and the arms the cited note added went in through fk_f64_ccall; no decline code of jit-page.bml was read. The study did not run the emitter and did not read jit-page.bml itself.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.5
+name: content-keyed-stores
+kind: observation
+is: Late repairs in the old body keyed stores by content: a content-checked shared store took a self-review from 60 s cold against 3.4 s warm to 3.63 s, and a prebuilt pack took a fresh host from 54 s to 4 s. A note of 2026-11-09 records the seed compiling with cc -O2 in 3.6 s to a 711 KB kernel and builds reproducing byte for byte from any directory.
+status: observed
+src: 2.10.26#11-16 2.10.27#3 2.10.27#11-13 2.10.27#22 2.31#r1/critic.md-C11
+limit: Other reports of the same round timed the seed compile on 2026-11-24 at 5.52 s without linking and 8.5 s with a full link, and found the binary at 745 KB; 3.6 s and 711 KB hold for the note's conditions of 2026-11-09.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.6
+name: second-reader-exposed-faults
+kind: observation
+is: With the sibling kernels gone, the old floor document says a value fkwu gets wrong outside a frozen snapshot 'has no second reader'; notes record three fkwu faults shown by disagreement with a sibling (missing parenthesis accepted, only the last top-level form run, the record word). Another note: agreement guards against independent error only.
+status: observed
+src: 2.1.6#64-68 2.10.17#41-46 2.10.16#11 2.10.47#26-29 2.10.8#27
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.4.7
+name: in-process-cells-and-node-queries
+kind: observation
+is: In the old body cell_run runs another unit in-process under its own deadline, a child's end is awaited through kqueue or a pidfd and answers nothing if no exit arrived in time, and telemetry crosses as shared-memory frames. With native pipes between the body's own tools (awk ... | sort) and two sentences in a review guide, a local model reviewed a 60-line table in 177 s, 8 turns and 0 repairs, against 18 turns and 9 repairs before.
+status: observed
+src: 2.1.6#86-88 2.1.6#1269-1272 2.1.6#1026-1029 2.1.6#1212-1214
+limit: Read in the floor document, of which the study read lines 1-260, 405-490 and 1000-1447 only. The model lanes on the GPU are outside this node; the study calls its own reading of them thin.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8
+name: keep
+kind: hub
+is: Six things the study carries forward: nothing kept apart from a value and from a fault, content-addressed nodes under one canonical encoding, control words with undo, one definition per operation over a strict ordered form, the emitter written in the language with live observation, and content-keyed caching moved down to the node.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.1
+name: nothing-apart-from-fault
+kind: finding
+is: Keep three outcomes apart from the first day: nothing as axiom 1 defines it, a value, and a text or name that did not parse or resolve. An unbound name is a fault reported with the name when text is bound to nodes, the reader is strict, and a result crossing a boundary is one structured value, never the last line of text plus an exit code.
+status: inferred
+conf: high
+from: 1.1 1.5 1.7.19 3.7.2.5 3.7.2.6 3.7.2.11
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.2
+name: one-canonical-node-encoding
+kind: finding
+is: Keep content-addressed nodes as the carrier, under one canonical encoding whose hash is the identity and whose bytes are the same in memory and at rest, so a round trip through storage cannot change a node. Interning is the only constructor, a write is atomic, and a shared store reclaims the unreferenced from its first version.
+status: inferred
+conf: high
+from: 1.3 3.7.4.1 3.7.2.9
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.3
+name: control-vocabulary
+kind: finding
+is: Keep the control vocabulary of choice, fail, cut, stop, try, timeout, store and undo, with a failed option's writes undone by a journal and its finding handed to the next option, and the rule that a retry differs from the attempt before it. These words are the mechanism by which a fault is answered inside the running flow.
+status: inferred
+conf: mid
+from: 3.7.4.2 3.7.3.3 1.7.9
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.4
+name: heat-never-changes-meaning
+kind: finding
+is: Keep one definition per operation and one strict intermediate form, arguments bound in order before a call, as the single input to interpreter and code generator, with every primitive total over kinds, so heat changes speed and never meaning. A cold-equals-hot check across the heat mark belongs in the bootstrap's own self-test.
+status: inferred
+conf: high
+from: 3.7.4.3 3.7.2.2 3.7.2.3
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.5
+name: emitter-and-live-observation
+kind: finding
+is: Keep the emitter written in the language itself, one tier-up mechanism that counts time as well as calls, decline codes that name the missing arm, in-process cells, event-based waiting, and a sampler with a live page as the way performance facts are found. Observation is live signals from the running system, not ledgers committed to the repository.
+status: inferred
+conf: mid
+from: 3.7.4.4 3.7.4.7
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.8.6
+name: per-node-content-keyed-cache
+kind: finding
+is: Keep content-keyed stores and byte-reproducible builds, moved down to the node: persisted compiled state keyed by node id, generator id and target; the recipe as the unit of compilation and caching; generated bytes deterministic from the node. A cold run and a warm run then differ only by what hardware bandwidth explains.
+status: inferred
+conf: high
+from: 3.7.4.5 3.7.2.8 1.3
+limit: A note of 2026-11-09 records lowering output as not deterministic on one host, because lambda names embedded an allocation-dependent id; the study found no later note saying this was repaired.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9
+name: drop
+kind: hub
+is: Six things the study lets go, each the cause behind a family of recorded failures: hand-kept second copies of a meaning, coexisting machine-code tiers, kinds and operation identity read from small numbers, recovery of a failure into a value, identity resting on spelling, path or order, and per-incident checks, ledgers and text inside the system.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.1
+name: hand-kept-copies
+kind: finding
+is: Drop every hand-kept second copy of a meaning: a second grammar or surface that lowers into the first, a second reader, parallel full kernels, and hand-written tables of opcodes, serializer arms or kind tags. A derived table is generated from one declaration at build time or does not exist.
+status: inferred
+conf: high
+from: 3.7.2.1 3.7.4.6
+limit: The same study records real faults found only through a second kernel. Whether one small independent conformance reader over the numeric encoding is worth its cost stays unranked by the study.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.2
+name: several-tiers-and-hand-fast-paths
+kind: finding
+is: Drop coexisting machine-code tiers and hand-written fast paths: at its end the old body ran two tiers with separate thresholds, the C loop lane at heat 1,024 and the Form-written page JIT at 4,096, and a hot call lost effects in the C lane. A fast path is a specialisation the generator derives from the one operation definition, under one tier-up mechanism and one decline vocabulary.
+status: inferred
+conf: high
+src: 2.1.6#1381-1382 2.1.7#557 2.1#7643c1db4 2.1#80874fd56
+from: 3.7.2.2 3.7.2.3
+limit: The Form JIT did not offer a definition that already wore the C lane's leaf. Recipe twins, a third tier, left the seed on 2026-09-12, before jit-page.bml was first committed on 2026-10-11, so three tiers never stood together with it.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.3
+name: kinds-and-identity-from-small-numbers
+kind: finding
+is: Drop kinds read from the magnitude or parity of a word, hand-picked small integers as operation identity, numbered modes that multiplex host doors, fixed table sizes in the semantics and behaviour switches. A kind is an explicit, disjoint field; a wrong kind is a named stop or nothing, never a number; integer width and overflow are specified once.
+status: inferred
+conf: high
+from: 3.7.2.4 3.7.2.14
+limit: The first-round critic lists the shape of the node id, including whether the kind sits inside it, as not ready to decide. The integer model the owner wants is not stated in anything the study read.
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.4
+name: recovery-into-a-value
+kind: finding
+is: Drop recovery of a failure into a plausible value: an unresolved call lowered to 0, a reader that closes or cuts a source, a harness that exits 0, a check that compares readings with each other only, and a verdict read from the last line of text plus an exit code. A reading that did not arrive is nothing, and an unresolved name is a reported fault.
+status: inferred
+conf: high
+from: 3.7.2.5 3.7.2.6 3.7.2.11 1.1 1.7.19
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.5
+name: identity-by-spelling-path-or-order
+kind: finding
+is: Drop dependencies and cache keys resting on spelling: load directives in comments, load order, working directory, link-by-name tables, path or mtime keys, whole-closure images. A reference is a node id resolved once when text is read into nodes, every shared artifact carries its maker's identity, and a process-local one ends with its process.
+status: inferred
+conf: high
+from: 3.7.2.7 3.7.2.8 3.7.2.12 1.3
+at: 2026-11-24
+by: r1/lessons
+
+n: 3.7.9.6
+name: per-incident-checks-and-text-inside
+kind: finding
+is: Drop per-incident checks, history ledgers and receipts kept in the repository, text formats and child processes between parts of the system, and single prose pages that hold many claims under one date. Hold a fixed budget of standing checks with a wall-clock ceiling, and treat each proposed new check as evidence of a generic cause to remove.
+status: inferred
+conf: mid
+src: 2.10.5#14
+from: 3.7.2.10 3.7.2.11 3.7.2.13
+limit: A note of 2026-11-16 records a counter-example: a structural gate caught the return of a removed script, so what a gate catches is read before the gate is removed.
+at: 2026-11-24
+by: r1/lessons

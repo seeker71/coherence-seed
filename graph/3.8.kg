@@ -1,0 +1,442 @@
+# What the round-two study of the earlier in-house NUMS.Go study found (study/r2/gap-nums-study-2023.md). It closes gap G1 of the first-round critique. Corrections found while encoding are applied; the study report keeps the original wording.
+
+n: 3.8
+name: nums-study-2026
+kind: hub
+is: The folder nums-go-2023 of the parent repository is an assistant-written study of 2026-05-08, 1,804 lines, with a 687-line Python miniature. The miniature interns recipe trees and evaluates nothing; its 7 tests (15 assertions) pass and its cross-language test compares a constant with itself. The mapping blueprint = ice, recipe = water, cell = gas first appears there, is absent from NUMS.Go and was corrected by the body on 2026-06-08. A run of NUMS.Go contradicts the folder on struct identity and constructor sharing. No C++ NUMS is on disk.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1
+name: folder
+kind: hub
+is: The folder nums-go-2023 has two commits: created whole on 2026-05-08 by a squash merge whose sub-commits carry an AI assistant's co-author line, and written in the assistant's first person. The same commit introduced Form. A later design document took the folder as its only NUMS source and repeated two of its errors as specification.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.1
+name: files-and-history
+kind: observation
+is: The folder nums-go-2023 holds nine files, 1,804 lines: README.md 194, study-notes.md 584, network-substrate-design.md 264, and under mini-nums core.py 355, calc.py 125, jsonschema.py 42, test_mini.py 165, README.md 73, .gitignore 2. Commit 02dd37592 of 2026-05-08 created all nine; 5fd7b8a0b of 2026-06-15 changed 14 lines to shorten a home path.
+status: observed
+src: 2.3#commit-02dd37592 2.3#commit-5fd7b8a0b 2.16.1#2.1 2.16.1#2.2
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.2
+name: authorship-evidence
+kind: observation
+is: Both commits on the folder nums-go-2023 have the owner's account as git author and GitHub as committer. The sub-commits of 02dd37592 that created the files end with a Co-Authored-By line for an AI assistant. The prose speaks as the assistant: 'If a test fails, my understanding of NUMS is wrong at exactly that point'.
+status: observed
+src: 2.3#commit-02dd37592 2.3#commit-5fd7b8a0b 2.16.2#3 2.16.2#186 2.16.7#4 2.16.8#67 2.16.4#245 2.16.1#2.3
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.3
+name: assistant-authored
+kind: finding
+is: The prose of the folder nums-go-2023 was written by an AI assistant on 2026-05-08; the folder is not a 2023 document and not the owner's own prose. The owner's own material in the folder is only the Go code quoted from NUMS.Go, and the README adds comments to the quoted NamedCell_t struct that the Go source does not have.
+status: inferred
+conf: high
+src: 2.16.2#27-38 2.16.9#497-502
+from: 3.8.1.1 3.8.1.2
+limit: Authorship is judged from co-author lines and first-person voice, which is strong evidence and not a signature; the owner may have dictated or approved any sentence.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.4
+name: form-first-appears-in-same-commit
+kind: observation
+is: The squash commit 02dd37592 (57 files, 12,945 insertions) that added the folder nums-go-2023 also added a Python substrate under api/app/services/substrate, the page form-language.md and a form.py with lexer, parser and evaluator; its message says 'Form is now executable'. Form's first appearance and the NUMS study are one commit.
+status: observed
+src: 2.3#commit-02dd37592 2.16.26 2.16.27 2.16.1#7
+limit: The Python substrate was not read or run; its kernel.py is 798 lines today and the form*.py files of the original commit are no longer in that directory.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.5
+name: object-model-doc-copies-folder
+kind: observation
+is: The parent repository's kernels/OBJECT_MODEL_BML_NUMS.md calls itself the spec the kernel's object primitive must converge to and lists the folder nums-go-2023 as its NUMS source. It states that two same-shape structs share one blueprint, two globals with one init share one constructor id, and obj.m() is dispatched by name and invoked.
+status: observed
+src: 2.16.17#8-9 2.16.17#15 2.16.17#92-105
+limit: NUMS.Go invokes nothing; that absence is taken from the first-round core report, not re-read here.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.1.6
+name: id-layout-via-folder
+kind: finding
+is: The four-word id (package level type instance) on line 59 of the old body's axioms file probably reached the kernel through the folder nums-go-2023 and its miniature, and not from NUMS.Go directly. Of their departures from NUMS.Go only the type taken from the category is found in the old runtime, whose composites carry package 0 and the category's level.
+status: inferred
+conf: low
+src: 2.1.1#59
+from: 3.8.2.2 3.8.1.4
+limit: A hypothesis with no commit trail: the history of the parent repository between 2026-05-08 and the kernel's split was not walked.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2
+name: miniature
+kind: hub
+is: mini-nums is 687 lines of Python that intern blueprint and recipe trees under four-integer ids in arrival order. Nothing evaluates a recipe or holds a value. All 7 tests (15 assertions) pass; one compares a constant with itself and two assert only counts. Probes show names outside identity, field order inside, and rebinding that moves only a name.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.1
+name: mini-id-scheme
+kind: observation
+is: A mini-nums id is four integers (package, level, type, instance) printed P.L.T.I, with package 1 everywhere. A composite's level is max(child levels, category level) + 1, floored at 3. A minted id is 1.<level>.<category type>.<entries + 1>: an arrival-order ordinal per level, keyed by the string of category id and child ids joined with '+'.
+status: observed
+src: 2.16.5#92-107 2.16.5#138-149 2.16.5#158-183
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.2
+name: mini-differs-from-numsgo
+kind: observation
+is: mini-nums departs from NUMS.Go in six places: package is 1 for catalogue and minted ids (NUMS.Go: 0 and 1); a minted id carries the category's type (NUMS.Go: 0); literal tables are per module (per recipe); objects are structural (nominal); blueprint children carry no edge bitmask; an unresolved name raises NameError (NUMS.Go auto-declares).
+status: observed
+src: 2.16.5#183 2.16.5#197-199 2.16.5#236-242 2.16.6#120 2.16.8#50 2.16.25#3 2.16.25#4 2.16.1#3.1
+limit: The NUMS.Go side of the package, type, literal and unresolved-name rows rests on the first-round core report and on one run of a scratch build.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.3
+name: mini-cell-records
+kind: observation
+is: A mini-nums Blueprint is (module, id, name), a Recipe is (module, category, blueprint, children) and a NamedCell is (module, name, base, blueprint, access recipe, constructor id). A global's constructor is the interned Block(access, Write(=, access, init)). An object's field cells are built and dropped: after three objects cells_by_name is empty.
+status: observed
+src: 2.16.5#221-226 2.16.5#248-259 2.16.5#276-284 2.16.5#293-317 2.16.5#331-335 2.16.1#3.2
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.4
+name: no-evaluator
+kind: observation
+is: No function in mini-nums evaluates anything: of 49 callables the only name matching eval, run, value or call is RID_call, an id constructor, and neither Recipe nor NamedCell has a value field. 'let x = 2 + 3 * 4' yields a cell with constructor 1.6.3.1 and the literal table {2:1, 3:2, 4:3}; 14 is computed nowhere, and 'let z = 1 / 0' is accepted.
+status: observed
+src: 2.16.1#3.3 2.16.5#248-284 2.16.6#110-120 2.16.28 2.16.8#45-55
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.5
+name: test-run
+kind: observation
+is: From a scratch copy under Python 3.15.0, 'python3 -I test_mini.py' exits 1 (ModuleNotFoundError for 'core'): isolated mode drops the script directory from the path. With that directory on the path all 7 tests pass, 14 assertions. Test 7 asserts only counts, and test 6 asserts one count and that a constructor id exists; the sharing of pi * two that a test 7 comment names is real and not asserted.
+status: observed
+src: 2.16.1#3.4 2.16.7#145-151
+limit: One machine and one Python version; the miniature's jsonschema.py shares its name with a widely installed package and wins only because the copy is first on the path.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.6
+name: test-4-is-a-tautology
+kind: observation
+is: Test 4 of mini-nums, named cross-language structural equivalence, compares cells[0].blueprint, which calc.py line 114 sets to the constant BID_integer() for every literal, with BID_integer() called directly; the schema's blueprint is unused. With the schema field changed to a string, both compared ids are still 1.1.2.2.
+status: observed
+src: 2.16.7#93-102 2.16.6#114 2.16.8#35-43 2.16.1#3.5
+why: In the changed probe the schema's actual blueprint is 1.3.1.1, holding 1.2.1.2+1.1.2.4 (an object of one string), and plays no part in the comparison.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.7
+name: probe-ids-are-arrival-order
+kind: observation
+is: Probes of mini-nums: 'let a = 5' and 'let b = 5' get different constructors, 1.4.3.1 and 1.4.3.2, because the access leaf carries the global's ordinal. Two statements in swapped order give 2 + 3 the id 1.3.1.1 in one order and 1.3.1.2 in the other. A blueprint and a recipe of one module both hold the id 1.3.1.1.
+status: observed
+src: 2.16.1#3.6 2.16.5#192-193
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.2.8
+name: probe-names-and-rebinding
+kind: observation
+is: Probes of mini-nums: renaming every identifier leaves the node dump identical; 'let x = 5' and 'let x = 7' differ only in the literal table; {a:int, b:str} and {x:int, y:str} are one blueprint 1.3.1.1 while {b:str, a:int} is 1.3.1.2; binding x again makes a new cell with a new global ordinal and leaves the earlier nodes in the store.
+status: observed
+src: 2.16.1#3.6 2.16.5#216-218
+limit: The rebinding behaviour follows from emplace_global ignoring its name argument, not from a stated design.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3
+name: phase-mapping
+kind: hub
+is: The mapping blueprint = ice, recipe = water, cell = gas is first written on 2026-05-08, in the folder's READMEs and docstrings. NUMS.Go has none of the words. Earlier (2025-09, 2026-03) ice, water and gas named a persistence state of a node. The body declared state orthogonal to kind on 2026-06-08; one old-body grammar file keeps the old mapping.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3.1
+name: mapping-text
+kind: observation
+is: Line 61 of the mini-nums README reads 'The trinity (Blueprint = ice, Recipe = water, NamedCell = gas)'. The README of the folder nums-go-2023 has a Phase column (Blueprint ice, Recipe water, NamedCell gas) and says on line 42: 'Phase transitions are encoded directly in the type relationships, not metaphorically'.
+status: observed
+src: 2.16.8#61 2.16.2#21-25 2.16.2#42-49 2.16.5#223 2.16.5#250 2.16.5#278 2.16.4#222
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3.2
+name: mapping-absent-from-numsgo-and-axioms
+kind: observation
+is: A whole-word search for ice, water, gas, phase, frozen or melt over the .go, .txt, .md and .yaml files of NUMS.Go returns nothing. The axioms file has neither 'ice' nor 'gas' as a word; 'water' occurs at lines 58, 60 and 130, each time as a substrate kind of a cell. The parent repository's CLAUDE.md just before commit 02dd37592 has no such line.
+status: observed
+src: 2.2 2.1.1#58 2.1.1#60 2.1.1#130 2.3#commit-02dd37592 2.16.2#53 2.16.1#4.2
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3.3
+name: earlier-persistence-meaning
+kind: observation
+is: Before 2026-05-08 ice, water and gas named a persistence state of a node. The first commit of the Living-Codex-CSharp checkout, 5fc24ba of 2025-09-09 (FRACTAL_UNFOLDING_SPEC.md line 24): 'Ice = essential persisted facts (atoms, deltas). Water = materialized caches/prototypes. Gas = derivable/transient.' Its specification gained on 2025-10-07 (commit f1c4647, lines 572-575): Ice persistent in SQLite or PostgreSQL, Water semi-persistent materialized views, Gas transient and derivable. Commit 4304a9856 of 2026-03-23 in the parent repository: 'Ice/Water/Gas determines persistence.'
+status: observed
+src: 2.16.21#571-574 2.3#commit-4304a9856 2.16.1#2.4
+limit: Both texts are authored under the owner's name; whether the owner or an assistant typed them is unknown. Commit d91ddded2 of 2026-04-26, a spec of ice, water and gas phase states with a breath cycle, is an ancestor of main at 7eecf4da5 and was not read.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3.4
+name: body-corrected-mapping
+kind: observation
+is: Commit 93af83e75 of 2026-06-08 in the parent repository is titled 'STATE is orthogonal to SUBSTANCE'. The old body's substrate-phase.fk (lines 4-14) carries that form: a phase change moves a cell along the state axis within its substance. Its living-equation.fk (lines 7-13) still maps Blueprint to ice and Recipe to water.
+status: observed
+src: 2.3#commit-93af83e75 2.16.18#134 2.16.19#4-14 2.16.20#7-13
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.3.5
+name: mapping-is-a-2026-05-synthesis
+kind: finding
+is: The mapping of the three kinds (blueprint, recipe, cell) onto the three states (ice, water, gas) is an AI assistant's synthesis of 2026-05-08 that joined two vocabularies separate until then: NUMS.Go's kinds and the Living Codex's persistence states. The uncorrected mapping in the old body's living-equation.fk derives from the folder nums-go-2023.
+status: inferred
+conf: mid
+from: 3.8.3.1 3.8.3.2 3.8.3.3 3.8.3.4 3.8.1.3
+limit: No file read shows whether the owner ever stated the kind-to-state mapping in the owner's own words; the derivation of living-equation.fk from the folder is reasoned, not traced through commits.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4
+name: claims-against-sources
+kind: hub
+is: Against NUMS.Go's source and a run, three claims of the folder fail: 13 languages enumerated, only Go with handlers; structs of one shape get different ids; globals with one initializer get different constructors. Its May build left no artifact. NUMS.Go has a cell record, a declared named slot without value. No C++ NUMS or grammar fork is on disk.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.1
+name: languages-13-go-only
+kind: observation
+is: The README of the folder nums-go-2023 says NUMS.Go 'supports 14 languages already wired through the parser.go dispatch' and lists 13. NUMS.Go's parser.go enumerates 13, and NewFileParserFromFile has one case, Language_Go; every other language returns 'not supported'. RegisterGo fills 75 handler entries; the folder's notes say 71 visitors.
+status: observed
+src: 2.16.2#9-11 2.16.11#31-45 2.16.11#451-461 2.16.12#1425-1502 2.16.3#28 2.16.3#328
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.2
+name: struct-and-ctor-ids-differ
+kind: observation
+is: A dump of NUMS.Go on a file with 'type A struct{x, y int}' and 'type B struct{p, q int}' gives A blueprint 1.3.0.1 and B 1.3.0.2, both storing 0.2.2.3+0.1.2.2^0+0.1.2.2^0; 'var g1 = 5' and 'var g2 = 5' get constructor recipes 1.3.0.2 and 1.3.0.4. The README of the folder nums-go-2023 says each such pair shares one id.
+status: observed
+src: 2.16.1#6 2.16.2#95-97 2.16.13#272-274 2.16.13#719-721 2.16.14#69-72 2.16.14#82-85
+why: Should_Reserve is true for object, interface, package and function declarations; a reserved entry is stored as value=key, so a lookup by value never finds it, and Update_Entry then overwrites it in place. The two constructor bodies differ in the access leaf, 0.1.13.1 against 0.1.13.2.
+limit: One run of the first-round scratch build of NUMS.Go (four build lines removed, upstream grammar in place of the absent fork); the binary and its output were in a session scratch directory.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.3
+name: may-build-left-no-artifact
+kind: observation
+is: The message of commit 02dd37592 says NUMS.Go was built and run on sample.go in a 'Phase 1b', giving 44 named blueprints, 97 unique structural shapes and 479 unique recipe shapes. The folder nums-go-2023 holds no output of such a run, and lines 579-582 of its study notes still list phase 1b as next.
+status: observed
+src: 2.3#commit-02dd37592 2.16.3#579-582 2.16.1#6
+limit: The May claim can be neither verified nor refuted. The first-round build of the same sample recorded 36 functions and 547 nodes and then panicked (relayed from the core report); the two sets of counts are not comparable as stated.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.4
+name: frontmatter-shape-not-meaning
+kind: observation
+is: 'Natural language' does not occur in the folder nums-go-2023. Its reach beyond code is markdown files with YAML frontmatter treated as records: the design's identity rule is the frontmatter shape, and the message of commit 02dd37592 reports 38 of 40 memory files sharing blueprint 1.5.4.1 because their keys (name, description, type, body) match.
+status: observed
+src: 2.16.4#45-47 2.16.4#210-216 2.3#commit-02dd37592 2.16.1#5
+limit: The built substrate was not run by the study; the 38-of-40 figure is the commit message's own. Matching keys show the same record shape, not the same meaning.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.5
+name: cell-is-a-declared-slot
+kind: observation
+is: NUMS.Go has a cell record: NamedCell_t {Recipe_t; Base BlueprintNodeID_t; Name string; CTOR RecipeNodeID_t} at recipe.go lines 497-502, used in blueprint.go and emit_module.go. A cell there is a declared named slot with no run-time instance and no value. The only record holding a value is the unused Cell_t {*Blueprint_t; Value any} in reflect.go.
+status: observed
+src: 2.16.9#497-502 2.16.16#73 2.16.16#93 2.16.16#172-184 2.16.15#35 2.16.15#182-200 2.16.10#3-6 2.16.24#66-75
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.4.6
+name: originals-not-on-disk
+kind: observation
+is: No C++ NUMS source and no tree-sitter fork exist under the owner's source directory. Remaining traces: 48 commented-out C++ lines at lines 224-272 of NUMS.Go's nums_db.go and commit b508f08 of 2023-02-08, 'translate C++ NUMS Go handlers'.
+status: observed
+src: 2.16.14#224-272 2.2#commit-b508f08 2.16.1#8
+limit: The search stopped at the source directory: other checkouts and remote repositories were not opened, so whether a C++ NUMS exists elsewhere, or executes anything, is unknown.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8
+name: keep
+kind: hub
+is: Seven things to carry: the cell as a four-part declared slot; rebinding that moves only a name; a conscious choice on field names and order in identity; tests where each side derives the id; state as an axis independent of kind; the 2025-09 persistence meaning of ice, water and gas as candidate definition; a run-time cell as blueprint plus value.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.1
+name: cell-as-four-part-slot
+kind: finding
+is: Carry forward the cell as a four-part declared slot: an access recipe, a base blueprint, a name and a constructor recipe, with the constructor stored as a recipe and referred to by id. NUMS.Go's own NamedCell_t record has that form, and mini-nums reproduces the form and checks it in its test 3.
+status: inferred
+conf: high
+from: 3.8.4.5 3.8.2.3
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.2
+name: rebinding-moves-a-name
+kind: finding
+is: Make name rebinding a stated rule: binding a name again points the name at a new node and leaves every existing node in place. mini-nums behaves so as a side effect, and the rule agrees with axiom 3 and its reversibility theorem, under which undo is re-pointing a name at a blueprint that is still referenced.
+status: inferred
+conf: high
+from: 3.8.2.8 1.3 1.7.8
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.3
+name: decide-field-names-in-identity
+kind: finding
+is: Decide consciously whether field names and field order enter a blueprint's identity. In mini-nums field names are outside identity and field order is inside, so {x, y} and {p, q} are one shape; NUMS.Go stores the same child string for two such structs and separates them only by nominal reservation. Neither reference states the consequence.
+status: inferred
+conf: mid
+from: 3.8.2.8 3.8.4.2
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.4
+name: identity-tests-derive-both-sides
+kind: finding
+is: A claim of one id across two surfaces needs a test in which each side derives the id from its own input and in which changing one side turns the test red. mini-nums shows the failure: seven passing tests, of which one compares a constant with itself, one asserts only counts and one asserts a count and that an id exists.
+status: inferred
+conf: high
+from: 3.8.2.5 3.8.2.6
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.5
+name: state-orthogonal-to-kind
+kind: finding
+is: Carry the body's own correction of 2026-06-08: state (ice, water, gas) is an axis independent of kind (blueprint, recipe, cell), so a phase change moves a cell along the state axis and never changes what kind of cell the cell is.
+status: inferred
+conf: high
+from: 3.8.3.4
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.6
+name: persistence-meaning-as-candidate
+kind: finding
+is: Weigh the 2025-09 persistence meaning of ice, water and gas as the candidate for the single definition the first-round critique asks for: it is one of at least two listed definitions that name an operational property, namely where a node is stored and whether the node can be re-derived. The other is the runtime's three homes of the node population (3.4.3.1, 3.14.2.8).
+status: inferred
+conf: mid
+src: 2.16.24#139-145 2.16.24#416
+from: 3.8.3.3
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.8.7
+name: runtime-cell-as-blueprint-plus-value
+kind: finding
+is: Take the owner's unused Cell_t {*Blueprint_t; Value any} from NUMS.Go as the starting form of a run-time cell: a blueprint plus a value. Neither the folder nums-go-2023 nor mini-nums mentions that record, and nothing else in NUMS.Go lets a cell hold a value.
+status: inferred
+conf: mid
+from: 3.8.4.5
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9
+name: drop
+kind: hub
+is: Seven things to let go: the kind-to-phase mapping as a definition, with its transitions in the type relationships; 'working model' and '14 languages'; 'content-addressed' for arrival-order interning; same shape, same id across languages; hallucination made impossible; the folder as a source about NUMS.Go; cells that exist only during construction.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.1
+name: kind-to-phase-mapping
+kind: finding
+is: Drop 'Blueprint = ice, Recipe = water, NamedCell = gas' as a definition, and with it 'phase transitions are encoded directly in the type relationships'. The mapping is an assistant's 2026-05 analogy, absent from NUMS.Go and the axioms, re-read by the body on 2026-06-08 as each kind's resting tendency and no longer an identity, and still written as a mapping in at least one old-body file; the four cited transitions are structural facts, and no code changes a node's kind.
+status: inferred
+conf: high
+from: 3.8.3.5 3.8.3.1 3.8.3.2 3.8.3.4 3.8.2.4
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.2
+name: working-model-and-14-languages
+kind: finding
+is: Drop the statements that NUMS.Go is 'a working model' and supports 14 languages. Thirteen languages are enumerated and only Go has handlers; the folder nums-go-2023 records no run of NUMS.Go, and the first round found that NUMS.Go does not build as checked in and panics on its three shipped samples.
+status: inferred
+conf: high
+src: 2.16.2#9 2.16.25#7.1 2.16.25#7.3
+from: 3.8.4.1 3.8.4.3
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.3
+name: content-addressed-for-arrival-order
+kind: finding
+is: Stop calling arrival-order interning content-addressed. In NUMS.Go and in mini-nums an id is the Nth distinct shape seen at a level in one module and one run, so the same shape gets another id when statements arrive in another order. Keep the word for ids computed from content.
+status: inferred
+conf: high
+src: 2.16.2#1 2.16.3#117-121
+from: 3.8.2.1 3.8.2.7
+limit: For NUMS.Go itself three runs of the study's probe file gave three whole-output digests; the one difference inspected was a reordered line in a map dump, so a change of node numbering in that file is not shown.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.4
+name: same-shape-same-id-across-languages
+kind: finding
+is: Drop 'same shape, same id, across languages, for free'. Two Go structs of one shape get different ids in NUMS.Go, no handler exists for a second language, and the one mini-nums test that claims identity across two surfaces is a tautology. Nothing in NUMS.Go or in the folder nums-go-2023 puts a second programming language or any natural language through its store; the old body does both (3.10.1.3, 3.11). The quoted words paraphrase README.md line 127.
+status: inferred
+conf: high
+src: 2.16.2#127
+from: 3.8.4.2 3.8.4.1 3.8.2.6 3.8.4.4
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.5
+name: hallucination-impossible
+kind: finding
+is: Drop 'hallucination becomes architecturally impossible'. The README of the folder nums-go-2023 says an unknown member such as user.email cannot be expressed; the same folder's study notes say the store auto-grows when an unknown identifier is met, and NUMS.Go auto-declares a member that a lookup does not find.
+status: inferred
+conf: high
+src: 2.16.2#126-129 2.16.3#271
+from: 3.8.2.2
+limit: The auto-declaring code of NUMS.Go (emit_recipe.go lines 247-304) is cited through the first-round core report and was not re-read.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.6
+name: folder-as-source-on-numsgo
+kind: finding
+is: Stop treating the folder nums-go-2023, or kernels/OBJECT_MODEL_BML_NUMS.md built on that folder, as a source about NUMS.Go. Cite NUMS.Go itself and the first-round reports: the folder is an assistant's reading of the source, and two of its stated facts about NUMS.Go (shared struct ids, shared constructors) are false on a run.
+status: inferred
+conf: high
+from: 3.8.1.3 3.8.1.5 3.8.4.2
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 3.8.9.7
+name: construction-only-cells
+kind: finding
+is: Drop a struct's cells that exist only during construction, as in make_object_blueprint of mini-nums, where each field cell is built and never stored. A blueprint that keeps only the ordered list of field blueprint ids has lost the field names and the cells.
+status: inferred
+conf: high
+from: 3.8.2.3
+at: 2026-11-24
+by: r2/gap-nums-study-2023

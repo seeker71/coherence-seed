@@ -1,0 +1,75 @@
+# Design: the node encoding, version 1. The page spec/node-encoding.md is the authority; these nodes say what it chose and why.
+
+n: 5.13
+name: node-encoding
+kind: hub
+is: Version 1 of the node encoding. A node's canonical bytes are a kind byte, its blueprint's id and either leaf bytes or child ids; its content id is SHA-256 of those bytes. The id of 32 zero bytes is nothing. The catalogue is numbers under one root, with names beside it. The canonical print has four forms and writes a repeated node as a back-reference. A reader refuses whatever is not canonical.
+at: 2026-11-24
+
+n: 5.13.1
+name: canonical-bytes
+kind: decision
+is: A leaf is the byte 00, the 32-byte id of its blueprint and its bytes. A composite is the byte 01, the 32-byte id of its blueprint and one 32-byte id per child in order. There is no length field: the hash covers the whole message and a store frames its own records. Kind bytes 02 to ff are kept for later versions.
+status: inferred
+from: 5.1.1 5.2.2
+src: 2.30.3#2
+conf: mid
+why: Child ids, not child bytes, keep a node's bytes small whatever it holds and let a reader check one node without its children.
+flip: A store that must walk a node without an index of ids would want the children's bytes inline.
+at: 2026-11-24
+
+n: 5.13.2
+name: nothing-and-the-root
+kind: decision
+is: The id of 32 zero bytes names nothing and is the id of no node. It stands in the blueprint position of exactly one node, the root, a leaf with no bytes, and never in a child position. Every other node's blueprint is a node, so the regress of blueprints ends at the root.
+status: inferred
+from: 1.1 5.1.1
+src: 2.30.3#3-4
+conf: mid
+limit: That no input hashes to 32 zero bytes is the usual assumption about SHA-256, not a proof.
+at: 2026-11-24
+
+n: 5.13.3
+name: catalogue-is-numbers
+kind: decision
+is: Catalogue entry N, from 1 to 4,294,967,295, is the leaf under the root whose bytes are the number N. An entry's content is its number and its name is a lens row beside it, so naming or renaming an entry changes no id. Version 1 names entries 1 to 14 as leaf blueprints and 16 as list, keeps 15 and 17 to 31, and puts no rule on 32 and above, where the core operations will be named.
+status: inferred
+from: 5.1.5 5.2.4 1.9.2
+src: 2.30.3#4
+conf: mid
+why: The numeric space is the root and a symbol is attached beside it, as the owner's request describes; the numbers are fixed by the page, not by arrival order.
+limit: The core operations are not named yet; that belongs to stage 2 with the walker's laws.
+at: 2026-11-24
+
+n: 5.13.4
+name: leaf-rules
+kind: decision
+is: Integers and floats are little-endian. A nat or int is the shortest form and zero is the empty string. Sized integers have exactly their width. A float has one NaN and keeps negative zero apart. Text is well-formed UTF-8 and is not normalised. Each value so has one leaf.
+status: inferred
+from: 5.1.4 5.7.1
+src: 2.30.3#5
+conf: mid
+why: Both first targets are little-endian and frozen nodes are read where they lie. Normalising text would tie the encoding to a Unicode version.
+open: 6.1.11
+at: 2026-11-24
+
+n: 5.13.5
+name: print-with-back-references
+kind: decision
+is: The canonical print has four forms: '#N' for a catalogue entry, '[blueprint hex]' for a leaf, '(blueprint children)' for a composite, and '^k' for the node opened k-th in the same print. A node is written in full the first time and as '^k' after, so a print grows with the number of distinct nodes and not with the number of paths to them.
+status: inferred
+from: 5.3.4 3.13.2.11
+src: 2.30.3#6
+conf: mid
+why: The 2026-11-05 carrier wrote children in full and its bytes doubled at every level of a node that names one child twice.
+at: 2026-11-24
+
+n: 5.13.6
+name: reader-refuses-what-is-not-canonical
+kind: decision
+is: A reader accepts only the one canonical form of a node, as bytes and as text, and names the first rule broken with one of sixteen words. Reading and printing are therefore inverse: a printed node reads back to the same node, and accepted text prints back to the same text.
+status: inferred
+from: 5.3.4 5.3.8 5.11.4
+src: 2.30.3#7
+conf: mid
+at: 2026-11-24

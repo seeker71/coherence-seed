@@ -1,0 +1,358 @@
+# Independent review of graph/3.10.kg (the old body's natural-language lane), round r3. Every claim node was checked against the primary file at the cited line, at old-body commit b8ff978c9; the removed files were read with git show at f2d317f5d. Nothing was run on the old runtime.
+
+n: 9.5.15
+kind: hub
+name: review-of-natural-language-lane
+is: All 40 claim nodes of 3.10 were read against their primary files (no node is relayed, so no web page was fetched): 35 confirmed, 5 hold only as amended (3.10.1.8, 3.10.2.2, 3.10.2.3, 3.10.3.9, 3.10.9.7), 0 disputed, 0 left unreviewed. The five hubs were not reviewed; hub 3.10.2 repeats 'eleven further languages', which the removed file shows as thirteen, and hub 3.10.3 repeats 'each call their key neutral', which three of the files do not say.
+at: 2026-11-24
+by: r3/review-natural-language-lane
+
+n: 9.5.15.1
+kind: review
+re: 3.10.1.1
+saw: 0cb47e2a
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.2
+kind: review
+re: 3.10.1.2
+saw: 1fe8dd56
+ack: 1
+limit: Recounted from nl-translate.fk line 35 and nl-lexicon-data.fk lines 15-17: 52 rows, 50 distinct words in each column, seven rows spelled alike (c6 c7 c11 c12 c14 c33 m1260). The Indonesian column repeats too: karya (c1, c15) and rumah (c16, c21).
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.3
+kind: review
+re: 3.10.1.3
+saw: 7f3d9628
+ack: 1
+limit: 'Only property is used' rests on my grep of *.fk and *.bml at head for bp, bmf-bp and t-emit with the other five names; the only hits are the comment at bmf-core.fk lines 95-96.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.4
+kind: review
+re: 3.10.1.4
+saw: 6c10eefa
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.5
+kind: review
+re: 3.10.1.5
+saw: f14237eb
+ack: 1
+limit: bmf-grammar.fk lines 4-5 name g-match-rule as the prefix matcher; g-parse (lines 1094-1096) calls it without the end-of-input check that g-parse-full makes (lines 1097-1107). No sentence was run.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.6
+kind: review
+re: 3.10.1.6
+saw: f4cbbc30
+ack: 1
+limit: My own count gives 1,070 hdc-row entries with ids 601 to 1683 and 1,065 distinct words, five of them in the lexicon's English column (afterwall, keloid, seatrace, seedshell, twicegrown). en.json and id.json stand in Coherence-Network/web/messages at 7eecf4da5; the old body has no web directory. I spot-checked a dozen row words in the two message files and did not replay the projector.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.7
+kind: review
+re: 3.10.1.7
+saw: f6508101
+ack: 1
+limit: A standing line bears this out: pivot-coverage-band.fk lines 78-79 require child 0 of an English sentence's pivot to equal the string m1259.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.8
+kind: review
+re: 3.10.1.8
+saw: 24b08eb8
+ack: node
+is: The first sentence holds. 'No file at head' does not, and the two premises cover the translator only. The second sentence should read: the translator handles no verb other than the copula, plural, tense, negation, question, modifier, multi-word slot, agreement, reordering or choice between senses by context (nl-translate.fk lines 22-23 are its whole grammar set; lookup at lines 43-45 is first match).
+why: Other files at head do some of these. form/form-samples/cross-modal/05-nl-to-recipe/nl-arithmetic-demo.fk lines 9-13 parses four English phrases with other verbs and several words per part ("negate 12", "twice 5 plus 3") into arithmetic recipes. cognition/core-frequency-lift-dictionary.fk lines 317-323 selects among a word's mappings by context (node 3.10.3.8). cognition/nl-lenses-13.fk line 4 holds an enquiry as a fixed phrase.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.9
+kind: review
+re: 3.10.2.1
+saw: c598fd15
+ack: 1
+limit: git blame at b8ff978c9 gives NORTH_STAR.md line 111 to 115fea55e (2026-09-29) and lines 110, 112 and 113 to b9b334075 (2026-09-28). At head the two sentences occur together only in the comment at nl-translate.fk line 10.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.10
+kind: review
+re: 3.10.2.2
+saw: b7a76af6
+ack: node
+is: Two facts differ. nl-tongues.fk at f2d317f5d holds thirteen more languages, not eleven: lexicons for es de fr pt ru sw zh ja ar fa hi tr sa at lines 44-96, grammars at lines 140-156, an encoder and a decoder each at lines 180-205. And '14,729 files to 1,628' is the commit's subject line: git ls-tree -r counts 14,693 paths at f2d317f5d and 1,663 at 115fea55e, with 13,031 deleted. Seven meanings each, the one copular construction, the removals listed and the limit line are as stated.
+why: 'Eleven tongues' is the removed file's header (line 8), written before Sanskrit (comment at line 95: 14th door, added 2026-07-17) and Persian (comments at lines 80 and 152: 2026-09-10) were added. The study read lines 1-70, which end inside the seventh lexicon.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.11
+kind: review
+re: 3.10.2.3
+saw: 23c38c44
+ack: node
+is: Four of the sixteen bits use a sentence, not three. Bit 32768 (pivot-coverage-band.fk lines 78-79) also reads the pivot of "the afterwall is keloid" and requires its first child to be the string m1259. The rest is as stated: bits 4096, 8192 and 16384 at lines 73-77, verdict 65535 at CURRENT_FLOOR.md line 598 (blame fae323761, 2026-09-28), band file last committed 2026-10-01 (e549e4a9f), and no other file at head calls tr-en-id, tr-id-en, norm-en or norm-id.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.12
+kind: review
+re: 3.10.2.4
+saw: 4e9a1d55
+ack: 1
+limit: At head str-normalize has two callers, nl-translate.fk lines 67-68 and query-lane-resolve.bml line 27; no test file names it.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.13
+kind: review
+re: 3.10.2.5
+saw: 04885d8a
+ack: 1
+limit: Read with review 9.5.15.11: the standing band also pins the pivot's first child as the string m1259.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.14
+kind: review
+re: 3.10.2.6
+saw: c966765c
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.15
+kind: review
+re: 3.10.3.1
+saw: f105cc49
+ack: 1
+limit: Recounted from core-lexicon.fk lines 102-110: 64 rows, eight per family, 494 definition tokens, none outside the 64 and the twelve glue words. cl-check (line 261) has 18 terms with weights 1 to 131072 and occurs only at its definition.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.16
+kind: review
+re: 3.10.3.2
+saw: b154db6b
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.17
+kind: review
+re: 3.10.3.3
+saw: 94a8f461
+ack: 1
+limit: mc-find-row (meaning-codes.bml lines 75-77) accepts a match in any column of a row; the phrase handed to it is always the English one (line 87), so the join is by the English phrase as the node says. The band was not run.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.18
+kind: review
+re: 3.10.3.4
+saw: 19912a0b
+ack: 1
+limit: The four seed-pinned-unreviewed rows are sw, ru, hi and tr (nl-lenses-13-data.fk line 23); the other nine are marked repo-observed+bounded-seed.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.19
+kind: review
+re: 3.10.3.5
+saw: bb0d2988
+ack: 1
+limit: Recounted: 10,001 lines of 14 tab fields, 2,521 data rows with an empty first field, and in the 130,000 provenance bytes F 10,000 (all in the English column), G 68,370, W 34,941, D 16,621, C 68.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.20
+kind: review
+re: 3.10.3.6
+saw: ecf8cc89
+ack: 1
+limit: The one reader is cnl13-runtime-lookup-sourced at core-frequency-lift-form-neutral-crossing.fk line 67, for index 1400 in each of the thirteen locales; a model band opens the table (form-neutral-language-world-model-band.fk line 16) and hands it to that cell. The cut removed nine files under concept-nl-semantic-13-licenses and one omw-license file.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.21
+kind: review
+re: 3.10.3.7
+saw: 0e0f14ba
+ack: 1
+limit: The five axiom roots stand at core-frequency-lift-dictionary.fk lines 43-47; the locator 17-45 stops two lines short of roots 4 and 5.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.22
+kind: review
+re: 3.10.3.8
+saw: e332c4e6
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.23
+kind: review
+re: 3.10.3.9
+saw: fab2478c
+ack: node
+is: The counts and the header verdict are as stated (lines 13, 296-300, 316). 'No band for the file stands' holds only for a band named for it: model/tests/form-neutral-language-world-model-band.fk (268 lines, header 65535 witnessed 2026-08-14) calls 32 of the dictionary's names, among them cfd-meaning (line 25), cfd-mapping (line 70), cfd-prov-claim (line 126) and cfd-render-in (line 256). It calls neither cfd-mappings nor cfd-parse, so the 28 mappings themselves have no standing test.
+why: The band reaches the dictionary through form-neutral-language-world-model.fk line 31 and the crossing cell's line 14. It is not listed in CURRENT_FLOOR.md and was not run. My count of line 316: requirement 4; safety, control, enforcement 3; authority, compliance 2; eleven words once; 27 cfd-map-candidate and one cfd-map-observed.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.24
+kind: review
+re: 3.10.3.10
+saw: ca2e34e6
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.25
+kind: review
+re: 3.10.3.11
+saw: 25578933
+ack: 1
+limit: 'Neutral id' is the study's word for the seven. core-lexicon.fk, meaning-codes.bml and concept-nl-semantic-13.fk do not contain the word neutral, and the dictionary uses it only in the name cfd-perspective-neutral (line 241). The only files at head that import nl-translate.fk are pivot-coverage.bml (line 56) and, as a prelude, pivot-coverage-band.fk (line 33).
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.26
+kind: review
+re: 3.10.8.1
+saw: f0c30cac
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.27
+kind: review
+re: 3.10.8.2
+saw: 3ece96c8
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.28
+kind: review
+re: 3.10.8.3
+saw: cf075fc1
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.29
+kind: review
+re: 3.10.8.4
+saw: 295e5f68
+ack: 1
+limit: In the old dictionary a parse or a render with no match answers an empty list (core-frequency-lift-dictionary.fk lines 319 and 328), not nothing(); 'may answer nothing' is the recommendation, not the old behaviour.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.30
+kind: review
+re: 3.10.8.5
+saw: 8a92f6ad
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.31
+kind: review
+re: 3.10.8.6
+saw: 55c5d89c
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.32
+kind: review
+re: 3.10.8.7
+saw: cabc1c1b
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.33
+kind: review
+re: 3.10.8.8
+saw: 0a52a15c
+ack: 1
+limit: critic.md lines 318-323 (item C4) name four incompatible axes: storage home, mutability, compilation tier, circulation.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.34
+kind: review
+re: 3.10.9.1
+saw: 52c996a1
+ack: 1
+limit: The three origins in the parenthesis are not in the premises; the files show them: hand-curated seed at nl-translate.fk line 33, a counter stepped per kept pair at nl-lexicon-grow.fk line 54, the corpus row's id at nl-lexicon-data.fk lines 6-7.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.35
+kind: review
+re: 3.10.9.2
+saw: 5c3bbc11
+ack: 1
+limit: The second sentence is not in premise 3.10.2.2; I read it in the removed file at f2d317f5d: the comment at nl-tongues.fk lines 27-28 and the (symbol surface) rows at lines 44-47.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.36
+kind: review
+re: 3.10.9.3
+saw: 105e21ff
+ack: 1
+limit: Traced by hand through nl-translate.fk lines 22, 43-45, 58, 62 and 67: neither cat nor black is a lexicon word or a symbol, so both pass through twice. Not run.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.37
+kind: review
+re: 3.10.9.4
+saw: 3558e258
+ack: 1
+limit: The codebook's comment is at meaning-codes.bml line 55 ('the anchor is the symbol itself, no tongue privileged') and speaks of the anchor; the join by English phrase is at line 87.
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.38
+kind: review
+re: 3.10.9.5
+saw: c1ca762b
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.39
+kind: review
+re: 3.10.9.6
+saw: f1d2ade2
+ack: 1
+by: r3/review-natural-language-lane
+at: 2026-11-24
+
+n: 9.5.15.40
+kind: review
+re: 3.10.9.7
+saw: adeabbab
+ack: node
+is: 'Seven schemes call their key neutral' is not what the files show: three do, one says 'no tongue privileged', three do not use the word for their key. The node should say: seven schemes each give a meaning an id by a different rule, and none is joined to the translator. The header quote (nl-translate.fk lines 2-3), the deleted band and the core lexicon's header (core-lexicon.fk lines 53-57 and 78-82, which state results of the lane arithmetic as facts about asking and grounding) are as stated.
+why: The word names the key in nl-translate.fk (line 25, 'neutral symbol'), nl-lenses-13.fk (line 3, 'neutral meanings') and language-neutral-symbol-identity.fk (line 1). meaning-codes.bml line 55 says 'no tongue privileged'. core-lexicon.fk and concept-nl-semantic-13.fk do not contain the word, and core-frequency-lift-dictionary.fk has it only in the name cfd-perspective-neutral (line 241).
+by: r3/review-natural-language-lane
+at: 2026-11-24

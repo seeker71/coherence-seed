@@ -1,0 +1,451 @@
+# What the old body's ground documents say: axioms, north star, principles. Study report: 2.6.1. Sources: 2.1.x, 2.6.x and 2.7.21.
+
+n: 3.3
+name: ground-documents
+kind: hub
+is: The old body's ground: five axioms whose text was rewritten on 2026-11-08 and whose file holds the count of five open; 20 theorems proved by naming axioms; two derivation files; a north star measured in rented tokens. The study sorts 59 principles into 24 fixed with the axioms, 9 directions and 26 movable practices. The C seed meant to shrink grew from 25,483 to 34,149 lines. Two shipped files disagree on whether 0 means fail, and no ground document says whether a result is 1 with a payload or a node.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.1
+name: axiom-text
+kind: hub
+is: The axioms file read as a text with a history: its status line and its own label of the five as a reduction held open, the 2026-11-08 rewording of all five statements, the axiom 4 sentence that derivative files still state in its earlier form, and theorem proofs that are lists of axioms, three of them backed by a numeric band.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.1.1
+name: reduction-held-open
+kind: observation
+is: The axioms file's status line reads 'acknowledged 2026-11-08' over a June ground 'agreed and crossed 2026-06-10, axiom-3 refined 2026-06-18'. The file labels the five a reduction, 'INFERENCE; the resting point is ours to agree', with the stated goal of the fewest axioms, each generating a family no other generates.
+status: observed
+src: 2.1.1#12-21,43
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.1.2
+name: wording-refined-2026-11-08
+kind: observation
+is: Seven commits touch the axioms file, 2026-06-28 to 2026-11-19. Before 9d7790856 of 2026-11-08 axiom 1 stated 'there are three states: 0, 1, nothing' and axiom 2 'everything is a cell: a node-id; a cell may compose child cells'. That commit added the potential field, play, substrates and the recipe sentence; timeout was already a clause of axiom 1.
+status: observed
+src: 2.6.1#1.4 2.1.1#48-61
+limit: The earlier text is read through git show of the parent of 9d7790856: the statements at lines 41 and 47, the clause (timeout-is-nothing no-answer-in-time-is-silence-not-an-error) at line 43 of axiom 1's block. The refinement also wrote 'Timeout is nothing' into axiom 1's statement and kept the clause (present line 50); the study's table lists timeout as added.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.1.3
+name: axiom-4-sentence-changed
+kind: observation
+is: Before 2026-11-08 axiom 4 said observation through the interface 'is what makes it real'; the statement now says mutual sensing or frequency matching 'makes the meeting real'. Both derivation files (last committed 2026-10-04), AGENTS.md item 6 and the axioms file's fold-B rationale still state the earlier observed-is-real reading.
+status: observed
+src: 2.6.1#1.4 2.1.1#78,253 2.6.4#42,66 2.6.3#107 2.1.4#666-667
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.1.4
+name: proofs-and-near-miss
+kind: observation
+is: The axioms file gives each theorem proof as a short sketch: the axioms composed plus clauses. Held offer, kenosis and absence cite a numeric band; the last two add a perturbation check. The absence theorem records a fold that answered 2097151 with exit 1, the number the healed chain also returns; only the exit code and preflight told them apart.
+status: observed
+src: 2.1.1#95-231
+limit: The study did not re-run the bands. The held-offer line names form/form-stdlib/offer-ack-core.fk as a second home of the running code, a path the old body no longer has.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2
+name: derivation-files
+kind: hub
+is: Two files of 2026-10-04 derive a kernel from the five. host-kernel.form makes every resource a typed port reached under two conditions, maps operating-system duties to offers, and gives each primitive 0..many implementations chosen by measured evidence. kernel-self-composition.form states that the kernel is made only of the five primitives and boots by offering a channel from an image that never mutates.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2.1
+name: typed-ports-two-conditions
+kind: observation
+is: host-kernel.form defines a resource as a typed port: a (direction, value-shape) pair, direction afferent or efferent, shape one of bool, scalar, bytes, text, pixel, key, carrier-swappable. A host driver or OS API may carry the port under two conditions: its presence is admitted through an offered interface and its health is measured on the body.
+status: observed
+src: 2.6.3#45-49,86-110
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2.2
+name: os-duties-as-offers
+kind: observation
+is: host-kernel.form maps operating-system duties onto the axioms: a syscall is an offer, IPC an offer over a channel, protection a node id used as an unforgeable capability (compared to seL4), memory isolation the immutability of content-addressed nodes, address spaces the NodeID package field. Scheduler, interrupts and clock carry the mark NAMED.
+status: observed
+src: 2.6.3#135-155
+limit: The study reads NAMED as described and not claimed as running. The file does not say whether reading a node by its id is itself an offered interface.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2.3
+name: implementations-chosen-by-evidence
+kind: observation
+is: host-kernel.form gives each core primitive 0..many host implementations; agreeing implementations share a node id; the host kernel cell, 'not a central authority', chooses among them on measured throughput times quality and promotes a challenger only on earned competition. JIT compilation is named as one such composite.
+status: observed
+src: 2.6.3#157-177
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2.4
+name: kernel-made-of-the-five
+kind: observation
+is: kernel-self-composition.form: every kernel feature is a recipe over the five axioms, 'nothing below the axioms, nothing beside them'. The primitives are exactly state, cell, address, boundary and offer. The kernel 'is not made of anything it cannot also author' and extends itself by offering itself a recipe for a bigger kernel, accepted or not.
+status: observed
+src: 2.6.4#16-19,38-44,62-69
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.2.5
+name: boot-image-never-mutates
+kind: observation
+is: kernel-self-composition.form: boot starts from the five as the only given; its first act is to offer a channel. The boot artifact never mutates: an offer through the channel mints a strictly larger image, which boots. Rollback repoints a name at the old node id. Across runtimes the content digest crosses the wire, not the local node id.
+status: observed
+src: 2.6.4#71-103
+limit: The file cites a boot band with verdict 9 as running; the study did not run it.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.3
+name: direction-and-principles
+kind: hub
+is: Where the old body said it was going and how the study sorts its rules: a north star measured in rented tokens; every language a projection column over meaning stored once; a stance that the tree holds dated beliefs and no laws; and 59 principles sorted into 24 fixed with the axioms, 9 directions and 26 movable practices.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.3.1
+name: north-star-and-its-measure
+kind: observation
+is: The north star is 'an organic intelligence that runs from the inside out: a minimal kernel, Form-native choice, consented membranes, observable receipts, trust earned and lost by evidence'. The owner's measure, dated 2026-09-18, is 'the minimum rental token spent on the path to full sovereignty'; remote tokens that do the work go to zero.
+status: observed
+src: 2.1.2#3-5,40-45 2.6.7#3,20-23
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.3.2
+name: tongues-as-projection-columns
+kind: observation
+is: The north star says each natural language enters as grammar data (grammar, lexicon, decoder onto a pivot), that every tongue, English included, is a projection column, that natural and programming languages share one shelf, and that all content is stored once as recipes, blueprints and cells. It calls the pivot symbol 'the meaning's one name'.
+status: observed
+src: 2.1.2#110-117
+limit: The study did not open the natural-language files named there (nl-translate.fk, nl-lexicon-grow.fk); the critic found them unread by every report. The old body's goal file (lines 14-15) reads the same-cell-in-every-tongue lane as a seed of 29 rows.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.3.3
+name: no-laws-dated-beliefs
+kind: observation
+is: AGENTS.md records the owner's statement of 2026-09-01 that there are no laws: the tree holds currently observed, proven beliefs with freshness stamps; a belief stamped before the ground shifted is owed a re-witness before anything leans on it; living documents carry only what is and where the work goes, and how it got there stays in git.
+status: observed
+src: 2.1.4#716-722
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.3.4
+name: principles-in-three-classes
+kind: finding
+is: The study sorts 59 principles of the old body into three classes: 24 restate an axiom or a theorem and are fixed with the five; 9 are directions named by the owner, not derivable from the axioms; 26 are practices another method could replace, among them the count of five, the four-field NodeID layout, two grammars, one C runtime and numeric bands.
+status: inferred
+conf: mid
+src: 2.6.1#3
+from: 1.1 1.2 1.3 1.4 1.5 1.7 1.8 3.3.3.1 3.3.3.2 3.3.3.3 3.3.2.3
+limit: The classification rule is the study's own. AGENTS.md lines 181-619 were not read by the study.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4
+name: tensions
+kind: hub
+is: Where ground documents and running files disagree or leave a gap. The acknowledgment core is 66 lines, yet fail and stop are both read as nothing while a second file reads fail as 0. Nothing carries seven readings. What 1 and node carry is unsettled. The seed grew by a third under a shrink rule. One runtime stands where the derivation allows many. The study read three definitions of the phase words and none in the axioms.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.1
+name: ack-encoding-in-66-lines
+kind: observation
+is: The old offer and acknowledgment core is 66 lines. It tags an acknowledgment four ways: nothing, an interned ZERO node, a ONE node carrying a payload, and a NODE node carrying a counter-offer. A pending value is the pair of a recipe and its arguments; the header leaves scheduling to the carrier. A census counts answered and silent offers apart.
+status: observed
+src: 2.1.13#2-24,56-60
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.2
+name: fail-and-stop-read-as-nothing
+kind: observation
+is: In the old core oac-failed? and oac-stopped? are both defined as oac-nothing?, and oac-choice moves to the next option on a caught fail. A teaching file lists attempt, choice, backtrack, try, fail, stop, cut, store, restore, undo, timeout, lanes and hold as thin expressions over the one offer; in its backtrack a 1 or a 0 ends the walk.
+status: observed
+src: 2.1.13#27-35 2.6.8#23-38
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.3
+name: minimal-surface-reads-zero-as-fail
+kind: observation
+is: minimal-surface.fk (35 lines) offers four door families: INTERN (a leaf and a two-child composition), OBSERVE (read a composition back), OFFER (acknowledgments nothing, 0, 1, node, threading, choice) and PORT (text out and in over the filesystem). Its comment says 'choice pops on fail = ack-0', and ms-choice(a, b) returns b when a equals 0.
+status: observed
+src: 2.6.9#8-18,32
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.4
+name: recovered-nothing-prints-a-verdict
+kind: observation
+is: BOOTSTRAP.md, section 'A number is not a pass': the old runtime prints the root value and exits nonzero when the compile carried errors, so a cell whose chain has an unresolved name still prints a plausible verdict, because the call is recovered to nothing and the fold computes over it. The page asks for the exit code and a preflight.
+status: observed
+src: 2.6.5#84-116
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.5
+name: seed-grew-under-shrink-rule
+kind: observation
+is: The north star says the C seed 'is a checkout witness that shrinks'. The goal file records 25,483 lines at its pin and 31,066 later, across 66 commits, and concedes that the sentence that it never grows 'read false'. The seed has 34,149 lines on 2026-11-24. The goal file names the growth: host doors, memory handling, the JIT page and model doors.
+status: observed
+src: 2.1.2#119 2.1.4#337 2.6.7#233-245 2.1.7 2.6.1#T8
+limit: Git dates the pin commit 7d5161645 to 2026-09-15 while the goal file says 2026-09-18; the study and the critic each read the pinned counts with git show. The encoding re-counted only the 34,149.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.6
+name: one-runtime-against-many-implementations
+kind: observation
+is: README.md and MANIFEST.md state that fkwu is the only runtime, while host-kernel.form gives each primitive 0..many implementations that the kernel cell tests against each other. Lines from a multi-kernel period remain in the ground files: 'running three-way', 'identical 3-way', 'Native on all four kernels', and a heap described as host-GC.
+status: observed
+src: 2.6.6#17-21 2.1.5#73 2.6.3#37,126,157-168 2.6.4#33,95 2.6.8#50-51
+limit: The study read in git log that commit 05071841c of 2026-10-03 is titled as aligning the documents to one runtime.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.7
+name: phase-words-outside-the-axioms
+kind: observation
+is: As phase words ice, water and gas are in no axiom. Three definitions were read (the first by this study, the runtime's by the runtime study, the third by the Form study): substrate-phase.fk, a state from degree and churn (gas 0, water 1, ice 2, plasma 3), orthogonal to blueprint, recipe and named cell; the runtime, three node homes (shared field, per-pid store, private heap); living-equation.fk, Blueprint = ice, Recipe = water.
+status: observed
+src: 2.1.1#58-60,70,130 2.6.3#211 2.6.10#4-21,36,43-46 2.1.7#22929-22943 2.6.11#7-13 2.6.2#C4,G8
+limit: Axiom 2's statement names 'water-based' as a substrate; host-kernel.form uses the phase words once, for JIT crystallization; the critic records another report listing eight uses. Before 2026-11-08 (parent of 9d7790856, lines 55 and 76-78) axiom 3's block read (the-unreferenced-composts what-nothing-holds-returns-to-gas), with the comment 'what is let go returns to potential', and the trinity theorem's comments marked blueprint (ice), recipe (water) and named-cell (gas). The refinement removed the words ice and gas from the file; the present line 70 reads returns-to-potential, while control/session-recording-lifecycle.fk:45-46 still quotes the old clause. No file read relates gas to the nothing of axiom 1, or says whether the phase of a stored artifact and the phase of a node by circulation are one axis.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.8
+name: held-work-outside-the-word
+kind: observation
+is: membrane-boot.h, the header of a carrier written from the axioms alone, keeps held work out of the acknowledgment: 'Held work is not a word: offer sets arrived=0 and writes no ack'. Timeout and a missing driver are 'an arrived nothing'. An unoffered interface acknowledges state 0 from the membrane and records a breach row.
+status: observed
+src: 2.1.9#15-16,26-29 2.6.2#R10
+limit: Not in the study report: the critic surfaced the lines and the encoding read them.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.9
+name: nothing-carries-seven-readings
+kind: finding
+is: The old body uses nothing for seven things: the potential field, a timeout, a fail, a stop, not-yet, a deliberate choice of nothing, and an unresolved name recovered at run time. The acknowledgment has no room to say which, so the old body carries the reason beside the value: a finding node, an organ-health line or the exit code.
+status: inferred
+conf: high
+src: 2.1.1#48-52,171-176 2.6.8#40-49 2.6.5#93-101
+from: 1.1 1.7.17 3.3.4.2 3.3.4.4 3.3.4.8
+limit: The critic records three answers across the round on whether not-yet is a value, a missing value or a reason beside a value.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.4.10
+name: one-and-node-unsettled
+kind: finding
+is: No ground document fixes what 1 and node carry. The self-update example reads 1 as accept and 0 as decline; the old core lets ONE carry a payload and NODE a counter-offer; the minimal surface threads node counter-offers to a terminal; a teaching has a failed option acknowledge a node carrying its finding. A result such as 42 could be either.
+status: inferred
+conf: high
+src: 2.1.1#238 2.1.13#14-15 2.6.9#12-14,31 2.6.8#31
+from: 1.5 3.3.4.1 3.3.4.2 3.3.4.3
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8
+name: keep
+kind: hub
+is: Eight things the study carries forward: the 2026-11-08 axiom text with its open count; one offer with a closed acknowledgment; a nothing that computation refuses, with its reason beside it; immutable nodes under free names; a numeric pivot under every language; typed ports and four door families; self-update and boot as ordinary offers; and dated beliefs in place of laws.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.1
+name: keep-the-2026-11-08-text
+kind: finding
+is: Carry the five statements verbatim as acknowledged on 2026-11-08, with the status line and both fold points. 'The five are fixed' then names that text: the five subjects (states, cell, content-addressing, boundary, offer) have held since 2026-06-10, the wording was refined twice in five months, and the count of five is a declared choice.
+status: inferred
+conf: high
+from: 3.3.1.1 3.3.1.2 1.8 1.10
+limit: The critic lists which axiom text is fixed among the questions only the owner can settle.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.2
+name: keep-one-offer-closed-ack
+kind: finding
+is: Carry the single offer act and the closed acknowledgment of nothing, 0, 1 or node, with fail, stop, choice, backtrack, try, cut, undo, timeout and hold as thin expressions over it. The old core's 66 lines hold all of these but cut, undo, timeout and backtrack, which stand in a second file of 41 lines, so a new core is measured against 107 lines.
+status: inferred
+conf: high
+src: 2.1.13#8-15,26-36,43-46,57-64 2.7.21#5-34 2.6.8#23-24
+from: 1.5 1.9.5 3.3.4.1 3.3.4.2
+see: 3.3.4.10
+limit: What each of the four values means is not settled. The 107 lines count both files whole: they also hold lanes, the async pair, chain walks, the census and receipt helpers, and the second file's timeout is a budgeted walk (oac-timeout-walk).
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.3
+name: keep-nothing-that-stops-computation
+kind: finding
+is: Carry nothing as a first-class value over which arithmetic, branching and length stop or yield nothing, never a value that reads as an answer, with the reason for the nothing carried beside it. Carry the census: any aggregate over offers counts who answered apart from what they said, and a verdict is read only where an answer arrived.
+status: inferred
+conf: mid
+src: 2.6.8#44-46
+from: 1.1 1.7.19 1.9.1 1.9.8 3.3.1.4 3.3.4.4 3.3.4.9
+limit: Where the reason for a nothing lives is not decided.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.4
+name: keep-names-as-the-only-mutable-layer
+kind: finding
+is: Carry content-addressed immutable nodes with names as the only mutable layer: undo and versioning are repointing a name, version history is the lineage of ids a name pointed at, and what no name reaches is reclaimed, so the collector belongs to axiom 3 with the names as its roots. A byte the substrate can regenerate is a lease and may be dropped.
+status: inferred
+conf: high
+src: 2.6.4#80,134-138 2.1.2#125-127
+from: 1.3 1.7.2 1.7.8 1.9.3
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.5
+name: keep-numeric-pivot-under-every-tongue
+kind: finding
+is: Carry the north star's rule that every tongue is a projection column, with the pivot moved from a symbol to the node's numeric id. A symbol table in any natural or programming language is then a lens over ids, never the identity, and name resolution must not let a same-named global capture an offered cell.
+status: inferred
+conf: mid
+src: 2.1.1#194-197
+from: 1.3 1.7.18 3.3.3.2
+limit: The old body's own two-tongue files were not read, so the study cannot say how far the rule ran.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.6
+name: keep-typed-ports-and-four-families
+kind: finding
+is: Carry typed resource ports with the two-condition rule for host carriers, and the four door families INTERN, OBSERVE, OFFER and PORT as a first cut of the bootstrap surface.
+status: inferred
+conf: mid
+from: 3.3.2.1 3.3.4.3
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.7
+name: keep-self-update-as-ordinary-offer
+kind: finding
+is: Carry self-update with no mechanism of its own: a change is a recipe offered across the boundary, accepted or declined, minting a new blueprint, with rollback by repointing. Carry a boot whose first act is to offer a channel and whose artifact never mutates, and use 'not made of anything it cannot also author' as the bootstrap's acceptance test.
+status: inferred
+conf: high
+from: 1.7.20 1.9.7 3.3.2.4 3.3.2.5
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.8.8
+name: keep-dated-beliefs
+kind: finding
+is: Carry the stance that only the five are agreed ground and every other statement is a dated belief owed a re-witness when its ground shifts. That stance is the status model this graph asks for: each claim with its source, its date and how it is known.
+status: inferred
+conf: high
+from: 3.3.3.3 3.3.1.1
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9
+name: drop
+kind: hub
+is: Eight things the study lets go: two grammars with a lowering between them; a printed number as the unit of proof; host capabilities added to the C seed one by one; the four-field NodeID layout read as axiom text; 0 read as fail and a missing name read as nothing; lines left from the multi-kernel period and the earlier axiom 4 wording; conduct and tooling rules inside ground documents; and a pivot symbol.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.1
+name: drop-two-grammars
+kind: finding
+is: Let go of two grammars with a lowering between them. MANIFEST.md states the arrangement: 'New meaning is authored in BML or higher; .fk is a lowering'. The study classes the arrangement as an authoring practice, not a consequence of any axiom, and the restart replaces it with one grammar.
+status: inferred
+conf: mid
+src: 2.1.5#19-20
+from: 3.3.3.4
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.2
+name: drop-number-as-proof
+kind: finding
+is: Let go of a printed bitmask integer as the unit of proof. Every band of the old body answers a pinned number, yet the number alone cannot separate a pass from a fold over a recovered nothing, and the owner's guide of 2026-10-05 calls every band a wall that needs tending and admits a new one only when an older one leaves.
+status: inferred
+conf: high
+src: 2.1.5#71-78 2.1.4#100-105
+from: 1.7.19 3.3.1.4 3.3.4.4
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.3
+name: drop-host-doors-in-the-seed
+kind: finding
+is: Let go of adding each new host capability to the C seed. The seed grew from 25,483 to 34,149 lines under a written shrink rule; the goal file accounts for the stretch to 31,066 lines (be329dc8c, 2026-10-31) as host doors, memory the walker held, the JIT's page and the time board, the model's voice and training doors, and Glass's shared roots.
+status: inferred
+conf: mid
+src: 2.6.7#233-245 2.1.7 2.6.1#T8
+from: 3.3.4.5 3.3.2.4
+limit: No file read attributes the further 3,083 lines, from 31,066 to 34,149. That the pattern comes from a grammar that could not reach the host without new C is the study's own reading. The date of be329dc8c is git's; the goal file gives the commit without one.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.4
+name: drop-layout-as-axiom-text
+kind: finding
+is: Let go of reading (package level type instance) as axiom text: the line sits in axiom 2's block, not in its statement. If identity is the content-addressed shape, an instance field that separates two cells of equal content contradicts axiom 3, and one that does not is redundant; a distinct mutable instance can live only in a name.
+status: inferred
+conf: mid
+src: 2.1.1#59 2.6.3#150
+from: 1.2 1.3 1.7.1
+limit: The critic lists the node id's shape as not ready to decide: the two reference systems give different meanings to each of the four fields.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.5
+name: drop-zero-as-fail-and-missing-as-nothing
+kind: finding
+is: Let go of reading 0 as fail: under the absence theorem 0 is an answer and nothing is silence, and the old core already makes fail the nothing arm. Let go of recovering an unresolved name to nothing: a recipe that does not exist was never offered to anything, so its absence is a fault to report, not a silence.
+status: inferred
+conf: mid
+from: 1.7.19 3.3.4.2 3.3.4.3 3.3.4.4
+limit: Another report of the same round recommends fail as acknowledgment 0; the critic lists the meaning of the four values as not ready and as needing the owner, and lists the unresolved-name half as ready to decide.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.6
+name: drop-stale-residues
+kind: finding
+is: Let go of the lines left from the multi-kernel period ('three-way', 'all four kernels', host-GC) and of the pre-2026-11-08 axiom 4 wording in derivative files. 'A claim is real when observed' is the sentence the old engineering practice leans on, and the axiom no longer contains it.
+status: inferred
+conf: high
+from: 3.3.1.3 3.3.4.6
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.7
+name: drop-conduct-rules-from-ground
+kind: finding
+is: Let go of conduct and tooling rules written into the kernel's ground documents: repair in the context that found the issue, native tools only, rent accounting, and the landing workflow. The study places them in a practice layer with dates, apart from the axioms and their consequences.
+status: inferred
+conf: mid
+src: 2.1.4#125-175,686-696,834-846 2.6.7#55-290
+from: 3.3.3.4
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 3.3.9.8
+name: drop-the-pivot-symbol
+kind: finding
+is: Let go of the pivot symbol. The north star calls the pivot symbol 'the meaning's one name', while the kenosis theorem says a name carries no authority; under axiom 3 the pivot is the blueprint's id, and a pivot symbol is one more projection column.
+status: inferred
+conf: mid
+from: 1.3 1.7.18 3.3.3.2
+at: 2026-11-24
+by: r1/axioms-north-star

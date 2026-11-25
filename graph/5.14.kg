@@ -1,0 +1,152 @@
+# Design: the floor. What the bootstrap is and the choices made writing it. spec/core-operations.md is the authority for the operations and spec/framebuffer.md for its memory.
+
+n: 5.14
+name: floor
+kind: hub
+is: The bootstrap as built: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 21 operations whose registers are a record in the region, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+at: 2026-11-25
+
+n: 5.14.1
+name: operations-are-catalogue-entries
+kind: decision
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11).
+status: inferred
+from: 5.13.3 5.4.6 5.1.2
+src: 2.30.6
+conf: mid
+limit: Operations that build or take apart nodes, hold an offer or bind a cell are not named. The count of about 25 in 5.1.5 is not yet tested against a compiler.
+at: 2026-11-25
+
+n: 5.14.2
+name: zero-and-one-are-entries
+kind: decision
+is: The acknowledgment 0 is catalogue entry 32 and the acknowledgment 1 is entry 33, both nodes and both ordinary answers. Nothing is no node at all: the handle 0 in memory and the id of 32 zero bytes on the wire. The integer zero is a different node from the answer of no.
+status: inferred
+from: 5.4.13 5.13.2 1.1
+src: 2.30.6
+conf: mid
+why: A number that doubles as a verdict is how one marker came to carry several readings in the old body.
+at: 2026-11-24
+
+n: 5.14.3
+name: need-turns-a-no-into-a-fail
+kind: decision
+is: A comparison answers yes or no and never fails. The operation need fails when its child answers no or nothing. A condition is therefore written need of a comparison, and 'if c then a else b' is a choice whose first option is a sequence of cut(need c) and a.
+status: inferred
+from: 5.4.3 5.4.13
+src: 2.30.6
+conf: mid
+alt: Comparisons that fail when false, as in Icon; that would leave the answer of no with almost no use.
+at: 2026-11-24
+
+n: 5.14.4
+name: cut-scope
+kind: decision
+is: Cut closes the nearest enclosing choice in the same recipe body and every choice opened since it was entered; with none, the choices opened since the running recipe was called. All is a barrier a cut does not cross.
+status: inferred
+from: 5.4.6 5.4.7 3.5.2.5
+src: 2.30.6
+conf: mid
+at: 2026-11-24
+
+n: 5.14.5
+name: self-for-direct-recursion
+kind: decision
+is: A recipe reaches itself through the operation self, which answers the recipe now running. A node cannot hold its own id, so this is how the floor recurses. Recipes that name each other remain question 6.1.14.
+status: inferred
+from: 5.2.2 5.13.1
+src: 2.30.6
+conf: mid
+at: 2026-11-24
+
+n: 5.14.6
+name: walker-frames-never-change
+kind: decision
+is: The walker uses no C recursion and keeps its registers in the region's machine record. A continuation is a chain of frames that are never altered once made, and a choice point keeps a frame index and four allocation marks. Fail resets the marks and resumes from the kept frame, so a choice that has answered can be re-entered. A frame is released early only when no choice point can return to it.
+status: inferred
+from: 5.4.9 5.7.2 5.4.7 5.7.6
+src: 2.30.7
+conf: mid
+limit: A program has no cell it can change in place, so there is no trail yet. A choice point's next option is the one field the walker changes in place.
+at: 2026-11-25
+
+n: 5.14.7
+name: floor-interns-by-content
+kind: decision
+is: In the floor every node is interned when made, by a cheap hash over its kind, blueprint handle and child handles or bytes, with equality decided by content. The content id is computed only when asked for: at freeze, thaw, a print of an id, or a check. This departs from 5.2.3, which leaves transient nodes without interning.
+status: inferred
+from: 5.7.3 5.2.3 3.15.8.5
+src: 2.30.7
+conf: mid
+why: One representation keeps the floor small, and equal nodes sharing a handle makes eq a comparison of two integers.
+flip: Measured allocation cost in the walker once a compiler runs on it.
+at: 2026-11-24
+
+n: 5.14.8
+name: ice-file
+kind: decision
+is: An ice file is eight bytes of magic and then records, each a 32-bit little-endian length and one node's canonical bytes, children before parents, the top node last. Only the root is left out. Thaw reads records in order, refuses a record whose blueprint or child it has not yet seen, and computes each id from the bytes it read. A write goes to a temporary file that is renamed.
+status: inferred
+from: 5.7.1 5.13.1
+src: 2.30.7
+conf: mid
+limit: The file is read whole into the region's text area and its nodes are made in the store; it is not read where it lies as 5.7.1 proposes. There is no index.
+at: 2026-11-25
+
+n: 5.14.9
+name: host-functions-so-far
+kind: decision
+is: Six host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, and call a function with six integers. Symbol lookup, the trampoline for host frameworks, thread start and the clock in 5.8.1 are not written.
+status: inferred
+from: 5.8.1 5.9.4
+src: 2.30.7
+conf: mid
+at: 2026-11-25
+
+n: 5.14.10
+name: floor-is-a-framebuffer
+kind: observation
+is: On 2026-11-25 the bootstrap was rewritten so that all of its memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Run that day: the 127 encoding vectors and the 14 ground programs answer as before.
+status: observed
+src: 2.30.7 2.30.9 2.30.11
+see: 5.14.12 5.14.13
+at: 2026-11-25
+
+n: 5.14.11
+name: record-kinds-are-entries
+kind: decision
+is: Every record in the region starts with the handle of its blueprint and the handle of the program node that last wrote it. The kinds of the floor's own records are catalogue entries 53 to 63: framebuffer, area, machine, node, frame, link, activation, choice-point, gathered, words and bytes. A reader of the region therefore needs no table that is not in the catalogue.
+status: inferred
+from: 5.7.7 5.7.4 5.13.3
+src: 2.30.9 2.30.6
+conf: mid
+limit: A record in a table of words or bytes is a bare value described by its area's entry, not by a tag of its own. The catalogue's names are still held outside any node, in the specification.
+at: 2026-11-25
+
+n: 5.14.12
+name: what-lies-outside-the-region
+kind: observation
+is: Tested on the first machine on 2026-11-25: macOS refuses a shared executable mapping with EINVAL, so the runnable copy of a code leaf is in a private mapping; the region records the leaf, the offset of its copy and that mapping's address. Also outside: machine registers, what the dynamic loader and the thread library keep, the process's arguments, and the first thread's stack until the bootstrap moves onto the region's stack.
+status: observed
+src: 2.30.11 2.30.7
+at: 2026-11-25
+
+n: 5.14.13
+name: framebuffer-cost
+kind: observation
+is: Measured on the first machine on 2026-11-25 with ground/long-recursion.ck, 158.6 million walker steps. The floor before the change, registers in C locals and tables on a private heap, took 0.56 s in two of three runs. The framebuffer floor took 0.71 to 0.72 s alone in five runs; recorded by a second process every 5 ms, 0.71 to 0.76 s in three; every 1 ms, 0.72 to 0.75 s in five, giving 481 frames.
+status: observed
+src: 2.30.11 2.30.7 2.30.10
+limit: One program on one machine with other work running. The earlier floor also lacked the release of returned calls (5.14.14), so the two differ in more than the layout.
+at: 2026-11-25
+
+n: 5.14.14
+name: returned-calls-give-back
+kind: decision
+is: A call in the last position of a recipe keeps no frame. When the walker returns through a frame, the activations and arguments made since that frame was pushed are given back, unless an open choice was made after them. The links that gathered an operation's values are given back when the operation runs, under the same rule. A long recursion therefore holds memory in proportion to its depth, not to its number of calls.
+status: inferred
+from: 5.14.6 5.7.2
+src: 2.30.7
+conf: mid
+why: Before this the long recursion grew its activations without bound, and every recorded frame would have copied them.
+at: 2026-11-25

@@ -1,0 +1,344 @@
+# Independent review of graph/3.5.kg (BML). One review node per claim, each naming the digest it read.
+
+n: 9.5.5
+kind: hub
+name: review-of-bml
+is: All 39 claims of 3.5.kg (22 observations, 17 findings) were read against their sources: 39 confirmed, none amended, none disputed, none left unreviewed. Four of them (3.5.2.10, 3.5.6, 3.5.8.1, 3.5.8.8) were corrected in place after the first reading and confirmed by a second reader against their present text. The file has no relayed web claim; every cited file was opened at the cited lines, the three 2000 archive files the study quotes were opened on local disk, and nothing was run.
+at: 2026-11-24
+
+n: 9.5.5.1
+kind: review
+re: 3.5.1.1
+saw: caea43bd
+ack: 1
+limit: 'No native code generation' is an absence in what was read: the thesis says interpreter (line 1011) and virtual machine (line 1015) and names no other target. The study report's heading says five technologies and lists these four.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.2
+kind: review
+re: 3.5.1.2
+saw: 8ba2f364
+ack: 1
+limit: Counted with grep: the thesis text holds 23 such marks, 21 of them in lines 651-685 of the attribute list, counting 'Not fully supported yet' (651) and 'Both not supported yet' (673); the other two are at lines 385 and 390.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.3
+kind: review
+re: 3.5.1.3
+saw: 223518b5
+ack: 1
+limit: wc gives 135 and 4,400 lines. 'Most of the body' is not at a cited line; git ls-files with grep -l finds 'section [form.bml]' in 1,041 of 1,105 tracked .bml files.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.4
+kind: review
+re: 3.5.1.4
+saw: b196cc9c
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.5
+kind: review
+re: 3.5.2.1
+saw: bd886f80
+ack: 1
+limit: The test program was opened in the archive on local disk (src/Test/Choice.bml, 17 lines of text): the choose stands at lines 6-13 inside a with block and fail at line 15, after it. Read, not run.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.6
+kind: review
+re: 3.5.2.2
+saw: 8b38789a
+ack: 1
+limit: The thesis sentence on Branch (2.3.1 line 154: if the chosen element later turns out wrong, parsing continues with another element of the list) points the same way. Still a reading of text.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.7
+kind: review
+re: 3.5.2.3
+saw: a7639aa6
+ack: 1
+limit: The admission document (2.8.18 line 105) says 'also choose'; the grammar rule at 2.8.14 line 269 reads the keyword choice only, as the node says, so document and grammar differ.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.8
+kind: review
+re: 3.5.2.4
+saw: 2b54cfa0
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.9
+kind: review
+re: 3.5.2.5
+saw: 02f5bb9e
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.10
+kind: review
+re: 3.5.2.6
+saw: 3439fa11
+ack: 1
+limit: The line that prints UNDO or DO (2.8.7 line 32) stands inside a block comment (lines 25-38) of the sample, so the mode is read from code that was switched off in that file.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.11
+kind: review
+re: 3.5.2.7
+saw: 6b4ab00c
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.12
+kind: review
+re: 3.5.2.8
+saw: 733d6961
+ack: 1
+limit: A grep for timeout over the thesis and its companion texts finds nothing. The archive's MultiMatch.bml (line 21) only forwards the match, as the node's limit says.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.13
+kind: review
+re: 3.5.2.9
+saw: e670b367
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.14
+kind: review
+re: 3.5.2.10
+saw: 564de283
+ack: 1
+limit: 'Most data' is the study report's wording (study/r1/bml.md line 671). The sentence that host effects are not rolled back stands in the admission document's table row for reader (c)'s store, restore and undo (line 176), and the node gives it to 2026 as a whole. One name per assignment was read at line 4 of reader (b)'s lowering file, the journal at lines 2084-2087 of its compiler file, the snapshot of mutable locals at lines 1941-1948 there, and the immutable cursor at form-stdlib/bmf-core.fk lines 19-21.
+by: r3/review-bml-close
+at: 2026-11-24
+
+n: 9.5.5.15
+kind: review
+re: 3.5.3.1
+saw: 1668d3f9
+ack: 1
+limit: 'Bounded by an interface' reads the grammar alternative InterfaceRef FieldName (2.3.1 line 757); the companion's example Template <Object ITEM> (2.8.3 line 771) supports that reading.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.16
+kind: review
+re: 3.5.3.2
+saw: 83ea8ce9
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.17
+kind: review
+re: 3.5.3.3
+saw: 3e41667a
+ack: 1
+limit: Nine fixture files are named *class*; grep -i delegat finds nothing in them or in any other file of tests/fixtures. The class-model test (2.8.35) has the word at lines 73 and 167, the core class surface (2.8.36) nowhere.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.18
+kind: review
+re: 3.5.3.4
+saw: 22f2cdc9
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.19
+kind: review
+re: 3.5.3.5
+saw: f65571a8
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.20
+kind: review
+re: 3.5.3.6
+saw: c6e78119
+ack: 1
+limit: The report's table (2.8.1 lines 519-552) has 34 rows and 46 distinct attribute names; 12 distinct names show handling in reader (b): outer, abstract, delegate, get, put, relaxed, strict, class, final, public, protected, private. 'Every definition' is the wording of 2.8.3 line 153; 2.8.2 line 99 says almost all declarations.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.21
+kind: review
+re: 3.5.3.7
+saw: 5a7f3ea5
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.22
+kind: review
+re: 3.5.4.1
+saw: dcba797b
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.23
+kind: review
+re: 3.5.4.2
+saw: 14f5c3d3
+ack: 1
+limit: Both files were opened in the archive on local disk: Branch.Match at lines 43-64 of Branch.bml, Repeat.Match at lines 52-61 of Repeat.bml. Read, not run.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.24
+kind: review
+re: 3.5.4.3
+saw: 03b820c3
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.25
+kind: review
+re: 3.5.4.4
+saw: a1d75f52
+ack: 1
+limit: 38,391,347 / 59,464 = 645.6. The numbers are the old body's document; nothing was rebuilt.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.26
+kind: review
+re: 3.5.5
+saw: cc87b259
+ack: 1
+limit: Each of the ten has a premise in 'from'. 'None built from the others' is argued in the study report (2.8.1 lines 803-836) and shown by no source.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.27
+kind: review
+re: 3.5.6
+saw: 4ebd9801
+ack: 1
+limit: Each cited line was opened: while_success (bml-search-algorithms.txt lines 67-74), defer (form-bml-lower.fk lines 126-135), hold (offer-ack-core.fk lines 43-46), shared inheritance and tagging (sgb-bml-objects.txt lines 742-752 and 775), the Singleton and Unique instantiators (lines 781-784 there), unique, singleton and inner classes in the thesis attribute list (lines 652-654), operators as method calls (thesis line 356). Retry and views are the study report's own words (study/r1/bml.md lines 852 and 859) and stand in no source by name: neither control file has the word retry, and the object-model text names no view. They rest on hold's re-presentation and on the cast of 3.5.3.4, and the node's limit does not list them among the items outside every node.
+by: r3/review-bml-close
+at: 2026-11-24
+
+n: 9.5.5.28
+kind: review
+re: 3.5.8.1
+saw: 5a493901
+ack: 1
+limit: The four meanings of fail and of cut were each opened: thesis lines 634 and 161, bml-search-algorithms.txt line 78, form-stdlib/bml.fk line 71, bml-form-lower.bml lines 525 and 568-573, grammars/form-bml.fk line 52, control/choice-lane-core.fk line 8. The count of four for cut holds inside the node's scope and stops there: the 2026 grammar text has a cut word of its own inside rules (grammars/bml.fk line 944), and form-stdlib/engine.fk carries a cut as a commit sentinel of a grammar sequence (lines 2136-2140), which would be a fifth use; whether that engine reads those rules was not traced. The report's count of two or three stands on line 875 of study/r1/bml.md; the item begins on line 874.
+by: r3/review-bml-close
+at: 2026-11-24
+
+n: 9.5.5.29
+kind: review
+re: 3.5.8.2
+saw: 55430c70
+ack: 1
+limit: The three statements of the default are in the critic's C6 (2.8.41), which the node's limit names without a 'src' line.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.30
+kind: review
+re: 3.5.8.3
+saw: db67f09c
+ack: 1
+limit: The irreversible case is stated in two places of the old body: docs/native-bml-admission.md line 176 and the head comment of control/choice-lane-core.fk, lines 1-2.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.31
+kind: review
+re: 3.5.8.4
+saw: 53749ab6
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.32
+kind: review
+re: 3.5.8.5
+saw: afd965f5
+ack: 1
+limit: Shared bases, tagging and detached interfaces are in no premise; they were read at sgb-bml-objects.txt lines 742-787. The other report's flattening is the critic's C5.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.33
+kind: review
+re: 3.5.8.6
+saw: bc5cb93f
+ack: 1
+limit: The section form is in no premise; it was read at bml-search-algorithms.txt lines 219-229.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.34
+kind: review
+re: 3.5.8.7
+saw: ceddb5eb
+ack: 1
+limit: Captures that bind a class's fields are in no premise; the example was read at bml-search-algorithms.txt lines 760-771.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.35
+kind: review
+re: 3.5.8.8
+saw: 5f6dbd61
+ack: 1
+limit: The word search was repeated. As whole words reader (b)'s lowering file has none of the six (the letters struct occur there only inside constructor and construction), and reader (c)'s two files have no binary. In reader (b)'s compiler file BinaryType is named on lines 739, 792 and 795 only, and struct, inline, noobject and dynamic on line 39 only, so no layout was found there either. 'Parses' is read from rule text and was not run: the rule at line 944 names binary-field-list, which occurs nowhere else in that file, and a second rule for the same declaration stands in the list at line 795.
+by: r3/review-bml-close
+at: 2026-11-24
+
+n: 9.5.5.36
+kind: review
+re: 3.5.9.1
+saw: f019a3fc
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.37
+kind: review
+re: 3.5.9.2
+saw: 2ffc8d0d
+ack: 1
+limit: The functor notation is at thesis line 289, outside the cited 247-248. 'User-definable' rests on the lexical rule (line 247) and on line 750 (the programmer can redefine the meaning of most operators); the thesis has no sentence that says new operators can be declared.
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.38
+kind: review
+re: 3.5.9.3
+saw: cda61fc9
+ack: 1
+by: r3/review-bml
+at: 2026-11-24
+
+n: 9.5.5.39
+kind: review
+re: 3.5.9.4
+saw: d0805db4
+ack: 1
+limit: The statement walker is not one of the three readers of 3.5.1.3; it belongs to reader (c)'s lane (source-compiler.fk, per 2.8.38 lines 13-16). The node names no fate for reader (b) against reader (c).
+by: r3/review-bml
+at: 2026-11-24

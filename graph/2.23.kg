@@ -1,0 +1,69 @@
+# Sources of the hash-measurement study (hub 3.15). Old-body files the study cites are already source nodes 2.1.6, 2.1.7, 2.1.9 and 2.1.11; line ranges sit in the citing claim.
+
+n: 2.23
+name: hash-measurement-sources
+kind: hub
+is: The primary sources behind hub 3.15: the study report that measured digest and store cost on one machine, five first-round reports the study answers or quotes, and the installed JavaScript BLAKE3 module used as an independent check. The study's own programs and raw outputs sit outside every repository and are cited through the report.
+at: 2026-11-24
+
+n: 2.23.1
+name: gap-hash-measurement.md
+kind: source
+is: The study report on the cost of content identity, 873 lines: machine, programs, correctness checks, digest and interning timings, arithmetic for a kernel, four recommendations with flip conditions, limits, and an appendix that reproduces every raw output.
+path: coherence-seed/study/r2/gap-hash-measurement.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.2
+name: critic.md
+kind: source
+is: The first-round critique, 471 lines: gaps G1 to G11 in the first round's coverage, a table of claims checked against their sources, contradictions, and the lists of what is ready and not ready for design.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.3
+name: lessons.md
+kind: source
+is: The first-round report on what the old body learned, 385 lines; line 307 quotes the old body's SHA-256 timings.
+path: coherence-seed/study/r1/lessons.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.4
+name: runtime-jit.md
+kind: source
+is: The first-round report on the old runtime and its emitters, 525 lines; line 338 states which hash keys the old body's compiled images.
+path: coherence-seed/study/r1/runtime-jit.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.5
+name: form-language.md
+kind: source
+is: The first-round report on the old body's language, 355 lines; line 354 gives the size of the shared node field its probes ran against.
+path: coherence-seed/study/r1/form-language.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.6
+name: web-semantics-machines.md
+kind: source
+is: The first-round report on published language semantics and abstract machines, 351 lines; lines 300 to 302 hold its recommendations R16 to R18 on where identity is computed, the canonical form and the hash function.
+path: coherence-seed/study/r1/web-semantics-machines.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.23.7
+name: noble-hashes-blake3.js
+kind: source
+is: The BLAKE3 module of the JavaScript package @noble/hashes, version 1.8.0 by its package.json, as installed under the parent repository's web/node_modules on the study machine. An installed dependency, not a file of the repository's own history.
+path: Coherence-Network/web/node_modules/@noble/hashes/blake3.js
+got: 2026-11-24
+at: 2026-11-24

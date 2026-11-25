@@ -1,0 +1,439 @@
+# What the study r1/web-jit-and-performance found. Web claims are relayed: they came through a summarising fetch tool.
+
+n: 4.2
+name: self-compiling-systems
+kind: hub
+is: How a system whose compiler is written in its own grammar reaches hardware speed from a small seed. Maru: a C evaluator runs the self-written compiler once and the result regenerates itself identically (1,750 lines in its original version, about 30% of optimised C). Squeak's VM ran about 450 times slower untranslated. CPython's copy-and-patch JIT needs LLVM-built stencils and gained 7-12% over three releases. V8 is leaving sea of nodes for a CFG. A prototype of Cranelift's acyclic e-graph gave 13% faster code for 1% compile time. The staged path is inference.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.1
+name: baseline-tiers
+kind: hub
+is: Template and single-pass compilers and the interpreter below them. Copy-and-patch compiles about 100 times faster than LLVM -O0, and its deployed stencils are LLVM output. CPython's version went from parity in 2024 to 7-12% in 2026. Deegen derives an interpreter and a baseline JIT from one description. A stored format can be interpreted in place.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.1.1
+name: copy-and-patch-results
+kind: observation
+is: Copy-and-patch compilation builds machine code by stitching prebuilt binary stencils and patching their holes. Its abstract reports TPC-H query compilation two orders of magnitude faster than LLVM -O0 with code 14% faster than LLVM -O0, and a WebAssembly compiler 4.9 to 6.5 times faster than Liftoff whose code runs 39% to 63% faster than Liftoff's.
+status: relayed
+src: 2.12.2#abstract 2.12.1#115-122
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Abstract page only; the paper body was not read.
+
+n: 4.2.1.2
+name: stencils-are-llvm-output
+kind: observation
+is: In CPython and in Deegen the copy-and-patch stencils are made by LLVM at build time; for Deegen, C++ semantics are compiled to object files and the build extracts unrelocated code and relocation records. CPython's JIT is about 900 lines of build-time Python and 500 lines of runtime C, and it needs Clang for guaranteed tail calls.
+status: relayed
+src: 2.12.4 2.12.3 2.12.1#123-136
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: PEP 744 says LLVM compiles individual micro-op instructions into "blobs of machine code" linked into the JIT's templates and counts object file parsing among the LLVM utilities its build needs; it does not mention relocation records.
+
+n: 4.2.1.3
+name: cpython-jit-2024-to-2026
+kind: observation
+is: CPython's copy-and-patch JIT matched the specializing interpreter in 2024 with 10-20% more memory. Python 3.15 (2026-10-09) reports 7-8% geometric mean on x86-64 Linux and 11-12% on AArch64 macOS and still labels the JIT experimental. New JIT work on main was paused in June 2026, and PEP 836, the plan to support it, was withdrawn on 2026-10-19.
+status: relayed
+src: 2.12.4 2.12.5 2.12.6 2.12.7 2.12.8 2.12.1#138-157
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The first-round critic could not reach the 3.15 percentages in its own fetch; this encoding re-fetched the page past character 100,000 and the relay gave the same figures. What became of the JIT code in main after 2026-10-30 was not stated in what the study read.
+
+n: 4.2.1.4
+name: deegen-tiers-from-one-description
+kind: observation
+is: Deegen generates an interpreter, a baseline JIT and their linking logic from bytecode semantics written once as C++ functions. On 44 Lua benchmarks its interpreter is 31% faster than LuaJIT's and its baseline JIT 33% slower than LuaJIT's optimizing JIT; the JIT compiles 19.1 million bytecodes per second at 91 bytes of machine code per bytecode.
+status: relayed
+src: 2.12.9#abstract 2.12.3 2.12.1#168-175
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.1.5
+name: single-pass-baselines
+kind: observation
+is: V8's Sparkplug (2021) compiles bytecode in one linear pass with no intermediate representation and keeps interpreter-compatible stack frames; it improved Speedometer by 5-10%. TPDE (2025) does instruction selection, register allocation and encoding in one pass, 8 to 24 times faster than LLVM -O0 with on-par run time.
+status: relayed
+src: 2.12.10 2.12.11#abstract 2.12.1#182-187
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.1.6
+name: in-place-interpreter
+kind: observation
+is: A 2022 WebAssembly interpreter executes the stored code format directly: "no rewrite and no separate format is necessary", with "performance on-par with interpreting a custom-designed internal format".
+status: relayed
+src: 2.12.12#abstract 2.12.1#201-203
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.1.7
+name: gains-track-work-removed
+kind: finding
+is: CPython's JIT was at parity with the specializing interpreter in 2024 (3.13) and at 7-12% in 3.15, whose listed upgrades are a tracing frontend, register allocation, more optimizer passes, LLVM 21 stencils and better machine code generation. It compiled optimized micro-op traces from the start, so this is no evidence about a baseline emitter alone.
+status: inferred
+conf: mid
+from: 4.2.1.2 4.2.1.3 4.2.1.5
+src: 2.12.5 2.12.4 2.12.9#abstract 2.12.1#146-147
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: An inference from release notes and two PEPs, not a measurement. Baseline JITs measured elsewhere beat their interpreters: Deegen's abstract gives 360% and 179% over PUC Lua for baseline JIT and interpreter (4.60/2.79, about 1.65 times; a quotient of two averages), and Sparkplug gained 5-10% on Speedometer.
+
+n: 4.2.2
+name: optimizing-tiers
+kind: hub
+is: Speculation, representations and rewriting. Meta-tracing reached peak speed near partial evaluation in half the code. V8 is leaving sea of nodes for a CFG IR. QBE aims at 10% of an industrial compiler's code; Cranelift is about 1% of LLVM's. Cranelift's acyclic e-graph is in production; its figures are a prototype's. Superoptimizers search offline.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.2.1
+name: meta-tracing-vs-partial-evaluation
+kind: observation
+is: In a 2015 comparison on one language, the meta-tracing implementation was on average 3x slower than Java in 5,414 lines and the partial-evaluation one 2.3x slower in 11,037 lines; at the start of measurement they were 1.5x and 16.3x slower. RPython's documentation says an interpreter with "a small number of hints" becomes a JIT automatically.
+status: relayed
+src: 2.12.13 2.12.14 2.12.1#232-241
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.2.2
+name: first-projection-weval
+kind: observation
+is: The weval tool (2024) derives compiled code by specializing an interpreter with its bytecode, the first of the three partial-evaluation projections. Its abstract reports 2.17x on the interpreter tier of SpiderMonkey and 1.84x on PUC-Rio Lua, the second "with only three hours' effort".
+status: relayed
+src: 2.12.15#abstract 2.12.1#257-259
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.2.3
+name: v8-cfg-tiers
+kind: observation
+is: V8's mid tier Maglev (2023) is SSA over a control-flow graph, "roughly 10x slower than Sparkplug, and 10x faster than TurboFan". A 2025 V8 post reports an unfinished move from sea of nodes to a CFG IR: compile time "divided by 2", about 3 times more L1 dcache misses under sea of nodes, chains "hard to understand, leading to many subtle bugs".
+status: relayed
+src: 2.12.16 2.12.17 2.12.1#272-278
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: By the post the move began almost three years earlier; the whole JavaScript backend and the whole WebAssembly pipeline used the CFG IR (Turboshaft), while the builtin pipeline and the frontend of the JavaScript pipeline still used some sea of nodes and were being replaced, the frontend by Maglev.
+
+n: 4.2.2.4
+name: small-backends
+kind: observation
+is: QBE states its aim as "70% of the performance of industrial optimizing compilers in 10% of the code", with an SSA input language and amd64, arm64 and riscv64 targets. Cranelift's page gives about 200 thousand lines against over 20 million for LLVM, compiling about an order of magnitude faster with code about 14% slower than an LLVM-based system.
+status: relayed
+src: 2.12.18 2.12.19 2.12.1#279-285
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: QBE's page gives no line count. Cranelift's page attributes its speed figures to arXiv 2011.13127; the study did not verify that inside the paper.
+
+n: 4.2.2.5
+name: acyclic-egraph-in-production
+kind: observation
+is: Cranelift's acyclic e-graph allows merging only at node creation, which avoids parent pointers and full recanonicalization. Its prototype replaced GVN, LICM, simple preopt and alias analysis and measured SpiderMonkey.wasm at 1% more compile time and 13% faster run time, and bz2.wasm at 15% less compile time and 3% faster run time.
+status: relayed
+src: 2.12.20 2.12.1#300-304
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.2.6
+name: superoptimizers
+kind: observation
+is: STOKE (2013) searches loop-free x86-64 programs by MCMC and, from llvm -O0 output, matches or outperforms gcc with full optimizations. Souper (2017) synthesizes optimizations for LLVM IR; a Clang built with it is about 3 MB (4.4%) smaller, and shipping compilers contain optimizations it suggested, implemented by hand.
+status: relayed
+src: 2.12.21#abstract 2.12.22#abstract 2.12.1#313-318
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3
+name: self-hosting-and-frozen-state
+kind: hub
+is: Self-compiling systems and kept compiled state. Maru's C evaluator runs once; Squeak's VM was about 450 times slower untranslated. Seeds of 256 and 512 bytes exist. V8 snapshots cut context creation 20 to 27 times. Unison keys code by a hash of its syntax tree. The old body calls compiled code ice; the study's three-state reading is a proposal.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.1
+name: maru-self-compiles
+kind: observation
+is: In Maru the evaluator and compiler are written in Maru's own s-expression language and only boot-eval.c is C. The self-compiled evaluator regenerates an identical eval.s, which takes the C compiler out of the loop. The page gives 1,750 lines for the whole and compiled code at about 30% of the speed of aggressively optimised C.
+status: relayed
+src: 2.12.23 2.12.1#327
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The first-round critic found, and a re-fetch confirmed, that the 1,750-line figure describes Maru's original version, so it is weaker as a size target for evaluator plus compiler plus boot than the study's stage 0 uses it.
+
+n: 4.2.3.2
+name: steps-counts-meaning-apart-from-speed
+kind: observation
+is: The STEPS 2012 final report aims at "about 20,000 lines of meaning-code" for a whole system down to the metal and counts optimizations separately, "on the side". Its Nile graphics are "just 495 lines of code", and its metatranslator makes itself from "about 100 lines of definition code plus a variety of other modules".
+status: relayed
+src: 2.12.24#p4-6 2.12.1#328
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Read by the study as page images of pages 4 to 6 of a PDF. The review round and the correction pass after it each re-read printed pages 4 to 6 as page images on 2026-11-24; the study's own table at 2.12.1#328 stops the last quote at "definition code".
+
+n: 4.2.3.3
+name: squeak-vm-in-smalltalk
+kind: observation
+is: Squeak's virtual machine is written in a Smalltalk subset translated to C by 42 rules: interpreter 3,951 lines, object memory 1,283, BitBlt 1,313. Run in Smalltalk untranslated, the VM was roughly 450 times slower than the C version. Inlining gave a factor of 3.4 for 13% more code. The release image was 968K bytes.
+status: relayed
+src: 2.12.25 2.12.1#329
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.4
+name: tiny-seeds
+kind: observation
+is: sectorforth is a 16-bit x86 Forth in a 512-byte boot sector with eight primitives plus key and emit. stage0-posix bootstraps from "a single 256 byte seed" through hex0, hex1, hex2, M0 and a C compiler to M2-Planet on four architectures. Dusk OS reaches a booted i386 system with C compiler, assembler and editor in "less than 6000" lines.
+status: relayed
+src: 2.12.26 2.12.28 2.12.27 2.12.1#335-337
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.5
+name: v8-startup-snapshots
+kind: observation
+is: V8's startup snapshots (2015) deserialize a prepared heap and cut context creation from 40 ms to under 2 ms on desktop, and by the post's estimate from 270 ms to 10 ms on a phone. A snapshot captures only the engine's heap: nothing that touches the outside can be inside, and values from Math.random and Date.now are fixed at snapshot time.
+status: relayed
+src: 2.12.29 2.12.1#355-358
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.6
+name: unison-content-addressed-code
+kind: observation
+is: In Unison "each Unison definition is identified by a hash of its syntax tree", a 512-bit SHA3 hash. Names are separately stored metadata that do not affect the hash, renames are instant and non-breaking, and parse and typecheck results go to "a cache which is never invalidated".
+status: relayed
+src: 2.12.30 2.12.1#449-452
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.7
+name: zero-copy-and-arenas
+kind: observation
+is: Cap'n Proto's encoding is both interchange format and in-memory representation, with "no encoding/decoding step", and a mapped file is read only where it is accessed. LMDB is memory mapped for zero-copy lookup and its readers do not block writers. An arena binds allocations to one handle and releases them by resetting a position.
+status: relayed
+src: 2.12.31 2.12.32 2.12.42 2.12.1#444-456
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.8
+name: old-body-ice-wording
+kind: observation
+is: The old body uses ice for a compiled artifact kept beside its source: its entry page says a run "rides its ice (.fkb beside every source ...)", and its host-kernel file says a hot pure composite "crystallizes into a callable native leaf, melts on cool". The study found no normative definition of ice, water and gas in the files it searched.
+status: observed
+src: 2.1.4#575 2.1.4#585 2.12.43#28-31 2.12.43#211 2.12.1#365-366
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.3.9
+name: state-mapping-proposal
+kind: finding
+is: The study proposes reading ice as the content-addressed, immutable stored form (nodes, relocatable stencils, verified rewrite rules, a frozen image), water as live interpreter state and baseline machine code, and gas as speculative code that holds guards and can be discarded. Moving toward ice is always safe; moving toward gas must carry a guard.
+status: assumed
+conf: low
+see: 4.2.3.8
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: A proposal only. In the old body compiled native code is the solid, and the first-round critic counts this mapping as one of four incompatible readings of the three states across the study reports.
+
+n: 4.2.4
+name: host-machine
+kind: hub
+is: The study machine is an Apple M4 Max with 16 KiB pages, SME and SME2. Generated code needs mmap with MAP_JIT, a per-thread write step and an instruction-cache flush. JIT-generated SME kernels beat the vendor BLAS on M4. Metal compiles shader source at run time. Energy follows execution time once cores and memory activity are controlled.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.4.1
+name: first-machine
+kind: observation
+is: The machine the study ran on is an Apple M4 Max with 12 performance and 4 efficiency cores, 137,438,953,472 bytes of RAM (128 GiB), 16,384-byte pages and 128-byte cache lines; sysctl reports FEAT_SME and FEAT_SME2 as 1. It runs macOS 26.3.1 with Apple clang 17.0.0, go1.27.2 and rustc 1.99.1 installed.
+status: observed
+src: 2.12.1#102-107
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: One machine.
+
+n: 4.2.4.2
+name: apple-jit-rules
+kind: observation
+is: On Apple silicon a thread cannot write to a memory region and execute it at the same time. JIT memory comes from mmap with MAP_JIT; the allow-jit entitlement is needed only under the Hardened Runtime, which permits one MAP_JIT region. Apple directs writes through pthread_jit_write_with_callback_np and says to always call sys_icache_invalidate.
+status: relayed
+src: 2.12.33 2.12.1#395-402
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The page requires an allowlist of callback functions for that call and ties it to a second entitlement, jit-write-allowlist, under which pthread_jit_write_protect_np can no longer be called on macOS. How an allowlist of static callbacks fits an emitter that is itself generated code is not settled by the page.
+
+n: 4.2.4.3
+name: a64-and-sme-on-m4
+kind: observation
+is: A64 instructions are all 32 bits long. A 2024 paper reports that Apple's M4 is the first chip to support SME, with achievable throughput over 2.3 FP32 TFLOPS, and that just-in-time generated small matrix kernels "outperform the vendor-optimized BLAS implementation in almost all tested configurations".
+status: relayed
+src: 2.12.34 2.12.35#abstract 2.12.1#393-394 2.12.1#415-418
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.4.4
+name: gpu-paths
+kind: observation
+is: Metal's makeLibrary(source:options:) compiles shader functions from a source string at run time. SPIR-V is a binary word stream; each instruction starts with a word count and an opcode. tinygrad says a new accelerator needs about 25 low-level operations; Halide separates algorithm from schedule; MLX arrays live in memory shared by CPU and GPU.
+status: relayed
+src: 2.12.36 2.12.37 2.12.38 2.12.39 2.12.40 2.12.1#419-435
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Project and reference pages only. Nothing was run on a GPU, and the Metal page does not state the cost of compiling source at run time.
+
+n: 4.2.4.5
+name: energy-follows-time
+kind: observation
+is: An ASE 2025 paper finds that with active cores and memory activity controlled, "the choice of programming language implementation has no significant impact on energy consumption beyond execution time". V8 reports that its Maglev tier cut energy 3.5% on JetStream and 10% on Speedometer. The powermetrics manual calls its power figures estimated.
+status: relayed
+src: 2.12.41#abstract 2.12.16 2.12.1#467-476
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The powermetrics manual was read on the study machine; the tool was not run, and no energy was measured.
+
+n: 4.2.8
+name: keep
+kind: hub
+is: What the study's staged path carries forward: a C seed that runs once; a stored node form executed in place; a one-pass baseline compiler for A64; an optimizer of SSA over a control-flow graph with an acyclic e-graph; derived artifacts frozen under their content hash; matrix and GPU as backends; separate counts for meaning, speed and energy.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.8.1
+name: seed-runs-once
+kind: finding
+is: The stored seed is a reader for the numeric node form, a plain evaluator, file mapping and the four host steps a JIT needs on Apple silicon: mmap with MAP_JIT, the write step, sys_icache_invalidate and a jump. It runs the self-written compiler once. Exit test: the compiler compiles itself, and the result compiles itself again to identical bytes.
+status: inferred
+conf: mid
+from: 4.2.3.1 4.2.3.3 4.2.3.4 4.2.4.2 1.7.20
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The four-step lower bound is the study's inference from Apple's page. Maru's 1,750 lines are for its original version, so this evidence does not fix a line budget for the seed.
+
+n: 4.2.8.2
+name: seed-in-c
+kind: finding
+is: C is the lowest-risk seed language on this study's evidence: Maru, Dusk OS, sectorforth and stage0-posix seed from C, assembly or raw bytes; Squeak was bootstrapped from an existing Smalltalk, with C as its translator's output. The JIT host calls on Apple silicon are C entry points of the system library, and C brings no run-time of its own.
+status: inferred
+conf: mid
+from: 4.2.3.1 4.2.3.3 4.2.3.4 4.2.4.1 4.2.4.2
+src: 2.12.25 2.12.26 2.12.27
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The study found no small self-replacing seed in Go or Rust within about 60 fetches, which is absence of evidence. That C brings no run-time, and its statements about the Go and Rust run-times, come from memory, not from a source read. Squeak used Apple Smalltalk-80 and wrote a small C interface to the Mac OS.
+
+n: 4.2.8.3
+name: stored-form-executes-in-place
+kind: finding
+is: The stored node form is designed to be executed, not only to state meaning: the frozen form and the interpreter's working form are the same bytes, so no translation layer and no cache invalidation for one exist. The first tier written in the grammar is an interpreter over that form, and the form is shaped for compilation from the first day.
+status: inferred
+conf: mid
+from: 4.2.1.6 4.2.1.7 1.3
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: The in-place result is for WebAssembly bytecode; no source read shows it for a content-addressed node graph.
+
+n: 4.2.8.4
+name: one-pass-baseline-a64-first
+kind: finding
+is: The first compiler is one pass with no intermediate representation: one emitter per node kind, written in the grammar, ORing fields into a fixed 32-bit A64 word, with interpreter-compatible frames so falling back is always possible. Such tiers gained 5-10% on Speedometer (Sparkplug) and about 1.65 times the interpreter (Deegen).
+status: inferred
+conf: mid
+from: 4.2.1.4 4.2.1.5 4.2.1.7 4.2.3.1 4.2.4.3
+src: 2.12.9#abstract
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Further evidence: Maru's compiled code runs at about 30% of optimised C, and Deegen's baseline JIT is 33% slower than LuaJIT's optimizing JIT. CPython's JIT compiles optimized traces, so it is not this tier; it only matched its specializing interpreter in 2024. The 1.65 is a quotient of two averages in the Deegen abstract.
+
+n: 4.2.8.5
+name: cfg-ssa-with-acyclic-egraph
+kind: finding
+is: The optimizing tier uses SSA values over a control-flow graph, rewrite rules held as content-addressed recipes and applied through an acyclic e-graph, and speculation under guards that fall back to the baseline tier. A content-addressed node store is already the hash-consing half of an e-graph; the other half is a union-find.
+status: inferred
+conf: mid
+from: 4.2.2.1 4.2.2.3 4.2.2.4 4.2.2.5 1.3
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: No source read applies an e-graph to a content-addressed node store. Whether speculation is trace-based or method-based is left open by the study.
+
+n: 4.2.8.6
+name: freeze-derived-artifacts-by-content-hash
+kind: finding
+is: Every derived artifact (parse, type, stencil, optimized code) is keyed by the content hash of its inputs, stored position-independent and mapped in place, so it is computed once. A frozen image holds only what is a pure function of content; a handle, clock reading or random draw that crossed the boundary is re-established on thaw.
+status: inferred
+conf: mid
+from: 4.2.3.5 4.2.3.6 4.2.3.7 1.3 1.4
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.8.7
+name: matrix-then-gpu-backends
+kind: finding
+is: Matrix and GPU execution are further backends for the same lowered kernels, not a new compiler. SME comes first because it reuses the A64 emitter and has no shader compile step; then Metal by emitting source at run time, or SPIR-V words directly. The schedule is a node apart from the algorithm, and a backend's surface is a few dozen operations.
+status: inferred
+conf: low
+from: 4.2.4.3 4.2.4.4
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Rests on project pages and one abstract; no kernel was emitted or timed.
+
+n: 4.2.8.8
+name: separate-ledgers
+kind: finding
+is: Size and cost are counted on separate ledgers: lines that state meaning apart from lines that exist for speed, as STEPS counted them, and energy as a reading derived from time, cores awake and memory touched. Compile work is part of the energy bill, so thawing frozen code instead of compiling saves energy, and polling loops cost wakeups.
+status: inferred
+conf: mid
+from: 4.2.3.2 4.2.4.5
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.9
+name: drop
+kind: hub
+is: What the study's evidence sets aside: stencils built by an external toolchain, sea of nodes as the default optimizer representation, full equality saturation or superoptimization on the run-time path, and one monolithic image.
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.9.1
+name: external-toolchain-stencils
+kind: finding
+is: Copy-and-patch as deployed is set aside for the bootstrap. Its stencils are LLVM output, which makes an industrial optimizer a build-time dependency, and stencils made once by a host C compiler would store opaque machine code whose source is another toolchain. Stencils made by the system's own optimizing tier would fit; no source read does so.
+status: inferred
+conf: mid
+from: 4.2.1.1 4.2.1.2
+at: 2026-11-24
+by: r1/web-jit-and-performance
+limit: Self-produced stencils are assumed feasible and unproven; whether they would match LLVM-built ones closely enough is open.
+
+n: 4.2.9.2
+name: sea-of-nodes-as-default
+kind: finding
+is: Sea of nodes is not the default for the optimizing tier: V8 is leaving it for a control-flow-graph IR, unfinished in March 2025, and reports compile time halved. V8's stated cost came from nodes tied to effect and control chains, so a mostly pure, content-addressed node space might reverse the trade; that is a hypothesis to test, not a result.
+status: inferred
+conf: mid
+from: 4.2.2.3
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.9.3
+name: search-on-the-run-time-path
+kind: finding
+is: Full equality saturation and superoptimization stay off the run-time path. The e-graph in production use is Cranelift's acyclic variant, its figures a prototype's; superoptimizers are offline searches whose outputs, rewrite rules and short code sequences, are small and verifiable, so they run at idle time and their verified results are frozen.
+status: inferred
+conf: mid
+from: 4.2.2.5 4.2.2.6
+src: 2.12.19 2.12.20
+at: 2026-11-24
+by: r1/web-jit-and-performance
+
+n: 4.2.9.4
+name: monolithic-image
+kind: finding
+is: One monolithic image in the Smalltalk manner is not needed. In a content-addressed store each node can be frozen or thawed alone and shared between images, while a snapshot of a whole heap fixes clock and random values at capture time and can hold nothing that touches the outside.
+status: inferred
+conf: mid
+from: 4.2.3.3 4.2.3.5 4.2.3.6
+at: 2026-11-24
+by: r1/web-jit-and-performance

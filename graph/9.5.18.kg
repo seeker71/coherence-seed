@@ -1,0 +1,358 @@
+# Independent review of graph/3.13.kg (earlier restarts and the greenfield carrier). One review node per claim, each naming the digest it read. Git facts were read with read-only git commands in the old body's repository; the carrier was read whole and compiled again in a scratch directory; the old runtime was not run.
+
+n: 9.5.18
+kind: hub
+name: review-of-earlier-restarts-and-carrier
+is: All 39 claims of 3.13.kg (20 observations, 19 findings; none relayed) were read against their sources: 30 confirmed, 9 amended (3.13.1.3, 3.13.1.8, 3.13.1.9, 3.13.2.8, 3.13.2.11, 3.13.3.2, 3.13.9.1, 3.13.9.2, 3.13.9.3), none disputed, none left unreviewed. The carrier's witness and the study's limits probe were compiled and run again: the 31 checks reproduce, the 3,947-offer limit does not (4,019 to 4,034 in three runs).
+at: 2026-11-24
+
+n: 9.5.18.1
+kind: review
+re: 3.13.1.1
+saw: 683cba03
+ack: 1
+limit: git worktree list shows the five under one repository. git rev-list --left-right --count HEAD...origin/main gives 0 654 for raw-loader, 1 634 for codex-floor (its one commit 7208c8963 is on main as the squash d30dcd880), 0 605 for ck-pre and 0 481 for ck-turn; origin/main was at 14b1c8661 when read. git diff --stat 776943730~1..7d85e5660 -- runtime gives 1,035 insertions and 388 deletions. coherence-kernel-walk stands in the same worktree list.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.2
+kind: review
+re: 3.13.1.2
+saw: 986179f8
+ack: 1
+limit: wc -l and grep -c 'register_operation("' over git show <commit>:runtime/fkwu-uni.c give 1,574 and 24 (b21a77483), 3,875 and 79 (b6f6f1e3a), 7,222 and 186 (2673d5392), 10,139 and 254 (f2399070c), 10,302 and 254 (803ce20d8); the parent of b21a77483 holds 32,016 lines. Commit times are 2026-11-06 10:05:22 and 2026-11-08 18:01:44 +0800, 55 h 56 min apart. The six frame kinds are at lines 237-243 of the first seed.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.3
+kind: review
+re: 3.13.1.3
+saw: f9c9045f
+ack: node
+is: The receipt facts stand (rewrite-floor receipt at 2673d5392, lines 31, 54-55, 255 and 261; integration receipt at 803ce20d8, lines 131-132). The count does not: runtime/fkwu-uni.c at 803ce20d8 defines 32 parse_ functions, 24 of them named parse_bml_. A grep for lines beginning 'static' that hold 'parse_' and '(' returns 37 because five are forward declarations (lines 1554, 8053, 8054, 8194, 8756). The node should say 32 parse_ functions.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.4
+kind: review
+re: 3.13.1.4
+saw: 4b9d854c
+ack: 1
+limit: git show -s 803ce20d8, dated 2026-11-08 18:01:44 +0800: both quotations are in the message body as written, and the 552-byte frame is in its second bullet.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.5
+kind: review
+re: 3.13.1.5
+saw: 49fc73c4
+ack: 1
+limit: git show --stat 7ed6ad7b2 (2026-11-08 22:23:09): '200 files changed' and 'runtime/fkwu-uni.c | 143 +-'. The note's lines 11 and 16 carry the reason. git merge-base --is-ancestor of b21a77483, 2673d5392 and 803ce20d8 against origin/main each exits 1.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.6
+kind: review
+re: 3.13.1.6
+saw: d0a7d591
+ack: 1
+limit: Both quotations are in the notes at the cited lines (lines 20-21 and line 56). The commit built apart, de0044c9f of 2026-11-08 13:04, is an ancestor of the landing but not its parent: four commits lie between it and 7ed6ad7b2 (three scheduled native turn or reading rows and one digest row; the landing's parent is d102705dd). The note itself calls it 'the real pre-rewrite commit'.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.7
+kind: review
+re: 3.13.1.7
+saw: 70dc963f
+ack: 1
+limit: git show --stat d30dcd880: 2026-11-06 18:04:24 +0800, 7 h 59 min after b21a77483; four files and 228 lines, of which observe/candidate-floor-run.bml is 13. The quoted sentence opens the message body.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.8
+kind: review
+re: 3.13.1.8
+saw: 3e0880fc
+ack: node
+is: The rewrite's values were not boxed. Its Value is a struct passed and returned by value: ten fields at b21a77483 (runtime/fkwu-uni.c:196-207) and eighteen at 803ce20d8 (lines 374-395); node 3.13.9.3 calls it a wide struct. The node should say 'a frame interpreter over values passed as wide structs'. The comparison with a tagged-word walker rests on the old seed (runtime/fkwu-uni.c:1003 at b8ff978c9: 'Ints ride unboxed (tagged words)'), which none of the four premises states.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.9
+kind: review
+re: 3.13.1.9
+saw: 977cbbde
+ack: node
+is: No cause is shown in both restarts: five belong to the C rewrite and one (no image joining carrier and body) to the carrier, so 'are named across' fits and 'recur across' does not. The speed cause is not shown as worded. The sources show that the first recorded comparison with main is in the last commit (803ce20d8, day three) and that neither receipt mentions speed; the note of 2026-11-08 (line 16) records that the owner asked for no speed regression and gives no date for the asking.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.10
+kind: review
+re: 3.13.2.1
+saw: 158c5cbc
+ack: 1
+limit: git show --stat 16b3d3eb6 (2026-11-05 15:17:34 +0800): 20 + 1,199 + 169 + 510 = 1,898 insertions in four files. git log --follow on each file returns that commit alone and git diff 16b3d3eb6 HEAD over the four is empty. git grep at HEAD for greenfield, FBOOT, bboot or membrane-boot finds only the four files. The two quotations are at membrane-boot.h:31 and :36.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.11
+kind: review
+re: 3.13.2.2
+saw: de7b8f0f
+ack: 1
+limit: gf_produce (membrane-witness.c:427-499) fills cc_argv with cc, -O2, -o, /tmp/sema-greenfield-boot/fkwu, runtime/fkwu-uni.c (449-454) and hands it to spawn_tail (357-413: pipe, fork, dup2, execvp); neither routine calls offer. The process port is offered once, with /usr/bin/true (249-255).
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.12
+kind: review
+re: 3.13.2.3
+saw: 9520126e
+ack: 1
+limit: grep over membrane-boot.c: held_out is defined at 124 and called only at 813; 'held' as a field appears only in the declaration (68) and the memset in thaw (1142). leaf_offer returns word_nothing() at 598 when the inner offer did not arrive.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.13
+kind: review
+re: 3.13.2.4
+saw: 8be84e36
+ack: 1
+limit: Limits at membrane-boot.c:22-24; each child's canon is copied whole at 237-242; the digest is computed at 244, discarded for lookup at 251 ('(void)index;') and stored at 259; the byte scan is 245-250; 'slot = m->ncells++' at 256. The constants at 28-29 are the FNV-1a 64 offset and prime. Slot 0 is never a cell (185), so 8,191 slots hold cells.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.14
+kind: review
+re: 3.13.2.5
+saw: bb196356
+ack: 1
+limit: Two details the sentence leaves out: a data cell offered with arguments is a breach (membrane-boot.c:922), and publication acks nothing, not state 1, when any leaf fails to map (964).
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.15
+kind: review
+re: 3.13.2.6
+saw: 27187084
+ack: 1
+limit: Eleven carrier_add calls at membrane-boot.c:478-490; shapes and directions as host-kernel.form:88-89. Read, not run: carrier_lookup skips an absent carrier (447) while carrier_name_known does not (456-463), so line 887 breaches. The 'nothings++' at 892 and the absent tests inside entropy_port (771) and gpu_admit (870) are therefore never reached.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.16
+kind: review
+re: 3.13.2.7
+saw: 8f5fb01d
+ack: 1
+limit: The payload layout is in make_leaf (membrane-boot.c:400-411), which is not among the locators. 'n > page' refuses at 562; MAP_JIT is passed where the host defines it (565-569); the ABI-1 call is at 649 and the state-word rule at 643-645.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.17
+kind: review
+re: 3.13.2.8
+saw: 1794c452
+ack: node
+is: The witness's example image holds four cells, not three: a leaf, the text 'add', the export naming both, and the channel 'boot' naming the export (membrane-witness.c:138-141). By the canonical layout (membrane-boot.c:224-243) they are 21, 15, 56 and 76 bytes, and 8 + 8 + 76 + 8 + 76 = 176, which a rerun on 2026-11-24 printed as image_bytes=176. The rest of the node stands (freeze 1068-1090, thaw 1105-1124).
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.18
+kind: review
+re: 3.13.2.9
+saw: e05f0828
+ack: 1
+limit: Run again for this review on the same Mac, from the repository's membrane-boot.c and .h and a witness copy with the same seven literals changed: cc -O2 -Wall -Wextra printed no diagnostics, binary 71,400 bytes, exit 0, fails=0, 31 check lines all 1, page=16384, arch=aarch64, depth_limit=1022, observed=42. The compile took 0.39 s wall here; 0.19 s is the study's own reading. --produce was not run.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.19
+kind: review
+re: 3.13.2.10
+saw: 4acbb40d
+ack: 1
+limit: Decoded by hand from the bytes at membrane-witness.c:110: 01 fe is add esi, edi and 89 f8 is mov eax, edi, so the leaf returns its first argument. Line 163 expects 42; line 297 is 'else check("branch_one_arm", 0)'; args[1] and args[2] are both write_p (286-287) and no_path and no_body are cast to void (290-291). Not run on x86-64.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.20
+kind: review
+re: 3.13.2.11
+saw: 3a5cb015
+ack: node
+is: 3,947 is one run's reading, not a constant. Three reruns of the study's limits-probe.c against the unmodified membrane-boot.c on 2026-11-24 gave 4,029, 4,034 and 4,019 offers before the first nothing, each with 8,191 live cells, 4,096 frame rows and no slot reused. The count moves because frame rows with equal fields are one cell and the duration field varies. The node should say about 4,000 offers. The doubling (2,621,420 at level 16, level 17 refused) and the 1,048,577-byte read as nothing reproduced exactly.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.21
+kind: review
+re: 3.13.2.12
+saw: 49c84bed
+ack: 1
+limit: 2026-11-05 15:17:34 (16b3d3eb6) to 2026-11-06 10:05:22 (b21a77483) is 18 h 48 min. The message of b21a77483 is the single line 'The runtime source is the rewrite.' and does not name the carrier.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.22
+kind: review
+re: 3.13.3.1
+saw: a71cbd31
+ack: 1
+limit: host-kernel.form:81-82 and :144; kernel-self-composition.form:101 and :103; boot.fk:1-3. A grep of both spec files for image, seed and first finds 'a .fkb image loads' (kernel-self-composition.form:96) and nothing on where that image comes from.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.23
+kind: review
+re: 3.13.3.2
+saw: 21a0ad68
+ack: node
+is: 'Both restarts were first measured against them' holds for the rewrite only: its receipt lists all three answers (rewrite-floor receipt at 2673d5392, lines 21-23). The carrier's gf_produce runs bootstrap/ground.fk alone, and on two builds of the old seed, the cc output and ./fkwu (membrane-witness.c:461-473); the carrier itself answers none of the three files. The file counts, the three answers (BOOTSTRAP.md:67-70) and the section title (BOOTSTRAP.md:84) are as stated.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.24
+kind: review
+re: 3.13.3.3
+saw: 89c6d955
+ack: 1
+limit: The two totals are the sums of the study's tables 6.1 and 6.2 (gap-earlier-rewrites.md:562-591), a source the node does not cite. Recounted against the file: the kept ranges of membrane-boot.c sum to 458 lines (504 with the header's 46 comment lines, which the table also lists) and the seven ranges to rewrite sum to 530. One kept door, clock.realtime, has no check in the witness.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.25
+kind: review
+re: 3.13.3.4
+saw: bacfa323
+ack: 1
+limit: gap-earlier-rewrites.md:629-642. Rows 1, 7, 8 and 9 sum to 300-430 and rows 5 and 6 to 450-700; 460 + 580 + 300..430 is 1,340..1,470 and with the walker 1,790..2,170, which the study rounds to the stated ranges. runtime-jit.md:462 gives 'about 1,400-1,600 lines' for a bootstrap with a walker, so only the 1,800 to 2,200 figure sits above it. 10,302 / 1,574 = 6.5.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.26
+kind: review
+re: 3.13.8.1
+saw: a05a6e47
+ack: 1
+limit: membrane-boot.h:10-16; membrane-boot.c:94-110 and 643-645. The 'only encoding' sentence is the study's (gap-earlier-rewrites.md:567), taken there from the first-round runtime report; this review did not test it against the old seed.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.27
+kind: review
+re: 3.13.8.2
+saw: 39aeaf3e
+ack: 1
+limit: With a 20-byte scalar, L(1) = 60 and L(n) = 20 + 2 L(n-1) give 2,621,420 at level 16 and 5,242,860 at level 17, past the 4 MiB bound at membrane-boot.c:228; the rerun printed the same. The rule is quoted from membrane-boot.h:19-20.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.28
+kind: review
+re: 3.13.8.3
+saw: 086063e9
+ack: 1
+limit: Outcome at membrane-boot.h:103-106; publication at membrane-boot.c:945-965 maps and does not enter; the callback is the third argument of the ABI-1 call at 649.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.29
+kind: review
+re: 3.13.8.4
+saw: 2e3643d7
+ack: 1
+limit: Premise 3.13.2.6 holds a fourth case the finding does not carry forward: a registered but absent carrier acks state 0, the breach answer, where the header promises nothing.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.30
+kind: review
+re: 3.13.8.5
+saw: 62bd07d9
+ack: 1
+limit: Mint at membrane-boot.c:966-985; refusal at 1118-1124; on_fault (1165-1178) writes the signal number, restores the default action and raises the signal again. The rerun printed channel_mints=1, tamper_refused=1, fault_term=5 and fault_evidence=5.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.31
+kind: review
+re: 3.13.8.6
+saw: 9f420a6b
+ack: 1
+limit: The receipt's table of first stops is at lines 33-38 of the rewrite-floor receipt and its command blocks at 20-27 and 239-259; the eight hours are 7 h 59 min between b21a77483 and d30dcd880.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.32
+kind: review
+re: 3.13.8.7
+saw: df1996cf
+ack: 1
+limit: Prebuilt note lines 11-12 and version-store note lines 16-17, both dated 2026-11-09 in their names. The version-store note at line 15 gives the kernel store's digest as 'FNV of the 3 seed files + flags', while the prebuilt note says the bodies are identical across optimisation flags; the finding follows the prebuilt note.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.33
+kind: review
+re: 3.13.9.1
+saw: dc56057a
+ack: node
+is: 'Was accepted by running the existing body' reads as if the rewrite was accepted. It was not: at its last commit 11 of 19 gate rows passed (803ce20d8) and its C commits are not ancestors of main. The node should say the rewrite was judged by whether it ran the existing body. The growth figures are as stated.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.34
+kind: review
+re: 3.13.9.2
+saw: abe067a5
+ack: node
+is: The last rewrite commit defines 32 parse_ functions, 24 of them parse_bml_; 37 counts five forward declarations (review 9.5.18.3). 'On its first day' is shown by a commit the premise does not name: b6f6f1e3a of 2026-11-06 12:00, two hours after the first, already holds parse_bml_ functions, where b21a77483 holds none. The quoted debt is at lines 131-132 of the integration receipt at 803ce20d8.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.35
+kind: review
+re: 3.13.9.3
+saw: cd666ff8
+ack: node
+is: Both costs are recorded by the commits that removed them, and both precede the 40-fold reading. 757ae59ca (2026-11-08 17:23) rotated the 58 MB journal; its child 803ce20d8 (18:01) reads the 552-byte frame in place and reports the remaining 40-fold gap in the same message. The limit should say the gap was measured after both repairs, so neither the frame copies nor the journal explains it; the wide Value struct was still there (18 fields at 803ce20d8, lines 374-395).
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.36
+kind: review
+re: 3.13.9.4
+saw: 51279db9
+ack: 1
+limit: The primitive is float_leaf (note lines 19-21); the landing commit's message says the rewrite had reused modes 34 and 35, which are host doors on main. Two runtimes stood side by side from 2026-11-06 10:05 to the landing at 2026-11-08 22:23.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.37
+kind: review
+re: 3.13.9.5
+saw: 73bf0929
+ack: 1
+limit: membrane-boot.c:22-25; 512-byte buffers at 677, 723 and 833; 'char storage[8][256]' at 838; the note's lines 37-38 name nm166[128] and a path of about 165 bytes.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.38
+kind: review
+re: 3.13.9.6
+saw: 358b92eb
+ack: 1
+limit: 'Shells out' is an execvp of cc with no shell between (membrane-witness.c:376).
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24
+
+n: 9.5.18.39
+kind: review
+re: 3.13.9.7
+saw: a563ae3f
+ack: 1
+limit: As in review 9.5.18.6, the commit built apart is de0044c9f, an ancestor four commits before the landing, and the two quoted figures are in the note of 2026-11-09 at line 56 and in git show --stat 7ed6ad7b2.
+by: r3/review-earlier-restarts-and-carrier
+at: 2026-11-24

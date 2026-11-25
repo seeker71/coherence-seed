@@ -1,0 +1,434 @@
+# Sources of the BML study (study/r1/bml.md). The 2000 thesis text is 2.3.1; the axioms file is 2.1.1; the old runtime is 2.1.7; the offer and acknowledgment core is 2.1.13.
+
+n: 2.8
+name: bml-sources
+kind: hub
+is: The files the BML study cites: its own report, the companion papers and source samples of the 2000 system, the three 2026 BML readers and their lowering, the 2026 grammar engine, control cores, documents and fixtures of the old body, two private notes, and three files read to apply the critic's corrections.
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.1
+name: bml.md
+kind: source
+is: The study report on BML as the higher grammar, 987 lines: concept inventory for 2000 and 2026, primitives, what to keep and what to drop. It quotes five files of a 2000 source archive that lies on local disk outside every repository.
+path: coherence-seed/study/r1/bml.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.2
+name: bml-search-algorithms.txt
+kind: source
+is: The second author's paper on search algorithms in BML, 1,180 lines as text: choose, if_fail, while_success, cut and mark, attributes, syntaxes on objects, the class library. Its example sources are dated 6-Dec-99.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/bml-search-algorithms.txt
+date: 1999-12-06
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.3
+name: sgb-bml-objects.txt
+kind: source
+is: The second author's thesis on the BML object model, 856 lines as text without figures: references, descriptors, instantiators, two-base dispatch, delegation, shared inheritance, tagging.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/sgb-bml-objects.txt
+date: 2000
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.4
+name: angelic-assembler.txt
+kind: source
+is: The instruction set of the 2000 abstract machine, 203 lines: failure mode, save, restore and discard, the speculation rule for threads.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/angelic-assembler.txt
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.5
+name: sgb-thesis-another-object-model.txt
+kind: source
+is: A shorter text by the second author on the object model, 147 lines: the self and this base references under delegation.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/sgb-thesis-another-object-model.txt
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.6
+name: primitive-Cut.bml
+kind: source
+is: The 2000 BML source of the grammar primitive Cut, 23 lines.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/source-samples/primitive-Cut.bml
+date: 2000-04-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.7
+name: bmcpu-main.cpp
+kind: source
+is: The 2000 virtual machine's main program, 39 lines; it prints the machine mode as UNDO or DO beside each instruction.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/source-samples/bmcpu-main.cpp
+date: 2000-04-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.8
+name: container-Rule.bml
+kind: source
+is: The 2000 BML source of the grammar element Rule, 148 lines, with Match, AsString and AsCreateString.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/source-samples/container-Rule.bml
+date: 2000-04-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.9
+name: BMF-includes.bml
+kind: source
+is: The 2000 manifest of the grammar runtime, 31 lines: one include per container, primitive and terminal class.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/source-samples/BMF-includes.bml
+date: 2000-04-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.10
+name: master-thesis-2000-README.md
+kind: source
+is: The lineage note beside the 2000 thesis in the parent repository, 135 lines; line 125 says the parent repository's substrate inherits the reference design.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/README.md
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.11
+name: bml.fk
+kind: source
+is: Reader (a): the older cursor grammar for class, method and statement text, 135 lines.
+path: coherence-kernel/form/form-stdlib/bml.fk
+rev: b8ff978c9
+date: 2026-09-03
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.12
+name: grammars-bml.fk
+kind: source
+is: Reader (b): the compiler for the thesis grammar, 4,400 lines and 490,522 bytes, with its rulebook, class layout, access checks and template instantiation.
+path: coherence-kernel/form/form-stdlib/grammars/bml.fk
+rev: b8ff978c9
+date: 2026-11-19
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.13
+name: bml-form-lower.bml
+kind: source
+is: Reader (b)'s run step, 849 lines: lowers a parsed BML unit to Form functions and starts the runtime on them.
+path: coherence-kernel/form/form-stdlib/bml/bml-form-lower.bml
+rev: b8ff978c9
+date: 2026-10-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.14
+name: form-bml.fk
+kind: source
+is: Reader (c): the cursor grammar of the form.bml dialect, 334 lines, with its operator table and intrinsic words.
+path: coherence-kernel/form/form-stdlib/grammars/form-bml.fk
+rev: b8ff978c9
+date: 2026-11-20
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.15
+name: form-bml-lower.fk
+kind: source
+is: Reader (c)'s lowering of parsed form.bml nodes to source-compiler recipes, including try and defer.
+path: coherence-kernel/form/form-stdlib/form-bml-lower.fk
+rev: b8ff978c9
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.16
+name: source-compiler.fk
+kind: source
+is: The old body's source compiler; lines 691-696 lower a choice to a chain of attempts.
+path: coherence-kernel/form/form-stdlib/source-compiler.fk
+rev: b8ff978c9
+date: 2026-11-14
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.17
+name: choice-lane-core.fk
+kind: source
+is: The 41-line control core beside the offer core: cut, store, restore, undo, the timeout walk and the backtrack walk with memory.
+path: coherence-kernel/control/choice-lane-core.fk
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.18
+name: native-bml-admission.md
+kind: source
+is: The old body's document of the form.bml surface: syntax, control patterns, comparison contracts, classes and templates.
+path: coherence-kernel/docs/native-bml-admission.md
+rev: b8ff978c9
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.19
+name: bml-direct-nodes-jit.md
+kind: source
+is: The old body's measurement of its BML build path and the plan to parse BML straight to nodes, measured 2026-11-13.
+path: coherence-kernel/docs/bml-direct-nodes-jit.md
+rev: b8ff978c9
+date: 2026-11-13
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.20
+name: bml-native-north-star.form
+kind: source
+is: The old body's statement of what its thesis-lane BML supports, what it does not, and how an unheld fail and an unexplained flag are read.
+path: coherence-kernel/grammars/bml-native-north-star.form
+rev: b8ff978c9
+date: 2026-11-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.21
+name: control-invite-grammar.fk
+kind: source
+is: The grammar of eight control tags a model's token stream may carry, among them STOP and TIMEOUT.
+path: coherence-kernel/grammars/control-invite-grammar.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.22
+name: host-effect-vocabulary.bmf
+kind: source
+is: A grammar in the 2026 rule text; its rule on line 9 names an emit action and a reverse action.
+path: coherence-kernel/grammars/host-effect-vocabulary.bmf
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.23
+name: surprise-is-a-choice-point.md
+kind: source
+is: The old body's teaching on backtrack points; line 33 reads fail and stop as one nothing acknowledgment with two readings.
+path: coherence-kernel/teachings/surprise-is-a-choice-point.md
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.24
+name: bmf-core.fk
+kind: source
+is: The 2026 grammar core, 553 lines: surface, immutable cursor, patterns and templates as data.
+path: coherence-kernel/form/form-stdlib/bmf-core.fk
+rev: b8ff978c9
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.25
+name: bmf-grammar.fk
+kind: source
+is: The 2026 grammar engine over the core, 1,138 lines: named rules, repetition, ordered alternatives, a compiled form with first-byte sets.
+path: coherence-kernel/form/form-stdlib/bmf-grammar.fk
+rev: b8ff978c9
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.26
+name: engine.fk
+kind: source
+is: The older rulebook engine of the old body, with a cut that turns a later fail into one that ends the enclosing choice.
+path: coherence-kernel/form/form-stdlib/engine.fk
+rev: b8ff978c9
+date: 2026-09-29
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.27
+name: compiler.fk
+kind: source
+is: The compiler of the 2026 grammar rule text; lines 235-236 define a rule with and without a reverse action.
+path: coherence-kernel/form/form-stdlib/compiler.fk
+rev: b8ff978c9
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.28
+name: bml-lang.bml
+kind: source
+is: The thesis-lane language entry of the old body; its head states how a program ends and what an unheld fail answers.
+path: coherence-kernel/form/form-stdlib/bml/bml-lang.bml
+rev: b8ff978c9
+date: 2026-09-29
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.29
+name: bml-floor-compile.fk
+kind: source
+is: The lowering compiler for form.bml sources; its header still describes a child process fed over a pipe.
+path: coherence-kernel/form/form-stdlib/bml-floor-compile.fk
+rev: b8ff978c9
+date: 2026-10-11
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.30
+name: bml-choose-cut.bml
+kind: source
+is: A thesis-lane fixture, 24 lines, that pins three cut cases and declares the answer 112.
+path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-choose-cut.bml
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.31
+name: bml-choose-fields.bml
+kind: source
+is: A thesis-lane fixture in which a failed choice branch has set a field.
+path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-choose-fields.bml
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.32
+name: bml-snapshots.bml
+kind: source
+is: A thesis-lane fixture for mark, restore and discard, with nested snapshots.
+path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-snapshots.bml
+rev: b8ff978c9
+date: 2026-09-15
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.33
+name: bml-class-templates.bml
+kind: source
+is: A thesis-lane fixture with a two-parameter class template and an interface template.
+path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-class-templates.bml
+rev: b8ff978c9
+date: 2026-09-15
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.34
+name: bml-class-interface-dispatch.bml
+kind: source
+is: A thesis-lane fixture whose classes have the shape class X : Object, Interface.
+path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-class-interface-dispatch.bml
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.35
+name: bml-full-class-model-proof.fk
+kind: source
+is: The old body's test of the thesis-lane class model, 248 lines.
+path: coherence-kernel/form/form-stdlib/tests/bml-full-class-model-proof.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.36
+name: core-class-surface.bml
+kind: source
+is: The old body's statement of its core library as classes and generic classes, 106 lines.
+path: coherence-kernel/surface/core-class-surface.bml
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.37
+name: reference-bml-grammar-and-no-run-lower-check.md
+kind: source
+is: A private note of 2026-10-02 naming which grammar the runtime uses for .bml files and which older grammar a test still reads.
+path: coherence-seed/sources/notes/reference-bml-grammar-and-no-run-lower-check.md
+date: 2026-10-02
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.38
+name: project-bml-surface-directions-2026-09-29.md
+kind: source
+is: A private note of the owner's direction of 2026-09-29 for the BML surface: the compiler reads through the cursor and new syntax lands once.
+path: coherence-seed/sources/notes/project-bml-surface-directions-2026-09-29.md
+date: 2026-09-29
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.39
+name: recipe.go
+kind: source
+is: A NUMS.Go source file; lines 497-502 declare the record NamedCell_t.
+path: NUMS.Go/nums/recipe.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.40
+name: substrate-kernel.py
+kind: source
+is: The parent repository's substrate service in Python; it declares a class NamedCell and a function that views a cell through another blueprint.
+path: Coherence-Network/api/app/services/substrate/kernel.py
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml
+
+n: 2.8.41
+name: critic.md
+kind: source
+is: The completeness critique of the first study round, 471 lines: gaps, 47 spot-checks, contradictions between reports.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/bml

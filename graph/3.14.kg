@@ -1,0 +1,444 @@
+# What the study of the origin and definitions of ice, water and gas found (study/r2/gap-ice-water-gas-origin.md). The proposal under 3.14.8 is the study's own and has not been put to the owner.
+
+n: 3.14
+name: ice-water-gas-origin
+kind: hub
+is: The three words first appear on the disk in the first commit of the Living Codex, 2025-09-09: ice is essential persisted facts, water materialized caches, gas derivable or transient, with compiled code as gas. NUMS.Go has none of the words. The study counts 21 uses on 12 axes: 12 compatible, 5 conflicting, 4 loose. The owner rejected the binding of state to kind on 2026-06-08. No definition by the owner was found, only short statements. The study proposes state as the reach of a node's commitment, three invariants and six operations.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1
+name: origin
+kind: hub
+is: The oldest definition on the disk is the Living Codex of September 2025, committed under the owner's name with no assistant trailer: a state field on every node, ice kept small, the spec as ice and compiled code as gas, and code that refuses illegal moves. Its melt edits a node under the same id, and the older foundation document its spec cites is not on the disk.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1.1
+name: oldest-definition
+kind: observation
+is: The oldest use on the disk is commit 5fc24ba of the Living Codex, 2025-09-09, the repository's first. Line 24 of its spec reads: "Ice = essential persisted facts (atoms, deltas). Water = materialized caches/prototypes. Gas = derivable/transient." The same commit holds the enum ContentState { Ice, Water, Gas }.
+status: observed
+src: 2.22.3#24 2.22.2#commit-5fc24ba
+limit: The spec says it is aligned to a "Living Codex - Self-Reflexive Foundation 4.1" whose section 4 was titled "Lenses (Ice/Water/Gas)" (lines 346 and 356); that document is not on the disk. The spec file is absent at the repository head, and the encoder did not re-read the commit.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1.2
+name: keep-ice-tiny-rule
+kind: observation
+is: The 2025 spec and the rule file for the coding assistant in the same repository both say: "Keep Ice Tiny. Persist only atoms, deltas, essential indices. Let water (materialized) and gas (derivable) carry weight." and "Resonance Before Refreeze. Structural edits must harmonize with anchors; otherwise generalize or stay as water/gas."
+status: observed
+src: 2.22.3#12,15 2.22.5#12,18
+limit: The commit carries the owner's name and no assistant trailer, but it ships a rule file for a coding assistant, so the text may be assistant-drafted.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1.3
+name: spec-ice-code-water-binary-gas
+kind: observation
+is: Living Codex commit 721e2c7 of 2025-09-12, under the owner's name with no assistant trailer, defines "Spec (Ice): Persistent, immutable source of truth", "Code (Water): Generated from spec, can be regenerated" and "DLL (Gas): Compiled from code, ephemeral runtime artifacts". Its message says: "Only specs (ice) need to be persistent".
+status: observed
+src: 2.22.6#14-16 2.22.2#commit-721e2c7
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1.4
+name: enforcing-machinery
+kind: observation
+is: The Living Codex head enforces the states in code. The phase module refuses to melt a node that is not ice and to refreeze one that is not water. Ice is stored in PostgreSQL, water in SQLite, gas is not persisted. An edge takes the more fluid state of its two endpoints, with eight tests. An audit module moves regenerable nodes from ice to water.
+status: observed
+src: 2.22.7#60,75-78,135,150-153 2.22.8#9-14,444-457 2.22.9#40,66,92,118,149,184,220,256 2.22.10#11-12 2.22.11#19-21
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.1.5
+name: melt-keeps-the-id
+kind: observation
+is: The 2025 PhaseEngine comments its Melt as "promote to Water for editing; keep same id (mutable)": a melted node is edited under an unchanged id. Its Refreeze sets the state back to Ice and stamps a meta field.
+status: observed
+src: 2.22.4#7-13
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2
+name: later-uses
+kind: hub
+is: From February to November 2026 the three words were reused on further axes, almost all in assistant-written text, among them: pipeline stage, idea lifecycle, kind of node, settledness read from counts, what crosses between runtimes, JIT form, cache tier, lexicon maturity, queue pressure, compiled image on disk, and home of the node population. NUMS.Go and the five axioms contain none of the three words. The 2026-11-05 carrier has freeze and thaw without them.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.1
+name: not-in-nums-or-axioms
+kind: observation
+is: A whole-word search for ice, gas, plasma, melt, frozen, freeze, thaw and sublimate over NUMS.Go returns nothing. A whole-word search for ice, gas and plasma over the old body's axioms directory returns one line, host-kernel.form line 211; the file of the five axioms has neither ice nor gas nor plasma, and has water three times (lines 58, 60, 130) as the name of a substrate, never as a state.
+status: observed
+src: 2.2 2.22.21#211 2.22.1#1
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.2
+name: trinity-binding
+kind: observation
+is: The binding Blueprint = ice ("frozen coordination"), Recipe = water ("flowing transformation"), NamedCell = gas ("diffuse individuation") was written onto NUMS.Go on 2026-05-08 in a README of the parent repository, by commit 02dd37592 with an assistant trailer. The README says the phase transitions are "encoded directly in the type relationships".
+status: observed
+src: 2.22.13#17-25,40-51 2.3#commit-02dd37592
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.3
+name: application-lifecycle-uses
+kind: observation
+is: In the parent repository's application the words name an idea's lifecycle: gas is ideation, ice is "frozen potential, not yet implemented", water is "being implemented, run, or used". Another service there calls a spec ice once it has actual_value > 0 and a non-empty implementation summary. The application's node model has a phase column defaulting to water, so the words are applied to every node of its graph with the stage of an idea as their meaning. A sibling repository's spec of 2026-02-12 names six transitions, with sublimation and deposition.
+status: observed
+src: 2.22.14#123-134 2.22.15#1-4,22-36 2.22.12#38-71
+limit: Lines 130-134 of graph.py hold a legacy enum with a third reading (ice: stable, archived, reference); the encoder read it, the study does not mention it. All three files are assistant text.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.4
+name: settledness-from-counts
+kind: observation
+is: substrate-phase.fk holds gas 0, water 1, ice 2 as values and says state "is orthogonal to SUBSTANCE (Blueprint/Recipe/NamedCell)". Its phase-state reads ice from high degree with low churn and gas from low degree. Its phase-invite returns one of condense, freeze, melt, sublimate or stay, with hysteresis, and "never MUTATES".
+status: observed
+src: 2.22.22#4-53 2.22.16#6-35,44-55,61-70,97-103
+limit: The round-one form-language report found the recipe is not applied to real nodes (relayed from that report, line 133). The text is the assistant's, first seen 2026-06-08 in the parent repository.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.5
+name: crossing-between-runtimes
+kind: observation
+is: federation-addressing.form of 2026-06-10 says ice has "the same merkle on every runtime by definition; shared for free", water "shares by RE-ADDRESSING: send the structure (or its merkle), the receiver re-interns it", and gas is "runtime-LOCAL by nature": "gas doesn't cross; its water does". A local NodeID is a handle that never crosses the wire.
+status: observed
+src: 2.22.17#10,19-29,41-46
+limit: The same lines 20-26 still label ice as Blueprint, water as Recipe and gas as NamedCell, two days after the owner's rejection of that binding; the encoder read this, the study does not list the file among those carrying the binding.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.6
+name: compiled-form-called-ice
+kind: observation
+is: The old body calls compiled forms ice. host-kernel.form: "a hot pure composite crystallizes into a callable native leaf, melts on cool". lane-motion.bml counts "every .fkb under the working directory" as ice, the .fkb written within the last hour as water, and sources with no image as gas. AGENTS.md: "is your work freezing ice or leaving gas?"
+status: observed
+src: 2.22.21#29-30,56-57,206-213 2.22.24#16-21 2.22.25#63-64,131 2.1.4#585-586
+limit: Round one found the C walker's own JIT has no melt-back (relayed). The study found no owner statement behind either use.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.7
+name: cache-uses
+kind: observation
+is: cache.fk (2026-05-26) says the source file "is the canonical ice", "the in-memory Recipe is water" and "lookup results are gas". A parent-repository file of 2026-06-17 treats a cache entry as a phased cell: freeze is "PIN durable", sublimate is "RELEASE the bytes, KEEP the index", and condense re-materializes a cold index that is requested again.
+status: observed
+src: 2.22.23#10-16 2.22.18#20-40,57-60
+limit: The second file was not found in the old body by name; both are assistant text.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.8
+name: homes-of-node-population
+kind: observation
+is: In the old runtime the words name the home of the whole node population: ice is the shared field, "content-addressed, shared by every kernel on the host, outlives all of them"; water is the per-pid shared store, "gone when this pid goes"; gas is the private heap, "RAM only". Exactly one of kernel_stat rows 58, 59, 60 carries the whole population.
+status: observed
+src: 2.1.7#22929-22943 2.1#commit-ad361e750
+limit: The population moves as a whole; the runtime has no per-node transition between the three homes.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.9
+name: carrier-freeze-and-thaw
+kind: observation
+is: The 2026-11-05 carrier has freeze and thaw and none of the three words: "Freeze writes the channel's canonical bytes twice: the declared identity, then the graph. Thaw rebuilds the graph and compares its canonical bytes to that identity. A mismatch leaves the caller empty." Child links in the frozen file "are content identities, never slots".
+status: observed
+src: 2.1.9#46-48,158-159 2.1.8#1006
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.2.10
+name: other-uses
+kind: observation
+is: Further uses in the old body: plasma as a fourth phase for high circulation with high heat, first seen 2026-08-14; ice for a full queue and gas for an empty one; a phase label on each of seven protocol layers; the dialect literals ice = 2, liquid = 1, compost = 0; a classifier sorting resource lifecycle words into gas 0, water 1, ice 2; and a phase column on the rows of the seed lexicon.
+status: observed
+src: 2.22.27#10-15,48-52 2.22.22#33-42 2.22.28#70-73 2.22.29#53-56 2.22.30#91-93 2.22.31#497-499 2.22.32#29-38
+limit: The study found no assistant trailer and no owner statement on the plasma commit a25a7cbf2. The study also lists uses for ingestion depth and a policy value, citing files, and for a memory horizon and a translation face, from commit messages only.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3
+name: owner-statements
+kind: hub
+is: The owner's attested words on the three states are the 2025 spec and code under the owner's name, eight short statements recorded by assistants from 2026-05-27 to 2026-09-08, and one memory note. Read together: state belongs to a node and is not its kind; a move removes nothing and is invited by measurement; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is not ice. No definition written by the owner was found.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.1
+name: less-ice-and-jit-in-ram
+kind: observation
+is: Two owner statements are recorded as paraphrase. An audit file gives the goal "(re-stated, 2026-05-27)" as including "less ice / more gas". A memory note dated 2026-09-01 records "JIT in RAM, not on disk", refined the same day: a disk cache is optional and its "absence or staleness means simply JIT again in RAM".
+status: observed
+src: 2.22.19#3-5 2.22.33#62-76
+limit: The study says the memory note holds no state word; line 65 of the note reads "Disk ice (.fkb) stays a cold-start courtesy" (read by the encoder). The audit's sentence that regenerable content "is ice that wants to thaw" (lines 80-81) is assistant text.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.2
+name: correction-day-2026-06-08
+kind: observation
+is: Four parent-repository commits within 62 minutes on 2026-06-08 record the owner shaping the model. Paraphrased: use counts over clusters "to know when to move a cell from state to state (gas/water/ice)", and "invite nodes to shift when the physics asks". Quoted: "why does melt remove tissue? where does it go, why do you say remove?"
+status: observed
+src: 2.3#commit-241b3e3e4 2.3#commit-a3929fff8 2.3#commit-274c61a1c
+limit: The encoder did not re-read the commit messages. A quotation in a commit message is an assistant's record of what the owner said.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.3
+name: kind-is-not-state
+kind: observation
+is: Commit 93af83e75 of 2026-06-08 in the parent repository quotes the owner: "not sure all blueprints are ice and all recipes are water; I feel there are blueprints in water and gas as well, and recipes in all 3 states." Commit 04e49aff2 of 2026-06-14, an assistant commit made under the owner's identity (it carries an assistant trailer and speaks in the assistant's first person), calls the binding of state to kind "The misunderstanding".
+status: observed
+src: 2.3#commit-93af83e75 2.3#commit-04e49aff2
+limit: The owner's attested words on this point are the one quotation of 2026-06-08. Review 9.5.19.18 re-read both commit messages.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.4
+name: share-ice-readdress-water
+kind: observation
+is: federation-addressing.form of 2026-06-10 quotes the owner twice: "share ice" and "water must serialize and re-address across substrate". It also credits the owner with the idea of reserving blocks of ids for nodes that have no stable content identity, such as a live socket or a session.
+status: observed
+src: 2.22.17#21,24-25,42-43
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.5
+name: lexicon-split-and-gas-in-ram
+kind: observation
+is: Two commit messages quote the owner. 2026-06-21, parent repository: the neutral lexicon can have its own symbol space, "trainable, dynamic, split into ice, water, gas nodes". 2026-09-08, old body: "all the roots and float values have flow gaps as well as nodes in gas (RAM) state seems to be a gap."
+status: observed
+src: 2.3#commit-5cc4e5585 2.1#commit-ad361e750
+limit: The encoder did not re-read the commit messages.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.6
+name: what-the-statements-say
+kind: finding
+is: Read together, the owner's statements say six things: state belongs to a node and is not the node's kind; a move removes nothing; moves are invited by measurement, not forced; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is a cached, regenerable artifact and not ice.
+status: inferred
+conf: mid
+from: 3.14.1.2 3.14.1.3 3.14.3.1 3.14.3.2 3.14.3.3 3.14.3.4 3.14.3.5
+limit: The mission sentence "the multiple states of nodes (ice, water, gas) are respected" reached the study only as relayed by the workflow and is assumed verbatim; if the original says more, it outranks the study's proposal.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.3.7
+name: attestation-is-thin
+kind: finding
+is: No definition file written by the owner was found. Every long definition after 2025 is assistant text or unattested, and the 2025 text cannot be shown not to be assistant-drafted. A quotation in a commit message is an assistant's record of what the owner said; the session transcripts behind the quoted commits were not opened.
+status: inferred
+conf: high
+from: 3.14.1.2 3.14.3.2 3.14.3.3 3.14.3.5
+limit: In the old body 1,634 commits carry the owner's git name and no trailer, which cannot tell a person from an agent that writes no trailer, so "unattested" means only that no owner statement was found. The study's summary counts seven recorded statements where its table lists nine rows for 2026-05-27 to 2026-09-08, eight without a memory note. The Living Codex has 222 commits, 221 under the owner's full name and one under a second author name.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.4
+name: readings-and-conflicts
+kind: hub
+is: Twelve of the uses are one idea on different surfaces: ice is what others rely on by identity, water is held and worked by a holder, gas is relied on by no one. Five conflict with it: kind as state, compiled form as ice (two uses), idea lifecycle, and queue pressure. The kind binding still stands in three files or more. The oldest definition says what the states are; the reading of 2026-06-08 to 2026-06-10 says when a node moves and who can reach it. In the oldest definition compiled code is gas.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.4.1
+name: one-compatible-reading
+kind: finding
+is: Twelve of the 21 uses fit one reading: ice is the immutable, durable thing others may rely on by identity; water is a materialized, live thing a holder is working with, lost or serialized when the holder ends; gas is a thing no one else relies on, droppable because it can be derived again or was never committed.
+status: inferred
+conf: mid
+from: 3.14.1.1 3.14.1.3 3.14.2.4 3.14.2.5 3.14.2.7 3.14.2.8 3.14.2.9
+limit: The study's table has 22 rows (D1 to D21 and D2'); its count of 12 compatible, 5 conflicting and 4 loose leaves the plasma row apart, and one row (memory horizon) is listed both as loosely compatible and as loose metaphor.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.4.2
+name: kind-binding-still-stands
+kind: observation
+is: The binding of Blueprint to ice, Recipe to water and NamedCell to gas, which the owner rejected on 2026-06-08, still stands uncorrected in three files: grammars/living-equation.fk of the old body, and the NUMS.Go README and the substrate INDEX page of the parent repository.
+status: observed
+src: 2.22.26#6-13 2.22.13#17-51 2.22.20#319-321
+limit: The encoder also read the binding at lines 20-26 of federation-addressing.form (2.22.17), a fourth file.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.4.3
+name: compiled-code-was-gas
+kind: finding
+is: On whether compiled code is ice or gas, the oldest definition, of 2025-09-09, does not mention compiled code and puts generated prototypes in water. The second, of 2025-09-12 (commit 721e2c7), answers gas for the compiled binary and water for generated source: only the spec is ice, and code and binaries are regenerable caches. Later assistant or unattested text reversed the assignment, calling hot native code crystallized and the on-disk image ice. The word moved from the small thing that must not be lost to a large cache.
+status: inferred
+conf: high
+src: 2.31#r1/critic.md:318-323
+from: 3.14.1.2 3.14.1.3 3.14.2.6 3.14.2.7 3.14.3.1
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.4.4
+name: oldest-and-most-attested-agree
+kind: finding
+is: The oldest definition (2025-09-09) and the most owner-attested reading (2026-06-08 to 2026-06-10) do not compete. The first says what the states are: what is committed and what can be derived; only it ever had enforcing code. The second says when a node is invited to move, that a move conserves the node, and who can reach each state.
+status: inferred
+conf: mid
+from: 3.14.1.1 3.14.1.4 3.14.2.4 3.14.2.5 3.14.3.2 3.14.3.3 3.14.3.4
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8
+name: keep
+kind: hub
+is: The study's own proposal, found in no single source and not put to the owner: the state of a node is the reach of its commitment, independent of its kind; three checkable invariants (only water is mutable, a node references only nodes at least as committed, a transition conserves the node); ice marked essential or pinned, with essential ice kept small and compiled code never essential; six named operations of which only freeze needs an offer; counts and heat are readings that invite a move.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.1
+name: state-is-reach-of-commitment
+kind: finding
+is: Proposal: the state of a node is the reach of its commitment, a property independent of the node's kind (blueprint, recipe or cell). It answers one question: who may rely on this node, and what is lost if it goes?
+status: inferred
+conf: mid
+from: 3.14.3.6 3.14.4.1
+limit: A reconstruction by the study from short statements and one early design; the study says it should be put to the owner as a question, not adopted.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.2
+name: three-states-defined
+kind: finding
+is: Proposal: gas is committed to no one, private to one evaluation or process, and nothing is lost if it goes. Water is committed to its holder, mutable by the holder only, and lives while the holder lives. Ice is committed to everyone, identified by its canonical bytes, never mutated, durable and shared by identity.
+status: inferred
+conf: mid
+from: 3.14.4.1 3.14.3.4 3.14.3.5 3.14.2.8
+limit: One earlier use gives gas little or no body (an identity barely instantiated), another a full node population in private RAM; the proposal allows both and leaves open whether another node may address a gas node. Water folds a read-only cache and a mutable draft into one state.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.3
+name: only-water-is-mutable
+kind: finding
+is: Proposed invariant 1: among nodes with a reader other than their maker, only water is mutable, and only by its holder. Ice is never written after birth. Gas has no reader but its maker and may change freely.
+status: inferred
+conf: mid
+from: 3.14.8.2
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.4
+name: reference-only-as-committed
+kind: finding
+is: Proposed invariant 2: a node references only nodes at least as committed as itself. Ice points only at ice, so its identity is computable and means the same everywhere; water points at water and ice; gas at anything. The Living Codex edge rule and the frozen file of the 2026-11-05 carrier already follow this rule.
+status: inferred
+conf: mid
+from: 3.14.1.4 3.14.2.9 1.3
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.5
+name: transition-conserves-the-node
+kind: finding
+is: Proposed invariant 3: a transition conserves the node and never changes its kind. A transition changes where the body is held and who may rely on it. With identity computed from content, the identity is conserved only while the content is unchanged.
+status: inferred
+conf: mid
+from: 3.14.3.2 3.14.3.3 1.3
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.6
+name: essential-and-pinned-ice
+kind: finding
+is: Proposal: ice carries one of two marks. Essential ice has no recorded deriving recipe and its loss is real; pinned ice is a kept result whose deriving recipe and inputs are ice. The rule to keep ice small applies to essential ice. Compiled machine code is never essential: it is gas (a page in RAM) or water (a keyed cache), at most pinned.
+status: inferred
+conf: mid
+from: 3.14.1.2 3.14.1.3 3.14.2.7 3.14.3.1
+limit: Whether a derivable artifact may be ice at all is open: the Living Codex audit demotes regenerable nodes to water, while the cache file of 2026-06-17 pins them as ice. The pinned mark is the study's bridge between the two.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.7
+name: six-named-operations
+kind: finding
+is: Proposed operations: condense (gas to water) materializes a body; freeze (water to ice) computes the identity and checks every child is ice; melt (ice to water) opens a mutable copy and leaves the ice as it is; evaporate (water to gas) releases the body; sublimate (ice to gas) drops the bytes and keeps the identity; thaw reads ice and verifies it.
+status: inferred
+conf: mid
+from: 3.14.1.4 3.14.2.3 3.14.2.4 3.14.2.7 3.14.2.9 3.14.3.2
+limit: The name evaporate is taken from the 2026-02 specs, where it meant loading into the runtime. A direct move from gas to ice is condense followed by freeze and gets no name.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.8.8
+name: freeze-is-offered-readings-invite
+kind: finding
+is: Proposal: freeze is the one transition that needs an offer, because it creates something others will rely on; the holder offers and the store acknowledges. Sublimate is refused for essential ice that is referenced. Counts and heat are readings that invite a freeze, a melt, a sublimate or a pin; a reading performs nothing.
+status: inferred
+conf: mid
+from: 1.5 3.14.1.2 3.14.2.4 3.14.3.2
+limit: Which of the four acknowledgments a freeze returns was not examined. Whether unreferenced essential ice may lose its bytes without consent is not settled.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9
+name: drop
+kind: hub
+is: Five uses the study's proposal leaves out: state bound to kind, which the owner rejected; the word ice for compiled code, compiled images and compile tiers; the application's idea lifecycle and queue pressure as states of a node; plasma as a fourth state; and a melt that edits a node under the same id.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9.1
+name: kind-as-state
+kind: finding
+is: Drop the binding Blueprint = ice, Recipe = water, NamedCell = gas. The owner rejected it on 2026-06-08 and a later commit under the owner's identity calls it "The misunderstanding". Any kind of node may be in any state.
+status: inferred
+conf: high
+from: 3.14.2.2 3.14.3.3 3.14.4.2
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9.2
+name: ice-for-compiled-code
+kind: finding
+is: Drop the word ice for compiled native code, on-disk compiled images and compile tiers; in the proposal these are pinned or cached materializations. The round-one mapping of compile tiers (stored node form as ice, baseline code as water, speculative code as gas) is a new axis that no owner statement supports.
+status: inferred
+conf: mid
+from: 3.14.4.3 3.14.2.6 3.14.8.6
+limit: The four round-one mappings were written without the sources this study read; two of them land on the compatible reading.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9.3
+name: lifecycle-and-queue-words
+kind: finding
+is: Leave out of the definition of node state the application's idea lifecycle, where ice means "not yet implemented" and water comes after ice, and queue pressure, where ice means a full queue. They measure other things: how far an idea is built, and how full a queue is. The lifecycle runs gas, ice, water, an order the node states do not have, and the application applies it to every node of its own graph; the queue reading uses the node states' own codes 0, 1 and 2. The application may keep its own words.
+status: inferred
+conf: mid
+from: 3.14.2.3 3.14.2.10
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9.4
+name: plasma-as-state
+kind: finding
+is: Drop plasma as a fourth state. It was added on 2026-08-14 in a commit with no trailer, and no owner statement was found for it. In the proposal a node that is both widely read and fast-changing is described by a reading, not by a state.
+status: inferred
+conf: mid
+from: 3.14.2.10 3.14.3.6
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin
+
+n: 3.14.9.5
+name: melt-that-keeps-the-id
+kind: finding
+is: Drop the 2025 melt's mutation in place, which leaves no ice behind. In the 2025 code the id is an assigned string and the content hash a separate field, so that melt already keeps continuity on a name while content changes; it does not conflict with content addressing. The proposal's melt opens a working copy that remembers the ice it came from, and continuity moves to the name that is re-bound after a later freeze.
+status: inferred
+conf: high
+from: 3.14.1.5 1.3
+limit: Moving continuity to the name binding is not attested by the owner.
+at: 2026-11-24
+by: r2/gap-ice-water-gas-origin

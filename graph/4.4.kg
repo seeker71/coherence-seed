@@ -1,0 +1,461 @@
+# What the study r1/web-numeric-root found: prior art for one numeric node space under every language.
+
+n: 4.4
+name: numeric-root
+kind: hub
+is: Prior art for one numeric node space under every language with symbols as a lens. Content identity with names kept outside is in production (Unison 1.0, November 2025, after seven years). Label lenses work for a system's own vocabulary and stop at user-chosen names and at the way back from text. Stores shared across languages keep constructs per language. Natural language works in controlled fragments (46 languages, 3 to 9 months each); the open-domain attempt is disputed in 2026. One absent marker with several readings is the known failure.
+limit: The study read every web page through a summarising fetch tool, nine fetches failed (among them Babelfish UAST, Dion and the SCIP design notes), long pages were read in their first 100,000 characters, and nothing was built or run. The encoder matched the wording of each web observation kept here against the page text on 2026-11-24.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1
+name: code-prior-art
+kind: hub
+is: Programming-side systems. NUMS.Go keeps symbols beside numeric nodes. Unison hashes name-free syntax trees and reached 1.0 after seven years. Label lenses stop at names the user chose. Code stores shared across languages keep a schema per language. Darklang abandoned its structure editor. Nix separates what was asked from what came out.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.1
+name: nums-go-symbols-beside-nodes
+kind: observation
+is: NUMS.Go keeps a symbol table per recipe: seven maps from strings to node instances (locals, parameters, integers, decimals, strings, literals, labels) beside three maps keyed by node instance or blueprint id. Its HTTP model imports a tree-sitter binding and switches over twelve language ids to pick a default file extension.
+status: observed
+src: 2.14.2#9-15 2.14.3#10 2.14.3#15-43
+limit: The first-round critic found 13 language ids in nums/parser.go and parser handlers for Go only; by the critic's verdict NUMS.Go represents a Go subset, executes nothing and does not build as checked in.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.2
+name: unison-hash-excludes-names
+kind: observation
+is: Unison identifies each definition by a 512-bit SHA3 hash of its syntax tree, excluding all names; names are separately stored metadata that do not affect the hash. A member of a mutually recursive cycle is addressed by the cycle's hash plus an index, the cycle being ordered by sorting its members by their individual hashes.
+status: observed
+src: 2.14.4 2.14.5
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.3
+name: unison-seven-years-to-1-0
+kind: observation
+is: Unison's milestone list gives the company founding in February 2018, a first alpha in August 2019, a move in April 2021 from a git-style filesystem codebase to SQLite for a 100x size reduction, and the 1.0 release in November 2025. C FFI support is listed among work still ahead.
+status: observed
+src: 2.14.6
+limit: A second store-format change, in version 1.1.0 of January 2026, reached the study only as a search-result summary of a blog post that was not fetched.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.4
+name: numbering-is-arbitrary
+kind: observation
+is: The Stanford Encyclopedia entry on the incompleteness theorems says of arithmetisation that there are many possible ways of accomplishing it and the details do not really matter. Of the diagonal construction it says the two sides have the same truth value and that no sameness of meaning is claimed.
+status: observed
+src: 2.14.7
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.5
+name: binder-names-removed-by-indices
+kind: observation
+is: Terms written with de Bruijn indices are invariant under alpha-conversion, so alpha-equivalence is syntactic equality. The locally nameless form keeps indices for bound variables and names for free ones and gives a unique representation of terms. The Dhall standard's alpha-normalisation renames all bound variables to de Bruijn indices.
+status: observed
+src: 2.14.8 2.14.9#1-2 2.14.10
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.6
+name: label-lens-stops-at-user-names
+kind: observation
+is: Excel translates function names for display each time a file is opened, and quoted text inside a formula is not translated. Changing the Scratch editor language does not translate variable names. Wikifunctions shows labels in more than 300 languages; its labelized view is often ambiguous and cannot always be translated to the machine-readable form.
+status: observed
+src: 2.14.11 2.14.12 2.14.13
+limit: The Excel source is a secondary site, not the vendor. The study quoted the Scratch and Wikifunctions sentences in the fetch tool's paraphrase; the wording here follows the pages.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.7
+name: shared-syntax-types-replaced
+kind: observation
+is: GitHub's semantic project replaced hand-written syntax types shared across languages, which its documentation calls essentially untyped, with trees generated per language from each tree-sitter grammar; the repository was archived on 2025-04-01. CodeQL has a database schema per language; Glean allows language-specific detail in each schema.
+status: observed
+src: 2.14.15 2.14.16 2.14.17 2.14.18
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.8
+name: mlir-generic-form-and-k-archive
+kind: observation
+is: MLIR's rationale describes pluggable dialects, progressive lowering, and a generic textual form that is a safe fallback beside each dialect's custom form. The K framework lists semantics for C, WebAssembly and EVM as current and for LLVM (2011-2018), Python (2012-2013), Java (2012-2016), JavaScript (2013-2015) and x86-64 (2017-2020) as archived.
+status: observed
+src: 2.14.19 2.14.20
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.9
+name: interaction-cores-are-deterministic
+kind: observation
+is: Interaction combinators have three agents (eraser, duplicator, constructor) and can simulate any other interaction system; strong confluence means no synchronisation is needed. Interaction nets are essentially deterministic and cannot model non-deterministic computation directly. The Bend 2 README says Bend 1 programs and HVM do not carry over.
+status: observed
+src: 2.14.21 2.14.22 2.14.43#288 2.14.43#526-530
+limit: The study's HVM1 figures (speed against GHC, a production target of Q1 2024) stand in the README of the HVM repository's default branch, master, and are left out of this node by choice. The address the study cites now redirects to HVM1; only the README on branch main, which describes HVM2, lacks them.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.10
+name: structure-editors-and-text
+kind: observation
+is: Darklang's post of 2024-03-12 reports abandoning its structural editor: about 50% of the codebase, buggy, and apart from users' normal development flows; a language server and existing editors replace it. Hazel typechecks and runs incomplete programs through holes, so no editor state is meaningless. MPS needs special support for diff and merge.
+status: observed
+src: 2.14.23 2.14.24 2.14.14
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.1.11
+name: nix-two-output-addresses
+kind: observation
+is: In Nix an input-addressed output path changes whenever the derivation that asks for it changes, while a content-addressed output path depends only on the name, the data and the addressing method, so a change with no real effect forces no massive rebuilds. A self-referring output needs a provisional path, a choice the manual likens to an impurity.
+status: observed
+src: 2.14.25
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2
+name: language-prior-art
+kind: hub
+is: Natural-language systems. Grammatical Framework renders one tree in 46 languages at 3 to 9 months each. Wikidata and Wikifunctions key things and functions by number with labels per language. Abstract Wikipedia faces a request to pause in 2026. AMR says it is not an interlingua. Montague semantics treats meaning as a homomorphism from syntax.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2.1
+name: gf-abstract-and-concrete-syntax
+kind: observation
+is: In Grammatical Framework an abstract syntax defines what meanings can be expressed and a concrete syntax per language maps them to strings; parsing takes a string to an abstract tree. Version 3.12 is dated 2025-08-08. Its resource library lists 46 languages, some partial; adding one takes 3 to 9 months; translation is usually for limited fragments.
+status: observed
+src: 2.14.26 2.14.27
+limit: The count of 46 is a count of the names in the page's list; the page states no number.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2.2
+name: wikidata-wikifunctions-numbered-labels
+kind: observation
+is: Wikidata identifies an item by Q and a number and gives it a label, a description and any number of aliases. Wikifunctions holds ZObjects, which its function model calls basically abstract syntax trees, with labels in more than 300 languages; all its functions are pure. A status headline of 2026-09-03 reads 5,000 Functions.
+status: observed
+src: 2.14.28 2.14.13 2.14.29 2.14.30
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2.3
+name: abstract-wikipedia-disputed-2026
+kind: observation
+is: Abstract Wikipedia was approved in May 2020 and is in soft launch in 2026 with three pilots. Google.org fellows advised decoupling it from Wikifunctions. A request for comment of 2026-07-14 reports that of 13 random abstract pages none was an acceptable article and proposes pausing or closing; the team replied 2026-08-20 that it is early beta.
+status: observed
+src: 2.14.31 2.14.32 2.14.33
+limit: The request for comment is a live dispute, an opening statement by one editor plus replies, not a neutral evaluation; the study read the first 200,000 characters of it. The year 2022 for the fellows' evaluation is the study's and is not in the page text.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2.4
+name: meaning-representations-and-interlingua
+kind: observation
+is: The AMR 1.2.6 specification (2019-05-01) says AMR is geared toward English and is not an interlingua. UMR 0.9 (2022-08-08) is meant to be cross-lingual: it structures annotation domains as lattices and uses general roles such as actor and undergoer. Universal Dependencies release 2.19 (2026-11-15) has over 200 treebanks in over 150 languages.
+status: observed
+src: 2.14.34 2.14.35 2.14.36
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.2.5
+name: designed-universals
+kind: observation
+is: Montague semantics holds that natural and formal languages differ in no theoretically important way; the Stanford Encyclopedia sums it up as syntax is an algebra, semantics is an algebra, and meaning is a homomorphism between them. Lojban aims to be syntactically unambiguous. Natural Semantic Metalanguage has 65 primes (14 in 1972).
+status: observed
+src: 2.14.39 2.14.37 2.14.38
+limit: The limits of Montague semantics that the study lists (indexicals and context, hyperintensionality, cross-sentence anaphora, idioms) were read through the fetch tool only.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.3
+name: absent-value
+kind: hub
+is: How a third, absent value has been read. Logic gives it at least four readings: undefined output, modal possibility, a junk value, and neither-or-both. SQL's single NULL carries both missing and inapplicable and is called inherently flawed. CUE puts every value in one lattice with a top and a bottom and merges independently of order.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.3.1
+name: third-value-has-several-readings
+kind: observation
+is: The Stanford Encyclopedia entry on many-valued logic (2026-01-17, revised 2026-09-29) records readings of a third truth value: the undefined output of a partial recursive function (Kleene), modal possibility (Lukasiewicz, who doubted bivalence over future contingents), a non-sensical junk value, and neither true nor false or both true and false.
+status: observed
+src: 2.14.40
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.3.2
+name: sql-null-one-marker-two-readings
+kind: observation
+is: SQL has one NULL marker for both missing and inapplicable information, and comparisons with it yield Unknown. A 1990 book by the relational model's author called the single marker inadequate and proposed two markers that say why data is missing. Two other authors call the SQL NULL implementation inherently flawed.
+status: observed
+src: 2.14.41
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.3.3
+name: cue-one-lattice
+kind: observation
+is: In CUE types and values sit in one lattice with a top and a bottom: bool is as much a value as true and false, unification is the greatest lower bound, and bottom, the result of a conflict such as true with false, is an instance of every value. Two configurations merge to the same result independently of order.
+status: observed
+src: 2.14.42
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4
+name: verdicts
+kind: hub
+is: What the study concluded. The thesis splits into six claims with uneven support. Three counter-arguments stand: a numeric root is trivial or unproven, natural language is no lens over a fixed meaning space, and leaving text has cost more than it returned. A run has a request identity and a result identity; concepts need a lattice of granularity.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.1
+name: six-claims-uneven-support
+kind: finding
+is: Six claims: numeric encoding is settled and uninformative; content identity with free names holds for pure code; symbol lenses are proven only for a system's own vocabulary; many languages share one node space structurally, not semantically; natural language holds in controlled fragments; three states suffice if readings of absence stay apart.
+status: inferred
+conf: mid
+from: 4.4.1.2 4.4.1.4 4.4.1.6 4.4.1.7 4.4.2.1 4.4.2.3 4.4.3.2
+src: 2.14.1#45-52
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.2
+name: counter-numeric-root-trivial-or-unproven
+kind: finding
+is: First counter-argument: any formal object can be numbered, arbitrarily, so a numeric root says nothing until equal meanings get equal or relatable identities across languages. Shared construct sets failed in practice, and a content hash tells apart programs that behave alike. Content identity and vocabulary lenses still stand.
+status: inferred
+conf: mid
+from: 4.4.1.4 4.4.1.7 4.4.1.8 4.4.1.1
+src: 2.14.1#625-633
+limit: The study's sentence that NUMS.Go works for Go is corrected by the first-round critic: NUMS.Go represents a Go subset and executes nothing.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.3
+name: counter-language-is-not-a-lens
+kind: finding
+is: Second counter-argument: natural language is not a lens over a fixed meaning space. AMR disclaims being an interlingua, UMR gave up one fixed granularity, Lojban removed only syntactic ambiguity, and Abstract Wikipedia faces a request to pause; meaning in use depends on speaker, time and discourse. Controlled-fragment rendering still stands.
+status: inferred
+conf: mid
+from: 4.4.2.3 4.4.2.4 4.4.2.5 4.4.2.1
+src: 2.14.1#635-644
+limit: That learned models translate well with no explicit interlingua is from model memory, unverified. The old body's own two-tongue files (form/form-stdlib/nl-translate.fk and others) were opened by no first-round report (critic G3), so this side rests on prior art alone.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.4
+name: counter-leaving-text-costs
+kind: finding
+is: Third counter-argument: leaving text and names has cost more than it returned. Unison needed seven years to 1.0 and a new store format and still lists a C FFI as future work; Darklang abandoned an editor that was half its code. The core idea worked early each time; the time went into the edge with the existing world. Hashing every node costs CPU.
+status: inferred
+conf: mid
+from: 4.4.1.3 4.4.1.10 4.4.1.9 4.4.2.1
+src: 2.14.1#560-566 2.14.1#646-655
+limit: No hashing cost was measured by the study.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.5
+name: request-and-result-identities
+kind: finding
+is: A recipe run has two identities worth keeping: the identity of the recipe with its arguments (what was asked) and the identity of the result (what came out). Only the second lets an unchanged result cut recomputation short. A cell that contains its own address is the hard case and needs one rule fixed early.
+status: inferred
+conf: mid
+from: 4.4.1.11 4.4.1.2 1.3
+src: 2.14.1#329-332 2.14.1#609-610
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.4.6
+name: concept-lattice-and-context-cells
+kind: finding
+is: For natural-language lenses, concept nodes sit in a lattice of granularity: a language attaches words at the level it lexicalises, and crossing lenses may generalise, with the loss recorded. Speaker, time, discourse and locale are argument cells of the offer and never part of the sentence node.
+status: inferred
+conf: low
+from: 4.4.2.4 4.4.2.5 4.4.3.3 1.5
+src: 2.14.1#595-600
+limit: No system that builds such a lattice for a kernel was examined; the proposal is drawn from annotation guidelines.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8
+name: keep
+kind: hub
+is: What the study recommends carrying forward: identity as a hash of name-free structure; names in a table per lens; a lens as a total linearise and a choice-valued parse; one grammar with namespaces of blueprints; host languages as namespaces; three identities kept apart; holes as nothing; one nothing with one propagation rule; four separable stages.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.1
+name: hash-name-free-structure
+kind: finding
+is: Identity is a hash of the name-free structure: binders by index or level, free references by node id, names excluded. Hash the structure, not a normal form, and record that two blueprints behave the same as an observed relation between two ids. Fix the rule for cycles and self-reference in the first design round.
+status: inferred
+conf: high
+from: 4.4.1.2 4.4.1.5 1.3
+src: 2.14.1#122-127 2.14.1#572-575
+limit: Hash width and the in-memory handle are unmeasured. Whether literal values sit inside the hashed structure is not chosen (critic C7), and other first-round reports keep a four-field coordinate as the id (critic C2).
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.2
+name: names-per-lens-and-lens-as-recipes
+kind: finding
+is: Names live in a side table keyed by node id and lens id; a lens id is itself a node, and user-chosen names are entries too. A lens is a pair of recipes in the one grammar: linearise is total, parse is a choice that may yield several candidate nodes or nothing. A label table alone is the lens that suffices for keywords and opcodes.
+status: inferred
+conf: high
+from: 4.4.1.1 4.4.1.6 4.4.2.1 1.7.2
+src: 2.14.1#544-551 2.14.1#577-582
+limit: No deployed label-lens system translates user-chosen names, and every one the study examined uses assigned ids, not content hashes; a content-addressed store with a multilingual name lens has no precedent among the systems read.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.3
+name: one-grammar-with-namespaces
+kind: finding
+is: One grammar after the MLIR pattern: one node shape, one generic printed form that always round-trips, and namespaces of blueprints. What BML adds over Form (choice, fail, stop, store, templates, generics, inheritance, objects) becomes higher-level blueprints that lower to core ones in the same node space; surface sugar is a lens.
+status: inferred
+conf: mid
+from: 4.4.1.8
+src: 2.14.1#584-586
+limit: That MLIR has one node shape (operation, operands, regions, attributes) is the study's reading of the rationale page, not a sentence matched in it. The list of what BML adds over Form was verified by nothing this study opened (locally the axioms file and two NUMS.Go files); the critic found no run of two items the request calls proven, multiple inheritance and objects as data pointer plus interface pointer.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.4
+name: host-languages-as-namespaces
+kind: finding
+is: Each host language (Go, C, Python) enters as its own namespace of precise blueprints, with tree-sitter in front as in NUMS.Go. Cross-language equivalences are recorded as explicit, witnessed relation cells. Host toolchains are reached through offered interfaces.
+status: inferred
+conf: high
+from: 4.4.1.7 4.4.1.8 4.4.1.1 1.4
+src: 2.14.1#553-558 2.14.1#588-590
+limit: The old body's own host-language grammars (form/form-stdlib/grammars/go-bmf.fk and four others) were opened by no first-round report (critic G4).
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.5
+name: three-identities-kept-apart
+kind: finding
+is: Three identities stay distinct: the blueprint (a content hash), the named cell (a pointer that moves; undo is repointing) and the external coordinate (a Wikidata id, a path in a repository). An external id is a name on a node, never its identity. Open numeric vocabularies such as Wikidata's Q, P and L ids are borrowed as names, not minted again.
+status: inferred
+conf: high
+from: 4.4.1.2 4.4.2.2 1.3 1.7.1 1.7.8
+src: 2.14.1#530-542 2.14.1#592-593 2.14.1#620-621
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.6
+name: holes-are-nothing-text-stays
+kind: finding
+is: Incomplete input is first class: a hole is nothing in a typed position, and every state of the node space can be printed, hashed and offered. Text stays a full editing lens, with a total printer and a partial parser, because Darklang abandoned a tree editable only through its own editor; MPS goes on with special tools for diff and merge.
+status: inferred
+conf: mid
+from: 4.4.1.10 1.1
+src: 2.14.1#312-317 2.14.1#602-603
+limit: One abandonment is the evidence, not a rule: the study's general sentence that a tree editable only through a bespoke editor fails is its own inference, and the MPS 2026.2 help, whose concrete syntax is not pure text, still describes diff and merge handled inside the tool.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.7
+name: one-nothing-one-rule-reasons-beside
+kind: finding
+is: Keep the state set at three, with one nothing and one propagation rule for every operator. Carry the reason for a nothing (timeout, declined, unreferenced, held) as an optional observable cell beside the state, as the absence-is-not-a-verdict theorem already does. Decide whether nothing is the lattice top and fail the lattice bottom.
+status: inferred
+conf: mid
+from: 4.4.3.1 4.4.3.2 4.4.3.3 1.1 1.7.17 1.7.19
+src: 2.14.1#508-526 2.14.1#605-607
+limit: The lattice reading is one of three in the first round: other reports read fail as acknowledgment 0 or as nothing, and the critic lists the question as not ready to decide (C1). The study did not examine the BML reference behaviour.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.8.8
+name: four-separable-stages
+kind: finding
+is: Keep four bets separable, in this order: a content-addressed node space with name lenses for the kernel's own vocabulary; host programming languages as namespaces; natural-language lenses for controlled fragments; open natural language, stated as a direction only. Each stage has value without the next.
+status: inferred
+conf: high
+from: 4.4.1.2 4.4.1.7 4.4.2.1 4.4.2.3
+src: 2.14.1#615-618
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9
+name: drop
+kind: hub
+is: What the study advises against: one universal construct set for all host languages; full host-language semantics inside the kernel; text-to-node as a function; one marker for several kinds of absence; a tree editable only through its own editor and a file per node; pivot concepts named in one language and self-description read as completeness.
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.1
+name: universal-construct-set
+kind: finding
+is: Drop the promise of one universal construct set or abstract syntax tree shared by all host languages. The one team that built shared cross-language syntax types replaced them with per-language types and its project is archived; the code stores that last keep a schema per language.
+status: inferred
+conf: high
+from: 4.4.1.7
+src: 2.14.1#200-208
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.2
+name: host-semantics-inside-the-kernel
+kind: finding
+is: Drop writing full semantics of host languages inside the kernel. The K framework's semantics for LLVM, Python, Java, JavaScript and x86-64 were each archived within one to seven years; the ones still maintained are C and small virtual machines. Carry the host language's structure and delegate execution to its toolchain.
+status: inferred
+conf: mid
+from: 4.4.1.8
+src: 2.14.1#244-247
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.3
+name: text-to-node-as-a-function
+kind: finding
+is: Drop the reading that a lens swaps symbols in both directions. Node to text is a function. Text to node is a search: ambiguous for natural language and for labelized forms, tractable for programming languages only because their grammars are designed to be unambiguous.
+status: inferred
+conf: high
+from: 4.4.1.6 4.4.2.1 4.4.2.4 4.4.2.5
+src: 2.14.1#544-551
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.4
+name: one-marker-many-readings
+kind: finding
+is: Drop two ways of repeating SQL's NULL: one undecided representation for both nothing and fail, and a propagation rule picked per operator; do not grow the state set to four or five values either. Axiom 1 already gives nothing three roles (potential field, timeout, chosen option), so the readings must be told apart beside the state.
+status: inferred
+conf: mid
+from: 4.4.3.1 4.4.3.2 1.1
+src: 2.14.1#510-524
+limit: In the old body's running offer core fail and stop are spellings of nothing (critic A5, B6); whether to separate them is not ready to decide (critic C1).
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.5
+name: bespoke-editor-and-file-per-node
+kind: finding
+is: Drop a tree that can be edited only through its own editor, and drop a store of one file per node. Darklang abandoned such an editor; Unison left its git-style filesystem codebase for SQLite at a 100x size reduction. The store is a compact database from the start, and the repository holds the bootstrap and at most an exported seed.
+status: inferred
+conf: mid
+from: 4.4.1.10 4.4.1.3
+src: 2.14.1#612-613
+limit: Another first-round report proposes plain text blocks under git as the stored form of the claim graph; the two fit only if the claim graph and the node store are different things (critic C9).
+at: 2026-11-24
+by: r1/web-numeric-root
+
+n: 4.4.9.6
+name: one-language-pivot-and-completeness
+kind: finding
+is: Drop pivot concept nodes labelled in one language's words, as AMR's English-geared vocabulary shows. Drop reading 'the grammar fully describes itself' as a completeness claim: a system that describes itself in its own numbers inherits incompleteness, so the claim means executable self-description only.
+status: inferred
+conf: mid
+from: 4.4.2.4 4.4.1.4
+src: 2.14.1#101-105 2.14.1#442-446
+at: 2026-11-24
+by: r1/web-numeric-root

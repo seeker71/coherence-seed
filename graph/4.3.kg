@@ -1,0 +1,442 @@
+# What the knowledge-representation study found (r1/web-knowledge-representation). Its sources are in 2.13.kg.
+
+n: 4.3
+name: knowledge-representation
+kind: hub
+is: A survey of knowledge representations against six requirements finds no prior system that meets all six and proposes immutable 'key: value' text blocks with ids computed from content, change by superseding nodes, derived views and hubs as bounded summaries. Published measurements: an edge list costs 2,645 tokens against 8,171 for Turtle and 13,503 for JSON-LD, at a higher score; key-value records scored 60.7% against JSON 52.3%. One claim is 333 bytes against 365 as compact JSON. Tokens, a local model's writing and merging were not tested.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1
+name: prior-systems
+kind: hub
+is: What existing systems show about claims, identity and summaries. The axioms already require change by new node and four acknowledgments. Nanopublications and Datomic keep units that are never edited and retract by addition. Git, IPLD and Unison compute identity from content and keep names apart. Counters collide between branches. A slip box keeps fixed addresses. A reduced description is a bounded summary that is itself a member of a larger set.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.1
+name: axiom-lines-on-change-and-acknowledgment
+kind: observation
+is: The axioms file states under axiom 3 that nothing referenced is overwritten, a new shape mints a new node id, undo repoints a name at a still-referenced blueprint, and names are free query keys. Axiom 5 acknowledges an offer by exactly one of nothing, 0, 1 or node, and a theorem keeps 'nobody answered' apart from 'everybody said no'.
+status: observed
+src: 2.1.1#66-75 2.1.1#88 2.1.1#212-219
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.2
+name: rdf-12-still-draft
+kind: observation
+is: RDF 1.2 Concepts is a W3C Candidate Recommendation Draft dated 16 November 2026 and RDF 1.2 N-Quads a Working Draft dated 20 November 2026; neither is a Recommendation. A statement about a statement is written as a reifying triple: its predicate is rdf:reifies and its object is a triple term.
+status: observed
+src: 2.13.5#1.5 2.13.6
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.3
+name: nanopublication-unit
+kind: observation
+is: A nanopublication is a citable unit of four named graphs: head, assertion, provenance and publication info. Its documentation says it can never be edited or deleted; a retraction is a new nanopublication, valid only when signed with the same public key. Trusty URIs (arXiv 1401.5775, 16 January 2014) put a hash of the content into the identifier.
+status: observed
+src: 2.13.7 2.13.8 2.13.9
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.4
+name: datomic-datoms
+kind: observation
+is: A Datomic datom is a five-tuple of entity, attribute, value, transaction and an added-or-retracted flag. A retraction is a new datom and the original assertion remains unchanged; the database can be read as of any transaction, and a transaction can have datoms that describe it. Four sort orders (EAVT, AEVT, AVET, VAET) are its indexes.
+status: observed
+src: 2.13.10 2.13.11
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.5
+name: content-hash-reaches-every-ancestor
+kind: observation
+is: Git names an object by the SHA-1 of a '<type> <size>' header, a zero byte and the content. In a Merkle DAG any change in a node alters its identifier and that of every ancestor, and no cycle can exist. Git's move to SHA-256, after the SHA-1 collision of 23 February 2017, needs a bidirectional mapping between old and new object names.
+status: observed
+src: 2.13.12 2.13.14 2.13.13
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.6
+name: names-outside-identity
+kind: observation
+is: Unison identifies code by a 512-bit SHA3 hash of its content; names are separately stored metadata that do not affect the hash. In KG-LLM-Bench, replacing the entity names in a graph with pseudonyms moved the overall score of the models from 0.385 to 0.383.
+status: observed
+src: 2.13.15 2.13.16#Table-5
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.7
+name: numeric-coordinates-in-two-bodies
+kind: observation
+is: NUMS.Go identifies a node by four unsigned integers, package, level, type and instance (16, 16, 16 and 32 bits), printed dotted; names live in separate symbol tables, and a new global instance number is the table's length plus one. An old-body note of 2026-09-14 records that its make_nodeid returns the same cell for the same four coordinates.
+status: observed
+src: 2.13.2#11-24 2.13.2#55-57 2.13.3#85-103 2.13.3#141 2.13.4#42
+limit: The old body's behaviour is taken from the note; the study did not run it.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.8
+name: counters-and-hash-ids
+kind: observation
+is: The 2011 article introducing architecture decision records numbers them sequentially, never reuses a number, and keeps a reversed decision marked as superseded. MADR 4.0.0 (17 September 2024) makes numbers unique only within a category folder. The Beads issue tracker uses hash-based ids such as bd-a1b2 to prevent merge collisions across branches.
+status: observed
+src: 2.13.17 2.13.18 2.13.19
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.9
+name: slip-box-fixed-address
+kind: observation
+is: The slip-box essay (an undated translation) decides against ordering by topics and sub-topics: each slip gets a number that never changes, slip 57/12 is continued by 57/13 and branched by 57/12a, and a keyword register gives entry. A 2020 introduction adds that a title used as an identifier cannot change unless every reference to it changes.
+status: observed
+src: 2.13.20 2.13.21
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.10
+name: reduced-description-in-hrr
+kind: observation
+is: The 1991 paper on holographic reduced representations compresses bindings, sequences and frames into a fixed-width vector that is itself an item: a reduced description of a set that can be a member of another set, reversible, so a part-whole hierarchy can be walked in both directions. A separate associative memory cleans up noisy reconstructions.
+status: observed
+src: 2.13.22#p30
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.11
+name: holographic-means-distributed
+kind: observation
+is: The 2009 paper Hyperdimensional Computing calls a representation holographic or holistic when information is distributed equally over all components, so that failing bits degrade it in proportion to their number whatever their position. The paper calls this very different from data in computers and databases, where bits are grouped into fields.
+status: observed
+src: 2.13.23#p142
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.12
+name: summaries-at-every-level
+kind: observation
+is: GraphRAG clusters a graph recursively until a community-size threshold is reached and writes a report for each community; the report of the top-level community covers the entire graph. The IPLD hash array mapped trie yields the same structure for a given set of keys and values regardless of insertion order.
+status: observed
+src: 2.13.25 2.13.24
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.1.13
+name: ranks-and-two-scales
+kind: observation
+is: Wikidata names an entity by a letter and a number, with per-language labels that need not be unique, and ranks each statement preferred, normal or deprecated; one known to include errors is deprecated with a reason. The Admiralty code rates a source's reliability (A-F) apart from the information's credibility, each with a 'cannot be judged' value.
+status: observed
+src: 2.13.27 2.13.28 2.13.26 2.13.29
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2
+name: measured-cost
+kind: hub
+is: Published measurements of text formats and memory designs for language models. One edge per line and YAML cost about a third of Turtle's tokens at higher scores; key-value records led eleven formats at 60.7%; an agent with plain file tools scored 74.0% against 68.5% for a graph memory; typed records with supersession returned 0.98-1.00 of expected answers; a 300-token prompt was answered better than a 113,000-token one. None used the tokenizers or the local model of this project.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.1
+name: graph-text-forms-benchmark
+kind: observation
+is: KG-LLM-Bench (arXiv 2504.07087, 9 April 2025, seven models, five tasks) reports mean input tokens and overall score for five ways of writing one graph as text: list of edges 2,644.8 and 0.412; structured YAML 2,903.1 and 0.406; structured JSON 4,504.7 and 0.419; RDF Turtle 8,171.1 and 0.349; JSON-LD 13,503.4 and 0.342.
+status: observed
+src: 2.13.16#Table-3 2.13.16#Table-5
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.2
+name: flat-record-formats-benchmark
+kind: observation
+is: A benchmark of 30 September 2025 put questions about 1,000 records to GPT-4.1 nano in 11 formats: Markdown key-value blocks 60.7% correct at 52,104 tokens, INI 55.7% at 48,100, YAML 54.7% at 55,395, JSON 52.3% at 66,396, Markdown table 51.9% at 25,140, JSONL 45.0% at 54,407, CSV 44.3% at 19,524.
+status: observed
+src: 2.13.30
+limit: One small model and one lookup task.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.3
+name: nested-data-and-toon-benchmarks
+kind: observation
+is: On nested data (14 October 2025) YAML scored 62.1% against JSON 50.3% on GPT-5 Nano, Markdown used 34-38% fewer tokens than JSON, and Llama 3.2 3B showed no significant format effect. TOON's own benchmark (4 models, 244 questions): TOON 72.2% at 2,474 tokens, compact JSON 69.0% at 2,892, YAML 70.1% at 3,487, JSON 71.4% at 4,308, XML 70.7% at 4,909.
+status: observed
+src: 2.13.31 2.13.32 2.13.33
+limit: The TOON figures are the project's own. Its specification changed incompatibly in version 4.0 of 22 July 2026 and stood at 4.4 on 8 October 2026.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.4
+name: files-against-graph-memory
+kind: observation
+is: An agent with only file tools scored 74.0% on LoCoMo with GPT-4o mini, against 68.5% reported for a graph memory (12 August 2025). One team replaced a graph memory, which took roughly 10 model calls per turn of 5 entities and 6 facts, with one text file capped at 8,000 characters (about 2,000 tokens), read whole on every request (1 October 2026).
+status: observed
+src: 2.13.34 2.13.35
+limit: Both are vendors' own reports.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.5
+name: typed-records-with-supersession
+kind: observation
+is: MOOSEDev (arXiv 2608.13662, 13 August 2026) keeps project memory as typed records with supersession links. On supersession, set-completeness and negation questions it returned 0.98-1.00 of the expected answer set, where a baseline's top-k retrieval surfaced between 6% and 27%; relevance recall and token cost were largely equivalent between the two.
+status: observed
+src: 2.13.36
+limit: Read from the abstract only.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.2.6
+name: context-length-cost
+kind: observation
+is: A report of 14 July 2025 evaluated 18 language models and found performance increasingly unreliable as input grows; on LongMemEval, focused prompts of about 300 tokens scored higher than full inputs of about 113,000 across all models. Guidance of 29 September 2025 asks for the smallest possible set of high-signal tokens in context.
+status: observed
+src: 2.13.37 2.13.38
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3
+name: proposed-format
+kind: hub
+is: The study's proposal and what was run for it: seven sentences that define a graph of immutable nodes, a block format of raw key-value lines with fourteen machine checks, three example ids recomputed as SHA-256 prefixes, one claim measured at 333 bytes against 365 as compact JSON, and git's union merge driver proposed for concurrent additions. No prior system met all six requirements. Token counts, a local model's writing and the merge were not tested.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.1
+name: seven-sentence-model
+kind: finding
+is: The study proposes: the unit is a node, one statement with how it is known; a node is immutable and its id is computed from its text; typed edges point only at nodes that already exist; a hub is an ordinary node holding a bounded summary; change is addition by a superseding node; views are derived; names sit in a separate file per language.
+status: inferred
+conf: mid
+from: 4.3.1.1 4.3.1.3 4.3.1.4 4.3.1.5 4.3.1.6 4.3.1.9 4.3.1.10
+limit: That the same blocks can later be read as cells of the one grammar is argued from the five axioms; the grammar does not exist yet.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.2
+name: block-format-and-checks
+kind: finding
+is: Proposed form: UTF-8 blocks one blank line apart; every line 'key: value' with a raw text value, no nesting, quoting or continuation, keys in fixed order; statements of at most 280 characters; files of at most 8 KB or 24 nodes. Fourteen machine checks cover shape, identity, immutability, references and status; nine fail a run, five only report.
+status: inferred
+conf: mid
+from: 4.3.2.1 4.3.2.2 4.3.2.4 4.3.3.3
+limit: The file budget is a first guess, and no parser or checker for this form was written in the study.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.3
+name: byte-and-hash-probe
+kind: observation
+is: The study computed three example ids (c808c09b, 25d9086d, 7200e47a) as the first 8 hex digits of SHA-256 over each block's lines after the id line. One claim block measured 333 bytes as key-value lines, 365 as compact JSON, 407 as pretty JSON, and 465 or 601 as Turtle without or with its prefix lines; the statement sentence alone is 135 bytes.
+status: observed
+src: 2.13.1#5.2 2.13.1#5.3
+limit: Bytes, not tokens, and one block. The three ids, the 333 and the 135 were recomputed from the report's text on 2026-11-24; the JSON and Turtle renderings were not kept, and the first-round critic confirmed 365, 407 and 601 from them.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.4
+name: git-union-driver
+kind: observation
+is: Git's built-in union merge driver takes lines from both versions of a text file and leaves no conflict markers. Its manual says the added lines tend to end up in random order and that the user should verify the result.
+status: observed
+src: 2.13.39
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.5
+name: no-prior-system-meets-all-six
+kind: finding
+is: Against six requirements (token cost, growth in place, one shape at every level, provenance with supersession, text under git, content addressing), none of eleven surveyed approaches meets all six. The proposal combines four: the nanopublication unit, the datom log with derived views, content ids with names apart, and the slip box's fixed address.
+status: inferred
+conf: mid
+src: 2.13.1#4
+from: 4.3.1.2 4.3.1.3 4.3.1.4 4.3.1.5 4.3.1.6 4.3.1.8 4.3.1.9 4.3.1.10 4.3.1.11 4.3.1.12 4.3.2.1
+limit: The marks in the comparison are the study's judgements from its reading, not measurements. Three of the eleven rows (property graphs, AtomSpace and MeTTa, IBIS and Toulmin) have no observation node in this graph and rest on the report alone.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.3.6
+name: format-not-exercised
+kind: finding
+is: The proposed format was designed and not exercised: no tokenizer was run, no local model wrote or read the blocks, and 'merge=union' over files of immutable blocks was argued from git's manual and never tried. The first-round critic adds that the format was not compared with the old body's own line-per-value rows or its binary node form.
+status: inferred
+conf: high
+src: 2.31#r1/critic.md-G13
+from: 4.3.3.3 4.3.3.4
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8
+name: keep
+kind: hub
+is: Eight things the study carries forward: a claim with its provenance as an immutable unit changed only by addition; identity computed from content with names apart; raw key-value line blocks; hubs as bounded summaries of one shape at every depth; views and indexes that are derived; how a claim is known kept apart from a coarse confidence; reviews that take the four acknowledgments; and loading less before compacting syntax.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.1
+name: immutable-claim-unit
+kind: finding
+is: Keep the claim together with its provenance as one unit that is never edited: a correction is a new node that names the node it supersedes and restates the full claim, and 'current' is computed. Nanopublications, Datomic and axiom 3 work this way, and typed records with supersession links answered supersession questions at 0.98-1.00.
+status: inferred
+conf: mid
+from: 4.3.1.1 4.3.1.3 4.3.1.4 4.3.2.5 1.3
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.2
+name: content-id-names-apart
+kind: finding
+is: Keep identity as a hash of the node's content, written as a short prefix (8 hex digits, where a collision becomes likely near 65,000 nodes and is met by lengthening the prefix), with the hash algorithm stated once in the store. Keep names in a separate table per language that changes no id; a node may have no name, one or many.
+status: inferred
+conf: mid
+from: 4.3.1.5 4.3.1.6 4.3.1.7 1.3 1.7.2
+limit: The study leaves open whether the hash should cover the provenance lines and whether graph nodes later receive four-number coordinates.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.3
+name: key-value-line-blocks
+kind: finding
+is: Keep self-describing 'key: value' lines and one edge per line as the stored surface: in the published benchmarks they sit at or near the best accuracy at well under JSON's token cost, and a familiar surface is the safer choice for a small local model. One canonical text form per node keeps a hash of the text meaningful.
+status: inferred
+conf: mid
+from: 4.3.2.1 4.3.2.2 4.3.2.3 4.3.3.3
+limit: No benchmark tested this block shape, and published results move with the model and the task.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.4
+name: hub-as-reduced-description
+kind: finding
+is: Keep one node shape at every depth: a hub is a bounded summary of its members and is itself a member of the hub above, so the root gives the whole at low resolution. A file over its budget splits into child hubs of the same shape. Membership is declared by the child, because a content-addressed parent cannot list members that do not exist yet.
+status: inferred
+conf: mid
+from: 4.3.1.10 4.3.1.12 4.3.1.5 4.3.1.9
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.5
+name: derived-views-and-indexes
+kind: finding
+is: Keep every view computed and none hand-kept: current, superseded, contested, stale and unreviewed states, reverse edges and the id-to-file index are sort orders or rules over the nodes. A vector or embedding per hub may serve as a lossy derived index; the exact text nodes stay the store of record, as the clean-up memory does for a reduced vector.
+status: inferred
+conf: mid
+from: 4.3.1.4 4.3.1.10 4.3.2.4
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.6
+name: status-apart-from-ordinal-confidence
+kind: finding
+is: Keep how a claim is known (observed, inferred, assumed) apart from how far to lean on it, given as a coarse ordinal with an explicit 'cannot judge' value. Drop a numeric confidence: both rating schemes read (Wikidata's three ranks, the Admiralty code's two six-step scales) grade in a few named steps, and a finer number is unsupported precision.
+status: inferred
+conf: mid
+src: 2.13.1#2.17
+from: 4.3.1.13
+limit: The report's wider reading, that no surveyed system defends a numeric confidence, also counts AtomSpace deprecating its truth-value type, which has no observation node in this graph. The Admiralty credibility scale is written 1 to 6; the digits name six steps.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.7
+name: review-takes-four-acknowledgments
+kind: finding
+is: Keep review as an acknowledgment with the four values of axiom 5: no review yet (unreviewed, which is not refuted), 1 (a review confirms), 0 (a review disputes and says why), node (a new node supersedes). A review is its own node that points at its target, written in a round that is itself a node.
+status: inferred
+conf: mid
+from: 4.3.1.1 1.5 1.7.19
+limit: The study leaves open whether a review may carry a narrower verdict than 0 or 1, such as a right statement with a wrong locator.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.8.8
+name: load-less-before-compact-syntax
+kind: finding
+is: Keep the large savings structural: small files, a summary at every level, a shared source node cited by id in place of a repeated URL, and no file loaded that is not needed. In the byte probe syntax was a tenth to a fifth of a claim against JSON and the sentence 40% of the block; published results show long context costing more than syntax saves.
+status: inferred
+conf: mid
+from: 4.3.2.6 4.3.2.4 4.3.3.3
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9
+name: drop
+kind: hub
+is: Seven things the study lets go: RDF or JSON-LD as the stored form; compact tables and JSONL as the stored form; sequential numbers as identity; a topical directory tree as identity; a status field edited in place; calling a text store holographic in the vector sense; and a graph database or embedding store as the store of record. An eighth, numeric confidence, is stated with its replacement under keep.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.1
+name: rdf-or-json-ld-as-stored-form
+kind: finding
+is: Drop RDF Turtle and JSON-LD as the stored form: the same graphs cost three to five times the tokens of an edge list (8,171 and 13,503 against 2,645) and scored about seven points lower, and the RDF syntax for statements about statements is still a draft in November 2026. A lossless export of one node to one named graph keeps RDF tooling available.
+status: inferred
+conf: high
+from: 4.3.2.1 4.3.1.2
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.2
+name: tables-and-jsonl-as-stored-form
+kind: finding
+is: Drop TOON, CSV tables and JSONL as the stored form. TOON undercuts compact JSON in tokens only on uniform arrays and its specification is still changing, while claim nodes carry prose and differ in their fields. In the one lookup benchmark CSV scored 44.3%, a Markdown table 51.9% and JSONL 45.0% against 60.7% for key-value blocks.
+status: inferred
+conf: mid
+src: 2.13.32
+from: 4.3.2.2 4.3.2.3
+limit: The TOON token counts are the project's own: 1.6% above compact JSON over its mixed-structure datasets, below it where every row is tabular, and 5.9% above CSV on flat data. The report's remark that long JSONL lines diff poorly has no source.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.3
+name: sequential-numbers-as-identity
+kind: finding
+is: Drop counter-allocated numbers as the identity of nodes written by several writers under git: a per-table counter, as in NUMS.Go instance numbers or decision-record numbers, is sound inside one process and collides between branches, which is the reason one issue tracker gives for its hash-based ids.
+status: inferred
+conf: mid
+from: 4.3.1.7 4.3.1.8
+limit: The collision is argued from how counters are allocated; the study did not produce one.
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.4
+name: topical-tree-as-identity
+kind: finding
+is: Drop a topical directory tree, or a fixed table of sections, as the identity of a node: topics shift, and a title used as an id cannot change without rewriting its references. A fixed address that never moves needs no filing system; file and directory names are then a lens, and membership is an edge.
+status: inferred
+conf: mid
+from: 4.3.1.9
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.5
+name: status-edited-in-place
+kind: finding
+is: Drop a status field that is edited inside an existing record: the edit overwrites content that other nodes referenced, which axiom 3 rules out, and two branches editing the same line conflict on merge. A superseding node or a review node carries the change.
+status: inferred
+conf: mid
+from: 4.3.1.1 4.3.1.4 4.3.1.8
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.6
+name: holographic-in-the-vector-sense
+kind: finding
+is: Drop the claim that a text graph is holographic in the vector sense: that property is information spread equally over all components of a vector, and the paper that defines it contrasts it with records grouped into fields, which a text file under git is. The accurate claim is a self-similar structure with a reduced description at every level.
+status: inferred
+conf: high
+from: 4.3.1.10 4.3.1.11
+at: 2026-11-24
+by: r1/web-knowledge-representation
+
+n: 4.3.9.7
+name: database-as-store-of-record
+kind: finding
+is: Drop a graph database or an embedding store as the store of record for the design graph: one graph memory built by model extraction took roughly 10 model calls per turn, two vendor reports favour readable files over a graph memory, and one paper favours typed records over vector retrieval. Both stay available as derived indexes.
+status: inferred
+conf: low
+from: 4.3.2.4 4.3.2.5
+limit: That neither store is diffable under git is assumed; nothing read measures it, or an embedding store's write cost. The paper's abstract says its typed records are captured in a knowledge graph and its baseline is a production vector-memory tool, so it counts against vector retrieval and not against a graph store.
+at: 2026-11-24
+by: r1/web-knowledge-representation

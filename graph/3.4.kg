@@ -1,0 +1,439 @@
+# What the form-language study of round 1 found. Sources are in graph/2.7.kg and graph/2.kg.
+
+n: 3.4
+name: form-language
+kind: hub
+is: Old Form, read and probed with 40 one-line programs at commit b8ff978c9: an S-expression floor of 4 special forms and 287 table rows (221 operations, 66 rewrites) answered by a 34,149-line C seed; 974 .fk and 1,105 .bml files, about 309,000 lines. A 64-bit NodeID whose composite instances are indices in a shared field, not content digests. Two trees for one recipe. fail, stop and timeout all lower to nothing, recovered by attempt. Ice, water and gas have eight uses with no single definition. Proof is an integer pinned in a file header.
+limit: Covers the core language, not the 974-file library: the dialect sections form.action, form.route and public, the walker arms, the collector and the JIT emitters were not read line by line. No band was run. Probes ran on one binary on one arm64 macOS machine against a shared field already holding 21.7 million nodes.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1
+name: language
+kind: hub
+is: The executable surface of old Form: four hand-parsed special forms; a table of 221 operations and 66 rewrites; a pure core in ten families pinned by ten laws; first-class functions with capture; units linked by preludes and imports and lowered from a second grammar; a call that answers one record; host doors; two JIT lanes; grammar rules held as data.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.1
+name: special-forms-and-branch-law
+kind: observation
+is: The old S-expression reader hand-parses four special forms (defn, do, let, if) and the words true and false; no quote, macro or anonymous-function form exists. The if form treats 0 as false and every other integer, every string and every list, empty ones included, as true, and stops the program on nothing.
+status: observed
+src: 2.1.7#25033,25116,25130,25161,25672-25676 2.7.1#43,319-320
+limit: The branch law was probed on one binary (probes empt1 to empt3 and ifnoth). That no other special form exists rests on a search of the reader for its symbol comparisons.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.2
+name: namespace-and-call-resolution
+kind: observation
+is: Old Form has one flat function table per process with a per-cell name window and no module-qualified names; files use a name prefix by convention. In call position a reserved primitive name wins over a local binding and over a user defn: a user-defined str_len still answers 3 for "abc". The axioms file records a related seam, not this order.
+status: observed
+src: 2.7.3#77-85 2.1.7#25172-25183,25188,25210,25321-25328,25338 2.7.29#65-69 2.1.1#196,198 2.7.1#49,324
+limit: The seam the axioms file records is that call position resolves a name against the global table before the local frame, with a note that the historical shadowing defect did not reproduce on 2026-08-17; it does not record that a primitive beats a user defn. The seed asks the rewrite table, the operation table, the local frame, then the defn table, and its comment says a local binding beats a same-named global defn since a heal of 2026-07-17.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.3
+name: op-table-and-float-leaf
+kind: observation
+is: The old operation table, answered by a 34,149-line C seed, has 221 primitive rows and 66 reader rewrites. 57 rewrites, attempt among them as mode 28, lower to one overloaded operation, float_leaf (tag 201), with a mode number, because the AST tag space is full. Primitive rows include files, sockets, TLS, GPU, sensors and mesh; aliases share a tag.
+status: observed
+src: 2.1.10#8-228,233-300 2.7.3#380-381 2.1.7
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.4
+name: pure-core-and-laws
+kind: observation
+is: The old interface document commits to a pure core in ten families (numbers, floats, equality, bits, strings, lists, absence and control, kind, records, nodes) and pins ten laws, asked by one band. Strings are bytes over four operations. The core library keeps the recipe of an operation that became native, and bands hold recipe and native equal.
+status: observed
+src: 2.7.2#19-65 2.7.26#1-12 2.7.5#15-20,90-98
+limit: The laws band was not run by the study; its 34-bit verdict 17179869183 is read from the band's header.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.5
+name: functions-and-closures
+kind: observation
+is: Old Form functions are first-class by name, and a nested defn captures the enclosing frame's values: (let add10 (make-adder 10)) then (add10 5) answers 15. A lambda in the second grammar lowers to a defn with a generated name embedding a NodeID. A self tail call runs as a loop: probes answered 3,000,000 tail iterations and 100,000 non-tail frames.
+status: observed
+src: 2.7.37#7-13 2.7.22#95,106 2.1.7#25001-25004 2.7.1#206-209,315,330-331 2.7.3#110-114 2.7.38#11-17
+limit: The sample binds the returned closure to a name before calling it, and the lowered offer core binds a computed callee to $callee first; no source read here shows a call whose head is not a symbol. The cell document's stop at 2047 non-tail frames is a wall on measured stack use (the run thread's reserve less 2 MB), reached by one two-function recursion at 266 MB of walker stack on 2026-10-04, not a frame count; the study did not measure the stack its 100,000-frame probe used. A private note of 2026-11-24 records a closure over locals failing at about its 1,024th call, unrepaired; the study did not re-verify the note.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.6
+name: units-and-lowering
+kind: observation
+is: A unit's closure in old Form is its preludes, declared in a comment line, its imports, and names from a 39-line home index. Each .bml file and each .fk file with a section is lowered by a floor compiler, a 23-unit plain-Form closure, into a .lowfk text memo with dependency fingerprints. 575 of 974 tracked .fk files carry a section [form.bml].
+status: observed
+src: 2.7.2#10-15 2.7.7#15-19 2.7.34#1-4 2.7.3#202-213 2.7.22#1-60 2.7.1#17
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.7
+name: cell-call
+kind: observation
+is: The old body's cell_call(path, argument, deadline_ms) runs a unit inside the calling process and always answers one record: value, out, err, diag, stopped, errors, resident, ms, cpu_us. No exit code and no stderr stream cross: err is empty, a stop crosses as the record stopped {kind, message, recipe, unit}, each diagnostic as a record in diag.
+status: observed
+src: 2.7.3#17-45,146-158
+limit: The document records about 55 ms before a spawned unit starts and 0.1 ms for a resident call of (do 7); these are the old body's own figures, and the study did not re-measure them.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.8
+name: host-doors
+kind: observation
+is: The old interface document's target is one table of host doors in ten families (file, path, process, stream, clock, shared, gpu, device, entropy, self): a door answers its value or nothing, the reason is a word read with host_why, a handle is an index and a generation so a stale handle answers nothing, and await is the one place the body blocks.
+status: observed
+src: 2.7.2#98-135,183-186
+limit: The document's order of work does not mark the door table as standing and says per-verb timing is not built yet; the running operation table still holds host operations as primitive rows with aliases.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.9
+name: two-jits
+kind: observation
+is: The old seed has two JIT lanes: a C lane that compiles pure-float defns and self-tail-call loops at heat 1024, and a page JIT written in the body's language, offered a defn at each multiple of 4096 heat or 32 time samples, which writes AArch64 words and binds them with jit_fn_bind. Each strict operation is one C function both walker and page call.
+status: observed
+src: 2.1.6#1274-1297,1381-1385
+limit: Read from the old body's floor record. The study did not read the emitters line by line or run the page lane.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.1.10
+name: grammar-machinery
+kind: observation
+is: The old body holds grammar as data: a cursor with no tokenizer, patterns (lit, cls, run, seq, alt, opt, cap), templates that build nodes (emit, splice, const), and reversible rules written name ::= pattern => action <= reverse. A Form evaluator on that cursor is a 172-line file, and the form.lift dialect, with infix, is a 112-line rule file.
+status: observed
+src: 2.7.24#235-271 2.7.23#15-17 2.7.35#9 2.7.31#1-33 2.7.18#22-108
+limit: The evaluator's band was not run; its verdict 65535 is quoted from the file header.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2
+name: data-model
+kind: hub
+is: What a value and a node are in old Form: ten value kinds; a 64-bit NodeID of package, level, type and instance in which an integer is its own identity; composites interned by content yet identified by a field index; a recipe held as two different trees; a blueprint with three authorities and a cell with four carriers; 63-bit integers and binary64 floats; an inert wire format; a store that appends and a boot that writes new images.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.1
+name: value-kinds
+kind: observation
+is: value_kind in the old seed names ten kinds: unknown, null, bool, float, string, closure, record, node_id, list, int. true, false and comparison results have kind int. nothing has kind null and renders as nothing in print and as null in value_str. A record is keyed and mutable in place, and the record table has no collector.
+status: observed
+src: 2.1.7#19436 2.7.2#95-96 2.7.3#388 2.7.1#87-95,317,327-328
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.2
+name: nodeid-word
+kind: observation
+is: The old NodeID is one 64-bit word: a mode bit, then package 6 bits, level 13, type 12, instance 32. With the mode bit clear the word is the coordinate 1.1.1.i, a 63-bit signed integer held directly, so an integer is its own NodeID. A float32 leaf 1.1.6 holds its IEEE-754 bits as instance; string and float64 leaves hold a kernel-local table index.
+status: observed
+src: 2.1.11#6-31 2.7.28#28-34 2.7.2#36 2.7.1#106,344
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.3
+name: composite-id-is-field-index
+kind: observation
+is: intern_node(category, children) answers the same word for equal content. The word holds package 0, the category's level and type, and an instance that is a running index in the host's shared node field, not a content digest: a probe read @0.2.99.21759736 while the field held 21,759,736 nodes. Old documents call composite identity local to a kernel.
+status: observed
+src: 2.7.1#110-116,321-322 2.7.4#5-6 2.7.11#91
+limit: One machine and one shared field; instance numbers are specific to that field. The round's critic confirmed the two documents and did not re-run the probe, which writes into the shared field.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.4
+name: two-tree-representations
+kind: observation
+is: A recipe exists twice in the old body: as a content-interned NodeID tree that is observed and never walked, and as a separate tree of 8-bit-tagged C nodes that the reader builds and the walker executes. The old compiler target file says the native JIT should consume the recipe graph directly and that graph execution still uses the walker.
+status: observed
+src: 2.7.7#47-52 2.1.7#25099-25169 2.7.12#5,9
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.5
+name: blueprint-and-cell-carriers
+kind: observation
+is: An old-body blueprint has three coexisting authorities: a hand-kept JSON registry the kernel does not read, rows in form-ontology-bp.fk, and the compiled program image. The word cell names four carriers: a persisted named cell identified by domain and name, a tagged list in the core library, an in-process callable unit, and shared-memory cell maps.
+status: observed
+src: 2.7.8#8-20 2.7.9#11-19 2.7.13#20-28 2.7.5#483-495 2.7.3#17-41 2.1.10#106-110
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.6
+name: numeric-tower
+kind: observation
+is: Old Form integers are 63-bit and wrap at 2^62; div and mod truncate and stop on zero. Floats are binary64 and mixed arithmetic promotes. make_float32 and make_float64 answer NodeID leaves of kind node_id, a second float form. No bignum, rational, complex or unsigned 64-bit kind exists. (eq 1 1.0) answers 1; (value_eq 1 1.0) answers 0.
+status: observed
+src: 2.7.2#50-57 2.7.1#194-199,323,332,344
+limit: Probed on one binary. That comparisons blur beyond 2^53 comes from a private note the study did not re-verify.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.7
+name: wire-formats
+kind: observation
+is: FORMBIN2 is the old body's inert node-tree wire format, its codec in the body's language, with ceilings of 64 MiB, 262,144 strings and 1,000,000 nodes and a gate of 13 canonical, 12 malformed vectors. The suffix .fkb also names an unrelated compile cache, fresh by mtime and size when both stand and are over two seconds old, else by a byte digest.
+status: observed
+src: 2.7.4#3-48 2.7.3#92-93 2.7.1#231,346
+limit: The conformance gate was not run by the study; its witness 511 is quoted from the document. The cell document's freshness sentence speaks of a dependency of the image: mtime and size that stand and are older than two seconds mean it is what was parsed, and any doubt reads the bytes and compares the digest.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.8
+name: string-category-round-trip
+kind: observation
+is: A probe of bytes_to_recipe(recipe_to_bytes n) on the old runtime returned the same node when the category was a coordinate. With a string leaf as category, the shape a shipped sample uses, the original @0.1.2.21759737 came back as @0.0.0.21759738 and node_eq answered 0. The sample still answers 0.8125 because it compares only the child.
+status: observed
+src: 2.7.1#236,338-340 2.7.33#27-34
+limit: One binary of 2026-11-20 on one machine; not reproduced by the critic.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.2.9
+name: store-and-boot
+kind: observation
+is: In the old body a persisted store is a channel of messages in one file: a cell is appended, and lookup keeps the last match for domain plus name. The boot recipe loads an image, registers a channel, and accepts offered cells by writing the seed plus the offers to a new image; writing onto the seed image's own path is refused with 0.
+status: observed
+src: 2.7.13#59-81 2.7.25#1-3,81-107
+limit: Read as source. The boot band was not run; its verdict 9 is quoted from a specification file.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.3
+name: node-states
+kind: hub
+is: Ice, water and gas in the old body. The runtime defines them as the three homes of the node population (shared field, per-process store, private heap) and reports a census. Seven other files reuse the words for circulation phase, cache tier, compiled against interpreted code, the blueprint-recipe-cell trinity, dialect literals, channel layers and queue pressure, with numeric codes that disagree.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.3.1
+name: states-as-node-homes
+kind: observation
+is: Inside the old runtime, ice, water and gas are the three homes of the node population: ice is the host-wide shared field that outlives every kernel, water is a per-process shared store gone with its process, gas is the private heap. Exactly one home holds the whole population at a time. A probe of the census read gas 0, water 0, ice 21,759,736.
+status: observed
+src: 2.1.7#22929-22943 2.7.27#46-51 2.7.1#132,322
+limit: The census is read-only; nothing in the language enforces a state on a node.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.3.2
+name: states-other-uses
+kind: observation
+is: Beyond node homes, the old body uses ice, water and gas in seven other senses: a phase function (gas 0, water 1, ice 2, plasma 3); cache tiers; interpreted against compiled recipes; blueprint as ice, recipe as water, named cell as gas; form.lift literals (ice 2, liquid 1, compost 0); channel phases (gas 1, water 2, ice 3); queue pressure.
+status: observed
+src: 2.7.14#4-46 2.7.36#10-14 2.7.15#10-16 2.1.4#574-576 2.7.10#28-31,206-211 2.7.16#16-21 2.7.17#6-13 2.7.18#11,91-93 2.7.19#53-56,90 2.7.20#70-73
+limit: The study found no caller that applies the phase function to real nodes. The round's critic relays that an unread README of an earlier NUMS.Go study states the blueprint, recipe and named-cell mapping and is its likely origin, and that no NUMS.Go file contains the words ice or gas.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4
+name: control-errors-proof
+kind: hub
+is: How old Form answers, fails and proves. A 66-line core gives the four acknowledgments one discriminator plus hold, census and choice. Underneath, fail, stop and timeout are all the value nothing and attempt is the one recover point. The reason for a stop is dropped by attempt and held as a value only by a cell call. Sentinel values and stale documents remain. Proof is a bit-sum integer pinned in a band's header.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.1
+name: ack-core
+kind: observation
+is: The old running offer core is 66 lines. The nothing acknowledgment is the value nothing; zero, one and node are interned nodes of blueprints OAC-ZERO, OAC-ONE and OAC-NODE, read by one discriminator, oac-kind. The core adds choice, hold under a patience count, a chain that holds on silence, and a census counting answered apart from silent.
+status: observed
+src: 2.1.13#5-64 2.7.9#14-19
+limit: The band of the core was not run; its verdict 32767 is quoted from the band header.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.2
+name: control-lowers-to-nothing-and-attempt
+kind: observation
+is: In the lowered offer core of the old body, oac-fail and oac-stop are both (nothing); try and catch become attempt followed by nothing?; choice is recursion over a list of function values. In the choice lane, store and restore are identity functions, a timeout is a spent budget answering nothing, and restoring does not reverse host effects.
+status: observed
+src: 2.7.22#89-96 2.1.13#26-30 2.7.21#1-2,16-34
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.3
+name: error-three-layers
+kind: observation
+is: Old Form has three error layers: nothing as an ordinary value; a stop, a named refusal that unwinds to the nearest attempt or ends the program with exit 1; and (attempt x), which answers nothing when x stopped. Under attempt the reason is printed as an organ-health-v1 JSON line, not returned; a cell call holds it as a value, in stopped and diag.
+status: observed
+src: 2.7.1#175-177,318,320,342-343 2.7.2#52-53,122-125 2.7.3#37-38,51-53,61-63
+limit: Probed on one binary. Examples: nth past the end answers nothing; divide by zero and if on nothing stop. The field stopped is a record {kind, message, recipe, unit} and diag a list of records. The cell call is a second recover point: a spent deadline jumps past any attempt the cell holds to the call's own recover point.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.4
+name: surviving-sentinels
+kind: observation
+is: The old interface document's failure rule for host doors rules out negative codes, an empty string or list for absence, and 0 for refusal. Sentinels still stand elsewhere: str_byte_at answers -1 out of range, ord and the wire writer answer -1, lookup-cell answers a list of zero or one element, and the Form evaluator uses 0 as an empty environment.
+status: observed
+src: 2.7.2#60,122-126 2.7.5#119 2.7.30#56 2.7.13#75-81 2.7.31#42,50 2.7.1#323
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.5
+name: docs-versus-behaviour
+kind: observation
+is: Probes found the old core library's assert cannot fail: it relies on (head (empty)) stopping, and that call answers nothing. Three documented rules are stale: (seq ...) is a listed verb and an unresolved call; let inside a defn body is forbidden on paper and works; eq is documented for integers and nodes and answers 1 on equal strings and lists.
+status: observed
+src: 2.7.5#527-530 2.7.32#24 2.7.6#93,124-125 2.7.1#183-186,325,329,332,341
+limit: Behaviour was probed on one binary built 2026-11-20.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.4.6
+name: bands
+kind: observation
+is: A band in the old body is a program that answers a bit-sum integer, each bit one falsifiable claim, held to the verdict pinned in its own header; the sweep also fails a band that exits nonzero. 584 band files are tracked. The axioms file records a broken chain that answered 2097151 with exit 1, the same number as the healed chain.
+status: observed
+src: 2.7.6#5-7,71-79 2.7.7#8-13 2.1.1#219 2.7.1#260
+limit: No band was run by the study; a run writes cache files beside sources. Verdicts are quoted from headers and documents.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8
+name: keep
+kind: hub
+is: Six ideas of old Form the study marks essential for the restart: one absence value with four acknowledgments and one recover point; numbers as coordinates with content interning; recipes and closures as values with natives as measured replacements; three standing boundary contracts and one stated target, the host door; falsifiable claims pinned beside code; grammar rules and the JIT written in the language itself.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.1
+name: one-absence-four-acks
+kind: finding
+is: Keep nothing as the one first-class absence, the four-valued acknowledgment read by a single discriminator, attempt as the single recover point, and the hold, census and backtrack-with-memory drivers built on them. The old running cores hold all of these in 107 lines over the two facts nothing and attempt.
+status: inferred
+conf: high
+from: 3.4.4.1 3.4.4.2 3.4.4.3 1.1 1.5 1.7.17 1.7.19
+limit: Whether fail is the 0 acknowledgment or nothing, and where the reason for a nothing lives, is not settled by the study.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.2
+name: numbers-as-coordinates
+kind: finding
+is: Keep the four-field numeric coordinate for issued identities, with a number being its own identity (an integer is 1.1.1.v, a float32 is 1.1.6 with its bits), content interning of composites, and names resolved to coordinates through a codebook so that a name stays a query key.
+status: inferred
+conf: mid
+from: 3.4.2.2 3.4.2.3 3.4.2.5 1.3 1.7.2
+limit: The round's critic records that NUMS.Go and the old runtime give different meanings to package, level and type, and that other reports make identity a content hash; the shape of the identity word is not settled.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.3
+name: recipes-closures-native-replacement
+kind: finding
+is: Keep recipes as data, first-class closures, the self tail call as a loop, strings as bytes over four operations, and the rule that a native operation is a measured replacement of a recipe that stays in the library as the statement of its meaning, with a check holding the two equal.
+status: inferred
+conf: high
+from: 3.4.1.4 3.4.1.5 3.4.2.4
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.4
+name: boundary-contracts
+kind: finding
+is: Keep three boundary contracts standing in old Form and one stated target: a cell call answering one typed record; an inert wire format the language owns, proved by malformed vectors; extension by writing a new image, never rewriting one; and the target, a host door answering a value or nothing, with a reason word and handles carrying a generation.
+status: inferred
+conf: high
+from: 3.4.1.7 3.4.1.8 3.4.2.7 3.4.2.9 1.4 1.7.20
+limit: The host door is the target: the interface document's order of work lists the door table without a mark that it stands and says per-verb timing is not built yet, and the reason reader host_why occurs in no tracked file of the old body at b8ff978c9 except that document.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.5
+name: pinned-falsifiable-claims
+kind: finding
+is: Keep falsifiable claims pinned beside the code they prove, read together with the exit code. Let the bit-sum integer encoding go: a pinned integer shows that an answer is unchanged since pinning, not that the answer is right, and a 34-bit verdict is opaque to a reader.
+status: inferred
+conf: mid
+from: 3.4.4.6 3.4.1.4
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.8.6
+name: grammar-and-jit-in-the-language
+kind: finding
+is: Keep grammar as data with reversible rules, so that a surface syntax is a small rule file over the node tree, and keep heat-driven compilation written in the language itself, with one definition of each operation shared by the interpreter and the compiled code.
+status: inferred
+conf: mid
+from: 3.4.1.10 3.4.1.9
+limit: The study read the JIT from the old body's floor record and did not read or run the in-language emitter.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9
+name: drop
+kind: hub
+is: Six things in old Form the study marks as history or defect: a second grammar with its lowering memos; a C seed that holds the operation breadth and a full tag space; identity as a local index with several carriers per idea; names resolved against primitives first and directives placed in comments; sentinels, loose truth and a stop reason that attempt drops; state words with no single mechanism.
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.1
+name: second-grammar-and-memos
+kind: finding
+is: Drop the second grammar and what exists only because of two: sections inside files, the floor compiler, the .lowfk text memos, and the S-expression as an authoring surface. 575 of 974 files named Form already hold the other grammar in a wrapper, and both lower to the same four special forms. A printable canonical form of a node tree remains useful.
+status: inferred
+conf: high
+from: 3.4.1.6 3.4.1.1 3.4.1.10
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.2
+name: seed-breadth-and-tag-space
+kind: finding
+is: Drop the 8-bit AST tag space with its float_leaf mode numbers, alias operation names, two JIT lanes with thresholds fixed in C, the 63-bit integer wrap that follows from word tagging, and a 34,149-line C seed that holds sockets, TLS, GPU and sensors as primitive rows.
+status: inferred
+conf: high
+from: 3.4.1.3 3.4.1.9 3.4.2.6
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.3
+name: local-index-identity-and-plural-carriers
+kind: finding
+is: Drop composite identity as an index into one host's shared field, the three blueprint authorities, the four carriers named cell, one file extension for two formats, freshness judged by mtime, and a walker tree separate from the recipe tree. Each gives one idea several representations that can disagree, as the string-category round trip showed.
+status: inferred
+conf: high
+from: 3.4.2.3 3.4.2.4 3.4.2.5 3.4.2.7 3.4.2.8 1.3
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.4
+name: name-traps-and-comment-directives
+kind: finding
+is: Drop call resolution in which a primitive name beats a local binding, name prefixes standing in for scope, lambdas lowered to generated global names, and directives placed in comments, where a comment line such as a preludes list changes what loads.
+status: inferred
+conf: high
+from: 3.4.1.2 3.4.1.5 3.4.1.6 1.7.2 1.7.18
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.5
+name: absence-leaks-and-loose-truth
+kind: finding
+is: Drop the places where absence or refusal is not the one value nothing: sentinels -1, 0 and the one-element list; true and false as integers; a branch taking empty strings and lists as true; two renderings of nothing; two equalities disagreeing on 1 and 1.0; an assert that cannot fail; a stop whose reason attempt drops and only a cell call keeps.
+status: inferred
+conf: high
+from: 3.4.4.4 3.4.4.3 3.4.4.5 3.4.1.1 3.4.2.1 3.4.2.6 1.1 1.9.1
+at: 2026-11-24
+by: r1/form-language
+
+n: 3.4.9.6
+name: state-words-without-mechanism
+kind: finding
+is: Drop ice, water and gas as loose vocabulary. The old body gives them eight uses with seven meanings that disagree: two share one set of codes, and gas is 0 in the phase function, 1 in channel layers. Two match machinery: where a node lives and who can see it, and interpreted against compiled forms of a recipe. No one definition exists to inherit.
+status: inferred
+conf: high
+from: 3.4.3.1 3.4.3.2 3.4.1.9
+src: 2.7.20#40,73 2.7.36#36 2.7.14#17-21
+limit: The two uses that share codes are the phase function and queue pressure: the queue file imports the phase function's file and answers its st-gas, st-water and st-ice values, and the file that adds the fourth phase imports it too. The study did not ask in which state a node may be changed, by whom, or which transitions need an offer; the round's critic names that as the unanswered question.
+at: 2026-11-24
+by: r1/form-language

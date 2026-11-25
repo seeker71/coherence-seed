@@ -1,0 +1,301 @@
+# Sources of the host-language-grammars study (hub 3.11). Old-body files were read at commit b8ff978c9; files removed by the cut of 2026-09-29 were read from the tree one commit before 115fea55e. Line ranges sit in the citing claim.
+
+n: 2.19
+name: host-language-grammars-sources
+kind: hub
+is: The primary sources behind hub 3.11: the study report on the old body's host-language grammars; the five host-language rule files, the two rule engines and the files around them at commit b8ff978c9; six files the cut of 2026-09-29 removed, read from the tree one commit before it; two NUMS.Go configuration files; two first-round reports on NUMS.Go; and four web pages on grammars that both parse and print.
+at: 2026-11-24
+
+n: 2.19.1
+name: gap-host-language-grammars.md
+kind: source
+is: The study report of round 2 on gap G4, 643 lines: what the five host-language rule files read and write back, how a rule is held as data, whether two languages reach one node, the cost per language, and a C probe of one rule set that reads and prints.
+path: coherence-seed/study/r2/gap-host-language-grammars.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.2
+name: go-bmf.fk
+kind: source
+is: The old body's Go rule file, 223 lines and 21,091 bytes: 32 rules on lines 181 to 212, each with an emit closure and a source closure.
+path: coherence-kernel/form/form-stdlib/grammars/go-bmf.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.3
+name: rust-bmf.fk
+kind: source
+is: The old body's Rust rule file, 114 lines and 12,019 bytes: 20 rules on lines 84 to 103, 10 of them with a reverse.
+path: coherence-kernel/form/form-stdlib/grammars/rust-bmf.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.4
+name: typescript-bmf.fk
+kind: source
+is: The old body's TypeScript rule file, 252 lines and 26,809 bytes: 33 rules on lines 195 to 227 and a token scanner.
+path: coherence-kernel/form/form-stdlib/grammars/typescript-bmf.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.5
+name: prolog-bmf.fk
+kind: source
+is: The old body's Prolog rule file, 135 lines and 12,786 bytes: 15 rules on lines 110 to 124.
+path: coherence-kernel/form/form-stdlib/grammars/prolog-bmf.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.6
+name: python-bmf.fk
+kind: source
+is: The old body's Python rule file, 1,118 lines and 107,012 bytes: a token scanner, a layout step, a statement grouper and 176 rules on lines 926 to 1101.
+path: coherence-kernel/form/form-stdlib/grammars/python-bmf.fk
+rev: b8ff978c9
+date: 2026-10-01
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.7
+name: engine.fk
+kind: source
+is: The old body's object-stream rule engine, 2,581 lines: it matches rules against lists of token objects and applies them forwards and backwards.
+path: coherence-kernel/form/form-stdlib/engine.fk
+rev: b8ff978c9
+date: 2026-09-29
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.8
+name: source-compiler.fk
+kind: source
+is: The old body's source compiler, 2,362 lines; lines 436 to 528 turn the rule lines of a grammar section into rule lists.
+path: coherence-kernel/form/form-stdlib/source-compiler.fk
+rev: b8ff978c9
+date: 2026-11-14
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.9
+name: compiler.fk
+kind: source
+is: The old body's grammar compiler file, 279 lines; line 60 holds the table of language ports with a state and a gap for each.
+path: coherence-kernel/form/form-stdlib/compiler.fk
+rev: b8ff978c9
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.10
+name: dialect-categories.fk
+kind: source
+is: The generated table of per-language node category numbers, 209 lines.
+path: coherence-kernel/form/form-stdlib/dialect-categories.fk
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.11
+name: bmf-core.fk
+kind: source
+is: The cursor, pattern matcher and template builder under the old body's text grammars, 553 lines.
+path: coherence-kernel/form/form-stdlib/bmf-core.fk
+rev: b8ff978c9
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.12
+name: bmf-grammar.fk
+kind: source
+is: The old body's recursive grammar engine with rules held as data, 1,138 lines; the home language's grammar runs on it.
+path: coherence-kernel/form/form-stdlib/bmf-grammar.fk
+rev: b8ff978c9
+date: 2026-11-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.13
+name: bmf-mini.fk
+kind: source
+is: A 35-line token fold: a rule is the triple token, operation, operand, and a list of token numbers is folded through a rule list into one program cell.
+path: coherence-kernel/form/form-stdlib/bmf-mini.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.14
+name: lang-common.fk
+kind: source
+is: A 21-line file holding, on line 20, 13 statement and expression rules meant to be shared by imperative language grammars; no other file in the present tree calls it.
+path: coherence-kernel/form/form-stdlib/lang-common.fk
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.15
+name: form-bml.fk
+kind: source
+is: The grammar of the old body's home language written as data for the recursive grammar engine, 334 lines, 84 of them naming the rule constructor rule3.
+path: coherence-kernel/form/form-stdlib/grammars/form-bml.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.16
+name: language-packs-band.fk
+kind: source
+is: The only test in the present tree that loads the five host-language rule files, 119 lines.
+path: coherence-kernel/form/form-stdlib/tests/language-packs-band.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.17
+name: pl-lenses-13.fk
+kind: source
+is: An 86-line detector for 13 programming languages and a generator for one binary function, with its own statement of what it does not claim.
+path: coherence-kernel/cognition/pl-lenses-13.fk
+rev: b8ff978c9
+date: 2026-10-03
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.18
+name: go.fk-before-cut
+kind: source
+is: A 32-line recursive Go method grammar on the recursive grammar engine, removed by commit 115fea55e of 2026-09-29 and read from the tree one commit before it.
+path: coherence-kernel/form/form-stdlib/go.fk
+rev: 115fea55e^
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.19
+name: java.fk-before-cut
+kind: source
+is: A 32-line recursive Java method grammar, removed by commit 115fea55e of 2026-09-29 and read from the tree one commit before it.
+path: coherence-kernel/form/form-stdlib/java.fk
+rev: 115fea55e^
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.20
+name: lang-convergence-band.fk-before-cut
+kind: source
+is: A 49-line test asserting that one method parsed from Go, Java and BML text is one node, removed by commit 115fea55e of 2026-09-29 and read from the tree one commit before it.
+path: coherence-kernel/form/form-stdlib/tests/lang-convergence-band.fk
+rev: 115fea55e^
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.21
+name: converge.fk-before-cut
+kind: source
+is: The program of the sample folder named 02-cross-language-content-addressing, removed by commit 115fea55e of 2026-09-29 and read from the tree one commit before it.
+path: coherence-kernel/form/form-samples/cross-modal/02-cross-language-content-addressing/converge.fk
+rev: 115fea55e^
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.22
+name: cross-language-sample-README-before-cut
+kind: source
+is: The README of the sample folder named 02-cross-language-content-addressing, with a section on what is not reachable; removed by commit 115fea55e and read from the tree one commit before it.
+path: coherence-kernel/form/form-samples/cross-modal/02-cross-language-content-addressing/README.md
+rev: 115fea55e^
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.23
+name: ontology-band-triage-receipt-before-cut
+kind: source
+is: A receipt dated 2026-07-17 that lists tests by whether the sibling kernels agreed on them; removed by commit 115fea55e and read in part from the tree one commit before it.
+path: coherence-kernel/receipts/2026-07-17-ontology-band-triage.md
+rev: 115fea55e^
+date: 2026-07-17
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.24
+name: labels.yaml
+kind: source
+is: The neutral label hierarchy of the second NUMS.Go design, 298 lines, 81 of them carrying an _Op template string.
+path: NUMS.Go/http/config/labels.yaml
+rev: 9e6bbb4
+date: 2023-04-05
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.25
+name: Go.yaml
+kind: source
+is: The Go table of the second NUMS.Go design, 282 lines, mapping parser symbols to neutral labels; it holds no _Op template.
+path: NUMS.Go/http/config/Go.yaml
+rev: 9e6bbb4
+date: 2023-04-05
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.26
+name: invertible-syntax-descriptions
+kind: source
+is: The paper Invertible Syntax Descriptions: Unifying Parsing and Pretty Printing, Haskell Symposium, 30 September 2010, as a PDF.
+url: https://www.informatik.uni-marburg.de/~rendel/unparse/rendel10invertible.pdf
+date: 2010-09-30
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.27
+name: bnfc-home
+kind: source
+is: The home page of the BNF Converter, a generator of abstract syntax, lexer, parser and printer from one labelled grammar.
+url: https://bnfc.digitalgrammars.com/
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.28
+name: bnfc-lbnf-reference
+kind: source
+is: The reference page of LBNF, the labelled grammar notation the BNF Converter reads.
+url: https://bnfc.readthedocs.io/en/latest/lbnf.html
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.29
+name: spoofax-sdf3-templates
+kind: source
+is: The Spoofax reference page on SDF3 template productions, which carry layout for the generated printer.
+url: https://spoofax.dev/references/sdf3/templates/
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.30
+name: nums-core.md
+kind: source
+is: The first-round study report on the NUMS.Go core package, which the host-language study cites for the NUMS front end, catalogue, name tables and printer.
+path: coherence-seed/study/r1/nums-core.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.19.31
+name: nums-model.md
+kind: source
+is: The first-round study report on the second NUMS.Go design, which the host-language study cites for the label hierarchy and the per-language tables.
+path: coherence-seed/study/r1/nums-model.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24

@@ -1,0 +1,305 @@
+# Sources of the nums-model study (hub 3.2). NUMS.Go files were read at commit 9e6bbb4; the repository itself is source 2.2.
+
+n: 2.5
+name: nums-model-sources
+kind: hub
+is: The files the nums-model study cites: its own report, the first-round critic, and 31 files of the NUMS.Go repository at commit 9e6bbb4 of 2023-04-05, most of them under http/model and http/config.
+at: 2026-11-24
+
+n: 2.5.1
+name: nums-model.md
+kind: source
+is: The round-one study report on the second generation of NUMS.Go (the http/ module), 701 lines. It holds the outputs of the builds, test runs, traces and probes the study ran in scratch copies.
+path: coherence-seed/study/r1/nums-model.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.2
+name: model.go
+kind: source
+is: The old model's record types, 1,072 lines: Node_t, NodeLocation_t, IdScope_t, IdUse_t, the identifier-scope allocator, TSSymbolEntry_t, the query filter and the histogram types.
+path: NUMS.Go/http/model/model.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.3
+name: interfaces.go
+kind: source
+is: The newer model's contract, 590 lines: identifier, declaration and use interfaces for blueprint, recipe and cell, Node_i, and the kind enumerations.
+path: NUMS.Go/http/model/interfaces.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.4
+name: implementation.go
+kind: source
+is: The newer model's implementation, 2,772 lines: built-in recipe templates, package and declaration construction, generic instantiation, and the stub methods.
+path: NUMS.Go/http/model/implementation.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.5
+name: label.go
+kind: source
+is: Label and colour allocation and the loader that walks labels.yaml, 620 lines.
+path: NUMS.Go/http/model/label.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.6
+name: node.go
+kind: source
+is: The old model's node methods, 1,644 lines: selector evaluation, naming rules, label resolution and pruning, result projection, sentences and scores.
+path: NUMS.Go/http/model/node.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.7
+name: id_scope.go
+kind: source
+is: Identifier-scope methods, 925 lines: import of Go packages, lookup through the scope chain, blueprint inference and the per-recipe summary.
+path: NUMS.Go/http/model/id_scope.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.8
+name: package.go
+kind: source
+is: The Go package record and its scan phases, 199 lines.
+path: NUMS.Go/http/model/package.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.9
+name: cache.go
+kind: source
+is: The global cache, 400 lines: folder allocation, node lookup, and loading and saving of the sentence histogram.
+path: NUMS.Go/http/model/cache.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.10
+name: folder.go
+kind: source
+is: The folder record and file-id allocation, 75 lines.
+path: NUMS.Go/http/model/folder.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.11
+name: language.go
+kind: source
+is: The per-language record, 416 lines: default file extensions, the auto-label fallback (Fill) and the YAML loader for a language file.
+path: NUMS.Go/http/model/language.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.12
+name: sentenceHistogram.go
+kind: source
+is: Sentence counting and the rarity score of a sentence, 409 lines.
+path: NUMS.Go/http/model/sentenceHistogram.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.13
+name: file.go
+kind: source
+is: The file record, 260 lines; its Get_Language accepts Go only.
+path: NUMS.Go/http/model/file.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.14
+name: config.go
+kind: source
+is: The global configuration, 505 lines: well-known labels bound by name at start-up and the auto-label lookup.
+path: NUMS.Go/http/model/config.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.15
+name: html.go
+kind: source
+is: The HTML view of files and nodes, 1,575 lines, including the nid attribute format.
+path: NUMS.Go/http/model/html.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.16
+name: labels.yaml
+kind: source
+is: The neutral label tree, 298 lines and 237 labels, with score, level, colour, attribute and operator-template metadata.
+path: NUMS.Go/http/config/labels.yaml
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.17
+name: Go.yaml
+kind: source
+is: The Go language file, 282 lines: the table from labels to tree-sitter symbol names and the naming, context, matching, lookup, import and looping rules.
+path: NUMS.Go/http/config/Go.yaml
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.18
+name: auto-labels.json
+kind: source
+is: Eighteen name patterns used to guess labels for the symbols of a grammar that has no language file.
+path: NUMS.Go/http/config/auto-labels.json
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.19
+name: api.go
+kind: source
+is: The gin HTTP server of the http/ module, 765 lines: route table and handlers.
+path: NUMS.Go/http/api.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.20
+name: api_test.go
+kind: source
+is: The committed tests of the old model, 1,117 lines.
+path: NUMS.Go/http/api_test.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.21
+name: newapi_test.go
+kind: source
+is: The two committed tests of the newer model, 71 lines; a generic snippet stands commented out at lines 45-50.
+path: NUMS.Go/http/newapi_test.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.22
+name: sentenseHistogram.json
+kind: source
+is: A committed corpus histogram of sentences, 4,441,854 bytes, with the top-level keys Functions, SentenceByLength and Statements.
+path: NUMS.Go/http/info/sentenseHistogram.json
+rev: 9e6bbb4
+date: 2023-03-13
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.23
+name: repos.yaml
+kind: source
+is: The corpus list: 53 repositories under Windows paths, with instance stamps of 2023-03-07.
+path: NUMS.Go/http/repos.yaml
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.24
+name: http-go.mod
+kind: source
+is: The module file of the http/ module; line 1 names it [org]/http.
+path: NUMS.Go/http/go.mod
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.25
+name: go.work
+kind: source
+is: The workspace file, 9 lines; line 8 uses a sibling directory ../[org]-go-tree-sitter.
+path: NUMS.Go/go.work
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.26
+name: nums-go.mod
+kind: source
+is: The module file of the first-generation nums/ module; line 5 replaces the tree-sitter binding with a sibling fork directory.
+path: NUMS.Go/nums/go.mod
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.27
+name: parser.go
+kind: source
+is: The first-generation parser entry: tree-sitter grammar imports, the Language_e enumeration and the switch from language to grammar.
+path: NUMS.Go/nums/parser.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.28
+name: debugging.go
+kind: source
+is: The assertion helpers, 18 lines: [ORG]_ASSERT_ and DEBUGBREAK_ write a log line, [ORG]_Unhandled panics.
+path: NUMS.Go/nums/debugging.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.29
+name: query-api-and-todo.txt
+kind: source
+is: A design note at the repository root: the span record, the planned query surface and a flat wish-list of content labels.
+path: NUMS.Go/query api and todo.txt
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.30
+name: query.go
+kind: source
+is: The query filter options and the filter predicate, 246 lines.
+path: NUMS.Go/http/model/query.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.31
+name: blueprint.go
+kind: source
+is: The old model's blueprint (type) kinds and the shape histogram BlueprintSize, 486 lines.
+path: NUMS.Go/http/model/blueprint.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.32
+name: critic.md
+kind: source
+is: The completeness critique of the first study round, which re-checked four claims of the nums-model report (its rows N4, N5, N8, N9) and confirmed each.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.5.33
+name: id-sample.txt
+kind: source
+is: A design note, 52 lines, sketching an id space as nested YAML in which each name carries _Kind and _Blueprint as label paths; no code reads it.
+path: NUMS.Go/http/config/id-sample.txt
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24

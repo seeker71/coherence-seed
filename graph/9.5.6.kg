@@ -1,0 +1,361 @@
+# Independent review of graph/3.6.kg (the old runtime fkwu and its machine-code emitters). One review node per claim, each naming the digest it read.
+
+n: 9.5.6
+kind: hub
+name: review-of-fkwu-runtime
+is: All 39 claims of 3.6.kg (26 observations, 13 findings) were read against their sources: 27 confirmed, 12 amended (3.6.1.4, 3.6.1.9, 3.6.2.1, 3.6.2.2, 3.6.2.3, 3.6.2.6, 3.6.3.1, 3.6.3.5, 3.6.8.1, 3.6.9.3, 3.6.9.5, 3.6.9.6), none disputed, none left unreviewed. The file has no relayed web claim. Every cited line was opened, the growth figures were re-read with git, and the build was repeated with cc into a scratch folder; the old runtime was not run, so the study's run timings stand as the study's own.
+at: 2026-11-24
+
+n: 9.5.6.1
+kind: review
+re: 3.6.1.1
+saw: dfd0ef8b
+ack: 1
+limit: wc gives 34,149 lines and 1,634,539 bytes, 37 and 302 lines for the headers; both headers open with a 'generated' comment. The 4 words are at fkwu-uni.c:561 and the 256 at 665; BOOTSTRAP.md:15 is the command.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.2
+kind: review
+re: 3.6.1.2
+saw: 66fa01fc
+ack: 1
+limit: The restart itself is an execv of the same binary at fkwu-uni.c:33426 and 33543; the cited lines 33988-34003 are the side that receives it.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.3
+kind: review
+re: 3.6.1.3
+saw: 6208fd63
+ack: 1
+limit: The nine figures are those of study/r1/runtime-jit.md section 8 (lines 293-301), which the node does not cite. The 4,950-line class is the study's 'JIT in C' and includes page allocation and the C host side of the in-language emitter; the main ranges the study lists for it sum to 4,687 lines, a gap of 263 against the stated tolerance of 150. The other eight classes agree with their listed ranges within that tolerance.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.4
+kind: review
+re: 3.6.1.4
+saw: ffe04c4a
+ack: node
+is: 1,954 lines is commit 766519b6c (2026-06-30 09:42 -0600); the last commit of that date, e394e1ac0 (16:50 -0600), has 1,977 (git cat-file -p <commit>:runtime/fkwu-uni.c | wc -l). The banner at fkwu-uni.c:23277-23285 names the source runner, not the file, as the one-time bootstrap and bounds that parser: 'BOUNDED - do not grow this into a full C flattener ... This parser exists ONLY to break the keystone circularity once'. It sets no bound on the file's size.
+why: 766519b6c is the last commit before 2026-07-01 00:00 in the reading machine's zone (+0800), which is how the study dated it. The banner opens 'SEED bootstrap stone 1: run Form SOURCE directly' and its subject throughout is that parser.
+limit: The other counts hold: 160 at c02dae6b4 (2026-06-28), 13,647 at f364c629e (2026-07-31), 25,570 at 115fea55e (2026-09-29), 34,149 today, 400 commits.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.5
+kind: review
+re: 3.6.1.5
+saw: 6495de04
+ack: 1
+limit: Counted in fkwu-optable.h: 221 rows in fk_optab (lines 8-228) and 66 in fk_rwtab (234-299). The study report says 223 and 64; the node follows the file. The note's free-tag lists date from 2026-09-03 to 2026-09-06.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.6
+kind: review
+re: 3.6.1.6
+saw: 2d501cde
+ack: 1
+limit: The two repairs are dated in the comments: floats made odd on 2026-07-17 (fkwu-uni.c:941-946) and strings moved to their own band on 2026-07-31 (1626-1645).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.7
+kind: review
+re: 3.6.1.7
+saw: 0ed3b25b
+ack: 1
+limit: The 63-bit integer form of the NodeID word is at fkwu-node-word.h:16 and 23, just past the cited lines 6-14.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.8
+kind: review
+re: 3.6.1.8
+saw: 8ec713d1
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.9
+kind: review
+re: 3.6.1.9
+saw: e61d267b
+ack: node
+is: The eleven repaired branches concern held string indices, and strings do not move. The note says the string pass at the end of the collector frees unmarked slots for reuse, 'Live strings NEVER move', and the hazard is 'an arm holding a string INDEX in a C local across a later child walk - eleven arms' (memory/reference-len-walks-and-page-profiling.md:25-31). The node should give two causes: pairs are moved by the copying collector at 90% fill (fkwu-uni.c:6438-6446), and unreferenced strings are freed in the same pass.
+limit: The float pool and the longjmp sentences hold as written (fkwu-uni.c:22953-22956, 23613-23640).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.10
+kind: review
+re: 3.6.2.1
+saw: 5d5db7a2
+ack: node
+is: The page size does not hold for every emitter. 16 KB is the C leaf's page (FK_F64_PAGE_BYTES, fkwu-uni.c:12330-12331, used at 14435); the in-language emitter's page is its word count rounded up to whole host pages (10485-10486, 10492), the in-memory leaf likewise (5419, 5430), and the C leaf of tag 215 maps 4,096 bytes (5618). The node should say a function compiled by the C emitters of 3.6.2.2 gets one 16 KB page and the other producers size the mapping to their code.
+limit: The 20 lines (fkwu-uni.c:4910-4929), the flags and the carrier's 27 lines (membrane-boot.c:558-584) hold.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.11
+kind: review
+re: 3.6.2.2
+saw: 95517de7
+ack: node
+is: (1) The second trigger is every 1,024th call of any function not called as a closure, on the call and the tail-call path (fkwu-uni.c:10379, 10403); a body without a self call is compiled as a typed expression (15062, 14838-14844). (2) Not the first signature only: a function is 'compiled once per parameter signature', a primary instance plus FK_F64_XINST 3 more (564-567, 14967-14990, 11083-11094); the comment at 12475-12476 is outdated. (3) A third C emitter stands outside these lines: for tag 215 C 'emits the same tiny register-only image itself' (4883-4885, 5600-5602).
+limit: These hold: 1,024 float boxes (12313-12328, 1062), 24 slots (12342), 8 string literals (12367), 6 parameters for the typed emitters (14844, 15065; the all-float leaf takes up to 8, line 14415), install on Apple arm64 only (14434-14463), numbered refusal codes (the note's line 13).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.12
+kind: review
+re: 3.6.2.3
+saw: cc9e8439
+ack: node
+is: 'Not asked again' holds only for a body marked -1 (the comment at fkwu-uni.c:12325-12326). A refusal with a code below -1 is reopened when a later call's argument shape differs from the refused one, at most FK_F64_REASK 4 times per function (15023-15046: 'A refusal is a verdict on the evidence it was given, not on the recipe'), and a function declined because its callee was not yet compiled is set back to unasked (15019).
+limit: These hold: the tag-194 node (12322-12323, 14457), the fallback to the original body on other argument types (12323-12325, 11079-11096), the unmapping of every page at a reload (12498-12511).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.13
+kind: review
+re: 3.6.2.4
+saw: 9497cf0a
+ack: 1
+limit: The emitter program binds its own words by calling the runtime's jit_fn_bind interface (jit-page.bml:392); they are not handed back as the cell's value. jit-page.bml imports only form-stdlib/core.fk (line 30), so the 396 lines are the whole emitter.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.14
+kind: review
+re: 3.6.2.5
+saw: 15ebcec2
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.15
+kind: review
+re: 3.6.2.6
+saw: d085b951
+ack: node
+is: 'Saves no machine code' holds for the pages of the emitters of 3.6.2.2 and 3.6.2.4 (docs/native-jit-routing.md:48-53), not for the old body. The same document records native code on disk twice: the scalar demand JIT, where 'a new eligible request selects a current disk image immediately' and 'the v5 scalar artifact retains a SHA-256 sealed admission' (73-87), and compiled GPU programs, where 'one .metalbin contains the native archive' (109-113).
+why: The demand JIT's stored row ends in the image's words as decimal text (form/form-stdlib/bml/bml-demand-jit.bml:284).
+limit: Format version 9 (fkwu-uni.c:27808) and the quoted reason hold.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.16
+kind: review
+re: 3.6.3.1
+saw: 26ad98ca
+ack: node
+is: The 8.5 s is one run of the study (study/r1/runtime-jit.md:250) and did not repeat. On 2026-11-24 the reviewer ran cc -O2 on runtime/fkwu-uni.c at b8ff978c9 four times on the same Apple M4 Max with Apple clang 17.0.0 at load average 2.7 to 3.9: 3.69, 3.73, 3.91 and 3.93 s wall, each binary 745,624 bytes with an ad-hoc linker signature and no entitlements (codesign -dv). The node should give the build as 3.7 to 8.5 s across runs on one machine.
+limit: The MAP_JIT run and the 10 to 11 ms start are as the study reports them; the old runtime was not run in this review. 3.7 s agrees with the 3.6 s of the 2026-11-09 note the node's limit cites.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.17
+kind: review
+re: 3.6.3.2
+saw: 864b0cde
+ack: 1
+limit: Every figure is as study/r1/runtime-jit.md:252-255 gives it. The timings were not repeated, since the old runtime was not run in this review. The call count checks by arithmetic: 2 x fib(33) - 1 = 7,049,155.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.18
+kind: review
+re: 3.6.3.3
+saw: 19867f5c
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.19
+kind: review
+re: 3.6.3.4
+saw: 1238679a
+ack: 1
+limit: Checked by building: three cc -O2 builds whose product is named fkwu, written to three folders, have one SHA-256; three builds named fkwu1, fkwu2 and fkwu3 have three others. The multiplier at fkwu-uni.c:28262 is the 64-bit FNV prime.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.20
+kind: review
+re: 3.6.3.5
+saw: 2243cbc0
+ack: node
+is: (1) 'Every rebuild changes the builder identity' is a record of 2026-09-12 that the present source no longer shows: a store-built kernel 'names itself by the digest of the seed it was made from and the target it runs on', and only a plain cc build follows its executable bytes (fkwu-uni.c:28164-28193). (2) 5.1 GiB is a total, not a figure for each checkout: the note says a design agent's 40 GB figure 'was relative to the CURRENT loader: judged per checkout only 5.1 GiB' (memory/project-fkwu-version-store-2026-11-09.md:26).
+why: The record is memory/reference-fkwu-import-lane-vs-flat.md:11-16. A plain build started inside a checkout is replaced by the store's build (fkwu-uni.c:33705-33707), so identity now changes when the runtime's source changes, not at each rebuild.
+limit: These hold: lowered text not deterministic on one host (memory/project-prebuilt-design-2026-11-09.md:15); 7,329 of 7,403 entries on 2026-09-12 (memory/reference-fkwu-heat-boards-burial.md:11, which adds that a later commit removes ended processes' boards); five files left with caching off (study/r1/runtime-jit.md:260-261).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.21
+kind: review
+re: 3.6.3.6
+saw: 78ccc559
+ack: 1
+limit: The first note also records a guard for the 2026-10-03 fault (commit dd397a892; 'the guarded build lands all'). The second note places its fault at 'the closure's ~1024th call, FK_F64_HEAT' without locating it in the source; fkwu-uni.c:10373 and 10379 skip the C emitters' trigger when the callee is itself a closure.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.22
+kind: review
+re: 3.6.3.7
+saw: 390d6f49
+ack: 1
+limit: The mirror table and the image arity table exist as named (fk_jit_plain_kids at fkwu-uni.c:10542, fk_fkb_node_arity_for_tag at 28720).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.23
+kind: review
+re: 3.6.4.1
+saw: 6ad5e7b4
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.24
+kind: review
+re: 3.6.4.2
+saw: 4080852a
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.25
+kind: review
+re: 3.6.4.3
+saw: 1bb688f3
+ack: 1
+limit: The three forms and the figures are those of study/r1/runtime-jit.md:435-466, which the node does not cite.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.26
+kind: review
+re: 3.6.4.4
+saw: 64c70385
+ack: 1
+limit: The nine items are those of study/r1/runtime-jit.md:453-461 and sum to 1,400 to 1,600. The 53 branches were recounted in fk_walk (fkwu-uni.c:15597-16148, 552 lines): 52 numbered tests and one named constant.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.27
+kind: review
+re: 3.6.4.5
+saw: 226ed93a
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.28
+kind: review
+re: 3.6.8.1
+saw: ce42725b
+ack: node
+is: The property holds; the 8.5 s is one run that did not repeat. Four rebuilds by the reviewer on the same machine and compiler took 3.7 to 3.9 s (see the review of 3.6.3.1), each 745,624 bytes, and three builds with the product named fkwu were byte-identical in three different folders. The node should say 3.7 to 8.5 s across runs.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.29
+kind: review
+re: 3.6.8.2
+saw: 6f116dfc
+ack: 1
+limit: The node holds the function's index (fkwu-uni.c:14457); the page is looked up by that index.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.30
+kind: review
+re: 3.6.8.3
+saw: afa8e62c
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.31
+kind: review
+re: 3.6.8.4
+saw: 8d5ee8a5
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.32
+kind: review
+re: 3.6.8.5
+saw: 19489677
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.33
+kind: review
+re: 3.6.8.6
+saw: 6b81d6f7
+ack: 1
+limit: 'Never from timestamps' rests on docs/native-jit-routing.md:59-60 ('Timestamps remain provenance and no longer force recompilation'), which premise 3.6.3.4 cites without stating. One old library file still compares modification times (form/form-stdlib/cache.fk:13-14).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.34
+kind: review
+re: 3.6.9.1
+saw: 2fe68c54
+ack: 1
+limit: The statement does not use premise 3.6.2.6's first sentence, which the review of 3.6.2.6 amends.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.35
+kind: review
+re: 3.6.9.2
+saw: 8a007881
+ack: 1
+limit: For the 2026-11-24 fault the placement at the C emitters' threshold is the note's own reading; nobody has located it in the source (see the review of 3.6.3.6).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.36
+kind: review
+re: 3.6.9.3
+saw: 88d6de14
+ack: node
+is: The unreported takeover is recorded for a wrong tag, not a wrong mode number: choosing a number 'for a new internal-only node tag (245 ...) silently hijacks that op's real walker arm' (memory/reference-fkwu-tag-space-and-closure-scratch-ordering.md:13). For modes the recorded drift is another: tag 201 serves substring as mode 9 with a child past the tag's arity, and that field went unshifted on image import (memory/reference-fkwu-import-lane-vs-flat.md:18-23). The node's last clause should name both.
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.37
+kind: review
+re: 3.6.9.4
+saw: 8eaadf8f
+ack: 1
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.38
+kind: review
+re: 3.6.9.5
+saw: 025e6f45
+ack: node
+is: The banner does not call the file bounded. At fkwu-uni.c:23277-23285 it is the source runner ('This parser') that is named the one-time bootstrap seed and bounded against becoming 'a full C flattener' (see the review of 3.6.1.4). The node should say the file grew from 1,954 lines (commit 766519b6c, 2026-06-30) to 34,149 while the banner over its source runner still says that parser is a one-time bootstrap that must not grow.
+limit: The 17%, the growth and the budget hold. The study's own count puts the reader side at about 3,400 lines (3.6.1.3).
+by: r3/review-fkwu-runtime
+at: 2026-11-24
+
+n: 9.5.6.39
+kind: review
+re: 3.6.9.6
+saw: d42ce964
+ack: node
+is: 'A recompile after every rebuild' is the state recorded on 2026-09-12; the present source names a store-built kernel by the digest of its source and its target (fkwu-uni.c:28164-28193), so images are refused when the runtime's source changes, not at each rebuild. The gigabytes are 5.1 GiB in all (memory/project-fkwu-version-store-2026-11-09.md:26); the thousands of files are the 7,329 board files of 2026-09-12, which a later commit removes for ended processes (memory/reference-fkwu-heat-boards-burial.md:11). The node should date the three effects.
+limit: The allocation-order dependence of lowered text stands as recorded on 2026-11-09 (memory/project-prebuilt-design-2026-11-09.md:14-16).
+by: r3/review-fkwu-runtime
+at: 2026-11-24

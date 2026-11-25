@@ -1,0 +1,126 @@
+# Sources of the ground-documents study (hub 3.3). Files already listed under 2.1 are cited at their 2.1 address.
+
+n: 2.6
+name: ground-document-sources
+kind: hub
+is: Primary sources cited by the study of the old body's ground documents (hub 3.3) and not already listed under 2.1: the study report and the critique of its round, the two axiom derivation files, the bootstrap page, the readme, the rent goal file, one teaching, and three standard-library files read in support.
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.1
+name: study-axioms-north-star
+kind: source
+is: The first-round study report on the old body's axioms, north star and principles, 697 lines. It lists the 16 files it read whole or in part, with the last commit of each.
+path: coherence-seed/study/r1/axioms-north-star.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.2
+name: critic-r1
+kind: source
+is: The completeness critique of the first study round, 471 lines: gaps G1 to G15, 47 spot-checks, contradictions C1 to C12, and lists of what is ready and not ready to decide.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.3
+name: host-kernel.form
+kind: source
+is: The old body's derivation of a kernel over a host's resources from the five axioms, 250 lines: typed ports, host carriers, an operating-system coverage table, 0..many implementations per primitive.
+path: coherence-kernel/axioms/host-kernel.form
+rev: 4a69d6b1f
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.4
+name: kernel-self-composition.form
+kind: source
+is: The old body's statement that every kernel feature is a recipe over the five axioms, 152 lines: primitives, channels, self-extension, versions as layers, the shared substrate, boot.
+path: coherence-kernel/axioms/kernel-self-composition.form
+rev: 78acc2a4f
+date: 2026-10-04
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.5
+name: BOOTSTRAP.md
+kind: source
+is: The old body's checkout and build page, 168 lines. Lines 84-116 hold the section 'A number is not a pass'.
+path: coherence-kernel/BOOTSTRAP.md
+rev: afcb161af
+date: 2026-11-09
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.6
+name: README.md
+kind: source
+is: The old body's readme, 104 lines. Lines 17-21 state that fkwu is the only runtime.
+path: coherence-kernel/README.md
+rev: 14de48525
+date: 2026-10-24
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.7
+name: rent-to-zero-goal.form
+kind: source
+is: The old body's goal and exit proof for reaching sovereignty on the least rented tokens, 300 lines. Its invariants block records the C seed's line counts.
+path: coherence-kernel/docs/rent-to-zero-goal.form
+rev: 88c773154
+date: 2026-11-15
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.8
+name: surprise-is-a-choice-point.md
+kind: source
+is: A teaching of the old body, 72 lines: the control words as expressions over the one offer, and the rule that a primitive stops on nothing.
+path: coherence-kernel/teachings/surprise-is-a-choice-point.md
+rev: e4bb1e4f5
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.9
+name: minimal-surface.fk
+kind: source
+is: The old body's minimal host surface, 35 lines: one callable door for each of the four families INTERN, OBSERVE, OFFER and PORT.
+path: coherence-kernel/form/form-stdlib/minimal-surface.fk
+rev: b8ff978c9
+date: 2026-11-17
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.10
+name: substrate-phase.fk
+kind: source
+is: The old body's phase recipe, 54 lines: gas, water, ice and plasma as values, a state read from degree and churn, and a move returned as an invitation.
+path: coherence-kernel/form/form-stdlib/substrate-phase.fk
+rev: b8ff978c9
+date: 2026-09-30
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star
+
+n: 2.6.11
+name: living-equation.fk
+kind: source
+is: A grammar file of the old body, 118 lines. Its header comment maps structure to Blueprint (ice), choices to Recipe (water) and beliefs to the gas or NamedCell layer.
+path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r1/axioms-north-star

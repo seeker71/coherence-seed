@@ -1,0 +1,96 @@
+# Rounds: who read what, what each round could not reach, and the reviews of single nodes.
+
+n: 9.1
+name: study-round-one
+kind: observation
+is: On 2026-11-24 twelve readers studied NUMS.Go (core and model), the ground documents, Form, BML with the 2000 thesis, the old runtime, the old body's lessons, and five areas of prior art on the web. A thirteenth read all twelve reports and checked 47 claims against their sources: 41 confirmed, 4 wrong or stale, 2 not verifiable as cited.
+status: observed
+src: 2.31#r1/critic.md
+limit: The critic named five sources nobody had opened, and found that nothing of BML had been executed. Web pages were read through a fetch tool that summarises.
+at: 2026-11-24
+
+n: 9.2
+name: study-round-two
+kind: observation
+is: On 2026-11-24 eight readers closed the gaps the first critic named: the 2026 study of NUMS.Go and its miniature, the emitter written in the old language, the natural-language lane, the host-language grammars, the object model's witnesses in 2000 and 2026, the earlier restarts and the 2026-11-05 carrier, the origin of ice, water and gas, and a measurement of hashing and interning cost on the first machine.
+status: observed
+src: 2.31#r2
+limit: The old runtime was not run in this round; its behaviour is read from sources, notes and recorded numbers. The search for the C++ original of NUMS stopped at the source folder.
+at: 2026-11-24
+
+n: 9.3
+name: encoding-round
+kind: observation
+is: On 2026-11-24 twenty writers, one per study report, turned the reports into the nodes of hubs 3 and 4 and their sources under hub 2. Each re-opened ten or more of its primary sources and applied the first critic's corrections to its study.
+status: observed
+src: 2.31
+limit: A writer checked a sample of its own nodes, not all of them; hub 9.5 holds the independent review.
+at: 2026-11-24
+
+n: 9.4
+name: design-round-one
+kind: observation
+is: On 2026-11-24 the coordinating session wrote the ground (hub 1), the design (hub 5), the open questions, assumptions and limits (hub 6), the path (hub 7) and the graph's own rules (hub 8) from the two study rounds, and wrote the checker.
+status: observed
+src: 2.30.1
+limit: One writer, one pass; every decision in hub 5 is a proposal until it is built or the owner acknowledges it.
+at: 2026-11-24
+
+n: 9.5
+name: review-round-one
+kind: hub
+is: The first review of the graph, begun 2026-11-24: one reviewer per hub file opens each node's source and writes a review node naming the digest it read. Each reviewed file has a child hub here with its counts.
+at: 2026-11-24
+
+n: 9.6
+name: study-round-three
+kind: observation
+is: On 2026-11-24, after the owner asked for it, six readers studied how a model on Metal could read, choose and create nodes inline: the old body's decode step and its adapter lane, and four areas of published work with a cost model for Apple silicon. Their reports are under study/r3; hub 3.16 relays the load-bearing facts and hub 5.12 holds the design drawn from them.
+status: observed
+src: 2.24
+limit: These reports were not encoded node by node or reviewed; hub 3.16 was written from their summaries by the design round's writer.
+at: 2026-11-24
+
+n: 9.8
+name: stage-one-writing
+kind: observation
+is: On 2026-11-24 the coordinating session wrote the node encoding, its vectors and a reference reader. Run that day: all 127 vectors hold; the 46 ids equal the system's shasum over the same bytes; five planted faults (an id digit, a print, a well-formed text listed as refused, two wrong refusal words) each turned the run red.
+status: observed
+src: 2.30.3 2.30.4 2.30.5
+limit: One hand wrote the page, the reader and the vectors, and the vectors' expected values came from that reader. Only the ids have an independent witness. No reviewer has read the page.
+at: 2026-11-24
+
+n: 9.9
+name: stage-two-floor
+kind: observation
+is: On 2026-11-24 the coordinating session wrote the bootstrap and ran 'make check' on the first machine. The bootstrap's own reader holds all 127 encoding vectors. The three ground programs answer 42, 55 and the nested list. A node frozen by one process thawed in another to the same id and print. A machine-code leaf ran unsigned and under the hardened runtime with the allow-jit entitlement.
+status: observed
+src: 2.30.7 2.30.8 2.30.6 2.30.4
+limit: One machine, one hand, no reviewer. The second reader of the encoding shares its author and its leaf-rule code with the first. Other hosts were not built.
+at: 2026-11-24
+
+n: 9.10
+name: stage-two-checks-can-fail
+kind: observation
+is: On 2026-11-24 planted faults turned each stage 2 check red: a budget of 100 lines stopped the build; a wrong expected answer failed the ground check; an ice file with its last byte changed and one cut short were both refused; and a hardened binary signed without the allow-jit entitlement answered nothing with the reason no-native where the entitled one answered 42.
+status: observed
+src: 2.30.7 2.30.8
+at: 2026-11-24
+
+n: 9.11
+name: framebuffer-round
+kind: observation
+is: On 2026-11-25, after the owner defined the framebuffer and asked for the repository to be made consistent, the coordinating session rewrote the bootstrap's memory as one shared region, wrote the observer tools/fb.c, and ran 'make check' and 'make watch' on the first machine: a second process recorded 117 frames of the long recursion while it ran, replayed them, and read from the last frame the answer 2178309 and the add node that wrote it. A check run on the short recursion instead turned the framebuffer line red.
+status: observed
+src: 2.30.7 2.30.9 2.30.10 2.30.11
+limit: One hand, one machine, no reviewer. The observer shares the layout header with the writer, so it is not an independent reading of the region.
+at: 2026-11-25
+
+n: 9.7
+name: review-round-one-outcome
+kind: observation
+is: Review round one read all twenty evidence hubs (9.5.1 to 9.5.20). The usage limit of the reviewing model was reached partway: nine hubs had their fixes applied by the reviewing round, and the 38 corrections left in the other hubs were applied afterwards by the coordinating session from each review's 'is' line. None of the 109 corrected nodes has been read again by a reviewer. Hubs 1, 5, 6, 7 and 8 and the three planned critiques of the design were not reviewed at all.
+status: observed
+src: 2.30.1
+limit: './kg check' gives the present counts and './kg disputed' lists any claim its latest review does not confirm. A corrected node shows as changed since its review until a reviewer reads it again.
+at: 2026-11-24

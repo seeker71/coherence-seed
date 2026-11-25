@@ -1,0 +1,907 @@
+# Design. Every node here is a proposal drawn from the ground (hub 1) and the evidence (hubs 3 and 4).
+# A decision names what would flip it and the open questions (hub 6) it waits on.
+
+n: 5.1
+name: node-space
+kind: hub
+is: One space of immutable nodes is the root. A node is a blueprint and ordered children, or a leaf of bytes. Recipes, blueprints, cells, grammar rules and lenses are all nodes of this one shape, and the stored node is the thing that runs.
+at: 2026-11-24
+
+n: 5.1.1
+name: one-node-shape
+kind: decision
+is: A node is a blueprint id and an ordered list of child ids, or a blueprint id and a leaf of bytes. Nothing else is in a node: no name, no position in a text, no state, no table pointer.
+status: inferred
+from: 1.9.2 3.1.8.2 3.7.8.2 3.1.2.5
+conf: high
+at: 2026-11-24
+
+n: 5.1.2
+name: stored-node-is-what-runs
+kind: decision
+is: The walker and the emitter read the same nodes that are stored and shared. There is no second, private tree for execution and no internal bytecode between the stored form and the interpreter.
+status: inferred
+from: 3.4.2.4 4.2.8.3 4.2.1.6 3.7.2.11
+conf: high
+why: The old body kept recipes twice, as node trees for data and as a private tagged tree for running, and the two drifted.
+at: 2026-11-24
+
+n: 5.1.3
+name: blueprint-recipe-cell
+kind: term
+is: A blueprint is a node that describes a shape or an interface. A recipe is a node that composes other nodes and can be offered. A cell is a holder: a name bound to a present node, declared with a base blueprint, an access recipe and a constructor recipe. All three are nodes; they differ by blueprint, not by representation.
+status: inferred
+from: 1.7.1 1.2 3.1.2.8 3.2.8.1 3.8.8.1 3.8.8.7 3.8.4.5
+conf: mid
+limit: NUMS.Go's cell is a declared slot with no run-time instance; a run-time cell that holds a value has no working reference in any source read.
+at: 2026-11-24
+
+n: 5.1.4
+name: leaves-are-their-own-content
+kind: decision
+is: A number is a leaf whose bytes are its value, so equal numbers are one node with no table between. Width, signedness and layout belong to the leaf's blueprint; an 8-bit and a 64-bit integer are different blueprints.
+status: inferred
+from: 3.4.8.2 3.1.2.4 3.5.8.8
+conf: mid
+open: 6.1.11
+at: 2026-11-24
+
+n: 5.1.5
+name: seeded-catalogue-and-namespaces
+kind: decision
+is: The bootstrap seeds a small fixed catalogue: the leaf blueprints and about 25 core operations. Every other blueprint is minted. Blueprints live in namespaces by altitude and by host language, and a higher namespace lowers into a lower one inside the same space.
+status: inferred
+from: 3.1.8.1 3.1.8.5 4.4.8.3 4.4.1.8 3.13
+conf: mid
+at: 2026-11-24
+
+n: 5.2
+name: identity
+kind: hub
+is: Three identities are kept apart: a content id computed from a node's canonical bytes, a 32-bit handle used only in memory, and a name that can move. Identity is computed when a node freezes or crosses a boundary. Names sit in a table beside the nodes, one column per lens.
+at: 2026-11-24
+
+n: 5.2.1
+name: three-identities
+kind: decision
+is: A content id says what a node is and is the same in every runtime. A handle is a 32-bit index into one process's store and never leaves it. A name is a binding from a lens to a node and is the only thing that moves. No one of the three stands in for another.
+status: inferred
+from: 4.4.8.5 3.4.2.3 3.7.2.9 3.15 1.9.3
+conf: high
+why: Both references use arrival-order numbers as identity: NUMS.Go's ids differ from run to run, and the old body's composite id is an index into a host-wide field.
+at: 2026-11-24
+
+n: 5.2.2
+name: content-id
+kind: decision
+is: The content id is SHA-256 over the node's canonical encoding: its blueprint id, then its children named by their content ids, or its leaf bytes. No name enters it. All 256 bits are stored once per frozen node.
+status: inferred
+from: 3.15.2.2 3.15.2.3 3.15.4.4 3.15.8.1 3.15.8.2 4.4.8.1 4.5.3.1 3.13.8.2 1.3
+conf: mid
+why: Measured on the first machine: 16 ns per 40-byte node through the CPU's SHA instructions, against 97 ns for the system library call. 64 bits collide with probability 0.39 at 2^32 nodes.
+flip: A target without SHA instructions, or very large leaves, would favour BLAKE3; neither case was measured.
+open: 6.1.18 6.1.14
+at: 2026-11-24
+
+n: 5.2.3
+name: identity-at-freeze
+kind: decision
+is: A content id is computed when a node freezes or is offered across a boundary, not when it is made. A transient node is bump-allocated with no id.
+status: inferred
+from: 3.15.8.4 3.15.4.1 3.15.2.1 3.15.3.2 4.5.8.7 4.5.9.4
+conf: mid
+why: Measured: a bump allocation of a 40-byte node costs 1.2 to 2.3 ns; minting with a stored cryptographic digest costs 40 to 45 ns, which at ten million nodes a second is 45 percent of a core.
+open: 6.1.25
+at: 2026-11-24
+
+n: 5.2.4
+name: names-beside-nodes
+kind: decision
+is: Names are rows in a table keyed by node and lens, zero or more per node, and a lens is itself a node. Names a person chooses live in the same table as keywords. Bound variables are referred to by position, so renaming changes no node.
+status: inferred
+from: 3.1.3.2 3.1.8.3 4.4.8.2 4.4.1.5 1.7.18 1.7.2
+conf: high
+why: Run twice in the study rounds: renaming every identifier in a file left NUMS.Go's node databases identical.
+limit: Every system read that swaps labels across human languages stops at user-chosen names and at strings inside data.
+at: 2026-11-24
+
+n: 5.2.5
+name: values-inside-shape-beside
+kind: decision
+is: A literal value is a leaf inside the node, so a recipe's content id covers what it computes with. The recipe's shape, with every literal replaced by a hole, is a second node derived from it and used as a fingerprint and as the key for sharing compiled code.
+status: inferred
+from: 3.1.3.3 3.2.8.6 4.4.4.5
+conf: mid
+why: NUMS.Go keeps literal values outside the tree, which makes 'a + 1' and 'b + 2' one node: the id then addresses a shape and not a meaning.
+open: 6.1.5
+at: 2026-11-24
+
+n: 5.2.6
+name: four-part-reading
+kind: decision
+is: The axiom file's line (package level type instance) is kept as a reading of any node, each part derived from content: package is the namespace of the node's blueprint, level is its height, type is its blueprint, instance is its content id, or its value for a leaf. No part is handed out by arrival order.
+status: inferred
+from: 1.2 3.1.2.1 3.1.2.2 3.1.9.1 3.4.2.2 3.3.9.4 3.2.9.1
+conf: low
+why: NUMS.Go and the old runtime share the four field names and disagree on what Level, Package and Type mean; the line sits inside axiom 2's block of the acknowledged file.
+open: 6.1.4
+at: 2026-11-24
+
+n: 5.2.7
+name: holder-identity
+kind: decision
+is: A thing that changes over time is a holder: a node minted once with a unique leaf, and a binding from it to its present content. The holder's id stays; each state it passes through is its own immutable node.
+status: inferred
+from: 1.9.3 3.12.5.3 3.3.8.4
+conf: mid
+why: The object model needs a first id that stays put while content changes, and a content hash cannot be that id.
+at: 2026-11-24
+
+n: 5.3
+name: grammar
+kind: hub
+is: One grammar, one reader. A lens is a set of rows that one interpreter reads forwards to make nodes and backwards to print them. Reading text is a choice that may find no node or several; printing is total from a chosen node. Host languages and human languages enter as lenses and namespaces, not as a universal set of constructs.
+at: 2026-11-24
+
+n: 5.3.1
+name: one-grammar-one-reader
+kind: decision
+is: There is one grammar and one reader. Text becomes nodes in one step, and no stage hands text to another stage. No second dialect exists for a lower altitude.
+status: inferred
+from: 3.7.2.1 3.5.9.3 3.5.9.4 3.3.9.1 3.4.9.1 3.5.1.3 3.13
+conf: high
+why: The old body carried three readers that gave fail, cut, choice, class and template different meanings, and lowered one grammar to the other through text.
+at: 2026-11-24
+
+n: 5.3.2
+name: lens-is-rows
+kind: decision
+is: A lens is data: rule rows of name, pattern and template, an operator table, and lexicon rows that map neutral leaves to this lens's words. One interpreter reads a row forwards to build a node and runs the same template backwards to print one, so no printer is written by hand.
+status: inferred
+from: 3.11.4.2 3.11.4.3 3.11.4.4 3.11.4.5 3.11.4.7 3.11.8.1 3.2.8.2 3.2.8.3 3.5.8.7 3.4.8.6 3.1.4.3
+conf: mid
+why: A 360-line probe in the gap round read one typed method from Go, Java and Python text to the same node and printed it back through each lens.
+limit: The probe covers about 15 constructs and keeps names inside nodes; nothing measures the cost for a whole language.
+at: 2026-11-24
+
+n: 5.3.3
+name: reading-is-a-choice
+kind: decision
+is: Reading text through a lens answers with no node, one node or several candidates. Printing a chosen node through a lens is total over the blueprints the lens covers; for a blueprint it has no row for, the lens declines by name before printing anything.
+status: inferred
+from: 4.4.8.2 4.4.9.3 3.10 3.11 4.4.8.6
+conf: high
+at: 2026-11-24
+
+n: 5.3.4
+name: canonical-print
+kind: decision
+is: Every node has one generic printed form of numbers and brackets that always reads back to the same node. It is the serialization the bootstrap reads. It has no sugar and no semantics of its own, and nobody writes in it except to bring the first seed into being.
+status: inferred
+from: 4.4.1.8 3.13 3.4.2.7
+conf: mid
+open: 6.2.5 6.1.10
+at: 2026-11-24
+
+n: 5.3.5
+name: home-lens
+kind: decision
+is: The surface people write in is one lens among others, defined by rows written in itself. It carries everything the object and control model can express, at the altitude of the compact 2026 surface: expression-bodied definitions, lambdas, pipelines, match, blueprint literals.
+status: assumed
+see: 3.5.8.6 3.5.8.7
+limit: Its syntax is not designed.
+open: 6.1.17
+at: 2026-11-24
+
+n: 5.3.6
+name: host-languages-are-namespaces
+kind: decision
+is: A host programming language enters as its own namespace of blueprints plus a lens. Two languages share a node only where both lenses map to the same neutral blueprint, and an equivalence between two language-specific blueprints is a separate recorded relation with its witness.
+status: inferred
+from: 4.4.8.4 4.4.9.1 4.4.1.7 3.11.1.4 3.11.4.10 3.11.9.1 3.2.3.5 3.2.9.3
+conf: mid
+why: Every project read that tried one shared construct set for many languages abandoned or narrowed it.
+limit: Shared identity is only as true as the lexicon rows: a row that says int64, long and Python int are one leaf is false for overflow.
+at: 2026-11-24
+
+n: 5.3.7
+name: human-languages-come-last
+kind: decision
+is: A human language is a lens whose rows linearise concept nodes, with lexeme mappings that carry context, provenance and a review count. It is built after the kernel compiles itself and is kept separable, so the kernel does not depend on the claim that all human languages share one root.
+status: inferred
+from: 3.10.1.8 3.10.2.6 3.10.8.2 3.10.8.3 4.4.8.8 4.4.4.3 4.4.2.3 4.4.2.1
+conf: mid
+open: 6.1.19
+at: 2026-11-24
+
+n: 5.3.8
+name: unresolved-is-a-fault
+kind: decision
+is: A name that does not resolve, or text no rule can read, is a reported fault with its place. It is never turned into nothing and never into a value.
+status: inferred
+from: 3.7.2.5 3.7.9.4 3.1.9.4 3.7.2.6 3.7.8.1
+conf: high
+at: 2026-11-24
+
+n: 5.4
+name: acknowledgment-and-control
+kind: hub
+is: Every evaluation is an offer acknowledged by nothing, 0, 1 or a node. Control is built from ordered choice, one delimiter that commits, fail and hold; the rest is derived. Fail is not a value: it reverses every change back to the nearest open choice and runs that choice's next option. Arguments are evaluated once and in order. Each state declares how it is undone.
+at: 2026-11-24
+
+n: 5.4.1
+name: ack-is-the-evaluation-rule
+kind: decision
+is: Evaluating any node is an offer, and its result is exactly one of nothing, 0, 1 or a node. A call, a message, a host call and a request over a wire use this one rule.
+status: inferred
+from: 1.9.5 4.5.8.1 3.3.8.2 3.4.8.1
+conf: high
+at: 2026-11-24
+
+n: 5.4.2
+name: fail-is-backtracking
+kind: decision
+is: Fail is not a value. The owner's word of 2026-11-24: 'fail means backtrack, undo and reverse all changes until a new choice or a sequence is tried, as it is defined in BML.' A fail turns execution around: every change made since the nearest open choice is reversed, newest first, and that choice's next option runs forward from the state the choice was entered with. Asked the same day whether an offer receives nothing when every option of a choice has failed, the owner answered 'Yes, nothing'.
+status: given
+by: owner
+see: 3.5.2.2 3.5.2.4 3.5.2.6 5.4.7 5.4.8 5.4.9
+why: This is the 2000 machine's reading, where failure is a mode of the machine and undo is what the machine does in it. The 2026 dialect that reduced fail to the value nothing is not carried.
+at: 2026-11-24
+
+n: 5.4.3
+name: choice-moves-on-a-fail
+kind: decision
+is: An ordered choice tries its next option when the option before it fails, after that option's changes are undone. A 0 is an answer and does not move a choice on. The reason a failed option leaves is exempt from the undo and is handed to the next option, and the record of the choice counts failed and timed-out options apart.
+status: inferred
+from: 5.4.2 5.4.4 1.9.8 1.7.19 3.7.3.1
+conf: mid
+limit: The 2000 machine exempted state from undo by an attribute on a variable or stream; that a reason node is exempt by rule is this design's choice.
+at: 2026-11-24
+
+n: 5.4.13
+name: values-after-fail
+kind: decision
+is: The four acknowledgments read: a node is an answer that carries something; 1 is yes with nothing to carry; 0 is an answer of no that the recipe returns and stands by, its changes kept; nothing is what an offer receives when no answer stands, either because every path failed and was undone or because no answer arrived in time. The reason beside the acknowledgment says which.
+status: inferred
+from: 5.4.2 5.4.4 1.7.17 1.7.19 3.3.4.2 3.3.4.3
+conf: high
+see: 3.3.4.1 3.3.4.10 4.5.1.3
+limit: The owner confirmed the reading of nothing after an exhausted choice (5.4.2). That 0 is an answer a recipe stands by, with its changes kept, is still this design's inference.
+why: A path that failed has been reversed, so nothing of it stands: the axioms file and the old running core read fail as a silence for this reason. 'Said no' and 'no path survived' stay apart in the value; 'no path survived' and 'timed out' stay apart in the reason.
+open: 6.1.2
+at: 2026-11-24
+
+n: 5.4.4
+name: reason-beside-the-ack
+kind: decision
+is: An outcome is the acknowledgment plus an optional reason node beside it. The reason says which silence or which no this was: timed out, not yet, declined, never existed. The set of acknowledgments stays at four.
+status: inferred
+from: 4.4.8.7 3.3.4.9 3.5.8.4 4.4.3.2 3.13
+conf: mid
+why: One marker that carries several readings, with each operator choosing its own rule, is how SQL NULL failed; the old body's nothing carried at least seven readings.
+at: 2026-11-24
+
+n: 5.4.5
+name: fault-is-not-an-acknowledgment
+kind: decision
+is: A fault is a broken promise of the system itself: an unresolved name, a malformed node, an operation applied to the wrong kind. It unwinds to the nearest recover point with a reason node and is counted apart from silence and from no.
+status: inferred
+from: 3.7.8.1 3.4.4.3 3.7.3.3 3.3.4.4 5.3.8
+conf: mid
+open: 6.1.21
+at: 2026-11-24
+
+n: 5.4.6
+name: control-primitives
+kind: decision
+is: The control primitives are: offer, ordered choice, one delimiter that commits a choice (taking one answer or all), fail, hold, and one recover point. If, not, every, try, cut, once, defer, retry and timeout are written over these and are not built in.
+status: inferred
+from: 4.5.1.10 4.5.8.2 3.5.5 3.5.6 3.5.8.1 3.4.4.2 3.7.8.3
+conf: mid
+at: 2026-11-24
+
+n: 5.4.7
+name: two-strengths-of-choice
+kind: decision
+is: The general choice is re-entrant: a later fail returns into the next option of a choice that already answered, until a commit closes it. The everyday form, first option that answers, is that choice with a commit at its exit.
+status: inferred
+from: 3.5.8.2 3.5.2.2 3.5.2.3 3.5.4.2
+conf: mid
+why: In the 2000 sources the whole grammar engine, branch and repeat with back-off, is a few lines of re-entrant choose and fail. Every 2026 reader implements only the commit-at-exit form.
+open: 6.1.7
+at: 2026-11-24
+
+n: 5.4.8
+name: reversibility-is-declared
+kind: decision
+is: Each piece of state declares how it is undone: repointable (immutable content; undo moves a name back), journaled (a live cell; old values go on a trail), has-inverse (a pair of do and undo recipes), or irreversible (it crossed the system's boundary). An irreversible effect inside an open choice is refused unless it is buffered until the commit.
+status: inferred
+from: 3.5.8.3 4.5.8.3 4.5.1.4 3.5.2.7 3.5.2.10 1.7.8
+conf: mid
+open: 6.1.15
+at: 2026-11-24
+
+n: 5.4.9
+name: choice-point-stack
+kind: decision
+is: At machine level a choice is a choice-point frame that saves registers, a trail mark and an allocation mark, plus a trail that records old values only for cells older than the choice point. An alternative is re-entered from the saved frame; no stack is copied and no continuation is captured.
+status: inferred
+from: 4.5.1.1 4.5.9.1 4.5.1.8 4.5.8.3
+conf: mid
+limit: The costs are word counts from published layouts, not measurements.
+at: 2026-11-24
+
+n: 5.4.10
+name: determinism-on-the-recipe
+kind: decision
+is: Each recipe carries an inferred determinism: exactly one answer, at most one, at least one, or any number. A recipe with exactly one answer compiles with no choice machinery.
+status: inferred
+from: 4.5.1.6 4.5.8.4
+conf: mid
+at: 2026-11-24
+
+n: 5.4.11
+name: timeout-is-an-ack
+kind: decision
+is: An offer may carry a deadline. When it passes, the offer acknowledges nothing with the reason 'timed out', and no fault is raised. Waiting is by event, never by polling.
+status: inferred
+from: 1.9.6 4.5.3.8 3.7.4.7 3.5.2.8
+conf: high
+at: 2026-11-24
+
+n: 5.4.12
+name: strict-order-in-the-node-form
+kind: decision
+is: Arguments are evaluated once, left to right, and bound before the call. This is a property of the node form every tier reads, so no tier can evaluate an argument twice or skip its effect.
+status: inferred
+from: 3.9.8.5 3.9.4.4 3.7.4.3 3.7.2.2 3.6.3.6
+conf: high
+why: The old body's recorded wrong answers under heat came from a fast path that inlined by name and dropped effects.
+at: 2026-11-24
+
+n: 5.5
+name: objects-and-generics
+kind: hub
+is: A reference is a pair of ids, the cell and the view through which it is seen. Several parents mean one composed shape, so an activation carries one cell and the view of it that the running recipe may read. A generic is a recipe from blueprints to blueprints, and specialised code is a cache.
+at: 2026-11-24
+
+n: 5.5.1
+name: reference-is-a-pair
+kind: decision
+is: A reference is two ids, a cell and a view, or an immediate value. No table pointer sits inside the cell's content, so a cell's content id does not depend on how it is viewed, and a second interface over the same data needs no wrapper.
+status: inferred
+from: 3.12.1.1 3.12.4.1 3.12.8.1 3.5.3.4 4.5.8.5 4.5.2.1 4.5.9.2 3.5.8.5
+conf: mid
+why: The 2000 machine's logs count interface casts and interface-forwarded calls by the thousand; this is the one object-model element with a record of running.
+at: 2026-11-24
+
+n: 5.5.2
+name: self-and-this
+kind: decision
+is: An activation carries one reference: the cell the message was sent to, and the view of it whose slots the running recipe may read. With parents composed into one shape (5.5.4), self and this name the same cell and differ only in the view. Dispatch follows five rules: send, self-send, super (the view moves to the parent's part of the shape), slot access only through the view, and cast. The reference is saved whole on every choice point and never rebuilt.
+status: inferred
+from: 5.5.4 5.5.1 3.12.1.3 3.12.8.2 3.12.4.2 3.12.4.5 3.12.1.6 3.12.9.4 3.5.8.5
+conf: mid
+limit: The 2000 machine let self and this be different objects; its instructions for that appear in no run log, and the 2026 fixtures for it were deleted on 2026-09-29. That design is not carried.
+open: 6.2.4
+at: 2026-11-24
+
+n: 5.5.3
+name: views-are-derived
+kind: decision
+is: A view of a shape through an interface is computed on demand and remembered under the pair (interface id, shape id). A cast is a lookup in that memory. A shape conforms to an interface by structure, so conformance can be added after the shape exists.
+status: inferred
+from: 4.5.8.5 4.5.2.2 3.12.8.3
+conf: mid
+at: 2026-11-24
+
+n: 5.5.4
+name: several-parents
+kind: decision
+is: A blueprint with several parents means one composed shape: one cell that holds the slots of every parent. The owner's word of 2026-11-24, asked whether two parents mean separate base objects or one composed shape: 'One composed shape.' Delegation to a separate cell is not what a parent means; it stays writable as a slot that holds another cell and a recipe that forwards to it.
+status: given
+by: owner
+see: 3.12.2.4 3.12.8.5 3.12.4.8 3.12.5.2 4.5.8.6 4.5.2.4 4.5.2.5 3.5.3.3 5.5.7
+why: This is what the 2026 code does and the one reading with a record of running; separate base objects with self kept while this moves have no recorded execution in either era.
+at: 2026-11-24
+
+n: 5.5.7
+name: composing-parents
+kind: decision
+is: Composing is done once, when the blueprint is made: an ancestor reached through two parents is held once, and a name that two parents both define is resolved in the text, the system declining to guess. The composed blueprint is a node like any other, so its content id fixes the layout.
+status: inferred
+from: 5.5.4 3.12.5.2 4.5.2.4 4.5.2.5
+conf: mid
+limit: That a shared ancestor is held once is this design's choice; the owner's answer does not say it.
+at: 2026-11-24
+
+n: 5.5.5
+name: generics-are-recipes-over-blueprints
+kind: decision
+is: A template is a recipe that takes blueprints and answers a blueprint or a recipe. An instance is identified by the template's id and its arguments' ids. Passing a table of operations is the meaning; code specialised for one set of arguments is a cache under that identity.
+status: inferred
+from: 3.12.3.1 3.12.3.2 3.12.8.6 4.5.8.6 4.5.2.6 3.5.3.1 3.5.8.6
+conf: mid
+why: Specialisation by substitution is the one generic mechanism with a record in both eras.
+at: 2026-11-24
+
+n: 5.5.6
+name: attributes
+kind: decision
+is: Any declaration can carry attributes, and programs can define new ones. An attribute with no defined behaviour is carried and reported, never dropped. Visibility, embedding and constness sit on the reference to a blueprint, not on the blueprint.
+status: inferred
+from: 3.5.8.6 3.5.3.6 3.1.2.4 3.1.8.4
+conf: mid
+at: 2026-11-24
+
+n: 5.6
+name: node-states
+kind: hub
+is: Ice, water and gas are states of a node and are independent of its kind. Ice is the small essential part that must persist; water is a held working form; gas is transient and derivable. Only ice is stored in git. Compiled machine code is never essential ice.
+at: 2026-11-24
+
+n: 5.6.1
+name: state-is-not-kind
+kind: decision
+is: A node's state is separate from whether it is a blueprint, a recipe or a cell. Any kind can be in any state.
+status: inferred
+from: 3.14.3.3 3.14.3.2 3.8.3.4 3.8.3.5
+conf: high
+why: The owner's quoted correction of 2026-06-08: blueprints exist in water and gas as well, and recipes in all three states. The mapping blueprint = ice, recipe = water, cell = gas was written by an assistant on 2026-05-08.
+at: 2026-11-24
+
+n: 5.6.2
+name: ice-water-gas
+kind: term
+is: Ice is the small essential part that must persist; water is a held working form; gas is transient and derivable; each is a state of any node. The owner acknowledged this wording as his on 2026-11-24 ('Yes, that is mine'). This design reads further: ice is immutable, identified by content and shareable as it is; water is held and changeable by one holder and lost with the holder unless frozen; gas is private, in memory and discardable because it can be derived again.
+status: given
+by: owner
+see: 3.14.1.1 3.14.1.3 3.14.3.6 3.14.8.2 3.14.3.7
+why: It agrees with the oldest definition on disk, in commits under the owner's own name from September 2025: ice is essential persisted facts, water is materialized caches, gas is derivable and transient; only ice needs to persist.
+limit: The owner acknowledged the first sentence. The further reading after it is this design's and has not been put to him.
+open: 6.1.29
+at: 2026-11-24
+
+n: 5.6.3
+name: keep-ice-tiny
+kind: decision
+is: Only what cannot be derived again is ice. The repository holds only ice: the bootstrap, the seed's meaning, the axioms and this graph. Every other byte is a lease that can be dropped and remade.
+status: inferred
+from: 3.14.1.2 3.14.3.1 3.3.3.1 4.2.3.5
+conf: high
+at: 2026-11-24
+
+n: 5.6.4
+name: compiled-code-is-not-ice
+kind: decision
+is: Machine code is a materialization of a recipe for one target. It lives as gas in memory and may be kept as water in a cache keyed by recipe id, generator id and target id. Losing it loses nothing.
+status: inferred
+from: 3.14.4.3 3.14.1.3 3.14.3.1 3.14.2.6 3.6.9.1 3.6.2.6 3.6.3.3 3.7.8.6 4.2.8.6
+conf: high
+why: The 2025 definition says a compiled library is gas. The 2026 body drifted to calling its compiled image ice, and that image grew to 645 times its source.
+at: 2026-11-24
+
+n: 5.6.5
+name: state-invariants
+kind: decision
+is: Three rules can be checked mechanically. Only water changes in place. A node refers only to nodes at least as committed as itself, so ice never points at water or gas. A change of state keeps the node and its kind.
+status: inferred
+from: 3.14.8.3 3.14.8.4 3.14.8.5 5.6.2
+conf: mid
+limit: These rules are the gap study's proposal; no source states them and nothing enforces them yet.
+at: 2026-11-24
+
+n: 5.6.6
+name: transitions-are-operations
+kind: decision
+is: State changes are named operations: freeze (water to ice; computes the content id and needs an acknowledged offer), melt (ice to a working copy in water), condense and evaporate (between gas and water), sublimate (release the bytes, keep the id), thaw (read ice back and verify its id). Counts of reads, changes and sharing invite a transition and never perform it.
+status: inferred
+from: 3.14.8.7 3.14.8.8 3.13.2.8 5.2.3
+conf: mid
+at: 2026-11-24
+
+n: 5.6.7
+name: state-decides-undo
+kind: finding
+is: The state of a piece of data gives its reversibility class with no further declaration: ice is undone by repointing a name, water by a journal of old values, gas by discarding it. Only effects that left the system need an explicit rule.
+status: inferred
+from: 5.4.8 5.6.2 3.5.2.10
+conf: mid
+at: 2026-11-24
+
+n: 5.7
+name: store-and-memory
+kind: hub
+is: All working memory is one shared region, the framebuffer, that a second process can record and replay at no call or wait on the runtime's side. Within it water and gas are allocated in tables a choice point can release in one step, and every record starts with its blueprint and its last writer. Ice is a file read into it. A value's kind is read from its blueprint and never guessed from the bits.
+at: 2026-11-25
+
+n: 5.7.1
+name: ice-store
+kind: decision
+is: Frozen nodes live in a compact store that is mapped into memory and read where it lies, with children named by id. Because a child must exist before its parent, the store has no cycles, and counting references reclaims everything that nothing holds. A write is a temporary file renamed into place.
+status: inferred
+from: 4.2.3.7 4.5.3.2 4.5.3.4 4.5.8.7 3.7.4.1 4.4.9.5
+conf: mid
+open: 6.1.14
+at: 2026-11-24
+
+n: 5.7.2
+name: regions-follow-choice
+kind: decision
+is: Transient nodes are allocated by moving a pointer in a region. A choice point records the pointer; backing out of an option moves it back, releasing everything that option made.
+status: inferred
+from: 4.5.5 4.2.3.7 5.4.9
+conf: mid
+at: 2026-11-24
+
+n: 5.7.3
+name: handles-in-memory
+kind: decision
+is: In memory a node is referred to by a 32-bit handle. The digest is stored once with the frozen node and is used only at freeze, thaw and boundary crossings. A cheap non-cryptographic hash may pick a slot in a table as long as equality is decided by the bytes.
+status: inferred
+from: 3.15.8.3 3.15.3.4 3.15.3.7 3.13.8.2
+conf: mid
+why: Measured: a 32-byte digest costs 120 bytes per interned node against 56 with none, and a slow digest in front of a table probe raised the probe from about 20 ns to about 90 ns.
+at: 2026-11-24
+
+n: 5.7.4
+name: kinds-are-explicit
+kind: decision
+is: What a value is comes from its blueprint. No operation infers a kind from a number's parity, size or range, and every primitive is defined for every kind it can meet, answering nothing or a fault where it has no meaning.
+status: inferred
+from: 3.7.2.4 3.6.9.4 3.7.9.3 3.4.9.5
+conf: high
+at: 2026-11-24
+
+n: 5.7.5
+name: no-capacities-in-meaning
+kind: decision
+is: No limit on counts or sizes is part of the language's meaning. A bound that exists for a machine reason is a named resource that answers nothing with a reason when it runs out.
+status: inferred
+from: 3.7.2.14 3.13
+conf: mid
+at: 2026-11-24
+
+n: 5.7.6
+name: framebuffer
+kind: decision
+is: The owner's definition of 2026-11-25: 'all memory of all object, all nodes, all stack, everything is read and written into a shared memory space that can be recorded w/o any impact at all as video (hence framebuffer), and can be played back to analyze what is happening when and where.' The framebuffer is the runtime's working memory itself, not a channel the runtime writes records into.
+status: given
+by: owner
+see: 5.7.7 5.7.8 5.8.6 5.14.10 5.14.11
+why: In the old body the word named an event channel fed by calls such as fb_record, so observing cost the observed code a call.
+at: 2026-11-25
+
+n: 5.7.7
+name: framebuffer-describes-itself
+kind: decision
+is: The owner's definition of 2026-11-25, continued: 'the idea is to store the blueprint and type next to cell / object, and it can even include a source pointer (smallest physical footprint) on who last wrote, so that diagnostics becomes live and free of any impact of the runtime.'
+status: given
+by: owner
+see: 5.7.6 5.7.4
+at: 2026-11-25
+
+n: 5.7.8
+name: framebuffer-reading
+kind: decision
+is: This design reads 5.7.6 and 5.7.7 as five rules, fixed in spec/framebuffer.md. One region is reserved once and shared, and nothing the runtime keeps lives outside it. Every record starts with the handle of its blueprint and the handle of the program node that last wrote it. A reference is a handle or an offset, never an address, so a copy reads the same anywhere and later. A record is complete before the count that makes it reachable moves past it. The runtime calls nothing and waits for nothing on behalf of an observer.
+status: inferred
+from: 5.7.6 5.7.7 5.7.3
+src: 2.30.9
+conf: mid
+limit: The owner asked for the repository to be made consistent with his definition after reading this; he has not acknowledged the five rules word for word. Values held only in machine registers are seen once stored. Executable pages and the C library's own memory lie outside the region (5.14.12).
+at: 2026-11-25
+
+n: 5.8
+name: boundary-and-host
+kind: hub
+is: The host is reached through one table of host functions, each of which the system can later replace. A port has a direction, a shape and a name. What crosses a boundary is one structured outcome. Cells run inside the process and are watched by a second process that reads the framebuffer.
+at: 2026-11-25
+
+n: 5.8.1
+name: host-table
+kind: decision
+is: Every host capability is one function with the C calling convention in a table handed to emitted code: reserve the shared region, map a code region, begin and end writing code for this thread, flush the instruction cache, read a file, look up a symbol, make a raw call, start a thread, read a clock. Each entry is a unit the system can replace with code it compiled.
+status: inferred
+from: 4.1.8.2 4.1.8.5 3.3.2.1 3.3.2.2 3.9
+conf: high
+at: 2026-11-24
+
+n: 5.8.2
+name: typed-ports
+kind: decision
+is: A port is a direction, a value shape and a name. Offering to a name nobody holds acknowledges nothing; offering the wrong shape acknowledges 0 and leaves a record; otherwise the holder's own acknowledgment comes back. Offers and silences are counted per port.
+status: inferred
+from: 3.13.2.6 3.13.8.4 3.3.2.1 3.3.8.6
+conf: mid
+at: 2026-11-24
+
+n: 5.8.3
+name: frameworks-through-one-trampoline
+kind: decision
+is: Host frameworks are reached by looking up a symbol and calling it through one trampoline, the same way for Metal as for the C library. No adapter is written per framework.
+status: inferred
+from: 4.1.4.2 3.6.9.5 4.1.1.7
+conf: mid
+why: Measured: Metal reached from plain C in about 20 lines at 5.9 ns per message.
+at: 2026-11-24
+
+n: 5.8.4
+name: references-are-capabilities
+kind: decision
+is: Holding a reference to a cell through a view is the right to offer to it through that view, and there is no other way in. Nothing in the system has ambient authority over another cell. A crossing that did not go through an offered view leaves a record.
+status: inferred
+from: 4.5.8.8 4.5.3.5 1.9.4 5.5.1
+conf: mid
+limit: A content id of known content is not a secret, so reading by id cannot be what protects a cell's interior.
+open: 6.1.9
+at: 2026-11-24
+
+n: 5.8.5
+name: one-structured-outcome
+kind: decision
+is: What comes back across a boundary is one value: the acknowledgment, the reason beside it, and what it cost in time. No part of the system reads another part's printed last line or exit code.
+status: inferred
+from: 3.4.1.7 3.7.2.6 3.7.9.6 3.4.8.4
+conf: high
+at: 2026-11-24
+
+n: 5.8.6
+name: cells-in-process
+kind: decision
+is: A unit of work runs as a cell inside the process with its own deadline. The system does not start a copy of itself to run something. A cell is watched by reading its memory in the framebuffer from another process; it emits nothing for a watcher.
+status: inferred
+from: 3.7.4.7 3.7.2.11 3.7.8.5 5.7.6
+conf: mid
+open: 6.1.12
+at: 2026-11-24
+
+n: 5.9
+name: bootstrap
+kind: hub
+is: The stored bootstrap is one C file under a line budget that the build enforces. It holds the framebuffer, a node store, a reader for the canonical print, a walker of about 25 operations whose one job is to run the compiler once, the birth of executable pages, and the host table. Everything else is written in the one grammar and compiled by the system.
+at: 2026-11-24
+
+n: 5.9.1
+name: bootstrap-in-c
+kind: decision
+is: The bootstrap is written in C: a strict C99 subset, one translation unit, no library use beyond a declared list of operating-system symbols.
+status: inferred
+from: 4.1.8.1 3.6.4.5 4.2.8.2 4.1.2.3 4.1.2.4 4.1.2.5 4.1.4.1 4.1.4.7 4.1.3.3
+conf: high
+why: Measured on the first machine: a C build is 34 KB in 0.05 s. A Go collection waited 627 ms behind a goroutine sitting in emitted code, and Go's maintainers do not support foreign frames. Rust can do it; its safety helps where input is parsed, not in the emitter, which is unsafe in any language.
+alt: Go: its runtime is a second kernel that cannot be replaced piece by piece. Rust: capable, larger toolchain, its emitter libraries assume an operating system. Zig: before 1.0, with breaking changes each release. Hand-written machine code: macOS needs a signed, dynamically linked image.
+flip: Rust if the bootstrap must stay above 10,000 lines and parse untrusted input. Go if it gains supported foreign frames. Zig after 1.0. A chain from raw bytes if auditing from bytes becomes the first criterion.
+at: 2026-11-24
+
+n: 5.9.2
+name: line-budget
+kind: decision
+is: The bootstrap has a budget of 2,000 lines of C, and the build fails when the file is over it. Raising the budget is a change to this node, with a reason.
+status: inferred
+from: 4.1.8.4 3.6.4.3 3.6.4.4 3.13.3.4 3.13.1.2 3.7.3.2 3.3.4.5 3.6.1.4
+conf: mid
+why: The old seed grew from 160 to 34,149 lines over 400 commits under a written rule that it shrinks. Estimates for the smallest floor: 1,400 to 1,600 lines in one study, 1,800 to 2,200 with a walker in another.
+limit: The one comparable experiment, the rewrite of 2026-11-06, went from 1,574 to 10,302 lines in 56 hours.
+open: 6.2.6
+at: 2026-11-24
+
+n: 5.9.3
+name: bootstrap-contents
+kind: decision
+is: The bootstrap holds exactly: process entry; the one shared region that is all of its memory; a store that interns, freezes and thaws nodes; a reader for the canonical print; a walker over the seeded core operations; the birth of executable pages; the host table with a symbol lookup and one call trampoline; a fault handler that records and does not resume.
+status: inferred
+from: 3.6.4.4 3.13.3.3 3.13.3.4 3.9.3.5 3.6.8.3
+conf: mid
+open: 6.2.2
+at: 2026-11-24
+
+n: 5.9.4
+name: executable-memory-contract
+kind: decision
+is: From the first line the bootstrap follows the Apple silicon rules: one code region reserved once with MAP_JIT, a per-thread switch around each write, an instruction-cache flush after it, and correct behaviour both unsigned and under the hardened runtime with the allow-jit entitlement.
+status: inferred
+from: 4.1.1.1 4.1.1.3 4.1.1.4 4.1.1.5 4.1.8.3 3.6.2.1 4.2.4.2
+conf: high
+why: Measured: the per-thread switch costs about 21 ns a pair; changing page protection costs about 454 ns and is killed under the hardened runtime.
+limit: Whether the documented one-region limit is enforced on the current macOS was not tested. Other hosts were read, not run.
+at: 2026-11-24
+
+n: 5.9.5
+name: seed
+kind: decision
+is: The compiler, the home lens and the emitter are written in the one grammar. The repository keeps them as text under the home lens, which is what people review, and as a canonical-print seed, which is what the bootstrap reads on a cold start. The running system regenerates the seed from the text and it must match byte for byte.
+status: inferred
+from: 4.2.3.1 4.1.4.7 4.2.8.1 3.6.4.3 5.3.4
+conf: low
+limit: The first seed has to be written directly in the canonical print, before any home lens can read itself.
+open: 6.1.10
+at: 2026-11-24
+
+n: 5.9.6
+name: self-replacement
+kind: decision
+is: The system replaces its bootstrap one host function at a time: it compiles a replacement, offers it, and the table's entry moves to the new code. The last step is writing its own signed executable image. The C file stays as the cold start and as the thing a person can audit.
+status: inferred
+from: 1.9.7 4.1.8.5 4.2.3.1 3.9 3.6.8.6
+conf: mid
+limit: The old body's own object-file writer produces an unsigned object with one section; a signed executable written by the system has no working reference.
+at: 2026-11-24
+
+n: 5.9.7
+name: authoring-test
+kind: decision
+is: The bootstrap is accepted when the system is made of nothing it cannot also write: every piece of the C file has a counterpart in the grammar that the system has compiled and run in its place.
+status: inferred
+from: 3.3.2.4 3.3.2.5
+conf: mid
+at: 2026-11-24
+
+n: 5.9.8
+name: new-floor-new-measure
+kind: decision
+is: The new floor is judged by its own small set of laws and by the conformance vectors of its node encoding. It is not asked to pass the old body's checks, carry its registry of primitives, or read its surfaces.
+status: inferred
+from: 3.13.1.8 3.13.1.2 3.13.1.4 3.13.9.1 3.7.2.10
+conf: high
+why: The rewrite of 2026-11-06 grew sixfold in 56 hours chasing the old body's 124-name registry and its two surfaces, and stopped at an evaluator 40 times slower.
+at: 2026-11-24
+
+n: 5.10
+name: execution-tiers
+kind: hub
+is: Speed comes in tiers that never change meaning: a walker for the cold start, a one-pass emitter written in the grammar, then an optimizing tier, then matrix and GPU backends. One definition per operation feeds every tier. The unit that is compiled and cached is the recipe.
+at: 2026-11-24
+
+n: 5.10.1
+name: heat-never-changes-meaning
+kind: decision
+is: Each operation has one definition. The walker's arm calls it, and compiled code calls it on its slow path; compiled code adds only a fast path behind a one-instruction test of kind. No second implementation of an operation exists for speed.
+status: inferred
+from: 3.7.8.4 3.9.8.3 3.9.5.3 3.9.5.5 3.7.2.2 3.6.3.6 3.6.9.2 4.2.1.4 3.7.4.3
+conf: high
+why: Every recorded wrong answer under heat in the old body belongs to a hand-written C fast path or a duplicated implementation; none belongs to the emitter written in the language.
+at: 2026-11-24
+
+n: 5.10.2
+name: recipe-is-the-unit
+kind: decision
+is: Compilation and caching work per recipe, under the key of recipe content id, generator id and target id. No image of a whole closure is built or stored, and no cache key contains a path, a time or a spelling.
+status: inferred
+from: 3.6.3.3 3.6.9.1 3.7.8.6 4.2.8.6 3.7.2.8 3.6.3.4
+conf: high
+why: In the old body a 59 KB source became a 38 MB image and one edited definition cost a 13 s rebuild, because the cache unit was the closure.
+at: 2026-11-24
+
+n: 5.10.3
+name: walker
+kind: decision
+is: The first tier is the bootstrap's walker, which evaluates stored nodes in place with the frame layout compiled code will use. Its one job is to run the compiler once on a cold start.
+status: inferred
+from: 3.13 4.2.3.1 4.2.8.1 4.2.1.6
+conf: mid
+open: 6.1.13
+at: 2026-11-24
+
+n: 5.10.4
+name: baseline-emitter
+kind: decision
+is: The second tier is an emitter written in the grammar: one pass, no intermediate form, AArch64 first. It compiles a node kind it knows and hands any other node to the walker's definition through a numbered helper table, so it can begin with ten node kinds and grow by one at a time. Live values sit in the interpreter's frame across every call out.
+status: inferred
+from: 3.9.8.1 3.9.8.2 3.9.8.4 3.9.2.1 3.9.5.1 3.9.5.5 4.2.1.5 4.2.8.4 3.6.8.4 3.7.4.4
+conf: mid
+why: The old body's 396-line emitter works this way and has no recorded wrong answer; it took a 3-million-step loop from 156 ms to 7 ms.
+limit: On record that design gives about 20 times on a tight loop and 1.6 times on compiler work; whether it is fast enough as the only early tier is unmeasured.
+at: 2026-11-24
+
+n: 5.10.5
+name: encodings-are-data
+kind: decision
+is: Instruction encodings are rows in one table used by every writer of machine code, each row checked once against an outside assembler.
+status: inferred
+from: 3.9.8.6 3.9.9.1 3.9.4.1 3.9.4.2
+conf: high
+why: The old body encodes AArch64 three separate times: decimal bases in one file, byte rows in another, and 380 hexadecimal sites in C.
+at: 2026-11-24
+
+n: 5.10.6
+name: optimizing-tier
+kind: decision
+is: The third tier works on a control-flow graph with single-assignment values. Its rewrite rules are content-addressed recipes applied through an acyclic e-graph. Removing work comes first: guards, specialisation by kind, unboxing, constant propagation.
+status: inferred
+from: 4.2.8.5 4.2.1.7 4.2.2.5 4.2.2.3
+conf: low
+why: CPython's emitter alone gave parity; its gains came once work was removed in front of it.
+open: 6.1.23
+at: 2026-11-24
+
+n: 5.10.7
+name: matrix-and-gpu
+kind: decision
+is: Matrix instructions and the GPU are further backends for the same lowered kernels, with the algorithm and its schedule as separate nodes. GPU programs are generated in the grammar and reached through the host table.
+status: inferred
+from: 4.2.8.7 4.2.4.3 4.2.4.4 5.8.3
+conf: low
+limit: How the old body emits GPU kernels was thin in every study, and nothing here was measured.
+at: 2026-11-24
+
+n: 5.10.8
+name: compiled-code-can-be-refused-and-removed
+kind: decision
+is: A check that cold and compiled runs give the same printed values is part of the bootstrap's own self-test. A failure inside the emitter declines with a reason and leaves the recipe walked. A compiled page can be unbound.
+status: inferred
+from: 3.9.8.7 3.9.3.3 3.9.3.4 3.7.2.3 3.6.2.3 3.6.8.2
+conf: high
+at: 2026-11-24
+
+n: 5.10.9
+name: code-holds-no-addresses
+kind: decision
+is: Emitted code refers to nodes and helpers through a table it is handed, never through addresses or handles written into the instructions. A page can therefore be kept as water and mapped again in another process.
+status: inferred
+from: 3.9.2.6 3.6.2.6 3.13.2.7
+conf: mid
+at: 2026-11-24
+
+n: 5.10.10
+name: two-ledgers
+kind: decision
+is: Lines that say what the system means and lines that only make it fast are counted separately, and both counts are reported.
+status: inferred
+from: 4.2.3.2 4.2.8.8
+conf: mid
+at: 2026-11-24
+
+n: 5.10.11
+name: no-borrowed-stencils
+kind: decision
+is: The first compiled tier does not use copy-and-patch with stencils made by another compiler.
+status: inferred
+from: 4.2.1.2 4.2.9.1 4.2.1.1
+conf: mid
+why: Every deployment of the technique that was read takes its stencils from LLVM at build time, which a repository holding only a seed cannot do.
+flip: If the system's own optimizing tier can produce stencils good enough; nobody has shown this.
+at: 2026-11-24
+
+n: 5.11
+name: proof-and-observation
+kind: hub
+is: A check counts only if it has been shown able to fail. Checks are few and say what something means. The work follows real runs end to end, watched live and replayed through the framebuffer.
+at: 2026-11-25
+
+n: 5.11.1
+name: a-check-must-be-able-to-fail
+kind: decision
+is: A test is accepted after a planted fault has turned it red. A test of equivalence across two surfaces derives each side from its own surface. A count or a pinned number is not proof of a property.
+status: inferred
+from: 3.8.2.6 3.11.3.1 3.10.2.1 3.13.2.10 3.4.4.6 3.3.9.2
+conf: high
+why: Found in the study rounds: a headline equivalence test that compares a constant with itself; a surviving check titled as comparing programs that compares the integers 10 and 3; a green witness whose branch check gives both arms the same port.
+at: 2026-11-24
+
+n: 5.11.2
+name: few-checks-that-state-meaning
+kind: decision
+is: Checks are counted like bootstrap lines. The laws of the core operations sit in one place and hold for the walker and for compiled code alike. A check written for one incident is folded into a law or removed.
+status: inferred
+from: 3.7.2.10 3.7.3.2 3.7.9.6 3.4.8.5
+conf: mid
+at: 2026-11-24
+
+n: 5.11.3
+name: live-observation
+kind: decision
+is: Where time goes is read from outside: a second process samples the framebuffer, where the machine record names the program node running at each sample and every record names its writer. The runtime keeps no counters for a watcher. Where compiled code is absent, the reason is a node in the same memory, so each refusal is a unit of work chosen by what the samples show.
+status: inferred
+from: 3.7.8.5 3.6.8.5 3.9 5.7.6 7.10
+conf: mid
+at: 2026-11-24
+
+n: 5.11.4
+name: conformance-corpus
+kind: plan
+is: First witnesses to write: the canonical encoding's vectors, malformed ones included; the three ground programs of the old body (add, recursion, a nested numeric list); the thesis example of a class with two parents; and, as a later corpus, the 243 test and library sources of the 2000 system.
+status: inferred
+from: 3.12 3.13 3.4.2.7
+conf: mid
+at: 2026-11-24

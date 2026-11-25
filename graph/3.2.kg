@@ -1,0 +1,438 @@
+# nums-model: the second generation of NUMS.Go (the http/ module) as read and run on 2026-11-24. Sources are under 2.5.
+
+n: 3.2
+name: nums-model
+kind: hub
+is: NUMS.Go's http/ module at 9e6bbb4 (2023-04-05) parses Go with tree-sitter and relabels each syntax node from a 237-label tree rooted at Blueprint, Recipe and Cell, through one YAML table per language. It analyses code and executes none. Every id it allots is a counter or a position, and label ids change between runs. Nothing compiles as committed; in a patched copy 23 of 29 tests pass. A newer declaration/use model is mid-refactor and panics at HEAD. Only Go is mapped; five other grammars reach an auto-label worksheet.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1
+name: model
+kind: hub
+is: The http/ module is an analysis program with two models in one package: a working one (Node_t, IdScope_t, global caches) and a newer interface model that crosses three roots with role bits, makes a package a blueprint plus a recipe and every expression a use of a built-in recipe, has 73 stub methods, copies generics shallowly and regressed at HEAD.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.1
+name: analysis-not-execution
+kind: observation
+is: NUMS.Go's http/ module (Go module [org]/http) parses Go source with tree-sitter and re-describes each syntax node in a vocabulary rooted at Blueprint (types), Recipe (behaviour) and Cell (storage). http/model holds no interpreter and no code emitter: the module analyses code and does not execute, emit or translate any.
+status: observed
+src: 2.5.1#1 2.5.24#1
+limit: The first-generation nums/ module has emit*.go files; they were outside the study.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.2
+name: two-generations
+kind: observation
+is: http/model holds two models. The working one is Node_t and IdScope_t behind the globals cache_g and config; commit 2f9ab62 of 2023-03-30 prefixed its methods touching the global cache with Cache_, with gaps at HEAD. The newer one, interfaces.go (590 lines) and implementation.go (2,772 lines), first appears in that commit, mid-refactor at HEAD.
+status: observed
+src: 2.5.1#1 2.5.2#68-88 2.2#commit-2f9ab62 2.5.9#50 2.5.14#401 2.5.6#837-845 2.5.30#33-36
+limit: Gaps in the prefix at HEAD 9e6bbb4 of 2023-04-05: Node_t.Lookup (node.go:837-845) calls IdScope_t.Cache_Lookup and Nodes_t.Filter (query.go:33-36) calls Cache_Filter, and neither caller carries the prefix. The commit's own subject line states the renaming.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.3
+name: role-bits-and-families
+kind: observation
+is: The newer model's NodeKind_e is a bit set: Delimitor, Whitespace, Comment, Decl, Use, Keyword, Blueprint, Recipe, Cell, combined as in NodeKind_RecipeDecl = Decl | Recipe. Blueprint, recipe and cell each have a declaration interface and a use interface. The cell kinds are Empty, Global, Parameter, Local, Register, Resource, Sync and Literal.
+status: observed
+src: 2.5.3#569-590 2.5.3#267-423 2.5.3#557-567
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.4
+name: package-and-expression-shapes
+kind: observation
+is: In the newer model a package is one blueprint of kind Package plus one block recipe named <package>$global. Each expression and statement instantiates one of 16 built-in recipe templates, left by 17 registrations (such as $binary, $call, $loop). A function signature is a blueprint $func.<name> with children $input, $output and, for a method, $this.
+status: observed
+src: 2.5.4#885-889 2.5.4#246-262 2.5.4#276-278 2.5.4#596-618 2.5.4#1682-1688
+limit: The 17 newRecipeTemplate calls store into a map keyed by kind (implementation.go:276-278), so $recipeLiteral (line 247) replaces $blueprintLiteral (line 246) under RecipeKind_Literal. The $this child is added at lines 1682-1688, when a receiver is declared, not where the signature is built.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.5
+name: new-model-stubs
+kind: observation
+is: implementation.go contains 118 calls of nums.DEBUGBREAK_(), 73 of them the whole body of a one-line stub method; the info API, authors, version points, UI info, Calls, IsLeaf, CellWrites, Score and the folder, file and package lookups are stubs. QueryAPI is an empty interface, and Authors_i and Versions_i exist only as declarations.
+status: observed
+src: 2.5.1#2.2 2.5.4 2.5.3#75-99
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.6
+name: new-model-per-commit
+kind: observation
+is: In a patched scratch copy Test_API_Package passes at commits 5da0eb9, 3111bb4, 592a526 and 9e6bbb4. Test_API_Import, which asserts nothing, passes at the first three and panics at HEAD (implementation.go line 1718). At HEAD every probe printed an empty package: namedNodeChildren drops matched leaf nodes, so each $Field[name] name is lost.
+status: observed
+src: 2.5.1#5.2 2.5.4#2465-2477 2.5.4#1711-1722 2.5.21#19-71
+limit: One machine, Go 1.27.2, the upstream tree-sitter Go grammar instead of the author's fork.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.1.7
+name: generic-instance-shallow-copy
+kind: observation
+is: genericInstance copies a generic blueprint declaration shallowly, renames the copy Name[Arg, ...] and points each generic parameter at its argument; two TODO comments mark the missing instance registry and substitution in other members. Probed at 592a526, Stack_t[int] printed { T int; items []T; } and Pair_t[string, int] hit a nil-pointer panic.
+status: observed
+src: 2.5.4#1737-1762 2.5.1#5.2
+limit: The committed test at 592a526 holds no generic code; the probes were the study's own scratch file. The old model does not resolve generics at all.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2
+name: ids
+kind: hub
+is: The http/ module has nine id spaces, none derived from content: seven are arrival-order counters or positions, two come from outside (a compiled language list, the grammar's symbol numbers). Label numbers differ between runs of one binary, so the name is the identity and the number a per-process handle. A node id is a byte offset plus a depth.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.1
+name: nine-id-spaces
+kind: observation
+is: http/ has nine id spaces. Label, colour, folder and identifier ids are table length plus one on first use; a file id is a per-directory count, or 0 for in-memory content. A node id is {start byte, level}, unique as folder.file.start.level. Language ids are a compiled list of 13, symbol ids the tree-sitter grammar's. No id is computed from content.
+status: observed
+src: 2.5.5#327-342 2.5.5#12-27 2.5.9#182-198 2.5.10#31-40 2.5.10#68-69 2.5.2#23-26 2.5.2#687-704 2.5.27#29-47 2.5.11#225-231 2.5.20#900 2.5.33#13-52
+limit: A file read from a directory gets the length of that listing's file table plus one (folder.go:37); a file made from in-memory content gets id 0 (folder.go:69), which is why traced node ids read 1.0.start.level. Symbol ids are read through SymbolCount and SymbolName of the tree-sitter language (language.go:225-231). A design note, id-sample.txt, sketches a target id space as nested YAML whose names carry label paths; no code reads it.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.2
+name: label-ids-change-per-run
+kind: observation
+is: Label ids follow the order in which names reach Make_Label, and the loader walks labels.yaml as a Go map, whose order is randomised. Three runs of one test binary each counted 237 labels and numbered Blueprint 180, 173, 175 and Recipe 2, 20, 7. A second process loading the saved Python.json showed label identifier#243 with only 237 labels present.
+status: observed
+src: 2.5.1#3.1 2.5.5#104-159 2.5.2#16
+limit: Run on one machine in a patched scratch copy. Inside one process comparisons by id stay consistent, because the well-known labels are bound by name at start-up.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.3
+name: name-is-identity
+kind: finding
+is: In the http/ generation of NUMS.Go a label's name is its identity and its number is a handle valid inside one process: an id written to the language JSON cache or served at /api/label/:id means something else in the next process. That is the reverse of a numeric space with names attached as a replaceable lens.
+status: inferred
+conf: high
+src: 2.5.19#115-119
+from: 3.2.2.1 3.2.2.2 1.3
+limit: The first-generation file nums/nums_consts.go uses compiled constants as fixed numeric coordinates; the study read only its first 40 lines.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.4
+name: node-id-is-position
+kind: observation
+is: A syntax node's id in http/ is NodeLocation_t {Start byte, Level}, Level being the depth below the file root. Across files the id is the string folder.file.start.level, which the HTML view carries as an attribute, for example nid='1.0.8.2'. The id needs no table, and a parent and a child that start at the same byte differ by level.
+status: observed
+src: 2.5.2#23-26 2.5.15#1036-1038 2.5.20#900
+limit: Whether two zero-width sibling nodes collide was assumed, not tested.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.5
+name: identifier-scope-record
+kind: observation
+is: IdScope_t is one record for an identifier and the scope it opens: ID, Name, Parent, Children by name, Properties (named pointers into the syntax tree), Position, Kind, Labels and four lists Calling, Reads, Writes, Uses of IdUse_t {ID, LoopLevel, Node}. ID is len(IdScopes)+1. Lookup searches the scope's children, then walks Parent upward.
+status: observed
+src: 2.5.2#636-655 2.5.2#670-675 2.5.2#687-704 2.5.7#193-273
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.2.6
+name: trace-identifier-ids
+kind: observation
+is: Traced on one small Go file (struct Point, method Scale, global Origin, func main), identifier ids 1 to 12 followed scan order, not nesting: package, blueprint names, methods and parameters, recipes, cells, then members and $block scopes. Scale was created in the package scope and moved under Point, keeping position 1, which member X also holds.
+status: observed
+src: 2.5.1#7 2.5.6#806-820 2.5.8#179-191
+limit: Identifier ids were identical across four runs of this one file; label numbers in the same trace changed per run.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3
+name: lens
+kind: hub
+is: The neutral vocabulary is a YAML tree of 237 labels with inherited score, level, colour and operator templates. Go.yaml maps tree-sitter symbols to label sets many-to-many and carries naming, scoping, matching and looping rules over a small selector language. Labelling ends in pruning by context, so one symbol gets different labels by position.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3.1
+name: label-tree
+kind: observation
+is: http/config/labels.yaml is 298 lines and defines 237 labels under 11 top-level entries, among them IdentifierKind, Recipe, Blueprint and Cell. Score, level, colour and attribute are inherited downward. The tree names constructs Go lacks (Ternary, While, Try/Catch/Throw, Malloc/Free, This/Super); only Go is mapped onto it.
+status: observed
+src: 2.5.16#1-298 2.5.5#104-159 2.5.29#104
+limit: labels.yaml has no Implementation label. As a label name the word appears only in the wish-list of content labels in the design note at the repository root (line 104); labels.yaml carries it once, in a comment on Lambda at line 215 ('Unnamed Declaration and implementation').
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3.2
+name: op-templates
+kind: observation
+is: A label in labels.yaml may carry _Op, a surface template with numbered holes, such as '{0} + {1}' and 'for {0}; {1}; {2} {3}'. The engine interprets it only as an arity that tells apart operators sharing one grammar symbol, and passes the string unchanged into label results and AsYaml; there is one template per label, not one per language.
+status: observed
+src: 2.5.16#79-207 2.5.5#569-587 2.5.6#1151-1168 2.5.2#287 2.5.2#300 2.5.19#229-234 2.5.5#74-76
+limit: The unchanged string is the Op field of a label result (model.go:287 and :300), returned by GET_Labels (api.go:229-234), and the _Op key written by AsYaml (label.go:74-76). All 81 _Op lines of labels.yaml hold {0}, so a template that is present has an arity of at least one.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3.3
+name: language-file
+kind: observation
+is: http/config/Go.yaml (282 lines) is the only language file. Its Labels section maps 112 labels to lists of grammar symbol names, many-to-many: '*' stands under five labels, among them Multiply and Pointer. Its 19 naming rules give Name, Names or NoName, Kind, Scope, Properties and Match over selectors such as $Named[i], $Field[name] and $Parent.
+status: observed
+src: 2.5.17#84-231 2.5.17#3-33 2.5.6#447-521
+limit: Rules.Import at line 78 names HasCommonPath() and IsFriend(), which no struct field or function implements. Match supports only ==, != and a .$Symbol test.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3.4
+name: resolution-order
+kind: observation
+is: The old model labels a node in this order: resolve the parent; try the symbol's naming rules; try content matchers; open an anonymous scope if the symbol is a naming context; look the identifier up through the scope chain; else take the symbol's possible labels and prune by operator arity and the parent's root. Several labels may remain.
+status: observed
+src: 2.5.6#873-970 2.5.6#1145-1209 2.5.29#14
+limit: A label confidence factor is planned in the design note and absent in code.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.3.5
+name: same-symbol-different-label
+kind: observation
+is: In the traced Go file, grammar symbol 19 ('*') resolved to Pointer in the receiver type *Point and to MathKind, Multiply, Operator in p.X * k. Symbol 1 (identifier) resolved to a parameter declaration, a receiver use, a global declaration, a local declaration and a member reference. The X written in p.X = p.X * k carried IdentifierWrite.
+status: observed
+src: 2.5.1#7
+limit: Symbol numbers are those of the pinned upstream Go grammar, and label numbers in the trace are from one run.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4
+name: what-ran
+kind: hub
+is: As committed nothing compiles: the tree-sitter fork is absent. In a patched scratch copy with the upstream grammar, 23 of 29 committed tests pass; assertions only log. Queries filter and project in process; sentences erase names. A second language reaches only a worksheet of guessed labels; naming, scoping, imports and types are Go code.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.1
+name: does-not-build-as-committed
+kind: observation
+is: With Go 1.27.2 and no network, no module of NUMS.Go builds as committed. go.work line 8 uses ../[org]-go-tree-sitter and nums/go.mod line 5 replaces the tree-sitter binding with ../../[org]-go-tree-sitter; that directory is absent. nums/parser.go line 24 imports a verilog grammar the pinned upstream binding lacks. No committed test can run.
+status: observed
+src: 2.5.1#9.1 2.5.25#8 2.5.26#5 2.5.27#24
+limit: One machine. gin, gin-contrib/cors, go-echarts and testify v1.8.1 were missing from the local module cache and were not fetched. The critic confirmed the two file lines and the absent directory without re-running the build.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.2
+name: tests-in-patched-copy
+kind: observation
+is: In a scratch copy of NUMS.Go with four build patches the 29 committed tests were run one by one: 23 pass, 6 fail. Three fail by panic (TestGo_IdScope_BP, Test_Query_File_api_test, Test_API_Import), three by expectation (TestGo_Labels_Funcs, Test_Query_Folder, TestGo_IdScope_BP2).
+status: observed
+src: 2.5.1#9.2 2.5.31#108 2.5.31#463 2.5.7#14-27 2.5.7#368 2.5.24 2.5.25
+limit: The patches: fork replace dropped, verilog import dropped, three go-echarts render functions cut, the gin server files excluded. The scratch copy also drops go.work and rewrites http/go.mod (go 1.20 to 1.24.0, testify v1.8.1 to v1.11.1, golang.org/x/text to v0.31.0, gin and go-echarts requirements removed). Run against the upstream tree-sitter Go grammar, not the author's fork, and the Go 1.27.2 standard library, on one machine. Test_Query_Function and Test_API_Import assert nothing. Two panics fire inside the argument of the disabled debug print at id_scope.go:368 (bpDebug is false at line 14): TestGo_IdScope_BP, reaching blueprint.go:108, and Test_Query_File_api_test, reaching blueprint.go:463 (the study's kept test-run-2.log, lines 83-111 and 1051-1053).
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.3
+name: asserts-only-log
+kind: observation
+is: nums/debugging.go defines [ORG]_ASSERT_ and DEBUGBREAK_ as functions that only write a log line, so a broken internal invariant fails no test. Passing runs printed ASSERT log lines: 25 in TestGo_Labels_Import, and 3,613 in Test_Query_File_api together with 477 'Unhandled BP' and 37 'Unresolved' lines while reading the Go 1.27 standard library.
+status: observed
+src: 2.5.28#5-18 2.5.1#9.2
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.4
+name: queries-and-scores
+kind: observation
+is: api.go registers 14 JSON routes; /api/nodes builds a filter from 18 query parameters and returns only a histogram. A filter requires all requested labels; a result names the fields wanted plus a filter and field list for children. Symbol score is always 1, so its sum is the node count; a node's label score is the mean of its positive label scores.
+status: observed
+src: 2.5.19#358-389 2.5.19#194-222 2.5.30#152-246 2.5.6#1235-1320 2.5.6#244-259 2.5.2#755 2.5.29#52-59
+limit: The server was not started. HotScore is a placeholder; formula scores and a query expression language are planned in the design note and absent in code; recipe write sets come out empty and HasExtern false. Node_t.MaxLabelLevel and MinLabelLevel both return 0 (query.go:152-153), so a MaxLabelLevel of 0 or more never rejects a node and a MinLabelLevel of 1 or more rejects every node (query.go:229-232).
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.5
+name: sentences-and-histograms
+kind: observation
+is: Cache_Sentence maps each leaf to one character (F function, L local, P parameter, M member, B blueprint name) and concatenates; method Scale reads b(PtB)F(PB){P.MOP.MOP}. A rarity score ranks a sentence within its length bucket. The committed sentenseHistogram.json holds 3,745 statement sentences, 2,331 function sentences and 20 length buckets.
+status: observed
+src: 2.5.6#1356-1421 2.5.12#170-208 2.5.22 2.5.9#377-397 2.5.23 2.5.1#6.4
+limit: The committed JSON has an older flat shape that the current count type does not match (inferred), and Load and Save name different paths. The corpus list names 53 repositories under Windows paths.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.6
+name: auto-label-worksheet
+kind: observation
+is: With no language file, Language_t.Fill matches each grammar symbol name against 18 patterns in auto-labels.json. First run: Python 41 of 243 symbols labelled, TypeScript 125 of 356, C 77 of 269, C++ 129 of 395, Java 99 of 292, no naming rules. The guessed labels are a vocabulary absent from labels.yaml; by the third run only Operator survived.
+status: observed
+src: 2.5.1#8 2.5.11#157-198 2.5.18 2.5.14#456-462
+limit: The surviving Operator label wrongly covered '(', ',' and ':'. No second programming language was run beyond this probe. Go.yaml was filled in by hand, starting with commit 1e94aff of 2023-02-14.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.4.7
+name: go-compiled-in
+kind: observation
+is: Go is built into the http/ engine: File_t.Get_Language returns nil for any language but Go, imports resolve through go/build, and Go grammar field names such as result and receiver are literals in the code. The language list has 13 entries, without Rust; Get_DefaultExt switches over 12. http/ has no natural-language parser, label set or rule.
+status: observed
+src: 2.5.1#8 2.5.13#24-34 2.5.27#29-47 2.5.11#15-43 2.5.32#N8
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8
+name: keep
+kind: hub
+is: Eight things the study carries forward from NUMS.Go's http/ module: three roots crossed with role bits; the lens as data with declarative naming rules; operation templates with numbered holes; the package, expression and signature shapes; the identifier that is also a scope; name-erased sentences; field-projection queries; phased, lazy resolution.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.1
+name: roots-crossed-with-roles
+kind: finding
+is: Carry forward three roots, Blueprint, Recipe and Cell, crossed with the roles Declaration, Use and Keyword as independent bits, so that a node kind is one root bit joined with one role bit.
+status: inferred
+conf: mid
+from: 3.2.1.3
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.2
+name: lens-as-data
+kind: finding
+is: Carry forward the lens as data: one neutral label tree and, per surface, a table from surface symbols to label sets that is many-to-many and resolved by context, together with declarative naming rules (Name, Names or NoName, Kind, Scope, Properties, Match) over a small selector language.
+status: inferred
+conf: mid
+from: 3.2.3.1 3.2.3.3 3.2.3.4 3.2.3.5
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.3
+name: op-templates-as-two-way-lens
+kind: finding
+is: Carry forward operation templates with numbered holes: one record names an operation and says how one surface prints it, which is a starting point for a lens that both reads and prints. In NUMS.Go the template is one global surface; the engine interprets it only as an arity, and the string also reaches label results unchanged.
+status: inferred
+conf: mid
+from: 3.2.3.2
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.4
+name: package-expression-signature-shapes
+kind: finding
+is: Carry forward three structural shapes of the newer NUMS.Go model: a package is a blueprint plus a recipe; every expression and statement is a use of a built-in recipe; a recipe's signature is a blueprint with input, output and this.
+status: inferred
+conf: mid
+from: 3.2.1.4
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.5
+name: identifier-is-scope
+kind: finding
+is: Carry forward one record that is both a name and the place where its children live, with typed edges to its uses, reads, writes and calls, each edge carrying the loop depth at which it occurs.
+status: inferred
+conf: mid
+from: 3.2.2.5
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.6
+name: sentences-as-fingerprint
+kind: finding
+is: Carry forward name-erased sentences, one character per leaf role, as a cheap structural fingerprint of code, and the rarity of a sentence against a corpus as a signal.
+status: inferred
+conf: mid
+from: 3.2.4.5
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.7
+name: field-projection-queries
+kind: finding
+is: Carry forward queries in which the caller lists the fields wanted and gives a nested filter and field list for the children of each result.
+status: inferred
+conf: mid
+from: 3.2.4.4
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.8.8
+name: phased-lazy-resolution
+kind: finding
+is: Carry forward resolution in phases over a package: names of blueprints, then blueprint bodies, then recipes, then cells, with recipe bodies resolved only when asked.
+status: inferred
+conf: mid
+from: 3.2.2.6 3.2.3.4
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9
+name: drop
+kind: hub
+is: Six things the study lets go from NUMS.Go's http/ module: identities that are counters, positions or names; global mutable singletons; language semantics inside the engine behind a configuration that looks general; assertions that only log; two half-overlapping models in one package; a build that depends on an unpublished sibling fork.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.1
+name: counter-and-position-identity
+kind: finding
+is: Let go of counter-allocated ids with name-keyed identity, numbering that depends on map iteration order, process-local ids written to disk, and byte-offset node identity. A byte-offset id shifts with any insertion earlier in the file, and none of these ids is derived from content.
+status: inferred
+conf: high
+from: 3.2.2.1 3.2.2.2 3.2.2.3 3.2.2.4 1.3
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.2
+name: global-singletons
+kind: finding
+is: Let go of global mutable singletons (config, cache_g and go_language in NUMS.Go's http/model) with a cache reset as the only isolation between uses.
+status: inferred
+conf: mid
+from: 3.2.1.2
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.3
+name: language-semantics-in-engine
+kind: finding
+is: Let go of language semantics compiled into the engine behind a configuration that looks general. In NUMS.Go only the classification of symbols into labels is configuration; naming, scoping, imports and types are partly declarative and partly Go code, so a second programming language needs engine work.
+status: inferred
+conf: mid
+from: 3.2.4.6 3.2.4.7 3.2.3.3
+limit: Nothing was run for a second language beyond the auto-label probe.
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.4
+name: logging-asserts
+kind: finding
+is: Let go of assertions that only log and of debug prints whose arguments are evaluated on production paths: in NUMS.Go a broken invariant fails no test, and two committed tests (TestGo_IdScope_BP and Test_Query_File_api_test) panic inside the argument of a disabled debug print.
+status: inferred
+conf: high
+from: 3.2.4.3 3.2.4.2
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.5
+name: two-models-one-package
+kind: finding
+is: Let go of keeping two half-overlapping models in one package: in NUMS.Go the newer model never reached the older one's coverage, and at HEAD it detects a package and nothing below it while the older model carries 22 of the 23 passing tests.
+status: inferred
+conf: mid
+from: 3.2.1.2 3.2.1.5 3.2.1.6 3.2.4.2
+at: 2026-11-24
+by: r1/nums-model
+
+n: 3.2.9.6
+name: unpublished-fork-dependency
+kind: finding
+is: Let go of a build that depends on an unpublished sibling checkout: the tree-sitter fork NUMS.Go points at is absent, and nothing in the repository compiles on a clean machine.
+status: inferred
+conf: high
+from: 3.2.4.1
+at: 2026-11-24
+by: r1/nums-model

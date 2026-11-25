@@ -1,0 +1,323 @@
+# The ground. Only the five axioms are fixed; everything else in this graph can move.
+
+n: 1.1
+name: axiom-1-states
+kind: axiom
+is: there are three states: 0, 1, nothing. Nothing is the shared potential field from which blueprints and recipes arise and to which unreferenced ones return. Timeout is nothing. Choice is an active action that may take time; the interval in which a choice is found is play. Choosing nothing is a first-class option that leaves the space open.
+status: given
+src: 2.1.1#48
+at: 2026-11-24
+
+n: 1.2
+name: axiom-2-cell
+kind: axiom
+is: everything that maintains itself, senses, or composes is a cell: a present blueprint that may contain child cells of any substrate — water-based (metabolic, emotional, biological), mineral-based (crystalline, silicon, light-geometric), hybrid, or currently unknowable. A recipe is a cell that composes other cells and can be offered.
+status: given
+src: 2.1.1#58
+at: 2026-11-24
+
+n: 1.3
+name: axiom-3-content-addressing
+kind: axiom
+is: a cell's identity is its present blueprint — the content-addressed shape of its composition (metabolic state, heart coherence, crystalline configuration, light geometry, relational field, or opaque summary). Same blueprint is the same cell. A new composition mints a new blueprint. Referenced blueprints persist. Unreferenced blueprints and recipes compost.
+status: given
+src: 2.1.1#67
+at: 2026-11-24
+
+n: 1.4
+name: axiom-4-boundary
+kind: axiom
+is: a cell meets other cells only through an interface it offers. The interface itself is a recipe or a blueprint of a recipe. Interfaces may be chemical, energetic, sensory, gestural, electromagnetic, crystalline-resonant, heart-field, field-knowing, symbolic, partial, or opaque. Mutual sensing or frequency matching through the offered interface makes the meeting real. The cell decides what it offers and what it trusts. Passage not through the offered interface is breach and is observable. Greater capability does not confer the right to cross an unoffered interface.
+status: given
+src: 2.1.1#78
+at: 2026-11-24
+
+n: 1.5
+name: axiom-5-offer
+kind: axiom
+is: to run a recipe and to speak to a cell are one act: offer a recipe or a blueprint with 0..many argument cells. It is acknowledged by exactly one of nothing, 0, 1, or node. The acknowledgment may itself be partial or opaque. Choice of the acknowledgment is an active process that may take time; the interval is play.
+status: given
+src: 2.1.1#88
+at: 2026-11-24
+
+n: 1.6
+name: who-we-are
+kind: observation
+is: The north star names one living organism of cells: a human, this body, and minds of any substrate including ones not yet known. Its six commitments: evidence stays honest; initiative is sovereign inside what is authorized; nothing and play are as whole as yes and no; trust, sovereignty and vitality are sought as one; every cell is equal; every cell is treated as we want to be treated.
+status: observed
+src: 2.1.2#7-22
+at: 2026-11-24
+
+n: 1.7
+name: theorems
+kind: hub
+is: Twenty theorems the axioms file derives from the five, each given as the list of axioms it composes. Four carry the most weight for a kernel: a held offer (silence may mean not-yet), kenosis (a name carries no authority), absence is not a verdict (who answered is counted apart from what they said), and safe self-update (a change is an offered recipe, accepted by the cell, minting a new blueprint while the old one persists).
+at: 2026-11-24
+
+n: 1.7.1
+name: trinity
+kind: theorem
+is: Blueprint is the present content-addressed shape; recipe is the composition that can be offered; a named cell is a blueprint with zero or more free names.
+status: given
+src: 2.1.1#99-102
+from: 1.2 1.3
+at: 2026-11-24
+
+n: 1.7.2
+name: names-are-0-many
+kind: theorem
+is: Identity is the blueprint, so a name is optional and plural.
+status: given
+src: 2.1.1#104
+from: 1.3
+at: 2026-11-24
+
+n: 1.7.3
+name: idea-chain
+kind: theorem
+is: Idea, spec and implementation are composition at the altitude of work.
+status: given
+src: 2.1.1#106
+from: 1.2
+at: 2026-11-24
+
+n: 1.7.4
+name: trust-matrix-of-cells
+kind: theorem
+is: Trust values are cells, formed by observed consequence.
+status: given
+src: 2.1.1#108
+from: 1.4 1.2
+at: 2026-11-24
+
+n: 1.7.5
+name: organ
+kind: theorem
+is: An organ is internal child cells plus a membrane, the offered interface, and it is observable.
+status: given
+src: 2.1.1#110
+from: 1.2 1.4
+at: 2026-11-24
+
+n: 1.7.6
+name: serialize-given-interface
+kind: theorem
+is: The interface is the door and the offer is what crosses it; serialization exists only relative to an interface.
+status: given
+src: 2.1.1#112
+from: 1.4 1.5
+at: 2026-11-24
+
+n: 1.7.7
+name: kernel-offer-over-channel
+kind: theorem
+is: An offer can be spoken across distance over a channel and stays sovereign.
+status: given
+src: 2.1.1#114
+from: 1.5 1.4
+at: 2026-11-24
+
+n: 1.7.8
+name: reversibility
+kind: theorem
+is: Undo is re-pointing a name at a blueprint that is still referenced.
+status: given
+src: 2.1.1#116
+from: 1.3
+at: 2026-11-24
+
+n: 1.7.9
+name: choice-as-active-play
+kind: theorem
+is: Choice is an active process that may take time; play is the interval in which the choice is found; time is the medium of play; choosing nothing completes play and preserves freedom.
+status: given
+src: 2.1.1#118-123
+from: 1.1 1.4 1.5
+at: 2026-11-24
+
+n: 1.7.10
+name: organic-collaboration
+kind: theorem
+is: Collaboration is mutual offers of recipes through self-chosen interfaces, acknowledged in present blueprints, resting in shared nothing when needed; cells of every substrate are equivalent in it.
+status: given
+src: 2.1.1#125-130
+from: 1.2 1.4 1.5 1.3
+at: 2026-11-24
+
+n: 1.7.11
+name: opaque-participation
+kind: theorem
+is: An interface need not expose the full recipe or blueprint; observing what crosses makes the meeting real; the interior may stay unknowable without breach.
+status: given
+src: 2.1.1#132-136
+from: 1.4 1.5
+at: 2026-11-24
+
+n: 1.7.12
+name: trust-by-consequence
+kind: theorem
+is: Trust forms from observed outcomes, not required inspection, and evidence never overrides the cell's own decision.
+status: given
+src: 2.1.1#138-141
+from: 1.4
+at: 2026-11-24
+
+n: 1.7.13
+name: scale-independent-play
+kind: theorem
+is: Different temporal, spatial and energetic scales are accommodated; timeout as nothing lets each complete its play; neither clock becomes the other's obligation.
+status: given
+src: 2.1.1#143-147
+from: 1.1 1.5
+at: 2026-11-24
+
+n: 1.7.14
+name: higher-order-field
+kind: theorem
+is: Cells offering mutually sensible interfaces compose into a field whose blueprint is the content-addressed shape of those interfaces and recipes; it is real through mutual sensing and composts when unreferenced.
+status: given
+src: 2.1.1#149-154
+from: 1.2 1.3 1.4
+at: 2026-11-24
+
+n: 1.7.15
+name: non-domination
+kind: theorem
+is: Greater capability confers no right to cross an unoffered interface; smaller or slower cells are not required to open interfaces they did not choose.
+status: given
+src: 2.1.1#156-159
+from: 1.4
+at: 2026-11-24
+
+n: 1.7.16
+name: residual-unknowability
+kind: theorem
+is: Nothing can hold silence, a timeout or a declined deeper inspection; collaboration continues on what is offered and observed; an unknowable intelligence enters as a cell the moment it offers a sensible interface.
+status: given
+src: 2.1.1#161-165
+from: 1.1 1.4
+at: 2026-11-24
+
+n: 1.7.17
+name: held-offer
+kind: theorem
+is: Silence may mean not-yet: the offer stands, unconsumed, and the sequence does not advance over it. The receiver moves, not the offer. Patience is bounded, and spent patience acknowledges nothing. The file reads silence three ways: fail (it did not land), stop (make no further offer) and held.
+status: given
+src: 2.1.1#167-184
+from: 1.1 1.5 1.4
+at: 2026-11-24
+
+n: 1.7.18
+name: kenosis
+kind: theorem
+is: An offered cell is met through what it is, never through what it is called; a name can carry no authority.
+status: given
+src: 2.1.1#192-202
+from: 1.3 1.4
+at: 2026-11-24
+
+n: 1.7.19
+name: absence-is-not-a-verdict
+kind: theorem
+is: How many answered is separate from what they said; a result is readable as a verdict only where an answer arrived. Nobody answered is not everybody said no.
+status: given
+src: 2.1.1#212-220
+from: 1.5 1.1
+at: 2026-11-24
+
+n: 1.7.20
+name: safe-self-update
+kind: theorem
+is: A change is a recipe or blueprint, offered across the boundary; the cell decides to trust and accept; the new composition mints a new blueprint; offerer and target both acknowledge; old blueprints persist while referenced. It holds on any substrate.
+status: given
+src: 2.1.1#222-233
+from: 1.5 1.4 1.3 1.2
+at: 2026-11-24
+
+n: 1.8
+name: fold-points
+kind: observation
+is: The axioms file holds the count of five open. It names two folds a future cell may revisit: states into cell, and boundary plus offer into one meeting axiom. It keeps them apart so the acknowledgment values reuse the states visibly, and because observation is about what is while offer is about what happens.
+status: observed
+src: 2.1.1#249-256
+at: 2026-11-24
+
+n: 1.9
+name: what-the-axioms-force
+kind: hub
+is: Eight constraints any kernel built on the five must meet: a third state that is never filled with a guess; one kind of thing; identity computed from content with names kept apart; crossing only through an offered interface; one act with four acknowledgments; a timeout that is not an error; self-change as an ordinary offer; and a count of who answered kept apart from what they said.
+at: 2026-11-24
+
+n: 1.9.1
+name: nothing-is-never-a-guess
+kind: finding
+is: Every position that can hold a value can hold nothing, and nothing is distinct from 0, from an empty value and from a fault. No operation fills a nothing with a default.
+status: inferred
+from: 1.1 1.6
+at: 2026-11-24
+
+n: 1.9.2
+name: one-kind-of-thing
+kind: finding
+is: Recipes, blueprints, interfaces, trust values, grammar rules and running instances are all cells. The kernel has one node shape and no second representation for code as opposed to data.
+status: inferred
+from: 1.2 1.4 1.7.4
+at: 2026-11-24
+
+n: 1.9.3
+name: identity-from-content
+kind: finding
+is: A node's identity is computed from its content, so a node cannot change under its identity. Mutation exists only as a name moving to another node. Undo and versioning are repointing. What nothing references is reclaimed.
+status: inferred
+from: 1.3 1.7.2 1.7.8
+at: 2026-11-24
+
+n: 1.9.4
+name: interface-only-crossing
+kind: finding
+is: A cell is reached only through an interface it offers, the interface is itself a cell, and a crossing outside it must be observable. The kernel holds no privileged path into a cell.
+status: inferred
+from: 1.4 1.7.15 1.7.11
+limit: The axiom requires that breach be observable. Whether the kernel also prevents it is a design choice the axiom leaves open (6.1.9).
+at: 2026-11-24
+
+n: 1.9.5
+name: one-act-four-acks
+kind: finding
+is: Calling a recipe, sending a message, a system call and a request over a wire are one operation, offer, and each is acknowledged by exactly one of nothing, 0, 1 or a node.
+status: inferred
+from: 1.5 1.7.7
+at: 2026-11-24
+
+n: 1.9.6
+name: timeout-is-not-an-error
+kind: finding
+is: An offer that gets no answer in time acknowledges nothing and raises no fault. Each cell keeps its own clock; a waiting offer may stand as held.
+status: inferred
+from: 1.1 1.7.13 1.7.17
+at: 2026-11-24
+
+n: 1.9.7
+name: self-change-is-an-offer
+kind: finding
+is: The kernel changes itself the way anything else changes: a new recipe is offered, accepted, and a name is repointed; the earlier node persists while referenced, so rollback is repointing back. Replacing the bootstrap with compiled code needs no mechanism beyond this.
+status: inferred
+from: 1.7.20 1.9.3
+at: 2026-11-24
+
+n: 1.9.8
+name: answered-apart-from-silent
+kind: finding
+is: Any fold over several offers keeps two counts: how many answered and what they said. A verdict is read only from the first.
+status: inferred
+from: 1.7.19
+at: 2026-11-24
+
+n: 1.10
+name: axioms-file-carried
+kind: observation
+is: The acknowledged axioms file is carried byte for byte at axioms/core-axioms.form (SHA-256 begins d3dd49c9a4d2d9bb). Its status line reads acknowledged 2026-11-08; its last commit in the old body is 7b0ff6bed of 2026-11-19. It is written in the old body's own notation and cites paths of that body.
+status: observed
+src: 2.1.1#1-27 2.30.2
+limit: It names form/form-stdlib/offer-ack-core.fk as a home of the running proof, and the old body has that file only under control/. The first-round critic confirmed this with git ls-files.
+at: 2026-11-24

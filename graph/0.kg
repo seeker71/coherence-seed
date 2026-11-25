@@ -1,0 +1,61 @@
+# Root. Read this file first, then './kg brief' for every hub and node in one pass.
+
+n: 0
+name: coherence-seed
+kind: hub
+is: A restart of the coherence-kernel from its five axioms: one numeric space of immutable nodes, one grammar over it, and a small C bootstrap that the system replaces with machine code it compiles for itself. This graph holds what is known, what is decided and what is open, each claim with its source, its date and how it is known.
+at: 2026-11-24
+
+n: 1
+name: ground
+kind: hub
+is: The five axioms word for word, the twenty theorems their file derives, and the eight constraints they force on any kernel. Only the axioms are fixed.
+at: 2026-11-24
+
+n: 2
+name: sources
+kind: hub
+is: Every file, repository, paper and page a claim cites, each with its own date, the revision read and the day it was read.
+at: 2026-11-24
+
+n: 3
+name: references-read
+kind: hub
+is: What the working references are when read and run: NUMS.Go, Form, BML in 2000 and in 2026, the fkwu runtime and its in-language emitter, the old body's lessons, and its earlier restarts.
+at: 2026-11-24
+
+n: 4
+name: prior-art
+kind: hub
+is: What systems outside this body show: bootstrap languages and the rules for running emitted code, compilers that compile themselves, knowledge representations, numeric and content-addressed roots for languages, and the machinery of choice, objects and identity.
+at: 2026-11-24
+
+n: 5
+name: design
+kind: hub
+is: The architecture proposed from the ground and the evidence: the node space, identity, the one grammar and its lenses, acknowledgment and control, objects and generics, node states, the store, the bootstrap, and the path from a walker to compiled code.
+at: 2026-11-24
+
+n: 6
+name: open
+kind: hub
+is: Everything that can move: questions not yet answered, assumptions the design stands on, and limits of the evidence. A decision in hub 5 names the open nodes it depends on.
+at: 2026-11-24
+
+n: 7
+name: path
+kind: hub
+is: The stages from an empty repository to the hardware's speed, each with the evidence that closes it.
+at: 2026-11-24
+
+n: 8
+name: graph
+kind: hub
+is: How this graph is written, read, checked and reviewed: one block per claim, a numeric address as the handle, a computed digest as the content, sources as nodes, reviews that name the digest they read.
+at: 2026-11-24
+
+n: 9
+name: rounds
+kind: hub
+is: The study, design and review rounds that produced this graph: who read what, what each round could not reach, and the reviews of individual nodes.
+at: 2026-11-24

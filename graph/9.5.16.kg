@@ -1,0 +1,363 @@
+# Independent review of graph/3.11.kg (the old body's host-language grammars and the lens probe). One review node per claim, each naming the digest it read.
+
+n: 9.5.16
+kind: hub
+name: review-of-host-language-grammars
+is: All 39 claims of 3.11.kg (20 observed and 2 relayed observations, 17 findings) were read against their sources: 34 confirmed, 5 amended (3.11.1.2, 3.11.1.6, 3.11.2.3, 3.11.3.2, 3.11.4.8), none disputed, none left unreviewed. Every cited line of the old body was opened at b8ff978c9, the removed files were read with git show from 115fea55e^, the probe was rebuilt and run again with identical output, the 2010 paper was read as a PDF (12 pages) and the three other web pages were re-read through a summarising fetch.
+at: 2026-11-24
+
+n: 9.5.16.1
+kind: review
+re: 3.11.1.1
+saw: a58fd538
+ack: 1
+is: wc and grep over form/form-stdlib/grammars at b8ff978c9 give Go 223 lines, 21,091 bytes, 32 rule lines (181-212); Rust 114, 12,019, 20 (84-103); TypeScript 252, 26,809, 33 (195-227); Prolog 135, 12,786, 15 (110-124); Python 1,118, 107,012, 176 (926-1101). Rule lines holding ' <= ' number 32, 10, 33, 15 and 139. git log -1 gives 2026-10-01 for python-bmf.fk and 2026-10-03 for the other four.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.2
+kind: review
+re: 3.11.1.2
+saw: 25ff6510
+ack: node
+is: Flatness holds: with quoted tokens and $name:kind holes removed, all 276 rule patterns are empty; no file under grammars/ holds a name ending in -ref, the constructor source-compiler.fk:463-465 would call; Go's function rules are func0, func2 and method0 with empty bodies and func-return-add (go-bmf.fk:183-186). The hole kinds are six, not three: of 586 holes 526 are name, 35 int, 19 string, and python-bmf.fk:1091-1096 use float (1), bytes (1) and fstring (4). The parenthesis should read: typed holes (name, int, string; Python also float, bytes and fstring).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.3
+kind: review
+re: 3.11.1.3
+saw: e2308e42
+ack: 1
+is: python-bmf.fk holds the keyword and operator lists and the scanner on lines 29-118, python-layout-dedents with 'from-indent - 4' on line 126, the statement grouper on lines 140-201, eleven binop rules of the form name OP name on lines 1070-1080 (the cited range 1059-1080 also holds eleven comparison rules) and sample-module on line 1098. git grep for python-parse-module and pybmf- over the tree at b8ff978c9 names only python-bmf.fk; python-bmf-lift.fk is 1,214 lines at 115fea55e^ and absent after.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.4
+kind: review
+re: 3.11.1.4
+saw: dfc7a6d4
+ack: 1
+is: dialect-categories.fk gives, by count, lowest and highest value: PY 75, 501, 575 (lines 80-154); TS 37, 601, 637 (172-208); GO 23, 631, 653 (41-63); RS 15, 661, 675 (156-170); PL 9, 676, 684 (70-78), each range without a gap, all under category_type 99, so TS 631-637 (the TS-BMF-EVAL rows, 204-208 among them) and GO 631-637 are the same numbers. python-bmf.fk:276 interns PY-BMF-BINOP with the children left, the string "+", right.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.5
+kind: review
+re: 3.11.1.5
+saw: a25a96cb
+ack: 1
+is: compiler.fk:60 lists the Python port as in-motion and the TypeScript, Go and Rust ports as seed. pl-lenses-13.fk:83-85 names nine flags and sets them to [1, 1, 0, 0, 0, 0, 0, 0, 0], the seven zeros being full-parse, AST-roundtrip, typecheck, compile, execute, arbitrary-transpile and identifier-escape; lines 4-16 say the same in prose. git ls-files holds no path matching java, c-bmf or cpp, and grammars/ holds no C, C++ or Java file.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.6
+kind: review
+re: 3.11.1.6
+saw: 17e6af11
+ack: node
+is: The date, the removals and all ten line counts are as stated. The figures 14,729 and 1,628 are the commit's own subject line, not a count of its trees, which hold 14,693 and 1,663 tracked files. The node should say: Commit 115fea55e of 2026-09-29, whose subject line reads 14,729 files to 1,628 (its trees hold 14,693 and 1,663 tracked files), removed ...
+why: git show 115fea55e^:<path> | wc -l gives 32, 32, 49, 1,214, 1,258, 777, 534, 2,018, 2,377 and 1,898, and none of the ten paths exists at 115fea55e (2026-09-29 22:23 +0800). git ls-tree -r --name-only lists 14,693 files at 115fea55e^ and 1,663 at 115fea55e; git diff --name-status between them shows 13,031 deleted, 1 added, 530 modified.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.7
+kind: review
+re: 3.11.2.1
+saw: 891c5858
+ack: 1
+is: fsc-rule-line-recipe (source-compiler.fk:477-499) finds '::=', ' => ', ';' and ' <= ' by fsc-find-string-from and fsc-find-char-from and returns the list name, sequence pattern, action, bmf-identity-inverse, reverse; engine.fk:5-7 says the engine works on BMF objects a sensing layer may produce; go-bmf.fk:17-21 and engine.fk:2102 build the object patterns. Bytes of the rule line ranges over file bytes: Go 3,602 of 21,091 (17.0%), Rust 1,912 of 12,019 (15.9%), TypeScript 4,203 of 26,809 (15.6%), Prolog 1,577 of 12,786 (12.3%), Python 20,036 of 107,012 (18.7%).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.8
+kind: review
+re: 3.11.2.2
+saw: a37a6942
+ack: 1
+is: bmf-grammar.fk:51 defines grammar as (list "G" start rules index) and lines 58-59 define rule3 as (list name pat tpl) and rule3m with a "memo" mark. Lines 1109-1127 build 15 pattern tags (lit, ref, run, cap, opt, not, rep, sep, str, char, num, infix, chain, leaf, ternary); seq and alt have no constructor there and are read by tag in gc-pat (line 339 for seq), which makes 17. Lines 1128-1137 build 10 template tags. gx-alts (817-820) returns the first alternative that matches. No definition in bmf-grammar.fk or bmf-core.fk has print, unparse, inverse, reverse or back in its name.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.9
+kind: review
+re: 3.11.2.3
+saw: 1751c9f6
+ack: node
+is: form-bml.fk has 84 lines naming rule3 and one operator table of 17 rows on lines 41-48; bmf-core.fk:390-404 and bmf-grammar.fk:582-594 skip only // and /* */; bmf-grammar.fk:338 compiles a keyword literal with the bmlname class. One attribution is wrong: the chain operation builds $bml-slice (gx-chain-slice, bmf-grammar.fk:969-979, the call on line 977), while $bml-typed is built by the bind template form in gx-build (lines 1053-1059), not by the chain operation. The last clause should read: the chain operation builds $bml-slice calls and the bind template builds $bml-typed calls.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.10
+kind: review
+re: 3.11.2.4
+saw: 58e9a887
+ack: 1
+is: The comment at bmf-core.fk:93-102 says the six natural-language names sit in form-ontology-bp.fk's table and here, that bmf-bp answers a miss with (make_nodeid 0 0 0 0) rather than saying so, and that a missing name gives 'children identical, identity never meeting' from 'two hand-held tables'. bmf-bp at lines 161-168 returns (make_nodeid 0 0 0 0) for a row that is nil and reports nothing.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.11
+kind: review
+re: 3.11.2.5
+saw: a358b98c
+ack: 1
+is: rust-bmf.fk:97 is the let-int rule naming rsbmf-emit-let-int and rsbmf-source-let-int; line 49 interns RS-BMF-LET from the captures name and value; lines 50-53 return five token objects (let, name from kids[0], =, int from kids[1], ;). engine.fk:2444-2464 is apply-object-rule, 2556-2559 apply-object-rule-reverse, 2561-2571 bmf-roundtrip (forward, reverse, forward) and 2577-2579 bmf-roundtrip-node-eq?, which does the comparison; language-packs-band.fk:86-90 calls both on a token list.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.12
+kind: review
+re: 3.11.2.6
+saw: d3456a51
+ack: 1
+is: Definitions named <lang>bmf-source-* number 30, 10, 33, 15 and 121 in the Go, Rust, TypeScript, Prolog and Python files, 209 together, each returning a list of token objects. bmf-default-reverse-emitter (engine.fk:1924-1925) returns bmf-object-source-span (92-97), and source-compiler.fk:487-489 names it when a rule line has no ' <= '.
+why: to-text and objects-text occur nowhere in engine.fk, source-compiler.fk or compiler.fk; render and source-text occur there only in comments; scan occurs 0 times in the Go, Rust and Prolog files. The one joiner seen, fsc-source-emit-join (source-compiler.fk:1426), joins emitted Form recipe text, not token objects.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.13
+kind: review
+re: 3.11.2.7
+saw: 35663eae
+ack: 1
+is: Follows from the four premises as reviewed in 9.5.16.7, 9.5.16.8, 9.5.16.11 and 9.5.16.12: engine.fk applies a rule forward and in reverse through two closures over token objects, bmf-grammar.fk holds pattern and template as lists and has no reverse walk, and no file in the tree at b8ff978c9 calls one engine from the other for a host language.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.14
+kind: review
+re: 3.11.3.1
+saw: 8cfd180f
+ack: 1
+is: language-packs-band.fk:30-52 applies assign-int (Python, TypeScript), var-int (Go), let-int (Rust) and is-add-int (Prolog) to hand-built token lists; last-kid-int (23-26) takes node_value of the last child; lines 56-70 build five two-row bmf-mini rule lists from "10" and "3" and fold (list 1 1 2); lines 73-77 compare the five programs with ms-same and no line compares the statement nodes. bmf-mini.fk:20-30 is the fold. CURRENT_FLOOR.md:448 reads 'language-packs-band 31 (2026-10-01)'. No other file under tests/ loads a *-bmf.fk grammar.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.15
+kind: review
+re: 3.11.3.2
+saw: 86b20460
+ack: node
+is: The test, the Go and Java grammars and the type-dropping param rules are as stated. Two things differ. The test holds two methods, each compared with its own hand-built node, plus a cell that the two expected nodes differ; 300 is those three cells of 100. And only Go and Java supplied three rules over the 13 shared ones; BML used its own 78-rule grammar, which never called the shared list. The node should say: Go and Java each supplied three rules (method, param, ifs) over 13 shared rules; BML used its own grammar.
+why: lang-convergence-band.fk:19-49, go.fk:21-23 and java.fk:21-23 at 115fea55e^; lang-common.fk:20; receipt lines 73 and 153. At 115fea55e^ common-rules is called by go.fk and java.fk alone. bml-grammar in form/form-stdlib/bml.fk there (135 lines, 78 rule3 rows, start rule unit, the same shape since 2026-07-02) wraps its result in do (line 28), requires '(' after if (line 73), emits UE-WRITE-ASSIGN for 'y = a + b ;' (line 93) and ident[...] for a name (line 133), so by its rule text the BML third of each assertion is not shown to reach the hand-built node. Not run.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.16
+kind: review
+re: 3.11.3.3
+saw: 0bc8bf4e
+ack: 1
+is: converge.fk at 115fea55e^ (89 lines) builds the same tree in recursive-fact-tree-1 (lines 32-41, 'the Python author's') and recursive-fact-tree-2 (43-51, 'the TypeScript author's') from hand-written category ids, prints 'yes — same NodeID' on line 83, and also builds a third, iterative tree that differs. README.md lines 59-67 list 'Python → NodeID end-to-end via python-bmf.fk' under what is not reachable. factorial.py and factorial.ts are named only by the README, by themselves and by a file listing inside one receipt.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.17
+kind: review
+re: 3.11.4.1
+saw: 4dd0593d
+ack: 1
+is: NUMS.Go/http/config/labels.yaml has 298 lines and 81 lines with _Op (first on line 79, last on line 207); line 79 is Equal with '{0} == {1}', line 151 Ternary with '{0} ? {1} : {2}', line 200 For with 'for {0}; {1}; {2} {3}'. Go.yaml has 282 lines and no _Op. git log -1 gives 9e6bbb4 of 2023-04-05 for both. The one-direction use and the hand-written printer are in study/r1/nums-model.md:221-223 and study/r1/nums-core.md:236-243, as the limit says.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.18
+kind: review
+re: 3.11.4.2
+saw: 561f947b
+ack: 1
+is: Follows from the premises and matches the probe source: lens.c reads rows (rule NAME PATTERN [TEMPLATE]) and (lex NEUTRAL "spelling") (lines 72-82), reads by P and build (94-167), prints by unbuild, the template as a destructor, and PR and PV over the pattern (202-274), and refuses a blueprint the target has no row for (288-295). The report's own estimate is 'perhaps 15 constructs' (section 8.4 item 9).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.19
+kind: review
+re: 3.11.4.3
+saw: db7dbb5f
+ack: 1
+is: Follows from axiom 1.3 and the premises. In lens.c node() returns the existing index for an equal (blueprint, children) pair (lines 57-62) and unbuild reads the same pair back (202-216); the guard is line 218; the uncaptured-run refusal is line 272. The three conditions are marked inferred in the report (section 8.1) and no load-time check of them exists in the probe, as the limit says.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.20
+kind: review
+re: 3.11.4.4
+saw: cfb4fdd7
+ack: 1
+is: Run again in this review: a copy of lens.c (360 lines) and its lens and text files, built with cc -O1 -Wall -Wextra -fsanitize=address,undefined, gave no compiler output, exit 0, empty stderr and an output identical to the study's out.txt: go, java and python each read to #22, '22 nodes in the space', leaf #3 "i64" under both params and the return type, VERDICT 31. go.lens:12, java.lens:12 and py.lens:18 are the rows mapping int64, long and int to i64.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.21
+kind: review
+re: 3.11.4.5
+saw: aba701bb
+ack: 1
+is: The rerun prints 'read again -> #22, same node' for the go, java and py lenses; '(a + b) * c' prints as '( a + b ) * c' and 'a + b * c' as itself; 'a - b - c' is #31 and 'a - (b - c)' is #33 and each prints to its own form. The lens files hold one parenthesis alternative, in rule factor (common.lens:15), and no rule for printing; PVinfix (lens.c:228-240) falls to it when an operator is too loose.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.22
+kind: review
+re: 3.11.4.6
+saw: f242d858
+ack: 1
+is: The rerun prints 'python half -> #41; rows missing in go: no row for blueprint 13 (truediv)', 'print through go: refused', and 'golossy read -> #44 (not #22); print: refused' with the reason that an uncaptured run or ref has nothing to print from. py.lens:17 is the row (op "/" truediv 2); golossy.lens:4-7 are the two rules that read a type with an uncaptured (run alnum).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.23
+kind: review
+re: 3.11.4.7
+saw: 337b191a
+ack: 1
+is: The rerun prints 'rules: common 9, go 7, java 7, python 8, golossy 2; lexicon rows: go 2, java 2, python 2'; the files are 17, 13, 13 and 19 lines with their comments; layout() is lens.c:168-182, 15 lines. File bytes over rule count are 659 (Go), 600 (Rust), 812 (TypeScript), 852 (Prolog) and 608 (Python). read_text returns 0 with no position (lens.c:183-189); the first-run failure itself is told only by the report (section 8.2). The traced mode is bmf-grammar.fk:102-125.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.24
+kind: review
+re: 3.11.4.8
+saw: 1e20c5f4
+ack: node
+is: The paper, its date, partial isomorphisms, the priority filter and both stated limits are as the node says. The choice is not ordered both ways: the printer tries the left alternative and then the right, but the parser returns the results of both with unlimited backtracking. The node should say: a constructor one way, a destructor the other; the printer takes alternatives in order, the parser keeps all of them.
+why: Read as a PDF in this review, 12 pages. Haskell'10, September 30, 2010 (page 1); a pair of partial functions, one per data constructor, and round trip 'modulo equivalence classes' (3.1); binOpPrio prints parentheses 'exactly where they are needed', example "(7 + 8) * 9" (6.4); 'exponential worst-case complexity and a space leak due to unlimited backtracking' (4.4). Printer choice: 3.3 and 4.2. Parser choice: 4.1 (p s ++ q s); 4.4 warns that a library whose choice commits, such as Parsec's, does not give the semantics syntax descriptions expect.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.25
+kind: review
+re: 3.11.4.9
+saw: d0eca804
+ack: 1
+is: Re-read through a summarising fetch on 2026-11-24; all three pages say what the node says. The BNFC home page names six target languages (Haskell, Agda, C, C++, Java, OCaml) and lists abstract syntax, pretty-printer, lexer and parser generator files among the outputs.
+why: The LBNF reference says comments 'are not passed to the parser', that the pretty-printer 'normalizes' a trailing separator away, and that 'Only the Haskell backends (includes Agda) implement the layout feature'. The Spoofax page says a template's surrounding layout is used to pretty print, and that without it 'we would get the text in a single line separated by spaces'.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.26
+kind: review
+re: 3.11.4.10
+saw: 22312bd3
+ack: 1
+is: Follows from the premises and the probe files: common.lens:14 gives Go and Java (op "/" div 2) whatever the operand type while py.lens:17 gives "//" div and "/" truediv, and go.lens:13 does map float64; names are leaves (#2 leaf "x" in the rerun). The sentence 'Division is excluded because integer semantics differ across these surfaces' is on lines 14-15 of pl-lenses-13.fk, one line below the cited 13-14.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.27
+kind: review
+re: 3.11.4.11
+saw: ab9f08ba
+ack: 1
+is: Follows from the premises. In the rerun every printed form has one space between tokens ('func scale ( x int64 , k int64 ) int64 {') and re-reads to the node it came from; layout() is a C function outside the rows (lens.c:168-182); py.lens:17 places "//" before "/" by hand because the first matching operator wins (lens.c:118). The loss of comments and the keyword collision were not run, as the limit says.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.28
+kind: review
+re: 3.11.8.1
+saw: 683a642f
+ack: 1
+is: Follows from the premises for the rule shape and the operator rows (form-bml.fk:41-48: symbol, node name, precedence). Two properties the statement adds are in none of the three premises and were checked at the source: reading without a scanner (bmf-grammar.fk:7-11, 'The reader walks a position over the source string') and first-byte pruning (bmf-grammar.fk:170-179, each reference and alternation 'carries FIRST: the bytes at which its pattern can begin').
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.29
+kind: review
+re: 3.11.8.2
+saw: 850fbc32
+ack: 1
+is: The numbers match the sources: 13 rules in common-rules (lang-common.fk:20), three rules each in go.fk and java.fk at 115fea55e^, 9 rules in common.lens, 7, 7 and 8 rules plus 2 lexicon rows in go.lens, java.lens and py.lens. The old body's figure rests on two grammars, Go and Java; its BML grammar never used the shared list (see 9.5.16.15).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.30
+kind: review
+re: 3.11.8.3
+saw: 05fea2d8
+ack: 1
+is: Follows from the premises: bmf-roundtrip and bmf-roundtrip-node-eq? (engine.fk:2561-2579) run forward, reverse, forward on a token list and compare the two nodes; the probe's section 2 reads, prints and reads again on text through the go, java and py lenses (lens.c:322-330).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.31
+kind: review
+re: 3.11.8.4
+saw: 56cf96fb
+ack: 1
+is: Follows from the premises: the 81 _Op templates sit on the neutral labels of labels.yaml and Go.yaml has none, so one spelling serves every language; the probe's rows put the spelling on the per-language side (go.lens, java.lens, py.lens). The 19 level-2 recipe types are in study/r1/nums-core.md section 2.3 and were not counted in NUMS.Go here, as the limit says.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.32
+kind: review
+re: 3.11.8.5
+saw: 7df9c77f
+ack: 1
+is: Follows from 3.11.1.5. The source holds one vector of nine flags for the whole file (pl-lenses-13.fk:83-85, [1, 1, 0, 0, 0, 0, 0, 0, 0]) and five audit rows each with a count, two of them 0 (line 82); 'per language area' is the recommendation, not what the old file does.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.33
+kind: review
+re: 3.11.9.1
+saw: 02c1a35d
+ack: 1
+is: Follows from the premises: build-emit interns a node from a category and its children (bmf-core.fk:527-528) and the host emit closures call intern_node with a per-language category (rust-bmf.fk:49, python-bmf.fk:276); dialect-categories.fk gives TS-BMF 601-637 and GO-BMF 631-653 under one category_type, so seven numbers are shared.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.34
+kind: review
+re: 3.11.9.2
+saw: 37c450b2
+ack: 1
+is: Follows from the premises: each reversible rule names an emit and a source closure that state one mapping twice (rust-bmf.fk:49-53), both over token objects (engine.fk:5-7). In the tree at b8ff978c9 the only round-trip check of such a pair that a test runs is Rust's let-int (language-packs-band.fk:86-90).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.35
+kind: review
+re: 3.11.9.3
+saw: 6f0dcb16
+ack: 1
+is: Follows from the premises: python-bmf.fk:1070-1080 is one rule per operator between two names and line 1098 one rule for one sample program; file bytes over rule count run from 600 (Rust) to 852 (Prolog).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.36
+kind: review
+re: 3.11.9.4
+saw: feb9bd79
+ack: 1
+is: Follows from 3.11.2.4: bmf-core.fk:93-102 and 161-168 show the second copy of the table and the unreported (make_nodeid 0 0 0 0) for a missing name.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.37
+kind: review
+re: 3.11.9.5
+saw: 7615c8a5
+ack: 1
+is: The four items are in the engine as named: $bml-slice (bmf-grammar.fk:977), $bml-typed (1053-1059, built by the bind template, see 9.5.16.9), the bmlname class on the keyword edge (338) and the // and /* */ skip (bmf-core.fk:390-404, bmf-grammar.fk:582-594).
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.38
+kind: review
+re: 3.11.9.6
+saw: ccf62b44
+ack: 1
+is: Follows from the premises: go.fk:21-23 and java.fk:21-23 at 115fea55e^ read a parameter's type with an uncaptured (p-run "alpha") and splice only the name; in the rerun golossy.lens, which restores those two rules, reads the Go text to #44 and its print is refused.
+by: r3/review-host-language-grammars
+at: 2026-11-24
+
+n: 9.5.16.39
+kind: review
+re: 3.11.9.7
+saw: 56fd679d
+ack: 1
+is: Follows from the premises: the five files exist with 276 flat rules and pl-lenses-13.fk:85 sets full-parse and AST-roundtrip to 0. compiler.fk:60 still names language-packs-band.fk as the witness of the Python, TypeScript, Go and Rust ports.
+by: r3/review-host-language-grammars
+at: 2026-11-24

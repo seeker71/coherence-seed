@@ -1,0 +1,370 @@
+# Sources. A path is written as <repository>/<path>; the repositories are named in 2.1, 2.2 and 2.3.
+
+n: 2.1
+name: old-body
+kind: source
+is: The coherence-kernel repository this restart leaves: 4,775 commits from 2026-06-28 to 2026-11-24, read at commit b8ff978c9 on the machine it was built on.
+url: https://github.com/seeker71/coherence-kernel
+path: coherence-kernel
+rev: b8ff978c9
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.1
+name: core-axioms.form
+kind: source
+is: The five axioms, their theorems and the fold points, 273 lines. Status line: acknowledged 2026-11-08.
+path: coherence-kernel/axioms/core-axioms.form
+rev: 7b0ff6bed
+date: 2026-11-19
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.2
+name: NORTH_STAR.md
+kind: source
+is: The old body's north star: who we are, the five axioms in short form, where the body is going, what done means.
+path: coherence-kernel/NORTH_STAR.md
+rev: 9d7790856
+date: 2026-11-08
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.3
+name: CLAUDE.md
+kind: source
+is: The old body's entry page for a visiting mind. Line 69: living doors carry only what is and where we are going; how we got here lives in git.
+path: coherence-kernel/CLAUDE.md
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30
+name: this-repository
+kind: source
+is: The coherence-seed repository itself, begun 2026-11-24. A source whose path starts with coherence-seed is a file of this repository and is checked to exist.
+url: https://github.com/seeker71/coherence-seed
+path: coherence-seed
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.9
+name: fb.h
+kind: source
+is: The framebuffer's layout in C: the head, the machine record, the area entries and every record shape, shared by the bootstrap that writes the region and the observer that reads it.
+path: coherence-seed/bootstrap/fb.h
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.10
+name: fb.c
+kind: source
+is: The observer: a second process that maps a framebuffer read-only, shows one frame, records frames as page differences and replays a recording, printing any node with the program node that wrote it.
+path: coherence-seed/tools/fb.c
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.11
+name: framebuffer.md
+kind: source
+is: The framebuffer, floor version: the region, what is in it, its five rules, frames and replay, what was measured on 2026-11-25 and its limits.
+path: coherence-seed/spec/framebuffer.md
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.12
+name: notes
+kind: source
+is: Fifty-two working notes of the sessions that built the old body, copied here on 2026-11-25 so that every claim citing one can be checked from this repository alone. They are evidence of what those sessions found, written at the dates they carry; several describe parts of the old body that no longer exist.
+path: coherence-seed/sources/notes
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.33
+name: Crypo-Coin-Coherency-Network
+kind: source
+is: A repository of the owner's, read on the first machine at commit 70ee20a for one architecture spec on states of matter as a persistence model.
+url: https://github.com/urs-muff/Crypo-Coin-Coherency-Network
+path: Crypo-Coin-Coherency-Network
+rev: 70ee20a
+got: 2026-11-24
+at: 2026-11-25
+
+n: 2.30.1
+name: kg.c
+kind: source
+is: The graph checker: reads graph/*.kg, enforces the rules of hub 8, prints the derived index.
+path: coherence-seed/tools/kg.c
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30.3
+name: node-encoding.md
+kind: source
+is: The node encoding, version 1: canonical bytes, content id, catalogue, leaf rules, canonical print and refusals, with the choices it made and its limits.
+path: coherence-seed/spec/node-encoding.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30.4
+name: node-vectors.tsv
+kind: source
+is: The conformance vectors of the node encoding: 46 nodes with their bytes and ids, 58 texts and 23 byte strings a reader must refuse, each with the refusal's word.
+path: coherence-seed/spec/node-vectors.tsv
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30.5
+name: enc.c
+kind: source
+is: The reference reader, printer and checker of the node encoding, 279 lines of C; it runs the vector file.
+path: coherence-seed/tools/enc.c
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30.6
+name: core-operations.md
+kind: source
+is: The operations the floor's walker runs: outcomes, the named catalogue entries, the meaning of fail, choice and cut, arithmetic, native code, faults and limits.
+path: coherence-seed/spec/core-operations.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.30.7
+name: ck.c
+kind: source
+is: The bootstrap: C99 in one file with the layout header fb.h, built by the Makefile, which fails the build when the two pass 2,000 lines together. Rewritten on 2026-11-25 so that all of its memory is the framebuffer.
+path: coherence-seed/bootstrap/ck.c
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.8
+name: ground-programs
+kind: source
+is: Fourteen programs in the canonical print with their expected outcomes in expect.tsv: the three ground programs of the old body, ten witnesses of choice, cut, need, an exhausted choice, range, fault, recover and native code, and a long recursion of 158.6 million walker steps for watching a run.
+path: coherence-seed/ground
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.2
+name: core-axioms.form-copy
+kind: source
+is: The byte-for-byte copy of the acknowledged axioms file kept in this repository.
+path: coherence-seed/axioms/core-axioms.form
+date: 2026-11-19
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.4
+name: AGENTS.md
+kind: source
+is: The old body's conversation entry: the standing guide, the shared loop and the numbered working rules.
+path: coherence-kernel/AGENTS.md
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.5
+name: MANIFEST.md
+kind: source
+is: The old body's orientation page: how it is built and where each organ lives.
+path: coherence-kernel/MANIFEST.md
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.6
+name: CURRENT_FLOOR.md
+kind: source
+is: The old body's record of what stands, 167 KB.
+path: coherence-kernel/CURRENT_FLOOR.md
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.7
+name: fkwu-uni.c
+kind: source
+is: The old runtime, one C translation unit of 34,149 lines.
+path: coherence-kernel/runtime/fkwu-uni.c
+rev: bfae62d76
+date: 2026-11-20
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.8
+name: membrane-boot.c
+kind: source
+is: A 1,199-line carrier written from the axioms alone on 2026-11-05: cells, offer and machine-code leaves with no evaluator.
+path: coherence-kernel/runtime/membrane-boot.c
+rev: 16b3d3eb6
+date: 2026-11-05
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.9
+name: membrane-boot.h
+kind: source
+is: The carrier's header, 169 lines: the word that is 0, 1, nothing or node.
+path: coherence-kernel/runtime/membrane-boot.h
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.10
+name: fkwu-optable.h
+kind: source
+is: The old runtime's operation table: 221 primitive rows and 66 reader rewrites.
+path: coherence-kernel/runtime/fkwu-optable.h
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.11
+name: fkwu-node-word.h
+kind: source
+is: The old NodeID word layout: one mode bit, then package 6, level 13, type 12 and instance 32 bits.
+path: coherence-kernel/runtime/fkwu-node-word.h
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.12
+name: local-agent-goal.form
+kind: source
+is: The old body's goal file, which records the C seed's line count over time.
+path: coherence-kernel/docs/local-agent-goal.form
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.13
+name: offer-ack-core.fk
+kind: source
+is: The running 66-line offer and acknowledgment core of the old body.
+path: coherence-kernel/control/offer-ack-core.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.1.14
+name: jit-page.bml
+kind: source
+is: The 396-line AArch64 emitter written in the old body's own language.
+path: coherence-kernel/form/form-stdlib/bml/jit-page.bml
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.2
+name: NUMS.Go
+kind: source
+is: The NUMS.Go repository: 60 commits from 2023-02-01 to 2023-04-05, read at its head.
+url: unpublished
+path: NUMS.Go
+rev: 9e6bbb4
+date: 2023-04-05
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.3
+name: Coherence-Network
+kind: source
+is: The parent repository, which holds the 2000 thesis and an earlier study of NUMS.Go under docs/field/urs/artifacts.
+url: https://github.com/seeker71/Coherence-Network
+path: Coherence-Network
+rev: 7eecf4da5
+date: 2026-11-08
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.3.1
+name: thesis-2000
+kind: source
+is: The master thesis Backtracking Model Languages, 2000, as text.
+path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/backtracking-model-languages.txt
+date: 2000
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.31
+name: study-reports
+kind: source
+is: The full reports of the study rounds of 2026-11-24, kept under study/. Each holds more detail and more citations than the nodes drawn from it.
+path: coherence-seed/study
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24
+name: study-round-three
+kind: source
+is: The six reports of the third study round, on a model reading and choosing nodes inline.
+path: coherence-seed/study/r3
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.1
+name: model-lane-executor.md
+kind: source
+is: The old body's decode step as built, with a computed budget for one step.
+path: coherence-seed/study/r3/model-lane-executor.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.2
+name: model-lane-learning.md
+kind: source
+is: How the old body attaches capability to its model and what the text route cost.
+path: coherence-seed/study/r3/model-lane-learning.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.3
+name: web-node-tokens.md
+kind: source
+is: Published mechanisms for emitting or consuming something other than a vocabulary token in one pass.
+path: coherence-seed/study/r3/web-node-tokens.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.4
+name: web-adapters-steering.md
+kind: source
+is: Published ways to extend a frozen model at run time, with per-step cost arithmetic.
+path: coherence-seed/study/r3/web-adapters-steering.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.5
+name: web-structured-embeddings.md
+kind: source
+is: How a node gets a vector and how a hidden state finds a node, with scan timings on the first machine.
+path: coherence-seed/study/r3/web-structured-embeddings.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+
+n: 2.24.6
+name: web-metal-execution.md
+kind: source
+is: A cost model for a decode step on Apple silicon, with a probe run on the first machine.
+path: coherence-seed/study/r3/web-metal-execution.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24

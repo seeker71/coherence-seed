@@ -1,0 +1,277 @@
+# Sources of the study of the earlier in-house NUMS.Go study and its miniature (hub 3.8). Line ranges sit in the citing claim. Commits of the parent repository are cited as 2.3#commit-<hash>, commits of NUMS.Go as 2.2#commit-<hash>.
+
+n: 2.16
+name: nums-study-sources
+kind: hub
+is: The primary sources behind hub 3.8: the round-two study report on the folder nums-go-2023, the folder's eight text and Python files, the NUMS.Go files the study re-read, the documents of the parent repository, of the old body and of two sibling checkouts that carry the ice, water and gas vocabulary, and the first-round critique and core report.
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.1
+name: gap-nums-study-2023.md
+kind: source
+is: The round-two study report on the folder nums-go-2023 and its Python miniature, 463 lines: what the folder is, who wrote it, what the miniature does on a run, where the ice, water and gas mapping comes from, and where the folder disagrees with NUMS.Go.
+path: coherence-seed/study/r2/gap-nums-study-2023.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.2
+name: nums-go-2023-README.md
+kind: source
+is: The narrative page of the folder nums-go-2023, 194 lines: the three primitives with a phase column, the claimed phase transitions, the claims about languages and grounding, and a table mapping NUMS to the parent project.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/README.md
+rev: 5fd7b8a0b
+date: 2026-06-15
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.3
+name: study-notes.md
+kind: source
+is: The folder's source walk of NUMS.Go, 584 lines, called phase 1a: type listings and pseudo-code for the nums and http packages, a size estimate for a port and a list of open gaps.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/study-notes.md
+rev: 5fd7b8a0b
+date: 2026-06-15
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.4
+name: network-substrate-design.md
+kind: source
+is: The folder's design, 264 lines, called phase 2: a category vocabulary and a database schema for a NUMS-shaped store of ideas, specs and memories keyed by frontmatter shape.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/network-substrate-design.md
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.5
+name: mini-nums-core.py
+kind: source
+is: The kernel of the Python miniature, 355 lines: the four-integer id, the per-level interning table, the module, and the Blueprint, Recipe and NamedCell records.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/mini-nums/core.py
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.6
+name: mini-nums-calc.py
+kind: source
+is: The miniature's calculator front end, 125 lines: reads statements of the form let x = expr over four operators and builds recipes and global cells.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/mini-nums/calc.py
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.7
+name: mini-nums-test_mini.py
+kind: source
+is: The miniature's seven tests, 165 lines, with 15 printed assertions.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/mini-nums/test_mini.py
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.8
+name: mini-nums-README.md
+kind: source
+is: The miniature's own page, 73 lines: what each test is said to validate, what was simplified against NUMS.Go and what is said to be preserved.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/mini-nums/README.md
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.9
+name: recipe.go
+kind: source
+is: The recipe side of the NUMS.Go core package, 545 lines; lines 497-506 hold the NamedCell_t record and its constructor function NewField.
+path: NUMS.Go/nums/recipe.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.10
+name: reflect.go
+kind: source
+is: A six-line file of the NUMS.Go core package holding one unused record, Cell_t: a blueprint pointer and a value.
+path: NUMS.Go/nums/reflect.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.11
+name: parser.go
+kind: source
+is: The tree-sitter front of the NUMS.Go core package, 657 lines: the language list and the file parser with its per-language dispatch.
+path: NUMS.Go/nums/parser.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.12
+name: go.go
+kind: source
+is: The Go handlers of the NUMS.Go core package, 1,502 lines; RegisterGo at lines 1425-1502 fills the dispatch table.
+path: NUMS.Go/nums/go.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.13
+name: nums_nodes.go
+kind: source
+is: The node id struct, the node structs and the reservation predicates of the NUMS.Go core package, 886 lines.
+path: NUMS.Go/nums/nums_nodes.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.14
+name: nums_db.go
+kind: source
+is: The in-memory node databases of the NUMS.Go core package, 272 lines: Record_Entry, Update_Entry and, at the end, two commented-out C++ member functions.
+path: NUMS.Go/nums/nums_db.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.15
+name: emit_module.go
+kind: source
+is: The module builder of the NUMS.Go core package, 335 lines: the build-mode enumeration and Make_Field, which declares a global cell and its constructor recipe.
+path: NUMS.Go/nums/emit_module.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.16
+name: blueprint.go
+kind: source
+is: The blueprint side of the NUMS.Go core package, 263 lines, with the functions that fetch and find fields as NamedCell_t records.
+path: NUMS.Go/nums/blueprint.go
+rev: 9e6bbb4
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.17
+name: OBJECT_MODEL_BML_NUMS.md
+kind: source
+is: A 180-line design document of the parent repository on the kernel's object model, which opens with an owner quotation dated 2026-05-29 and names the folder nums-go-2023 as its NUMS source.
+path: Coherence-Network/kernels/OBJECT_MODEL_BML_NUMS.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.18
+name: coherence-substrate-INDEX.md
+kind: source
+is: The index page of the parent repository's substrate documents, 416 lines; line 134 states that state is orthogonal to substance.
+path: Coherence-Network/docs/coherence-substrate/INDEX.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.19
+name: substrate-phase.fk
+kind: source
+is: A 54-line file of the old body that reads a cell's state (gas, water, ice) from counts and keeps state apart from substance; first committed 2026-07-02.
+path: coherence-kernel/form/form-stdlib/substrate-phase.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.20
+name: living-equation.fk
+kind: source
+is: A 118-line grammar file of the old body whose header maps structure to Blueprint (ice) and choices to Recipe (water).
+path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
+rev: b8ff978c9
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.21
+name: LIVING_CODEX_SPECIFICATION.md
+kind: source
+is: An 869-line specification in the sibling checkout Living-Codex-CSharp, a repository outside the four named in hub 2; lines 571-574 define ice, water and gas as persistence states of a node.
+path: Living-Codex-CSharp/LIVING_CODEX_SPECIFICATION.md
+rev: 6ea184a
+date: 2025-09-12
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.24
+name: critic.md
+kind: source
+is: The first-round completeness critique, 471 lines; gap G1 (lines 50-64) names the unread folder nums-go-2023 and gap G2 (lines 66-75) corrects the statement that NUMS.Go has no cell record.
+path: coherence-seed/study/r1/critic.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.25
+name: nums-core.md
+kind: source
+is: The first-round study report on the NUMS.Go core package, 540 lines, which the round-two study cites by section for the NUMS.Go side of its comparisons.
+path: coherence-seed/study/r1/nums-core.md
+date: 2026-11-24
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.26
+name: form-language.md
+kind: source
+is: The parent repository's page on the Form language, 157 lines, first added in commit 02dd37592 of 2026-05-08; line 5 now names fkwu as its sole live kernel.
+path: Coherence-Network/docs/coherence-substrate/form-language.md
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.27
+name: substrate-kernel.py
+kind: source
+is: The Python substrate kernel of the parent repository, 798 lines, in a directory first added by commit 02dd37592; counted and not read.
+path: Coherence-Network/api/app/services/substrate/kernel.py
+rev: 7eecf4da5
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023
+
+n: 2.16.28
+name: mini-nums-jsonschema.py
+kind: source
+is: The miniature's JSON-Schema front end, 42 lines: turns a schema of six types into blueprints.
+path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/mini-nums/jsonschema.py
+rev: 02dd37592
+date: 2026-05-08
+got: 2026-11-24
+at: 2026-11-24
+by: r2/gap-nums-study-2023

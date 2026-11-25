@@ -1,0 +1,348 @@
+# Review of graph/3.4.kg (the form-language study of round 1). Every cited file was opened at the cited lines in the old body at commit b8ff978c9; the old runtime was not run, so probe results are confirmed against the study report's probe log and, where one exists, against the seed source.
+
+n: 9.5.4
+kind: hub
+name: review-of-form-language
+is: All 39 claim nodes of graph/3.4.kg were read against their sources (27 observations, 12 findings): 39 confirmed, 0 hold only as amended, 0 disputed, 0 left unreviewed. Nine of the 39 were amended in the hub file and read again by a second reader at their present digests. The file holds no relayed web node. Ten observations rest partly on probes of the old runtime, which this review did not re-run; they are confirmed against the report's probe log and the seed's own lines.
+limit: The hubs 3.4, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.8 and 3.4.9 are outside the scope and carry no review; the checker counts no hub as a claim. The summaries of hubs 3.4, 3.4.8 and 3.4.9 agree with their children: none calls the state words unrelated (3.4 says eight uses with no single definition), and 3.4.8 names three standing contracts and one target. Hub 3.4.4 says attempt is the one recover point while its child 3.4.4.3 records the cell call as a second (docs/in-process-cells.md line 62); the summary should say attempt is the one recover form of the language and the cell call a second recover point at its boundary. The graph directory is untracked in git, so which hub once held the word unrelated could not be read from history.
+at: 2026-11-24
+by: r3/review-form-language
+
+n: 9.5.4.1
+kind: review
+re: 3.4.1.1
+saw: 5cc09f48
+ack: 1
+limit: The seed compares only defn, do, let, if, true and false in its reader (runtime/fkwu-uni.c lines 25033, 25116, 25130, 25161, 25672, 25675; a search for fk_sym_eq finds no other word before the later top-level scans of the same four). The stop on nothing is the seed's own refusal text at line 15373, raised at line 15390. The truth of empty strings and lists rests on the report's probes, not re-run.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.2
+kind: review
+re: 3.4.1.2
+saw: ac248744
+ack: 1
+limit: Seed reader order at runtime/fkwu-uni.c: rewrite table line 25188, operation table 25210, local frame 25328, then the defn table at 25338. The comment at lines 25321-25327 says a local binding has beaten a same-named global defn since a heal of 2026-07-17, so only the primitive-before-local-frame half of the order still matches the axioms file's sentence (axioms/core-axioms.form lines 196 and 198). Conformance vector at lines 65-69. The per-file prefix convention and the absence of qualified names rest on the report's line 219.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.3
+kind: review
+re: 3.4.1.3
+saw: e958bdb2
+ack: 1
+limit: Counted in runtime/fkwu-optable.h: 221 rows in fk_optab (lines 8-228), 66 rows in fk_rwtab (lines 234-299), 57 of them ending in tag 201; the nine others are gt, ge, lt, eq, and, or, not, ne, abs. attempt is the row with mode 28 (line 277). wc -l runtime/fkwu-uni.c answers 34149.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.4
+kind: review
+re: 3.4.1.4
+saw: 70211b5f
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.5
+kind: review
+re: 3.4.1.5
+saw: 9f14818c
+ack: 1
+limit: The sample binds first and calls by name (form/form-samples/closure.fk lines 12-13), and the lowering memo line 95 does the same: '(let $callee (bml-value-first alts)) ($callee args)'. The report's line 206 still writes the call as ((make-adder 10) 5); the node follows the sample, not the report. docs/in-process-cells.md lines 110-114 give the wall as measured stack use (the run thread's reserve less 2 MB) and the 2047 frames as one two-function recursion of 2026-10-04 at 266 MB of walker stack. The private note says the kernel fault is not repaired (its lines 13-17). The lowering memo stands only in the main checkout, not in the worktree.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.6
+kind: review
+re: 3.4.1.6
+saw: bf2c1467
+ack: 1
+limit: Recounted at b8ff978c9: git ls-files '*.fk' gives 974, and git grep -l 'section \[form.bml\]' over them gives 575. The lowering memo exists only in the main checkout (control/offer-ack-core.fk.lowfk, 115 lines, written 2026-11-21), not in the worktree the brief names.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.7
+kind: review
+re: 3.4.1.7
+saw: a7f3b5c5
+ack: 1
+limit: The call, the nine fields and both timings are at docs/in-process-cells.md lines 17-45, 148 and 156; err is empty for cell_call (line 36), diag is a list of records (line 37), stopped is nothing or {kind, message, recipe, unit} (line 38), and lines 43-44 say 'There is no exit code' and 'no stderr to re-read: a diagnostic is a row'. A stop of kind stack-depth adds the fields frames and depth to the record.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.8
+kind: review
+re: 3.4.1.8
+saw: b6452ee2
+ack: 1
+limit: The word host_why occurs in one file of the old body at b8ff978c9, docs/kernel-interface.md line 124 (git grep); neither the seed nor the operation table carries it. The node's wording as a target is therefore exact.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.9
+kind: review
+re: 3.4.1.9
+saw: c7b7b00a
+ack: 1
+limit: The two thresholds are constants of the seed: FK_F64_HEAT 1024 (runtime/fkwu-uni.c line 1034) and FK_JIT_HEAT 4096 (line 10281).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.10
+kind: review
+re: 3.4.1.10
+saw: 1d282ca8
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.11
+kind: review
+re: 3.4.2.1
+saw: d2830894
+ack: 1
+limit: The interface document says the two renderings of nothing for a nothing inside a list (docs/kernel-interface.md lines 95-96). Record mutation in place rests on the report's probe rec, not re-run.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.12
+kind: review
+re: 3.4.2.2
+saw: 768042ad
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.13
+kind: review
+re: 3.4.2.3
+saw: 28213e21
+ack: 1
+limit: The seed shows the mechanism without the probe: runtime/fkwu-uni.c line 16974 mints a composite as fk_nid_make(0, level of the category, type of the category, fk_np), where fk_np is the next free row of the node table. The probe's instance number was not re-read.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.14
+kind: review
+re: 3.4.2.4
+saw: 7b0cb112
+ack: 1
+limit: The eight-bit width is the seed's FK_OPCODE_ARM_CAP 256 (runtime/fkwu-uni.c line 665); the walker ends the process on a tag outside 0..255 (lines 10986 and 15605).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.15
+kind: review
+re: 3.4.2.5
+saw: 9f6f9fcb
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.16
+kind: review
+re: 3.4.2.6
+saw: 51fcddc5
+ack: 1
+limit: The answers of add, div, mod, eq and value_eq rest on the report's probes ints, float32 and lits, not re-run; the laws are at docs/kernel-interface.md lines 50-57.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.17
+kind: review
+re: 3.4.2.7
+saw: ba983995
+ack: 1
+limit: The codec, the three ceilings, the 13 and 12 vectors and the witness 511 are at docs/native-form-artifacts.md lines 3-6, 31-32 and 40-48; the freshness rule is at docs/in-process-cells.md lines 92-93. That document does not write the suffix .fkb for the wire format; the old body does elsewhere (form/form-stdlib/bml/form-path.bml line 636: 'FORMBIN2 rows (.fkb)').
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.18
+kind: review
+re: 3.4.2.8
+saw: 00450d71
+ack: 1
+limit: Confirmed against the report (lines 236, 338-340) and the sample (lines 27-34); the probe was not re-run. The seed line 16974 gives level 0 and type 0 to a composite whose category is not a node row, which fits the @0.0.0 word the report read.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.19
+kind: review
+re: 3.4.2.9
+saw: ef87010b
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.20
+kind: review
+re: 3.4.3.1
+saw: c8191129
+ack: 1
+limit: The census numbers rest on the report's probe nid2, not re-run.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.21
+kind: review
+re: 3.4.3.2
+saw: 39b3d05e
+ack: 1
+limit: All ten locators show what the node says. The queue-pressure file is not independent of the phase function: form/form-stdlib/resident-async-ingress.fk line 40 imports substrate-phase.fk and line 73 answers its st-gas, st-water and st-ice values. A search of tracked .fk and .bml files finds no call of phase-state, and a whole-word search of NUMS.Go finds neither ice nor gas, as the limit says.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.22
+kind: review
+re: 3.4.4.1
+saw: c828230c
+ack: 1
+limit: The band header pins 32767 (form/form-stdlib/tests/offer-ack-core-band.fk line 28) and so does row 65 of form/band-verdicts.txt. The axioms file lines 199 and 217 cite the same band at 262143 and 2097151; the band at b8ff978c9 holds no claim above 16384.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.23
+kind: review
+re: 3.4.4.2
+saw: 4ed1d609
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.24
+kind: review
+re: 3.4.4.3
+saw: 2af64131
+ack: 1
+limit: The line is composed at runtime/fkwu-uni.c line 23492. docs/in-process-cells.md lines 37-38 give stopped as a record {kind, message, recipe, unit} and diag as a list of records, and lines 51-53 say that with a cell running the producers of organ voicings hand the row over with its fields 'instead of composing a JSON line'. The cell call is a second recover point: a spent budget jumps to 'the call's own recover point' (line 62). The operation table holds no row that reads a stop's reason back (a search of runtime/fkwu-optable.h for why, reason and stop finds only form_error and two stream stops).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.25
+kind: review
+re: 3.4.4.4
+saw: 5f8f7120
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.26
+kind: review
+re: 3.4.4.5
+saw: d3df97f7
+ack: 1
+limit: The four documented texts are at the cited lines; the behaviour beside each rests on the report's probes assert, seq, letdefn and lits, not re-run. core.fk line 110 itself places a let inside a defn body.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.27
+kind: review
+re: 3.4.4.6
+saw: a0756cff
+ack: 1
+limit: Recounted at b8ff978c9: 584 tracked files end in band.fk or band.bml (322 and 262).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.28
+kind: review
+re: 3.4.8.1
+saw: 36f43cd0
+ack: 1
+limit: 107 is 66 lines of control/offer-ack-core.fk plus 41 of control/choice-lane-core.fk (wc -l). Review 9.5.4.24 notes that the cell call holds a recover point of its own beside attempt.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.29
+kind: review
+re: 3.4.8.2
+saw: 298d7969
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.30
+kind: review
+re: 3.4.8.3
+saw: ac4a86ac
+ack: 1
+limit: The four string operations are str_len, str_byte_at, byte_to_str and str_concat (docs/kernel-interface.md line 29). They are not total: 'an index that is not an int stops (str_find, str_byte_at, substring, nth)' (lines 60-61), and the report's probe strs has (str_concat "a" 1) stop with exit 1 (study/r1/form-language.md line 336). The cut that is clamped and never stops is substring, not one of the four (form/form-stdlib/core.fk line 67).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.31
+kind: review
+re: 3.4.8.4
+saw: 95d62460
+ack: 1
+limit: The order of work lists the door table as item 5 without a 'stands' mark and says per-verb timing 'is not built yet' (docs/kernel-interface.md lines 183-186); git grep at b8ff978c9 finds host_why in one file, that document at line 124.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.32
+kind: review
+re: 3.4.8.5
+saw: ddb3e5d9
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.33
+kind: review
+re: 3.4.8.6
+saw: fb3c5c49
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.34
+kind: review
+re: 3.4.9.1
+saw: 1d7cace2
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.35
+kind: review
+re: 3.4.9.2
+saw: df61767c
+ack: 1
+limit: The premises do not state the tag width or where the thresholds live; the seed does: FK_OPCODE_ARM_CAP 256 (runtime/fkwu-uni.c line 665), FK_F64_HEAT 1024 (line 1034), FK_JIT_HEAT 4096 (line 10281).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.36
+kind: review
+re: 3.4.9.3
+saw: 71b00d36
+ack: 1
+limit: Freshness by mtime alone is shown for the lowering memo ('a lowered .bml is fresh by its own mtime', docs/in-process-cells.md line 389); the compile cache adds a digest on doubt, as review 9.5.4.17 says.
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.37
+kind: review
+re: 3.4.9.4
+saw: 5e576ec8
+ack: 1
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.38
+kind: review
+re: 3.4.9.5
+saw: ceedaf94
+ack: 1
+limit: Every listed leak is in the premises. 'Drops' means not returned to the program: outside a cell attempt prints the reason as a health line, and inside a cell the same row reaches diag (docs/in-process-cells.md lines 37-38, 51-53).
+by: r3/review-form-language
+at: 2026-11-24
+
+n: 9.5.4.39
+kind: review
+re: 3.4.9.6
+saw: 8c32f65e
+ack: 1
+limit: The queue-pressure use imports the phase function's file and answers its values (form/form-stdlib/resident-async-ingress.fk lines 40 and 73: st-gas, st-water, st-ice), and the file that adds the fourth phase imports it too (form/form-stdlib/source-resonance-stream.fk line 36). Gas is 0 at form/form-stdlib/substrate-phase.fk line 17 and 1 at form/form-stdlib/channel-flow.fk line 90. The critic's unanswered question is at study/r1/critic.md line 143. The two uses share codes, not a rule: the phase function reads degree and churn, the queue reads how full it is.
+by: r3/review-form-language
+at: 2026-11-24
