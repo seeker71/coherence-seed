@@ -3,14 +3,16 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 69 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
-the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
-what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 97 read a region, 98 calls the host, 99 counts, and 128
-is the first operation that exists only in form. Entries
-below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
-not yet name operations that hold an offer or bind a cell; those come with the stage that first
-needs them.
+it.
+
+This page names 69 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
+what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
+observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
+layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
+94 to 97 read a region; 98 calls the host and 99 counts. 128 is the first operation that exists
+only in form: entries below 128 are the bootstrap's to name, and from 128 up they are named by
+modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -55,6 +57,64 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
 | 51 | native | code, arguments | runs a machine-code leaf with up to six integer arguments |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
+
+## Fail, choice and cut
+
+The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
+until a new choice is tried.
+
+- `choice` remembers where it stands before running an option.
+- `fail` returns to the most recent remembered choice that still has an option, drops everything
+  made since, and runs that choice's next option from the state the choice was entered with.
+- A choice stays open after it has answered. A fail later in the program re-enters it. This is
+  what lets `all` collect every answer.
+- `cut` closes the nearest enclosing `choice` in the same recipe body, together with every choice
+  opened since it was entered. With no enclosing choice it closes the choices opened since the
+  running recipe was called. `all` is a barrier: a cut inside it does not reach outside it.
+- When no remembered choice is left, the run answers nothing.
+
+Read with these: `if c then a else b` is `(choice (seq (cut (need c)) a) b)`, and "the first
+answer only" is `(choice (cut x))`.
+
+
+`(range a b)`, entry 99, is a choice whose options are the integers from a up to b: it answers
+a, and each fail that returns to it gives the next, until the one before b. It keeps one choice
+point and no activation however long it runs, so counting through a list or a leaf, the
+commonest loop, is `(child x (range 0 (count x)))` and no recursion.
+## Arithmetic
+
+`add`, `sub`, `mul` and `lt` take `int` leaves. The floor computes in 64 bits. A result outside
+that range answers nothing with the reason `range`: the bound is the machine's, not the
+language's. An argument that is nothing answers nothing. An argument of another kind is a fault.
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 83 | div | a, b | the quotient of a by b, rounded toward zero |
+| 84 | mod | a, b | what is left of a: a minus b times that quotient, so it has a's sign |
+
+Dividing by zero answers nothing with the reason `zero`.
+
+## Native code
+
+A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
+integers in x0 to x5, finds the region's address in x6 and how many values it was given in x7,
+and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes unless x0 is zero), 4
+the handle of a node in the region, 3 nothing at all: the code declines and what lies beneath its
+binding runs. Anything else is no answer, which is nothing with the
+reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
+copies it once into the process's code region and calls it; code that declines there answers
+nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
+the reason `no-native`.
+
+## Faults the walker names
+
+`arity` (wrong number of children), `arg` (no such argument), `no-recipe` (`self` outside a
+recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wrong kind),
+`irreversible` (a call of the host while a choice is open), and `crash`: the processor faulted
+inside a code leaf or a host function a program called. A bad address, an instruction that is
+none, a recursion in machine code that runs off its stack: each is a fault like the others,
+caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is-a-fault.ck`). A
+fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
 ## Entries 53 to 63: the floor's own records
 
@@ -198,6 +258,52 @@ leaf as its own bytes. Nothing is written while a program runs, so nothing writt
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
 and on `add` as machine code, and binds the one that took less.
 
+## Entry 81: the step
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 81 | step | x | evaluates x, then evaluates the node x answered, where this node stands |
+
+Evaluating one node is the walker's step, and the step is an entry like the others. Used, it lets
+a program run a node it holds. Bound, its implementation is given **every** node that is about to
+be evaluated, leaves and data included, before the walker looks at it. An evaluator that traces,
+that compiles, or that runs elsewhere is then one more implementation in the same table.
+
+- **The newest binding that applies to a node runs it**: the one for its blueprint, or the step's.
+  A step bound after an operation's binding is asked first for that operation's nodes.
+- **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
+  lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
+  children are evaluated as the user sees them, so the step meets each of them in turn.
+- **A code leaf gets the node's handle in x0 and the number of the activation it stands in in
+  x1**, and reads what it needs from the region, whose address every call of code carries in x6
+  (`spec/framebuffer.md`). It answers as any code does, or declines.
+- **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.
+
+In `ground/step-in-form.ck` a step reads every 2 as 3, inside the recipes the program calls too,
+so the recursion answers 32; a fail takes the step away and it answers 55 again. In
+`ground/step-in-code.ck` a step in form makes every leaf answer the
+word "form", and a step of ten instructions laid over it reads each node's record in the
+region, answers the leaves itself and declines the rest to the step beneath.
+`form/step.traced.ck`, which leaves a mark for every node evaluated and changes no answer, and
+`form/step.leaf.aarch64.ck` are bindings for `ck run`.
+
+## Entry 82: an outcome, observed
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 82 | outcome | x | evaluates x to its first outcome and answers it as a list of a word and a node |
+
+The answer is `node` and x's answer, `nothing` and the reason, or `fault` and the reason: what
+`ck run` prints, as a node a program can hold and compare. Everything x did is undone as by a
+fail, a binding it made included; only the outcome and the nodes it names remain. A `cut` inside
+x does not reach outside it, and a `recover` inside x still catches first.
+
+So a program can run another and judge how it ended. `ground/check.ck` does that for every
+program under `ground/`: it reads `ground/expect.ck`, a list of each program's path and expected
+outcome, runs each one, and answers the list of those that ended otherwise, which is empty when
+all is well. `ground/observe.ck` answers the same list filled with what the programs do now: the
+node to store when an expected outcome is meant to change.
+
 ## Entries 87 and 88: the encoding as operations
 
 | N | name | children | what it does |
@@ -296,52 +402,6 @@ them. With no choice open a program wrote a file through `creat`, `write` and `c
 the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
 refusal.
 
-## Entry 81: the step
-
-| N | name | children | what it does |
-| --- | --- | --- | --- |
-| 81 | step | x | evaluates x, then evaluates the node x answered, where this node stands |
-
-Evaluating one node is the walker's step, and the step is an entry like the others. Used, it lets
-a program run a node it holds. Bound, its implementation is given **every** node that is about to
-be evaluated, leaves and data included, before the walker looks at it. An evaluator that traces,
-that compiles, or that runs elsewhere is then one more implementation in the same table.
-
-- **The newest binding that applies to a node runs it**: the one for its blueprint, or the step's.
-  A step bound after an operation's binding is asked first for that operation's nodes.
-- **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
-  lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
-  children are evaluated as the user sees them, so the step meets each of them in turn.
-- **A code leaf gets the node's handle in x0 and the number of the activation it stands in in
-  x1**, and reads what it needs from the region, whose address every call of code carries in x6
-  (`spec/framebuffer.md`). It answers as any code does, or declines.
-- **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.
-
-In `ground/step-in-form.ck` a step reads every 2 as 3, inside the recipes the program calls too,
-so the recursion answers 32; a fail takes the step away and it answers 55 again. In
-`ground/step-in-code.ck` a step in form makes every leaf answer the
-word "form", and a step of ten instructions laid over it reads each node's record in the
-region, answers the leaves itself and declines the rest to the step beneath.
-`form/step.traced.ck`, which leaves a mark for every node evaluated and changes no answer, and
-`form/step.leaf.aarch64.ck` are bindings for `ck run`.
-
-## Entry 82: an outcome, observed
-
-| N | name | children | what it does |
-| --- | --- | --- | --- |
-| 82 | outcome | x | evaluates x to its first outcome and answers it as a list of a word and a node |
-
-The answer is `node` and x's answer, `nothing` and the reason, or `fault` and the reason: what
-`ck run` prints, as a node a program can hold and compare. Everything x did is undone as by a
-fail, a binding it made included; only the outcome and the nodes it names remain. A `cut` inside
-x does not reach outside it, and a `recover` inside x still catches first.
-
-So a program can run another and judge how it ended. `ground/check.ck` does that for every
-program under `ground/`: it reads `ground/expect.ck`, a list of each program's path and expected
-outcome, runs each one, and answers the list of those that ended otherwise, which is empty when
-all is well. `ground/observe.ck` answers the same list filled with what the programs do now: the
-node to store when an expected outcome is meant to change.
-
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
@@ -373,64 +433,6 @@ a node's result in a register chosen by its depth, x19 to x25.
 `ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recursion on the walker,
 compiles it, runs a much longer one on the emitted leaf, and asks for a recipe the emitter does
 not know.
-
-## Fail, choice and cut
-
-The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
-until a new choice is tried.
-
-- `choice` remembers where it stands before running an option.
-- `fail` returns to the most recent remembered choice that still has an option, drops everything
-  made since, and runs that choice's next option from the state the choice was entered with.
-- A choice stays open after it has answered. A fail later in the program re-enters it. This is
-  what lets `all` collect every answer.
-- `cut` closes the nearest enclosing `choice` in the same recipe body, together with every choice
-  opened since it was entered. With no enclosing choice it closes the choices opened since the
-  running recipe was called. `all` is a barrier: a cut inside it does not reach outside it.
-- When no remembered choice is left, the run answers nothing.
-
-Read with these: `if c then a else b` is `(choice (seq (cut (need c)) a) b)`, and "the first
-answer only" is `(choice (cut x))`.
-
-
-`(range a b)`, entry 99, is a choice whose options are the integers from a up to b: it answers
-a, and each fail that returns to it gives the next, until the one before b. It keeps one choice
-point and no activation however long it runs, so counting through a list or a leaf, the
-commonest loop, is `(child x (range 0 (count x)))` and no recursion.
-## Arithmetic
-
-`add`, `sub`, `mul` and `lt` take `int` leaves. The floor computes in 64 bits. A result outside
-that range answers nothing with the reason `range`: the bound is the machine's, not the
-language's. An argument that is nothing answers nothing. An argument of another kind is a fault.
-
-| N | name | children | what it does |
-| --- | --- | --- | --- |
-| 83 | div | a, b | the quotient of a by b, rounded toward zero |
-| 84 | mod | a, b | what is left of a: a minus b times that quotient, so it has a's sign |
-
-Dividing by zero answers nothing with the reason `zero`.
-
-## Native code
-
-A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
-integers in x0 to x5, finds the region's address in x6 and how many values it was given in x7,
-and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes unless x0 is zero), 4
-the handle of a node in the region, 3 nothing at all: the code declines and what lies beneath its
-binding runs. Anything else is no answer, which is nothing with the
-reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
-copies it once into the process's code region and calls it; code that declines there answers
-nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
-the reason `no-native`.
-
-## Faults the walker names
-
-`arity` (wrong number of children), `arg` (no such argument), `no-recipe` (`self` outside a
-recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wrong kind),
-`irreversible` (a call of the host while a choice is open), and `crash`: the processor faulted
-inside a code leaf or a host function a program called. A bad address, an instruction that is
-none, a recursion in machine code that runs off its stack: each is a fault like the others,
-caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is-a-fault.ck`). A
-fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
 ## Limits
 
