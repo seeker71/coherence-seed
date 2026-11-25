@@ -59,8 +59,10 @@ two shapes changed over. The first row that fits is used, and what is under a `q
 is left as it is. No printer is written for a row: adding a row to the list is all it takes for
 the lens to read it and to show it.
 
-The surface words are catalogue entries with no meaning of their own. A node that still holds one
-has not been lowered, and the walker answers it as data.
+The surface words are catalogue entries. When the lens loads it checks that each row is two
+shapes, and binds each surface word to lower itself where the walker meets it: a node that was
+never lowered still runs, more slowly, and lowering ahead of time is a saving and not a need.
+Without the lens loaded the walker answers such a node as data.
 
 ## Refusals
 
@@ -106,7 +108,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.
 - Every row is tried at every node. Words are found through cells, indexed once when the lens loads.
 - The observer prints words from a table of its own in C, not from these rows.
-- Entries 129 to 185, 194 and 195 are the lens's and 186 to 193 the ice's by convention; no row yet says which numbers a
+- Entries 129 to 185 and 194 to 196 are the lens's and 186 to 193 the ice's by convention; no row yet says which numbers a
   module may take.
 - Most stored programs were composed before the lens existed. They show through it; they were
   not rewritten in it.
