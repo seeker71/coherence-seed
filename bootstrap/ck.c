@@ -614,11 +614,12 @@ static void crashed(int sig) {
   (void)sig; if (coding) siglongjmp(in_code, 1);
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
 }
+static uint32_t left;
 static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
 static int landed(void *fn, int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
-  Ret r = called(fn, arg);
+  left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
   if (r.k == 3 || (r.k == 4 && !r.v)) return 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
   else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
@@ -860,7 +861,9 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
  * as the number it is, any other value as its handle, the eighth register saying how many and which.
  * The seventh is the operation: quote is the value itself, all the list of those that are something,
  * node the node whose id lies at the address given, so that code names a node by what it is and not
- * by where it is in one run, and any operation on values alone is itself. With 256 added the answer is asked as a number: k 0,
+ * by where it is in one run, and any operation on values alone is itself. Answers found one at a
+ * time are gathered here: gathered with no value says where the gathering stands, with one it adds
+ * that value if it is something, and list with that place makes the list of what was added since. With 256 added the answer is asked as a number: k 0,
  * or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
  * nothing. A fault goes to the walker and does not come back here. */
 static int basic(long long op) {
@@ -870,6 +873,16 @@ static int basic(long long op) {
 static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
   int64_t v[6] = { a0, a1, a2, a3, a4, a5 }, m; H a[8] = {0}, x; uint32_t c = cm & 255, n = 0; int num = op >> 8 & 1; const char *why;
   op &= 255; if (c > 6) c = 6;
+  if (op == GATHERED && c < 2) {
+    if (!c) return (Ret){ ntk, num ? 0 : 3 };
+    H g = cm >> 8 & 1 ? (a0 > 0 && a0 < nn ? (H)a0 : 0) : mki(a0);
+    if (g) { room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = g; }
+    return (Ret){ 0, 4 };
+  }
+  if (op == LIST) {
+    if (c != 1 || cm != 1 || a0 < 0 || a0 > ntk) { fault("kind"); siglongjmp(in_code, 3); }
+    x = mk(1, E(LIST), tk + a0, ntk - (uint32_t)a0, &why); ntk = (uint32_t)a0; return (Ret){ x, 4 };
+  }
   if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault("no-node"); siglongjmp(in_code, 3); }
   for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
   x = a[0];                               /* what code reads most is answered without a number being built for it */
@@ -892,10 +905,10 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
-  case 1: coding = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
+  case 1: coding = 0; ntk = left; fault("crash"); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
     coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
-  case 3: coding = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
+  case 3: coding = 0; ntk = left; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {

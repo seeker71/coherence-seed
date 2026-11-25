@@ -123,6 +123,9 @@ holds the operation's number.
 - `all` is the list of those values that are something.
 - `node` takes the address of thirty-two bytes and answers the node whose id they are, or
   faults `no-node`. So code names a node by what it is and not by where one run keeps it.
+- `gathered` with no value says, as a number, where the gathering of answers stands; with one
+  value it adds that value, if it is something. `list` with that number answers the list of
+  what was added since. What code gathered and did not take is given back when it returns.
 - Any operation that works on values alone is itself: the parts of a node, building one,
   arithmetic, cells, the encoding. Control and the calling of recipes are not, and asking for
   them is the fault `kind`.
@@ -606,6 +609,9 @@ under entry 52. What it knows:
 - control that does not search: `seq`, `need`, `fail`, and `(first (choice a b ..))` over
   alternatives that each answer once or fail; any of these as the condition of an `if`; a part
   of a row that fails is left out of it; `fault` and `nothing`;
+- a search inside one definition: `(all x)` and `(first x)` where x is built of `range`,
+  `choice`, `let`, `seq`, `need`, `fail`, `if` and operations whose parts are searches
+  themselves;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
@@ -637,6 +643,15 @@ failed stretch, an overflow or a nothing, goes with it; a decline does not. Betw
 compiled together a failure passes as a failure. Where the walker called the code, a failure is
 a decline: the walker runs the call again and fails in its own way, with its own reason.
 
+**A search is a loop.** Inside an `all` or a `first` a `range` is a loop, the alternatives of a
+`choice` follow one another, a `need` that does not hold jumps past what depends on it, and an
+operation with a search among its parts is done once for each answer of that part. What comes
+after an answer is written out at each place an answer arises. `all` gathers its answers in the
+bootstrap and takes them as a list; `first` keeps its first answer and sets a third quiet mark,
+stopped, under which loops end and no call is made until the `first` is left. What a search
+keeps from one answer to the next lies in the frame, which is 336 bytes for a definition that
+searches. An answer that is nothing is an answer, as on the walker.
+
 **The leaf answers a number or a node, or declines.** It declines when an overflow or a division by zero is
 left at its end, when it was given fewer arguments than the recipe reads, and when the machine
 stack, whose floor it reads from the region's head, has no room for its frame
@@ -666,14 +681,19 @@ that ends in nothing or in a fault, and the rest the code answers. Twelve faults
 emitter each turned it red. `ground/code-without-search.ck` holds thirty-six recipes that test,
 fail and choose a first alternative to the walker's outcome, a failure crossing between
 definitions and into a row among them; the ten that end with no path left are handed back, and
-ten more planted faults each turned it red.
+ten more planted faults each turned it red. `ground/code-searches.ck` does it for thirty-three
+searches: ranges within ranges, a search as a part of an operation, a `first` inside an `all`,
+tests and failures between the answers, a nothing and a fault among them. Two are handed back,
+one that ends with no path and one that divides by zero on its way; seven planted faults each
+turned it red. The primes below 3,000 by trial division and the pairs below 400 were counted in
+79 ms on the walker and 2 ms compiled.
 
 `ground/compiles-its-own.ck` asks the emitter for every definition the repository's own modules
-bind: 103 of 292 compile, all 26 of the emitter's instruction builders and 15 more of its own
+bind: 129 of 302 compile, all 26 of the emitter's instruction builders and 18 more of its own
 definitions among them, so from then on the emitter runs partly on code it made. Each compiles
 the same alone in a fresh process and after all the others. That count first came out
 differently in two programs, which is how a wrong kind for the root as a constant was found.
-The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 25 ms
+The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 20 ms
 on the walker and in 8 ms after this, to the same node. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
@@ -703,10 +723,11 @@ would not be what the walker does there.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles what answers once. Nothing that searches: no `choice` that could answer
-  twice, no `range`, no `all` but over a row of parts, no `cut` of its own and no `recover`;
-  that is most of what stands between it and the rest of the system's definitions. Nothing that
-  leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
+- The emitter compiles a definition that answers once. One that answers more than once is not
+  compiled, so a search cannot cross from one definition to another; the emitter's own
+  definitions answer a byte at a time and wait on that, as does most of the rest of the system.
+  No `cut` of its own and no `recover`. What comes after an answer is written again for each
+  alternative, so code for a wide search grows. Nothing that leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
   An expression nested deeper than seven registers is not compiled. So the emitter compiles
   part of itself and not the whole.

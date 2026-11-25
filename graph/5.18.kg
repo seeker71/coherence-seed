@@ -9,7 +9,7 @@ at: 2026-11-26
 n: 5.18.1
 name: an-emitter-in-form
 kind: decision
-is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf. It knows numbers, let, tests joined by if, control that does not search (5.18.9), calls among definitions (5.18.5) and, by asking the bootstrap, the parts of a node and the building of one (5.18.6). For any other node it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf. It knows numbers, let, tests joined by if, control (5.18.9), searches inside a definition (5.18.11), calls among definitions (5.18.5) and, by asking the bootstrap, the parts of a node and the building of one (5.18.6). For any other node it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
@@ -105,15 +105,28 @@ from: 5.18.1 5.18.7 5.4.6
 src: 2.30.6
 conf: mid
 why: Code runs straight on with no jump out of the middle of an expression, so one pass still writes it; calls are the only things that must not happen after a failure, and each already looks at the mark before it is made.
-flip: After a failure the rest of the definition is still stepped through, doing nothing. A definition that fails where the walker called it runs twice. Nothing that could answer twice is compiled.
+flip: After a failure the rest of the definition is still stepped through, doing nothing. A definition that fails where the walker called it runs twice.
 limit: ground/code-without-search.ck holds thirty-six recipes to the walker's outcome; ten planted faults each turned it red, one only after a case was written where failing and answering nothing differ.
 at: 2026-11-26
 
 n: 5.18.10
 name: the-emitter-compiles-part-of-itself
 kind: observation
-is: Observed on 2026-11-26. ground/compiles-its-own.ck asks the emitter for every definition the repository's modules bind: 103 of 292 compile, all 26 of its own instruction builders and 15 more of its 53 other definitions among them, and it goes on compiling on that code. Each compiles the same alone in a fresh process and after all the others. The reader of the print written in form read the lens's 19,780 bytes in 25 ms on the walker and 8 ms after, to the same node.
+is: Observed on 2026-11-26. ground/compiles-its-own.ck asks the emitter for every definition the repository's modules bind: 129 of 302 compile, all 26 of its own instruction builders and 18 more of its 63 other definitions among them, and it goes on compiling on that code. Each compiles the same alone in a fresh process and after all the others. The reader of the print written in form read the lens's 19,780 bytes in 20 ms on the walker and 8 ms after, to the same node.
 status: observed
 src: 2.30.6 2.30.7
-limit: The count first differed between two programs, 85 and 102 against 103 alone: the root as a constant had been taken for a number, so a compiled test of the emitter's own answered no for every entry. One machine.
+limit: At 292 definitions the count first differed between two programs, 85 and 102 against 103 alone: the root as a constant had been taken for a number, so a compiled test of the emitter's own answered no for every entry. One machine.
+at: 2026-11-26
+
+n: 5.18.11
+name: a-search-is-a-loop
+kind: decision
+is: Inside an all or a first, emitted code searches without the walker's choice points: a range is a loop, the alternatives of a choice follow one another, a need that does not hold jumps past what depends on it, and an operation with a search among its parts is done for each answer of that part. What comes after an answer is written out where the answer arises. all gathers in the bootstrap and takes a list; first keeps its first answer and sets a mark, stopped, under which loops end and no call is made. What a search keeps between answers lies in the frame.
+status: inferred
+from: 5.18.9 5.18.6 5.4.6 5.10.4
+src: 2.30.6
+conf: mid
+why: Code that leaves no mark has nothing to undo, so a search needs no trail and no choice point: going back is going on to the next round of a loop. The emitter stays one pass, the continuation being a recipe it holds while it writes.
+flip: What follows an answer is written again for each alternative, so wide searches make large code. A definition that itself answers more than once is not compiled, so no search crosses definitions: the emitter's own, which answer a byte at a time, wait on that.
+limit: ground/code-searches.ck holds thirty-three searches to the walker's outcome; seven planted faults each turned it red. Primes below 3,000 and pairs below 400: 79 ms walked, 2 ms compiled. One machine.
 at: 2026-11-26
