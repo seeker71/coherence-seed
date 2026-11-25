@@ -612,7 +612,7 @@ at: 2026-11-26
 n: 5.14.56
 name: a-full-area-is-a-fault
 kind: decision
-is: When an area of the region has no room left while a program runs, the program has the fault full with the area's name, caught by recover and seen by outcome; before, the process ended. The walker leaves what was half made and goes on from its loop, as after a crash in code. A recover that catches a fault gives back the frames, the gathered values and the activations of the body that faulted. Observed on 2026-11-26: a recursion that never returns was caught at four million frames, twice in one program, which then ran a recursion of its own a thousand deep.
+is: When an area of the region has no room left while a program runs, the program has the fault full with the area's name; before, the process ended. The walker goes on from its loop, as after a crash in code, and a recover that catches a fault gives back the frames, gathered values and activations of the body that faulted. Observed on 2026-11-26: a recursion that never returns was caught at four million frames, twice in one program, which then went on.
 status: inferred
 from: 5.4.5 5.14.41 5.9.3 7.13
 src: 2.30.7 2.30.6 2.30.11
