@@ -147,6 +147,17 @@ a running program loads the emitter and the watcher from outside, and the watche
 what runs hot. A recursion that takes 14.3 s on the walker, asked this one second after it
 began, ended at 1.3 s with the same answer.
 
+The looking and the asking go together in `region/warm.ck`:
+
+```bash
+printf /ck.demo | ./ck text region/warm.ck
+```
+
+It asks the run to load the emitter, looks at it three hundred times, and asks it to compile the
+three recipes it was in most, saying what became of each. Nothing is put on the run's calls: what
+is hot is seen from outside, and the run is only asked to do what the looking found. The same
+recursion, looked at from half a second in, ended at 1.3 s.
+
 ## Frames, recording and replay
 
 A **frame** is a copy of the head page and of the used part of every area, taken by a second

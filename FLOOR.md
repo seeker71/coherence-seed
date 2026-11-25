@@ -45,7 +45,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
   its own names, as 853 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 86 files of nodes here in 0.5 s. Its rows and their matcher were
+  does the same for each of the 89 files of nodes here in 0.5 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
   numbers in the node and names on a second line of its file. The definitions of the lens, the
@@ -97,7 +97,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 - **A running program can be told to make itself faster.** Asked from a second process to load
   the watcher and the emitter, a recursion that takes 14.3 s on the walker ended 0.3 s after
   the asking, with the same answer. What a module bound from outside binds is outside too, so
-  the watcher manages its own bindings there.
+  the watcher manages its own bindings there. With no watcher at all, a program in form looked at
+  the same run three hundred times, found it in one recipe, and asked it to compile that: it
+  ended at 1.3 s.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back
   the activations nothing can return to: three million rounds of a recursion ended with 5
   activations in use where there had been three million.
@@ -123,7 +125,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   them, do not see it.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 86
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 89
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 52 text files, and the axioms' text. Five of the checks are still lines of the
