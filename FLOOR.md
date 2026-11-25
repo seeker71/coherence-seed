@@ -8,9 +8,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,145 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,168 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 65 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 66 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles a recipe over numbers to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
@@ -53,7 +53,9 @@ Each line here is held by a program that runs under `make check`, or names how i
   print, the canonical bytes, SHA-256 and the id, and the reader of bytes. Bound in place of the
   bootstrap's own they hold the 142 vectors, ids among them; on the reader and printer every
   ground program runs.
-- **Emitted code is the walker or faster, never different.** It answers a number or declines.
+- **Emitted code is the walker or faster, never different.** It answers a number or declines. For
+  an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
+  and it steps aside while something from outside watches an operation it replaced.
   Twenty-seven recipes end the same both ways; seven faults planted in the emitter turned that red.
 - **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
   hundredth call. From a second process, a program in form looked at a recursion that takes
@@ -97,9 +99,7 @@ helper could not see the code (found by planting faults that nothing noticed).
 - **A compiler worth the name.** The emitter knows numbers: any integer, arguments and the parts
   a `let` names, the five operations, tests built with `if`, and calls of the recipe itself. It
   compiles a recipe whole or not at all and cannot hand a node back to the walker, so it
-  compiles no call of another recipe, no backtracking and nothing that builds a node. Its code
-  is bound like any implementation, so definitions bound before it, its own layer's among
-  them, do not see it.
+  compiles no call of another recipe, no backtracking and nothing that builds a node.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 92

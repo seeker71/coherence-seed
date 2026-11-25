@@ -42,7 +42,7 @@ reads any other place is tied to one layout version.
 | choice-points | choice-point | each open choice and the marks it returns to, among them how many calls were held back |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |
-| bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
+| bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry, and the code that is its faster form when it has one |
 | bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
 | outside | binding | what was bound from outside the run: seen by every layer of the program, and not undone by a fail |
 | cells | words | for each node used as a cell, the node it holds |

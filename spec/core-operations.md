@@ -5,16 +5,17 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 81 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 82 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
-104 answers nothing with a reason, 105 with 106 close a recipe over values, and 107 to 111 work
-on the bits of an integer. 128 is the first operation that exists only in form: entries below
-128 are the bootstrap's to name, and from 128 up they are named by modules written in form.
+104 answers nothing with a reason, 105 with 106 close a recipe over values, 107 to 111 work on
+the bits of an integer, and 112 gives a binding a faster form. 128 is the first operation that
+exists only in form: entries below 128 are the bootstrap's to name, and from 128 up they are
+named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -481,6 +482,9 @@ implementation runs on its own binding, as one made in a layer does, so that its
 it means itself. It is how a program reads what it or another has bound. The emitter takes an
 entry's recipe from it, and compiles a call of the recipe by its own name only when s is yes:
 outside a layer the name means what it meant before, and the code would not be the walker.
+`(bound e f)` answers the binding of e as the implementation of f sees it, which is how the
+emitter asks whether an operation it would replace by an instruction means, inside f, what the
+bootstrap means by it.
 
 ## Entry 103: after, a call held back
 
@@ -534,11 +538,24 @@ over nine at once, calls itself through a closed node, hands one to another defi
 They work on the two's-complement bits and never overflow: what is moved out is lost.
 SHA-256 in `form/id.ck` is written with them.
 
+## Entry 112: fast, a faster form of what is bound
+
+`(fast e code)` gives the newest binding of e, an entry or a recipe bound to a recipe, a faster
+form: a code leaf that is tried first wherever that binding runs, on integers, and when it
+declines the recipe runs. The binding stays what it was, where it was: every definition that
+could see the recipe sees the code, the others of its own layer among them, and what is bound
+later lies above both. It is a form of what is there and not a change to the run, so no fail
+undoes it.
+
+The code steps aside while something bound from outside sits on an operation of the bootstrap or
+on an entry the program defines: a counter put on `add` from outside sees every addition, the
+compiled ones too, and when it is taken off the code runs again.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 128 | compile | x | writes machine code for the recipe x, or for the recipe an entry x is bound to, binds x to it and answers the code leaf; answers no, and binds nothing, when it cannot |
+| 128 | compile | x | writes machine code for the recipe x and binds x to it, or for the recipe an entry x is bound to and gives that binding the code as its faster form; answers the code leaf, or no, changing nothing, when it cannot |
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
 in form: a layer of definitions, one for each instruction it uses, which answers the
@@ -572,13 +589,15 @@ register chosen by its depth, x19 to x25.
 `ground/code-or-walker.ck` runs twenty-seven recipes on the walker and again after asking for
 their code, and holds the two outcomes equal: every shape above, the largest and the most
 negative numbers, a division by zero, a shift too far, tests with a nothing inside, and three
-the emitter must refuse. Its last lines show the walker's `add` unused while an entry's code runs, and an entry
-bound outside a layer left on the walker. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+the emitter must refuse. Its last lines show an entry's code used by another definition of its layer, stepping
+aside while `add` is watched from outside and back after, and an entry bound outside a layer left
+on the walker. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
-The code is bound as any implementation is: above what was bound before it, and unseen by
-implementations bound earlier, the other definitions of its own layer among them. A recipe that
-is called sees it wherever the caller would.
+Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
+the recipe would have, for the other definitions of its layer too. The emitter refuses while any
+operation it would replace by an instruction is bound otherwise where the recipe runs: its code
+would not be what the walker does there.
 
 ## Limits
 

@@ -509,7 +509,7 @@ src: 2.30.7 2.30.6
 conf: mid
 why: Without it a program could bind and release but not look, and the emitter had to be handed the recipe again.
 flip: It answers the top's view and not the asker's layer. An implementation asking about its own entry gets itself.
-limit: Code bound for an entry lies above its recipe as any binding does, so definitions bound earlier, its own layer's among them, still run the recipe on the walker.
+limit: With a second entry it answers as that entry's implementation sees the first.
 at: 2026-11-26
 
 n: 5.14.50
@@ -567,4 +567,17 @@ conf: mid
 why: A program that runs away should cost a fault and not the process, most of all when something from outside is watching it or asking it.
 flip: Nodes are never given back, so a full store stays full and what catches that can do little. A full area while a fault is being handled still ends the process.
 limit: Witnessed by ground/full-is-a-fault.ck. Frames grew by a word to hold the mark for values.
+at: 2026-11-26
+
+n: 5.14.57
+name: code-is-a-faster-form-of-the-binding
+kind: decision
+is: Entry 112, fast, gives the newest binding of an entry a code leaf as its faster form: tried first on integers wherever that binding runs, the recipe running when it declines. The binding stays where it is, so the other definitions of its layer see the code. It steps aside while something bound from outside sits on a bootstrap operation or on an entry the program defines. Observed on 2026-11-26: a definition of the same layer ran on the code; with a counter on add from outside every addition was seen, and without it the code ran again.
+status: inferred
+from: 5.14.26 5.14.49 5.17.1 5.14.19 7.21
+src: 2.30.7 2.30.6
+conf: mid
+why: Code bound above a recipe is unseen by everything bound before it, which is most of a program written as a layer of definitions. Code is not another meaning of the entry; it is the same meaning in another form, so it belongs with the binding it is a form of.
+flip: A form set on a binding is not undone by a fail. Watching from outside turns every faster form off, not only those that replaced what is watched.
+limit: Witnessed in ground/code-or-walker.ck, turned red by two planted faults. Code still calls no recipe but its own.
 at: 2026-11-26

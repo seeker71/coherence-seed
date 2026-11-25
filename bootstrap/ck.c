@@ -182,7 +182,7 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 11; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 12; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -621,6 +621,13 @@ static int landed(void *fn, int64_t *arg) {
   else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
   return 1;
 }
+/* Something bound from outside sits on an operation of the bootstrap or on an entry the program defines:
+ * while it does, a binding's faster form steps aside, so what watches sees every use. */
+static int watched(void) {
+  for (uint32_t j = 0; j < nout; j++) { H e = out[j].entry; long long n = e ? catn(e) : -1;
+    if (e && ((n >= 0 && n < SEEDED) || (e < N(A_BOUND_BY_NODE) && bykey[e]))) return 1; }
+  return 0;
+}
 /* Run binding b: a recipe is entered on the bindings beneath b, a code leaf is called. With
  * node nothing they get values already in hand, code as integers. Otherwise they get the node
  * itself, unevaluated: a lazy keeps the cut scope, code gets the node's handle and the
@@ -631,6 +638,11 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
     uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
     if (!r || !nd[B(r)->impl].comp || c > 8) { fault("kind"); return 1; }
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
+  }
+  if (nd[impl].comp && !node && B(b)->fast && !watched()) {       /* the recipe has a faster form: tried first, on integers */
+    uint32_t j = 0; while (j < c && j < 6 && geti(a[j], &arg[j])) j++;
+    if (j == c) { arg[7] = c; if (landed(birth(B(b)->fast), arg)) { W->mode = M_RET; return 1; } }
+    memset(arg, 0, sizeof arg);
   }
   if (nd[impl].comp) {
     uint32_t up = node ? from : act[from].up, cut = node ? W->cut : act[from].cut;      /* given answers, it has no user */
@@ -667,9 +679,9 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     if (!own) {                           /* bound from outside the run: seen at every limit, and no fail undoes it */
       if (nout == OMOST) { fault("full"); return; }
-      out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout }; nout++; W->v = E(YES); return; }
+      out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout, 0 }; nout++; W->v = E(YES); return; }
     room(A_BINDINGS, (uint64_t)nbind + 1); room(A_BOUND_BY_NODE, (uint64_t)x + 1); if (N(A_BOUND_BY_NODE) <= x) N(A_BOUND_BY_NODE) = x + 1;
-    bd[nbind] = (Binding){ E(BINDING), W->at, x, l, bykey[x], nbind }; bykey[x] = ++nbind; W->v = E(YES); return;
+    bd[nbind] = (Binding){ E(BINDING), W->at, x, l, bykey[x], nbind, 0 }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
   if (op == COUNT) { W->v = mki(nd[x].n); return; }
@@ -946,9 +958,20 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         if (c != 1) { fault("arity"); break; }
         W->v = 0; W->reason = a[0] ? a[0] : txt("nothing-in"); break;
       }
-      if (op == BOUND) {                  /* what runs an entry or a recipe, as the top of the program sees it: its newest */
-        if (c != 1) { fault("arity"); break; }      /* binding as a node, the entry, the implementation and whether that runs */
-        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;       /* on its own binding, as one made in a layer does; or nothing */
+      if (op == FAST) {                   /* code as a faster form of the newest binding of an entry or a recipe: tried first */
+        if (c != 2) { fault("arity"); break; }      /* wherever that binding runs. A form of what is there, it is not undone */
+        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
+        if (!r || !a[1]) { W->v = 0; W->reason = txt(r ? "nothing-in" : "unbound"); break; }
+        if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault("kind"); break; }
+        B(r)->fast = a[1]; W->v = E(YES); break;
+      }
+      if (op == BOUND) {                  /* what runs an entry or a recipe: its newest binding as a node, the entry, the */
+        if (c < 1 || c > 2) { fault("arity"); break; }     /* implementation and whether that runs on its own binding, as one made */
+        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;       /* in a layer does. Seen from the top of the program, or, with a second */
+        if (r && c == 2) {                /* entry, as that entry's own implementation sees it */
+          uint32_t of = a[1] ? bound(a[1], 0, ~0u) : 0;
+          r = of ? bound(a[0], 0, of > OUT ? (PM | out[of-OUT-1].sees << 24) : (OMOST << 24 | bd[of-1].sees)) : 0;
+        }
         if (!r) { W->v = 0; W->reason = txt("unbound"); break; }
         H p[3] = { a[0], B(r)->impl, (r > OUT ? B(r)->sees + OUT : B(r)->sees) >= r ? E(YES) : E(NO) };
         W->v = mk(1, E(BINDING), p, 3, &why); break;
@@ -961,7 +984,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
           W->v = j && a[0] ? E(YES) : E(NO); break;
         }
         if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !bykey[a[0]]) { W->v = E(NO); break; }
-        room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind }; nbind++;
+        room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind, 0 }; nbind++;
         bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); break;
       }
       if (op == HOLD || op == HELD || op == NOTE) {   /* a cell is any node; what it holds is a node. While a choice is */
