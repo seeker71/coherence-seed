@@ -570,8 +570,13 @@ under entry 52. What it knows is numbers:
   register, and the five operations on bits;
 - `(if c a b)`, where c is an `lt` or an `eq` of numbers, `yes`, `no`, or an `if` of such tests.
   A nothing inside a test makes that test fail, as on the walker;
-- a call of the recipe itself, as a machine call of the leaf's own first instruction: by
-  `(call (self) ..)`, or by its own name when an entry was compiled.
+- a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
+  compiled, and a call of another definition by its name. Every definition reached that way is
+  compiled into the same leaf, which begins with a table of branches, one for each, and calls
+  go through the table: the leaf lies wherever it is put. A definition is taken in only as the
+  caller's own implementation sees it, and only if it too is numbers. A call in the last
+  position is a jump when nothing has overflowed before it, so a recursion written as a loop
+  runs as a loop, to any depth.
 
 For any other node the emitter emits a byte that `pack` refuses, so a recipe is compiled whole or
 not at all, and what is not compiled stays on the walker.
@@ -580,18 +585,22 @@ not at all, and what is not compiled stays on the walker.
 left at its end, when it was given fewer arguments than the recipe reads, and when the machine
 stack, whose floor it reads from the region's head, has no room for its frame
 (`ground/deep-on-code.ck` goes 600,000 deep). A decline travels up through the calls above it,
-and the walker then runs the whole call. So wherever emitted code cannot be sure, the answer, the
+and the walker then runs the whole call. What that call then calls does not try code again: a
+called recipe runs beneath its declined code, and beneath a faster form that declined no faster
+form is tried, since the reason to decline is still there. So wherever emitted code cannot be sure, the answer, the
 reason and the fault are the walker's own: emitted code is faster or it is the walker, never
 different. It keeps its arguments, fourteen places for them and for the parts a let names, and
 the registers it uses in a frame of 208 bytes on the machine stack, and a node's result in a
 register chosen by its depth, x19 to x25.
 
-`ground/code-or-walker.ck` runs twenty-seven recipes on the walker and again after asking for
+`ground/code-or-walker.ck` runs twenty-nine recipes on the walker and again after asking for
 their code, and holds the two outcomes equal: every shape above, the largest and the most
 negative numbers, a division by zero, a shift too far, tests with a nothing inside, and three
 the emitter must refuse. Its last lines show an entry's code used by another definition of its layer, stepping
-aside while `add` is watched from outside and back after, and an entry bound outside a layer left
-on the walker. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+aside while `add` is watched from outside and back after; an entry bound outside a layer left on
+the walker; two definitions that call each other and a loop that calls a third, compiled
+together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
+answered by the walker. Nine faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
@@ -620,9 +629,9 @@ would not be what the walker does there.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles numbers only: no call of another recipe, a test only as the condition of
-  an `if`, no answer of yes or no, and an expression nested deeper than seven registers is not
-  compiled. It cannot hand a node it does not know back to the
+- The emitter compiles numbers only: it calls only what it can compile with it, a test stands
+  only as the condition of an `if`, there is no answer of yes or no, and an expression nested
+  deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
   walker: code may decline only before it has done anything, because a declined call is run
   again from its start. The watcher that offers recipes by how often they run sees only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the

@@ -541,9 +541,11 @@ static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t u
  * count: an implementation runs on the bindings beneath its own, so it can use the entry it
  * replaces and two entries can each be written with the other. Bindings made from outside the run
  * lie above all of those, are seen at every limit and are counted from OUT + 1. A limit holds
- * both counts, and OWN when what is bound under it is the program's own. 0: the bootstrap's code. */
-#define PM 0xffffffu
-#define OUT (PM + 1)
+ * both counts, OWN when what is bound under it is the program's own, and COOL when a faster form
+ * has declined above it: beneath that, faster forms are not tried again. 0: the bootstrap's code. */
+#define PM 0x7fffffu
+#define COOL 0x800000u
+#define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
 #define B(b) ((b) > OUT ? &out[(b) - OUT - 1] : &bd[(b) - 1])
@@ -639,16 +641,18 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
     if (!r || !nd[B(r)->impl].comp || c > 8) { fault("kind"); return 1; }
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
   }
-  if (nd[impl].comp && !node && B(b)->fast && !watched()) {       /* the recipe has a faster form: tried first, on integers */
-    uint32_t j = 0; while (j < c && j < 6 && geti(a[j], &arg[j])) j++;
-    if (j == c) { arg[7] = c; if (landed(birth(B(b)->fast), arg)) { W->mode = M_RET; return 1; } }
-    memset(arg, 0, sizeof arg);
+  uint32_t cool = node ? 0 : act[from].lim & COOL;
+  if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
+    uint32_t j = 0; while (j < c && j < 6 && geti(a[j], &arg[j])) j++;      /* on integers. Where it declines, what the */
+    if (j == c) { arg[7] = c; if (landed(birth(B(b)->fast), arg)) { W->mode = M_RET; return 1; } cool = COOL; }      /* recipe */
+    memset(arg, 0, sizeof arg);           /* calls does not try faster forms again: the reason to decline is still there */
   }
   if (nd[impl].comp) {
     uint32_t up = node ? from : act[from].up, cut = node ? W->cut : act[from].cut;      /* given answers, it has no user */
     if (!node) last(up);                                                                /* of its own: its caller's */
     uint32_t sees = b > OUT ? (lim & PM) | out[b-OUT-1].sees << 24                         /* bound from outside, it acts from there */
                             : (lim & OMOST << 24) | bd[b-1].sees | (act[from].lim & OWN);  /* the program's own acts as its user does */
+    sees |= cool;
     W->env = enter(impl, a, c, sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
@@ -709,7 +713,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
 static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
   W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
-  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~0u, 0, 0 }; W->one = 0;
+  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */

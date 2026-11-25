@@ -581,3 +581,12 @@ why: Code bound above a recipe is unseen by everything bound before it, which is
 flip: A form set on a binding is not undone by a fail. Watching from outside turns every faster form off, not only those that replaced what is watched.
 limit: Witnessed in ground/code-or-walker.ck, turned red by two planted faults. Code still calls no recipe but its own.
 at: 2026-11-26
+
+n: 5.14.58
+name: definitions-compiled-together
+kind: observation
+is: Observed on 2026-11-26. The emitter compiles an entry with every definition it calls into one leaf behind a table of branches, so the leaf lies wherever it is put. A call in the last position is a jump when nothing has overflowed. Two definitions that call each other, and a loop calling a third, ended as on the walker; that loop ran thirty million rounds in 0.4 s. Beneath a faster form that declined, faster forms are not tried again: a recursion deeper than the machine stack was answered by the walker.
+status: observed
+src: 2.30.6 2.30.7
+limit: Numbers only: nothing that reads or builds a node, no backtracking. Before the rule about declining, such a recursion tried its code again at every step and did not end in two minutes. Two more faults planted in the emitter, a wrong slot and a jump that ignores an overflow, each turned ground/code-or-walker.ck red.
+at: 2026-11-26
