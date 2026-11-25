@@ -7,7 +7,7 @@ CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
-all: ck fb
+all: ck fb kg
 
 ck: $(BOOT)
 	@n=$$(cat $(BOOT) | wc -l); if [ $$n -gt $(BUDGET) ]; then \
@@ -17,6 +17,10 @@ ck: $(BOOT)
 # The observer: a second process that shows, records and replays a framebuffer.
 fb: tools/fb.c bootstrap/fb.h
 	$(CC) $(CFLAGS) -o fb tools/fb.c
+
+# The claim graph's checker.
+kg: tools/kg.c
+	$(CC) $(CFLAGS) -o kg tools/kg.c
 
 # One real run, watched live: the long recursion runs while a second process records its
 # memory every 5 ms; then the recording is replayed and the answer is asked who wrote it.

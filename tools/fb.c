@@ -26,7 +26,9 @@
 
 #define STACK_TOP (1u << 18)              /* how much of the machine stack a frame keeps: its newest end */
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
-static const char *const NAMES[64] = { [2] = "text", [3] = "nat", [4] = "int", [16] = "list",
+static const char *const NAMES[SEEDED + 1] = { [1] = "bytes", "text", "nat", "int", [16] = "list",
+  [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", "bind", "binding", "up", "base", "lazy",
+  "read", "print", "id", "file", "clock", "step", "compile",
   [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
   "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
   "frame", "link", "activation", "choice-point", "gathered", "words", "bytes" };
@@ -35,12 +37,12 @@ static const char *const FKIND[] = { "?", "seq", "args", "cut", "fail", "all", "
 
 static uint8_t *img; static uint64_t size;                /* a private copy of one frame, laid out as the region is */
 static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
-static Frame *fr; static Act *act; static Choice *cp;
+static Frame *fr; static Act *act; static Choice *cp; static Bind *bd;
 static void stop(const char *m, const char *n) { fprintf(stderr, "fb: %s%s\n", m, n); exit(2); }
 static void *at(int i) { return img + hd->a[i].off; }
 static void bind(void) {
   hd = (Head *)img; nd = at(A_NODE); bytes = at(A_BYTES); kids = at(A_KIDS); argp = at(A_ARG);
-  fr = at(A_FRAME); act = at(A_ACT); cp = at(A_CHOICE);
+  fr = at(A_FRAME); act = at(A_ACT); cp = at(A_CHOICE); bd = at(A_BIND);
 }
 static double now_ms(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec * 1e3 + t.tv_nsec / 1e6; }
 
@@ -103,7 +105,7 @@ static void shown(H h, int depth) {
   if (!h) { sp("nothing"); return; }
   if (h >= hd->a[A_NODE].n) { sp("?"); return; }
   long long c = catn(h); const Node *x = &nd[h]; const uint8_t *b = bytes + x->off;
-  if (c >= 0) { if (c < 64 && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
+  if (c >= 0) { if (c <= SEEDED && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
   if (x->comp) {
     if (depth <= 0) { sp("(..)"); return; }
     sp("("); shown(x->bp, depth - 1);
@@ -169,6 +171,8 @@ static void detail(void) {
   if (k) printf("  ... and older frames\n");
   for (uint32_t i = hd->a[A_CHOICE].n, j = 0; i > 0 && j < 4; i--, j++)
     printf("choice point %u  next option %u of %s\n", i - 1, cp[i-1].i, str(cp[i-1].node, 100));
+  for (uint32_t i = hd->a[A_BIND].n, j = 0; i > 0 && j < 12; i--, j++) {      /* what runs, newest first */
+    printf("binding %u  %s is run by ", i, str(bd[i-1].entry, 60)); printf("%s\n", str(bd[i-1].impl, 100)); }
 }
 
 /* ---- commands ---------------------------------------------------------------------------- */

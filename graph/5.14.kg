@@ -280,21 +280,21 @@ at: 2026-11-25
 n: 5.14.27
 name: a-recipe-runs-on-code-the-emitter-wrote
 kind: observation
-is: Observed on 2026-11-25. For the recursion of ground/recursion.ck the emitter wrote a leaf of 61 instructions. On it the long recursion answered 2178309 in 0.02 s and 6,123 walker steps, loading and compiling included, where the walker alone takes 0.75 s and 158.6 million. A million calls of a*a + b*3 - 7 took 0.23 s compiled and 0.53 s on the walker. Factorial, an overflow, and an overflow inside a condition answered as on the walker in nine trials; a recipe that answers yes or no got the answer no and stayed on the walker.
+is: Observed on 2026-11-25. For the recursion of ground/recursion.ck the emitter wrote a leaf of 67 instructions. On it the long recursion answered 2178309 in 0.02 s and 7,945 walker steps, loading and compiling included, where the walker alone takes 0.75 s and 158.6 million. A million calls of a*a + b*3 - 7 took 0.24 s compiled and 0.50 s on the walker. In seventeen trials over six recipes the answer, the reason of a nothing and the fault were the walker's: overflows, nested and inside a condition, a missing, a text and a nothing argument, and recursions a million deep.
 status: observed
 src: 2.30.7 2.30.6 2.30.10
-limit: Three recipes, one machine, trials by hand. Compiled code differs at the edges: a nested overflow says range where the walker says nothing-in, an argument that is nothing is a fault, and a missing argument reads as zero.
+limit: Six recipes, one machine, trials by hand and not kept as programs.
 at: 2026-11-25
 
 n: 5.14.28
-name: code-out-of-stack-declines
+name: emitted-code-answers-a-number-or-declines
 kind: decision
-is: Every call of code carries the region's address in its seventh register. Emitted code reads from the region where the machine stack ends before it takes a frame; with no room it declines, the calls above it unwind carrying the decline, and the walker runs the whole call on the bindings beneath that code. Observed on 2026-11-25: a recursion a million deep answered 1000000 on emitted code in 0.15 s, 0.13 s on the walker alone; before the check it ended the process with signal 10. A decline raised inside a condition reached the top in a trial 200,000 deep.
+is: Every call of code carries the region's address in its seventh register and the count of its values in its eighth, and code is not asked when a value is not an integer. Emitted code declines when an overflow is left at its end, when it was given fewer arguments than the recipe reads, and when the stack, whose end it reads from the region, has no room. The decline travels up through its calls and the walker runs the whole call on the bindings beneath that code. Observed: a recursion a million deep answers in 0.15 s, 0.13 s on the walker alone.
 status: inferred
 from: 5.14.26 5.14.19 5.14.20 5.7.6
 src: 2.30.7 2.30.6
 conf: mid
-why: A bound of the machine should cost time, not change an answer or end the process. Declining a whole call is the hand-back to the walker that needs nothing new: the walker already runs what a binding declines.
+why: Code that is faster must not be different. Where it cannot be sure, the answer, the reason and the fault are the walker's own, at the cost of doing the work twice. Declining a whole call is the hand-back that needs nothing new: the walker already runs what a binding declines.
 flip: Code that goes on computing while it unwinds wastes work in a branching recursion; a jump straight to the leaf's end would not.
 at: 2026-11-25
 

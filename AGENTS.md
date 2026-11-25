@@ -9,7 +9,7 @@ Everything a session needs is in this repository, and it builds with a C compile
 2. Build and look at the present state before asserting anything about it:
 
    ```bash
-   make && cc -O2 -o kg tools/kg.c && make check && ./kg check
+   make && make check && ./kg check
    ```
 
 3. Read the design you are about to touch: `./kg brief | grep '^5\.'` for the design, `'^7\.'` for

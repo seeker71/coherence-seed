@@ -13,7 +13,7 @@
  * Everything this program reads and writes lives in one shared region laid out by fb.h,
  * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
  * Host symbols used: shm_open shm_unlink ftruncate mmap mprotect open read write close rename
- * getenv getpid atexit exit snprintf memcpy memcmp memset strlen strcmp strchr
+ * getenv getpid atexit exit clock_gettime snprintf memcpy memcmp memset strlen strcmp strchr
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
  * pthread_jit_write_protect_np and sys_icache_invalidate.
  */
@@ -92,7 +92,7 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
   close(fd); return r < 0 ? -1 : n;
 }
 static Ret h_call(void *fn, const int64_t *a) {
-  return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
+  return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
 static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock };
 
@@ -447,7 +447,7 @@ static void print_node(H x) {
   char t[24]; long long c = catn(x);
   if (c >= 0) { oput("#"); oput(dec(t, (uint64_t)c)); return; }
   if (pnum[x]) { oput("^"); oput(dec(t, pnum[x] - 1)); return; }
-  pnum[x] = ++W->pcount;
+  pnum[x] = ++W->pcount; room(A_TK, (uint64_t)ntk + 1); tk[ntk++] = x;
   oput(nd[x].comp ? "(" : "["); print_node(nd[x].bp);
   if (nd[x].comp) for (uint32_t i = 0; i < nd[x].n; i++) { oput(" "); print_node(KID(x, i)); }
   else if (nd[x].n) { oput(" "); t[2] = 0;
@@ -455,8 +455,10 @@ static void print_node(H x) {
   oput(nd[x].comp ? ")" : "]");
 }
 static const char *print(H x) {
-  room(A_PNUM, (uint64_t)nn + 1); memset(pnum, 0, sizeof *pnum * nn); N(A_PNUM) = nn; W->pcount = 0; nob = 0; oput("");
-  print_node(x); return ob;
+  room(A_PNUM, (uint64_t)nn + 1); N(A_PNUM) = nn; W->pcount = 0; nob = 0; oput("");
+  uint32_t base = ntk; print_node(x);
+  while (ntk > base) pnum[tk[--ntk]] = 0;         /* a print costs what it prints: only its own numbers are taken back */
+  return ob;
 }
 
 /* ---- code pages -----------------------------------------------------------------------
@@ -504,6 +506,8 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
 }
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
+/* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
+static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
@@ -522,7 +526,7 @@ static int landed(void *fn, int64_t *arg) {
  * itself, unevaluated: a lazy keeps the cut scope, code gets the node's handle and the
  * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
-  H impl = bd[b-1].impl, t[9]; int64_t arg[7] = {0};
+  H impl = bd[b-1].impl, t[9]; int64_t arg[8] = {0};
   if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, b - 1);          /* is bound to runs it, given the leaf and the values */
     if (!r || !nd[bd[r-1].impl].comp) { fault("kind"); return 1; }
@@ -533,7 +537,8 @@ static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
   if (node) { arg[0] = node; arg[1] = from; }
-  else for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) { fault("kind"); return 1; }
+  else for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) return 0;   /* code takes integers only */
+  arg[7] = c;
   if (!landed(birth(impl), arg)) return 0;
   W->mode = M_RET; return 1;
 }
@@ -541,7 +546,7 @@ static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
  * the encoding refuses answers nothing, and the reason is the refusal's word. */
 static void parts(long long op, const H *a, uint32_t c) {
   const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
-  if (c != (op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault("arity"); return; }
+  if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault("arity"); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
   if (op == PRINT) { print(x); W->v = mk(0, E(2), ob, nob, &why); return; }
   if (op == ID) { W->v = mk(0, E(1), idof(x), 32, &why); return; }
@@ -557,8 +562,7 @@ static void parts(long long op, const H *a, uint32_t c) {
   }
   if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
     long long e = catn(x);
-    int data = e >= 0 && (e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY);
-    if (data || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
+    if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     room(A_BIND, (uint64_t)nbind + 1); bd[nbind] = (Bind){ E(BINDING), W->at, x, l }; nbind++; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
@@ -600,7 +604,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       lim = b - 1; b = 0;
     }
     if (given) break;
-    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op == BINDING || op == LAZY || op > STEP)) { answer(x); break; }
+    if (!b && (is_data(op) || op > STEP)) { answer(x); break; }       /* data, or an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -632,9 +636,9 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       if (c != 1) { fault("arity"); break; }
       room(A_CHOICE, (uint64_t)ncp + 1);
       cp[ncp] = (Choice){ E(CHOICEPT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind }; ncp++;
-      W->k = push(F_ALL, x, 0, W->env, W->cut, 0, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
+      W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
-    case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, 0, W->k, ncp); W->x = KID(x, 0); break;
+    case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8) { fault("arity"); break; }
       if (!c) {
@@ -682,7 +686,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       while (nbind && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && !apply(b, a, c, f.env, 0)) { lim = b - 1; b = 0; }
       if (b) break;
       if (op == UP || op == BASE || op == STEP) {       /* a node in hand is evaluated: by step where this node */
-        if (c != 1 || !a[0]) { fault("arity"); break; }  /* stands; by the others where the implementation's user */
+        if (c != 1) { fault("arity"); break; }           /* stands; by the others where the implementation's user */
+        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
         W->one = op == BASE ? act[f.env].lim + 1 : 0;    /* stands, in that user's cut scope. base: the node's own */
         if (op != STEP) { W->cut = act[f.env].cut; W->env = act[f.env].up; }       /* entry means what it meant beneath */
         W->x = a[0]; W->mode = M_EVAL; break;
@@ -695,13 +700,15 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         W->env = enter(a[0], a + 1, c - 1, on, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
-        int64_t arg[7] = {0};
+        int64_t arg[8] = {0}; uint32_t j = 1;
         if (c > 7 || !a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE)) { fault("kind"); break; }
-        for (uint32_t j = 1; j < c; j++) if (!geti(a[j], &arg[j-1])) fault("kind");
-        if (W->mode == M_FAULT) break;
+        while (j < c && geti(a[j], &arg[j-1])) j++;
+        if (j < c) { fault("kind"); break; }
+        arg[7] = c - 1;
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
         break;
       }
+      if (op > STEP) { fault("kind"); break; }       /* an entry only code ran, and the code declined these values */
       if (op >= BLUEPRINT) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
@@ -728,10 +735,12 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     if (q->i + 1 >= nd[q->node].n) ncp--; else { q->i++; q->by = W->at; }
     break; }
   case M_FAULT: {
-    uint32_t j = W->k; while (j && fr[j].t != F_RECOVER) j = fr[j].k;
+    uint32_t j = W->k;                    /* an all's frame keeps the way out of it in vals; its own k is nothing */
+    while (j && fr[j].t != F_RECOVER) j = fr[j].t == F_ALL ? fr[j].vals : fr[j].k;
     if (!j) { W->v = 0; W->outcome = 'f'; W->mode = M_DONE; return; }
     Frame f = fr[j];
     if (ncp > f.aux) ncp = f.aux;
+    ncoll = f.vals;                       /* what the alls inside it had gathered goes with them */
     W->k = push(F_HANDLER, W->reason, 0, f.env, f.cut, 0, f.k, 0);
     W->env = f.env; W->cut = f.cut; W->x = KID(f.node, 1); W->mode = M_EVAL; break; }
   default: return;

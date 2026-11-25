@@ -80,11 +80,7 @@ The walker's step is replaced the same way. This marks every node the program ev
 ## The knowledge graph
 
 What is known, decided and open is held as a graph of claims under [`graph/`](graph). Each claim
-carries its source, its date and how it is known.
-
-```bash
-cc -O2 -o kg tools/kg.c
-```
+carries its source, its date and how it is known. `make` builds its checker, `kg`.
 
 ```bash
 ./kg brief | less

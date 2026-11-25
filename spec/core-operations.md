@@ -126,9 +126,10 @@ have.
   a compiled version and back. Only data entries keep their meaning.
 - **i says how it wants to be used.** A `recipe` is called with the children's answers. A `lazy`
   (entry 75, shaped like a recipe) is given the node itself, unevaluated, and so can stand for a
-  control operation. A code leaf is called with the answers as integers; it may decline, and
-  then what lies beneath it runs, so code can take the cases it is good at and leave the rest. A
-  recipe's call that its code declined runs wholly on the bindings beneath that code. A
+  control operation. A code leaf is called with the answers as integers. It may decline, and it
+  is not asked at all when an answer is not an integer; then what lies beneath it runs, so code
+  takes the cases it is sure of and leaves the rest. A recipe's call that its code declined runs
+  wholly on the bindings beneath that code. A
   leaf of any other blueprint is run by whatever that blueprint is bound to, which is how a new
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
@@ -142,8 +143,8 @@ have.
 - **A binding is undone like anything else.** A fail that returns to a choice entered before the
   binding takes the binding away.
 - **A binding is a record in the region** (`spec/framebuffer.md`): the entry, the implementation,
-  and the `bind` node that wrote it. The observer counts them in the `bindings` area and does not
-  yet print them.
+  and the `bind` node that wrote it. The observer lists them, newest first: what runs, and for
+  what.
 - `./ck run F B..` evaluates each B first and leaves its bindings in place for F.
 
 ### The operations in form
@@ -225,18 +226,21 @@ in form: one pass over the recipe's body, each node's instructions gathered as b
 packed into one leaf under entry 52. It knows seven shapes of node:
 
 - an `int` leaf from 0 to 65,535, and `arg`;
-- `add`, `sub` and `mul`, with overflow collected in one register so the leaf answers out of
-  range as the hand-written ones do;
+- `add`, `sub` and `mul`, with overflow collected in one register;
 - `(choice (seq (cut (need c)) a) b)` where c is an `lt` or an `eq` of numbers, as a compare and
   two branches. An overflow inside c takes the second branch, as on the walker;
 - a call of `self`, as a machine call of the leaf's own first instruction.
 
-The leaf keeps its arguments and the registers it uses in a frame on the machine stack, and a
-node's result in a register chosen by its depth, x19 to x25. Before it takes a frame it reads
-from the region where the stack ends. With no room left it declines, the calls above it unwind,
-and the walker runs the whole call instead: a recursion too deep for the machine stack is slower,
-not different. For any other node the emitter emits a byte that `pack` refuses, so a recipe is
-compiled whole or not at all, and what is not compiled stays on the walker.
+For any other node the emitter emits a byte that `pack` refuses, so a recipe is compiled whole or
+not at all, and what is not compiled stays on the walker.
+
+**The leaf answers a number or declines.** It declines when an overflow is left at its end, when
+it was given fewer arguments than the recipe reads, and when the machine stack, whose end it reads
+from the region, has no room for its frame. A decline travels up through the calls above it, and
+the walker then runs the whole call. So wherever emitted code cannot be sure, the answer, the
+reason and the fault are the walker's own: emitted code is faster or it is the walker, never
+different. It keeps its arguments and the registers it uses in a frame on the machine stack, and
+a node's result in a register chosen by its depth, x19 to x25.
 
 `ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recursion on the walker,
 compiles it, runs a much longer one on the emitted leaf, and asks for a recipe the emitter does
@@ -269,9 +273,10 @@ language's. An argument that is nothing answers nothing. An argument of another 
 ## Native code
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
-integers in x0 to x5, finds the region's address in x6, and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
-unless x0 is zero), 4 the handle of a node in the region, 3 nothing at all: the code declines
-and what lies beneath its binding runs. Anything else is no answer, which is nothing with the
+integers in x0 to x5, finds the region's address in x6 and how many values it was given in x7,
+and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes unless x0 is zero), 4
+the handle of a node in the region, 3 nothing at all: the code declines and what lies beneath its
+binding runs. Anything else is no answer, which is nothing with the
 reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
 copies it once into the process's code region and calls it; code that declines there answers
 nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
@@ -303,13 +308,12 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - The emitter compiles numbers only: no call of another recipe, no control beyond the one shape
   of condition, no answer of yes or no, no negative or large literal, and an expression nested
   deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
-  walker. A program asks for it; nothing offers a recipe by how often it runs. Compiled code
-  differs from the walker at the edges: an overflow inside a larger expression has the reason
-  `range` where the walker says `nothing-in`, an argument that is nothing is a fault, and an argument
-  the caller did not pass reads as zero.
-- Emitted code that runs out of machine stack does the work twice: once until it declines, then
-  on the walker. It goes on computing while it unwinds, so a recursion that branches can spend
-  long on answers it will discard.
+  walker. A program asks for it; nothing offers a recipe by how often it runs.
+- Where emitted code declines, the work is done twice: once until it declines, then on the
+  walker. It goes on computing while it unwinds, so a recursion that branches can spend long on
+  answers it will discard.
+- Looking up what runs a node reads the bindings from the newest down, and finding a leaf's
+  runnable copy reads the born code the same way: both grow with how many there are.
 - What is not an operation has no binding yet: the store, freeze and thaw and the other host
   functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
@@ -318,4 +322,3 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - A binding has no name of its own and cannot be taken away except by a fail.
 - Nothing bounds a run but the region's capacities: a wrong recipe under a recursion gives no
   answer and goes on until an area is full.
-- The observer has no names for entries 64 to 72 and prints them as numbers.

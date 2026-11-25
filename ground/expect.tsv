@@ -10,6 +10,7 @@ no-is-an-answer	node #32
 numeric-list	node (#16 [#4 01] [#14 0000000000000440] (#16 [#4 03] [#4 04]))
 range	nothing [#2 72616e6765]
 recover	node [#2 6b696e64]
+recover-through-all	node [#2 6b696e64]
 recursion	node [#4 37]
 long-recursion	node [#4 053d21]
 nat-rule	node (#16 [#3] [#3 2a] [#2 6d696e696d616c] [#3 0001] ^3)
@@ -28,4 +29,4 @@ keeps-the-faster	node [#2 636f6465]
 cut-through	node (#16 [#4 01])
 step-in-form	node (#16 [#4 20] [#4 37])
 step-in-code	node [#4 37]
-compiles-a-recipe	node (#16 [#4 37] [#4 f400] [#4 053d21] #32)
+compiles-a-recipe	node (#16 [#4 37] [#4 0c01] [#4 053d21] #32)
