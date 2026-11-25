@@ -90,10 +90,10 @@ at: 2026-11-26
 n: 5.18.8
 name: code-on-nodes-is-held-to-the-walker
 kind: observation
-is: Observed on 2026-11-26. ground/code-on-nodes.ck runs sixty-nine recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: fifty-six did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
+is: Observed on 2026-11-26. ground/code-on-nodes.ck runs eighty recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: sixty-five did, and the fifteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
 status: observed
 src: 2.30.6 2.30.7
-limit: Twelve faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
+limit: Twelve faults planted in the emitter and three in the bootstrap each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
 at: 2026-11-26
 
 n: 5.18.9
@@ -112,7 +112,7 @@ at: 2026-11-26
 n: 5.18.10
 name: the-emitter-compiles-part-of-itself
 kind: observation
-is: Observed on 2026-11-26. ground/compiles-its-own.ck asks the emitter for every definition the repository's modules bind: 149 of 304 compile, all 26 of its own instruction builders and 32 more of its 65 other definitions among them, and it goes on compiling on that code. Each compiles the same alone in a fresh process and after all the others. The reader of the print written in form read the lens's 19,780 bytes in 20 ms on the walker and 7 ms after, to the same node.
+is: Observed on 2026-11-26. ground/compiles-its-own.ck asks the emitter for every definition the repository's modules bind: 161 of 304 compile, all 26 of its own instruction builders and 35 more of its 65 other definitions among them, and it goes on compiling on that code. Each compiles the same alone in a fresh process and after all the others. The reader of the print written in form read the lens's 19,780 bytes in 20 ms on the walker and 7 ms after, to the same node.
 status: observed
 src: 2.30.6 2.30.7
 limit: At 292 definitions the count first differed between two programs, 85 and 102 against 103 alone: the root as a constant had been taken for a number, so a compiled test of the emitter's own answered no for every entry. One machine.
@@ -142,4 +142,17 @@ conf: mid
 why: Going back into a definition for its next answer needs its state kept somewhere; calling forward with each answer keeps that state where it already is, on the machine stack, and needs no choice point. The walker takes one answer at a time, so from the walker such a definition stays walked.
 flip: Each answer passes through the code of every search above it: answers from depth d of a recursion cost d calls. Handing the caller's own continuation straight down would cut that; it is not done.
 limit: ground/code-hands-answers.ck holds twenty-five recipes to the walker's outcome, a walk of the lens's 5,711 nodes among them. Five planted faults turned it red; a sixth, a stop not obeyed, made an endless definition run on without end. One machine.
+at: 2026-11-26
+
+n: 5.18.13
+name: a-note-from-code-is-kept-back
+kind: decision
+is: Code may write a note. The bootstrap keeps it back in an area of its own and writes the cell when the code has answered; when the code declines, the note is dropped, since the walker runs the call again and writes it itself. held, asked by code, reads what was kept back before it reads the cell. So a definition that remembers what it computed is compiled, and a decline after a note still leaves each note written once. The emitter refuses a definition only while an operation it uses, or the step, is bound otherwise.
+status: inferred
+from: 5.18.6 5.18.7 5.14.34
+src: 2.30.6 2.30.7
+conf: mid
+why: A note is what was seen of a run and no fail undoes it, so it needs no trail: keeping it back until the answer is the whole of what a decline needs. hold is undone by a fail and bind changes what runs; neither is kept back, and neither is compiled.
+flip: A note is not seen by another process until the code that wrote it has answered.
+limit: Witnessed in ground/code-on-nodes.ck; three faults planted in the bootstrap, a dropped note written all the same, a kept one never written and one not read back, each turned it red, two of them only after cases were written for them.
 at: 2026-11-26

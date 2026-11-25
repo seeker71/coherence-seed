@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only what answers once and leaves no mark (5.18.1). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
+is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles about half of the system's definitions (5.18.10). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
 status: inferred
 from: 5.14.19 5.14.24 7.13 5.9.3
 conf: high

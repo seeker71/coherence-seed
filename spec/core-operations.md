@@ -126,6 +126,9 @@ holds the operation's number.
 - `gathered` with no value says, as a number, where the gathering of answers stands; with one
   value it adds that value, if it is something. `list` with that number answers the list of
   what was added since. What code gathered and did not take is given back when it returns.
+- `note` is kept back: the cell is written when the code has answered, and not at all when it
+  declines, since the walker then runs the call again and writes the note itself. `held` reads
+  what was kept back before it reads the cell, so code reads its own notes.
 - Any operation that works on values alone is itself: the parts of a node, building one,
   arithmetic, cells, the encoding. Control and the calling of recipes are not, and asking for
   them is the fault `kind`.
@@ -613,6 +616,8 @@ under entry 52. What it knows:
   `choice`, `let`, `seq`, `need`, `fail`, `if` and operations whose parts are searches
   themselves;
 - a definition that answers more than once, called from such a search;
+- `note`, and what reads without leaving a mark: `bound`, `handle`, `id`, `print`, `encode`,
+  `decode`, `read`, `file`, `at`, `peek`; `close`, a recipe as a value, and `self`;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
@@ -684,13 +689,14 @@ aside while `add` is watched from outside and back after; an entry bound outside
 the walker; two definitions that call each other and a loop that calls a third, compiled
 together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
 answered by the walker. Nine faults planted in the emitter each turned it red.
-`ground/code-on-nodes.ck` does the same for sixty-nine recipes over nodes: reading, comparing
-and building them, texts, lists and entries as constants, comparisons as values, a nothing and a fault at each place one
+`ground/code-on-nodes.ck` does the same for eighty recipes over nodes: reading, comparing
+and building them, texts, lists and entries as constants, comparisons as values, notes written and
+read, a nothing and a fault at each place one
 can arise, a number where a node is wanted and the other way round, definitions that hand nodes
 to each other, and a chain of a hundred thousand pairs built by one and walked by another. For
-each it says whether the code answered or handed the call back: thirteen hand back, each one
+each it says whether the code answered or handed the call back: fifteen hand back, each one
 that ends in nothing or in a fault, and the rest the code answers. Twelve faults planted in the
-emitter each turned it red. `ground/code-without-search.ck` holds thirty-six recipes that test,
+emitter and three in the bootstrap's keeping of notes each turned it red. `ground/code-without-search.ck` holds thirty-six recipes that test,
 fail and choose a first alternative to the walker's outcome, a failure crossing between
 definitions and into a row among them; the ten that end with no path left are handed back, and
 ten more planted faults each turned it red. `ground/code-searches.ck` does it for thirty-three
@@ -707,21 +713,21 @@ nodes of the lens's definition were handed up by a definition calling itself, co
 as on the walker.
 
 `ground/compiles-its-own.ck` asks the emitter for every definition the repository's own modules
-bind: 149 of 304 compile, all 26 of the emitter's instruction builders and 32 more of its own
+bind: 161 of 304 compile, all 26 of the emitter's instruction builders and 35 more of its own
 definitions among them, so from then on the emitter runs partly on code it made. Each compiles
 the same alone in a fresh process and after all the others. That count first came out
 differently in two programs, which is how a wrong kind for the root as a constant was found.
 The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 20 ms
 on the walker and in 7 ms after this, to the same node; the lens showed its own definition and
-read it back in 54 ms and then in 44 ms. Compiling the 125 that were bound took 1.6 s: the
+read it back in 54 ms and then in 50 ms. Compiling the 136 that were bound took 2.1 s: the
 emitter is itself mostly walked, and it compiles a definition again with each one that calls
 it. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
-the recipe would have, for the other definitions of its layer too. The emitter refuses while any
-operation it would replace by an instruction is bound otherwise where the recipe runs: its code
-would not be what the walker does there.
+the recipe would have, for the other definitions of its layer too. The emitter refuses a definition while
+any operation it uses, or the step, is bound otherwise where the definition runs: its code would
+not be what the walker does there.
 
 ## Limits
 
@@ -750,7 +756,7 @@ would not be what the walker does there.
   `first`, or as the whole of a definition: not as the condition of an `if`. No `cut` of its
   own, no `recover`, and no call of a recipe held as a value, which is how the emitter passes
   what follows an answer. What comes after an answer is written again for each alternative, so
-  code for a wide search grows. Nothing that leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
+  code for a wide search grows. No mark but a note: no `hold`, `bind` or written file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
   An expression nested deeper than seven registers is not compiled. So the emitter compiles
   part of itself and not the whole.

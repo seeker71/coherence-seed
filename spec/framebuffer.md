@@ -53,6 +53,7 @@ to one layout version.
 | stack | bytes | the machine stack of the C code and of code leaves |
 | asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
+| noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
 
 ## Rules
 

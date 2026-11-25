@@ -118,7 +118,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
-static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft; static uint32_t *pnum, *bykey; static H *held;
+static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted; static uint32_t *pnum, *bykey; static H *held;
 static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
@@ -137,6 +137,7 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nbind N(A_BINDINGS)
 #define nout N(A_OUTSIDE)
 #define nafter N(A_AFTER)
+#define nnoted N(A_NOTED)
 #define ntrail N(A_TRAIL)
 #define nopen N(A_READER_OPENED)
 #define ntk N(A_GATHERING_CHILDREN)
@@ -171,7 +172,7 @@ static void fb_open(void) {
     [A_PRINT_NUMBERS] = { WORD_TABLE, 4, (1u << 22) + 8 },     /* one for each node, and one more */
     [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
     [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 },
-    [A_AFTER] = { WORD_TABLE, 4, 1u << 20 } };
+    [A_AFTER] = { WORD_TABLE, 4, 1u << 20 },            [A_NOTED] = { WORD_TABLE, 4, 1u << 16 } };
   uint64_t off[A_COUNT], at = FB_PAGE;
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
@@ -182,11 +183,11 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 13; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 14; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
-  lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL);
+  lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL);
   opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT);
   nn = 1;
 }
@@ -620,7 +621,12 @@ static int landed(void *fn, int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
-  if (r.k == 3 || (r.k == 4 && !r.v)) return 0;
+  if (r.k == 3 || (r.k == 4 && !r.v)) { nnoted = 0; return 0; }    /* and the notes of code that declined are dropped: the walker */
+  for (uint32_t j = 0; j < nnoted; j += 2) {                       /* writes them itself. Code that answered has them written now */
+    room(A_CELLS, (uint64_t)noted[j] + 1); if (N(A_CELLS) <= noted[j]) N(A_CELLS) = noted[j] + 1;
+    held[noted[j]] = noted[j+1];
+  }
+  nnoted = 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
   else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
   return 1;
@@ -863,8 +869,10 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
  * node the node whose id lies at the address given, so that code names a node by what it is and not
  * by where it is in one run, and any operation on values alone is itself. Answers found one at a
  * time are gathered here: gathered with no value says where the gathering stands, with one it adds
- * that value if it is something, and list with that place makes the list of what was added since. With 256 added the answer is asked as a number: k 0,
- * or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
+ * that value if it is something, and list with that place makes the list of what was added since.
+ * A note code writes is kept back until the code answers, since code that declines is run again by
+ * the walker; held reads what was kept back before it reads the cell. With 256 added the answer is
+ * asked as a number: k 0, or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
  * nothing. A fault goes to the walker and does not come back here. */
 static int basic(long long op) {
   return op >= ADD && op <= LAST && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
@@ -882,6 +890,13 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   if (op == LIST) {
     if (c != 1 || cm != 1 || a0 < 0 || a0 > ntk) { fault("kind"); siglongjmp(in_code, 3); }
     x = mk(1, E(LIST), tk + a0, ntk - (uint32_t)a0, &why); ntk = (uint32_t)a0; return (Ret){ x, 4 };
+  }
+  if (op == NOTE || op == HELD) {
+    H key = !c ? 0 : cm >> 8 & 1 ? (a0 > 0 && a0 < nn ? (H)a0 : 0) : mki(a0), v = c != 2 ? 0 : cm >> 9 & 1 ? (a1 > 0 && a1 < nn ? (H)a1 : 0) : mki(a1);
+    if (c == (op == NOTE ? 2u : 1u) && key && (op == HELD || v)) {
+      if (op == NOTE) { room(A_NOTED, (uint64_t)nnoted + 2); noted[nnoted] = key; noted[nnoted+1] = v; nnoted += 2; return (Ret){ v, 4 }; }
+      for (uint32_t j = nnoted; j > 0; j -= 2) if (noted[j-2] == key) return num ? (geti(noted[j-1], &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 }) : (Ret){ noted[j-1], 4 };
+    }
   }
   if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault("no-node"); siglongjmp(in_code, 3); }
   for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
@@ -905,10 +920,10 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
-  case 1: coding = 0; ntk = left; fault("crash"); break;              /* the processor faulted inside code a program gave */
+  case 1: coding = 0; ntk = left; nnoted = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
     coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
-  case 3: coding = 0; ntk = left; break;                              /* an operation code asked for faulted: the fault is the program's */
+  case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
