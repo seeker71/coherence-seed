@@ -110,7 +110,7 @@ at: 2026-11-25
 n: 7.22
 name: prelude-is-held-to-a-budget
 kind: decision
-is: Form written by position, with raw constants or as one long ladder is prelude. The guide's word of 2026-11-26: prelude code is like bootstrap code, only allowed until it can be replaced, very limited, and not to grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number that no shape names, and make check fails when the count is over the budget in the Makefile, 270 on this day, down from 391. The budget is lowered as code is rewritten and never raised.
+is: Form written by position, with raw constants or as one long ladder is prelude. The guide's word of 2026-11-26: prelude code is like bootstrap code, only allowed until it can be replaced, very limited, and not to grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number in the stored nodes, whatever names lie beside them, and make check fails when the count is over the budget in the Makefile, 475 on this day. The budget is lowered as code is rewritten and never raised.
 status: given
 by: guide
 see: 5.15.8 5.18.14 7.13

@@ -18,7 +18,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 57 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,393 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,394 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -95,7 +95,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 99 files of nodes here, in 0.8 s. Text it cannot read is a fault
+  for byte, as is each of the 100 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -110,19 +110,20 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,211 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,212 claims, none reviewed by a second reader.
 
 ## Not there
 
-- **Proper form everywhere.** The emitter is written with shapes, named cases and named
-  instructions: 149 definitions, the longest 102 lines where one was 655, no raw encoding
-  outside its 55 builders. The lens reads its readers' answers and the parts of a let by name,
-  the objects a reference's cell and view, the hash its state. 270 reads of a node by a bare
-  number are left in the stored form, the budget `make check` holds: 77 in the lens, 61 in the
-  emitter, 19 in the rest of `form/`, 32 in the region's programs, 11 in the objects, 4 in the
-  ice, 3 in the lens's commands, 63 in the ground programs. Nothing checks that a value has the
-  shape its name says, no module is written with the objects' send and super, there are no
-  templates over shapes, and a module's words are still numbered by hand in one lexicon.
+- **A neutral store.** What is stored should be meaning in the numeric space with every word
+  beside it. One step is taken: the 65 operations describe themselves as nodes, what each
+  takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
+  a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
+  instructions are rows of data. The rest is not there. The nodes read a part by a bare number
+  475 times, the budget `make check` holds: the shape of a part is said only in the name
+  beside the node, where the lens shows `mine.ints`, and not in the node. A definition is
+  still an entry numbered by hand in one lexicon, not its content. The files store the
+  lowered core, so an `if` is four nested nodes. The emitter's other cases, the lens and the
+  reader are still programs and not rows.
 
 - **Everything swappable** (path: graph node 7.21). The store's own making of nodes, the host
   functions, and what carries a run between nodes, the continuation, the choice points and the
@@ -137,7 +138,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 99
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 100
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 54 text files, and the axioms' text. Five of the checks are still lines of the

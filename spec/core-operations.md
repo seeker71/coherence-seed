@@ -581,6 +581,22 @@ The code steps aside while something bound from outside sits on an operation of 
 on an entry the program defines: a counter put on `add` from outside sees every addition, the
 compiled ones too, and when it is taken off the code runs again.
 
+## The operations describe themselves
+
+`form/operations.ck` binds `operations` to a list with one node for each operation: the entry,
+the kinds of what it takes, the kind of what it gives, and what it does to the world. A kind is
+`int` for a number, `node` for any value, `quote` for a part that is taken as it stands and not
+evaluated; `rest` after a kind means any further number of it, and `no` for what it gives means
+that depends on its parts. What it does is one of six: `op.reads` (it changes nothing and can
+be done again), `op.builds` (it makes a node; doing it again makes the same node),
+`op.notes`, `op.marks` (it changes a cell, a binding or something outside the store),
+`op.faults` and `op.controls`. `(op.of e)` is an entry's description, and `op.takes`,
+`op.gives` and `op.effect` its parts.
+
+The emitter reads these and holds no list of its own: the kind of a value, which places of an
+operation are numbers, and whether an operation can be asked of the bootstrap, which is so for
+one that reads, builds, notes or faults.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
