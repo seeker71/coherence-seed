@@ -176,5 +176,5 @@ src: 2.30.6 2.30.7
 conf: mid
 why: The guide's word of 2026-11-26: the engine is not for a person to read; what is stored is neutral, in the numeric space, with a symbol table apart. What an operation means was written three times, in C, on a page and as ladders in the emitter; as a node it is said once and read by a program or a model alike.
 flip: A row is looked up where a ladder was walked. A row of instructions is filled in by building a node and stepping it, which the emitter does not yet compile.
-limit: The walker and the bootstrap do not read the descriptions; nothing yet checks them against what the C does. The compare, the search and the control cases of the emitter are still code.
+limit: The walker and the bootstrap do not read the descriptions. ground/operations-as-described.ck holds 30 of the 65 to the bootstrap, each one that reads or builds with a fixed number of parts: it must take that number and refuse one more; two wrong descriptions planted were both named. The kinds are not checked. The compare, the search and the control cases of the emitter are still code.
 at: 2026-11-26

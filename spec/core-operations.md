@@ -593,6 +593,11 @@ be done again), `op.builds` (it makes a node; doing it again makes the same node
 `op.faults` and `op.controls`. `(op.of e)` is an entry's description, and `op.takes`,
 `op.gives` and `op.effect` its parts.
 
+`ground/operations-as-described.ck` holds the descriptions to the bootstrap for the 30
+operations that read or build with a fixed number of parts: each takes the number its
+description says and refuses one more. Two wrong descriptions planted were both named. The kinds
+are not checked, and neither the walker nor the bootstrap reads the descriptions.
+
 The emitter reads these and holds no list of its own: the kind of a value, which places of an
 operation are numbers, and whether an operation can be asked of the bootstrap, which is so for
 one that reads, builds, notes or faults.
