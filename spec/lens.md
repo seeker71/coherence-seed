@@ -55,9 +55,14 @@ exists: `(a + b + c)` is refused.
 An argument is a number in the node: `$0`, `$1`. A name is what a person calls it, and it is
 kept beside the node (graph node 5.2.4).
 
-- `{a b | (add a b)}` is the recipe `(recipe (add $0 $1))`. Inside the braces a is `$0` and b is
-  `$1`, and no name from outside is seen, since a recipe sees only its own arguments. `{| x}` is
-  a recipe whose arguments have no names.
+- `{a b | (a + b)}` is the recipe `(recipe (add $0 $1))`. Inside the braces a is `$0` and b is
+  `$1`. `{| x}` is a recipe whose arguments have no names.
+- A recipe written inside another sees the outer names. `{x | (x + sum)}`, where sum is a name
+  outside the braces, is the inner recipe closed over the outer arguments
+  (`spec/core-operations.md`, entries 105 and 106): they come first among its arguments and x
+  after them. It is closed only when it uses an outer name; `{x | (x * 2)}` in the same place
+  is a plain recipe. A name of its own that repeats an outer one hides it, and so does writing
+  an argument by its number: then the recipe is read by itself.
 - `(let sum (add a b) twice (mul sum 2) (tuple sum twice))` gives two parts a name, each seen by
   what comes after it. It is two nodes of entry 100, one inside the other
   (`spec/core-operations.md`): a new name takes the next argument number, so sum is `$2` and
@@ -137,15 +142,15 @@ the text of the file that stores x.
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 83 files, none differs in either line, in 0.4 s.
+  nodes in the repository: 84 files, none differs in either line, in 0.4 s.
 
 ## Limits
 
 - It is not yet the surface of graph node 5.3.5. Every form is in brackets: a sign stands between
   two and no more, there is no precedence and no pattern over text.
-- A recipe inside another does not see the outer one's names, since a recipe does not capture.
-  In a recipe whose arguments have no names, or at the top of a program, the first name a let
-  gives takes `$0`.
+- A recipe closes over the outer names only where every outer argument has a name. In a recipe
+  whose arguments have no names, or at the top of a program, the first name a let gives takes
+  `$0`.
 - Two recipes that are one node have one row of names. A name belongs to one lens; nothing yet
   keeps a second lens's names for the same node.
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.

@@ -5,16 +5,16 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 74 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 76 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
-and 104 answers nothing with a reason. 128 is the first operation that exists only in form:
-entries below 128 are the bootstrap's to name, and from 128 up they are named by modules written
-in form.
+104 answers nothing with a reason, and 105 with 106 close a recipe over values. 128 is the first
+operation that exists only in form: entries below 128 are the bootstrap's to name, and from 128
+up they are named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -499,6 +499,21 @@ does when it has no answer, said by a program. It is not a fail and not a fault:
 nothing, and `outcome` shows `(list "nothing" r)`. The reader written in form refuses a print
 this way, with the same word the bootstrap's reader gives.
 
+## Entries 105 and 106: a recipe closed over values
+
+`(close f a..)` answers the recipe f closed over the values a..: a node of entry 106,
+`(closed f a..)`, which is data and can be called like a recipe. Called, it runs f with the values
+it holds first among the arguments and the call's own after them. `(self)` inside it is the closed
+node, so it can call itself; a closed node can be closed again, and the values of the outer one
+come after those of the inner. `recover` takes one as its handler and `after` holds one back.
+What is bound for f runs a closed f too, with the values as its first arguments.
+
+This is how a recipe written inside another sees what the outer one holds: the lens writes
+`{x | (x + sum)}` as the inner recipe closed over the outer arguments, when it uses one of them
+(`spec/lens.md`). `ground/closes-over.ck` closes over two arguments and a part named by a let,
+over nine at once, calls itself through a closed node, hands one to another definition and to
+`recover`, and is refused a closing over what is no recipe.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
@@ -556,7 +571,8 @@ is called sees it wherever the caller would.
   ten million fills the store with its integers.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct
   recursion only.
-- A recipe does not capture the arguments of a recipe around it. A `let` is not a recipe: its
+- A recipe node holds no values: one that uses the arguments around it is closed over them when
+  it is made (entries 105 and 106), and each closing is a node. A `let` is not a recipe: its
   body keeps the arguments it stands among.
 - Integer law is still question 6.1.11; the 64-bit bound is the floor's.
 - The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.

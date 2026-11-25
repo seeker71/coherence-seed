@@ -583,7 +583,17 @@ static H due(void) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
-static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL; }
+static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED; }
+/* What is called is a recipe, or a recipe closed over values: those come first among its arguments.
+ * Answers the recipe, with the n values in a made ready for it, or nothing. */
+#define MOST 40
+static H callee(H v, H *a, uint32_t *n) {
+  while (v && nd[v].comp && nd[v].bp == E(CLOSED) && nd[v].n) {
+    uint32_t m = nd[v].n - 1; if (*n + m > MOST) return 0;
+    memmove(a + m, a, sizeof(H) * *n); memcpy(a, kids + nd[v].off + 1, sizeof(H) * m); *n += m; v = KID(v, 0);
+  }
+  return is_recipe(v) ? v : 0;
+}
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* What an outcome answers: a word and a node, as 'ck run' prints them. */
@@ -615,7 +625,7 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
   H impl = B(b)->impl, t[9]; int64_t arg[8] = {0};
   if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
-    if (!r || !nd[B(r)->impl].comp) { fault("kind"); return 1; }
+    if (!r || !nd[B(r)->impl].comp || c > 8) { fault("kind"); return 1; }
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
   }
   if (nd[impl].comp) {
@@ -805,9 +815,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case F_OUTCOME:
       cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
-    case F_HANDLER:
-      if (!is_recipe(W->v)) { fault("not-a-recipe"); break; }
-      a[0] = f.node; W->env = enter(W->v, a, 1, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
+    case F_HANDLER: {
+      H full[MOST]; uint32_t n = 1; full[0] = f.node; H to = callee(W->v, full, &n);
+      if (!to) { fault("not-a-recipe"); break; }
+      W->env = enter(W->v, full, n, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break; }
     case F_ARGS: {
       room(A_LINKS, (uint64_t)nlink + 1); lk[nlink] = (Link){ E(LINK), W->at, W->v, f.vals }; uint32_t vals = nlink++;
       uint32_t c = nd[f.node].n;
@@ -828,7 +839,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         W->x = a[0]; W->mode = M_EVAL; break;
       }
       if (op == AFTER) {                  /* a call held back until every choice now open is closed; a fail that */
-        if (c < 1 || !is_recipe(a[0])) { fault("not-a-recipe"); break; }       /* returns past here first drops it */
+        H none[MOST]; uint32_t n0 = 0;
+        if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); break; }        /* returns past here first drops it */
         if (!ncp) op = CALL;
         else {
           for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
@@ -837,13 +849,21 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
           W->v = E(YES); break;
         }
       }
+      if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
+        H none[MOST]; uint32_t n0 = 0;
+        if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); break; }
+        for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
+        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        W->v = mk(1, E(CLOSED), a, c, &why); break;
+      }
       if (op == CALL) {
-        uint32_t on = act[f.env].lim;     /* a call its own code declined runs wholly on what lies beneath that code */
-        for (lim = f.aux; (nbind || nout) && (b = bound(a[0], 0, lim)) && !apply(b, lim, a + 1, c - 1, f.env, 0); b = 0) { lim = under(b, lim); on = (lim & ~OWN) | (on & OWN); }
+        H full[MOST]; uint32_t n = c - 1, on = act[f.env].lim; memcpy(full, a + 1, sizeof(H) * n);
+        H to = callee(a[0], full, &n);    /* a call its own code declined runs wholly on what lies beneath that code */
+        if (!to) { fault("not-a-recipe"); break; }
+        for (lim = f.aux; (nbind || nout) && (b = bound(to, 0, lim)) && !apply(b, lim, full, n, f.env, 0); b = 0) { lim = under(b, lim); on = (lim & ~OWN) | (on & OWN); }
         if (b) break;
-        if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
-        W->env = enter(a[0], a + 1, c - 1, on, up, cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
+        W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
         int64_t arg[8] = {0}; uint32_t j = 1;

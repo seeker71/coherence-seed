@@ -32,7 +32,7 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 730 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 83 files of nodes here and names none that differs, in 0.4 s. Fourteen malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 849 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 84 files of nodes here and names none that differs, in 0.4 s. Fourteen malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
@@ -75,4 +75,17 @@ conf: mid
 why: 5.3.2 names an operator table among a lens's rows. Arithmetic and tests are most of what is read in a definition, and written in front they hide what is compared with what.
 flip: A reader used to precedence must write every bracket. A pattern over text, which a host language's lens needs, is still not built.
 limit: Seven signs. A name may not be a sign.
+at: 2026-11-26
+
+n: 5.15.7
+name: an-inner-recipe-sees-the-outer-names
+kind: decision
+is: A recipe written in braces inside another is read with the outer names in sight. If it uses one, it is the inner recipe closed over all the outer arguments (5.14.52), which come first among its own; if it uses none, it is a plain recipe, read by itself. A name of its own that repeats an outer one, an outer argument without a name, or an argument written by number inside it makes it plain. Showing gives back the braces where reading them would give the same node.
+status: inferred
+from: 5.3.5 5.2.4 5.15.5 5.14.52
+src: 2.30.14 2.30.15
+conf: mid
+why: 5.3.5 asks for lambdas. Without this an inner recipe had to be passed everything by hand, or the outer text repeated.
+flip: All outer arguments are closed over, not only those used. The inner text is read twice when it turns out to use none.
+limit: Every file here reads back to itself with it, in one process and across two.
 at: 2026-11-26

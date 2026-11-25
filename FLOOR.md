@@ -8,15 +8,15 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,105 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,125 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 59 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 60 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
 | Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form, a module of named definitions: compiles a recipe over numbers, with lets, tests and its own recursion, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, and super that moves the view |
-| Programs | [`ground/`](ground) | 49 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 50 that witness the above; one more runs them and judges how each ends |
 | Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and a program in form shows its own region or another process's through it |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
 | Claim graph | [`graph/`](graph) | 1,359 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
@@ -44,8 +44,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   Its first version compared the walker with the walker and saw none of them: its helper was a
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
-  its own names, as 730 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 83 files of nodes here in 0.4 s. Its rows and their matcher were
+  its own names, as 849 lines and reads them back to the file it is stored as, byte for byte, and
+  does the same for each of the 84 files of nodes here in 0.4 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
   numbers in the node and names on a second line of its file. The definitions of the lens, the
@@ -65,6 +65,10 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   form shows its own region through it, or another process's, with every binding in words.
 - **The host is reached by name.** With no choice open, a program in form wrote a file through
   the host's own functions; while a choice is open the call is refused, since it cannot be undone.
+- **A recipe inside another sees the outer names.** The walker calls a recipe closed over
+  values, and the lens closes an inner recipe over the outer arguments when it uses one: over
+  two arguments and a part a `let` named, over nine at once, through its own recursion and as
+  the handler of a `recover`.
 - **Reading and printing are programs.** The reader and the printer of the canonical print are
   written in form from the page of the encoding. Bound in place of the bootstrap's own, they
   hold the 142 vectors and every ground program ends as before. Running everything on them
@@ -114,8 +118,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   is bound like any implementation, so definitions bound before it, its own layer's among
   them, do not see it.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
-  no more, with no precedence, and a recipe inside another sees none of the outer names.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 83
+  no more, with no precedence, and there is no pattern over text.
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 84
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 52 text files, and the axioms' text. Five of the checks are still lines of the

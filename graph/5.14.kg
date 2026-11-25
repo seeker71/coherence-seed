@@ -568,3 +568,16 @@ status: observed
 src: 2.30.3 2.30.6 2.30.7
 limit: One hand wrote the page, the bootstrap's reader and this one, so it is no second reader in the sense of 7.2. Nodes are still made by the bootstrap's pack and join, the id is the bootstrap's SHA-256, and the bytes' reader, decode, is not written in form. Running the ground programs on it found an older fault of the walker: step evaluated its node in the activation of whatever computed it (ground/step-stands-here.ck).
 at: 2026-11-26
+
+n: 5.14.52
+name: a-recipe-closed-over-values
+kind: decision
+is: Entry 105, close, answers a recipe closed over values: a data node of entry 106 that call, recover and after take wherever they take a recipe. Called, it runs the recipe with its values first among the arguments; self inside it is the closed node; closing a closed node adds values after the inner ones. The lens writes an inner recipe that uses an outer name as the recipe closed over the outer arguments (5.15.7). Observed on 2026-11-26: closed over three and over nine values, calling itself, handed to another definition and to recover.
+status: inferred
+from: 5.1.1 5.2.4 5.14.43 5.3.5 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: A recipe is a node and holds no values (5.1.1), so what an inner recipe needs from outside has to be given to it; a node that pairs the recipe with those values keeps both immutable and needs no new kind of activation.
+flip: Each closing makes a node that is never given back, so a closing inside a long loop fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
+limit: Witnessed by ground/closes-over.ck, turned red by two planted faults. At most forty arguments in all.
+at: 2026-11-26
