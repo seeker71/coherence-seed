@@ -502,3 +502,16 @@ why: A program's binding is seen only by what stands above it, so a diagnostic m
 flip: An outside binding is the one thing a fail does not put back, with notes. A search that binds from outside leaves that standing when it fails.
 limit: 127 at once. Bindings made together outside do not see each other as a layer's do. Witnessed by ground/from-outside.ck, turned red by three planted faults.
 at: 2026-11-26
+
+n: 5.14.46
+name: a-running-program-can-be-asked
+kind: decision
+is: A second process writes a node's print and its length in the region; between two steps the walker evaluates it as (outcome (outside x)), writes the outcome's print back and goes on where it was. So a request reads any cell and calls anything bound, what it binds is bound from outside the run, and nothing else it did stays. The asker is a program in form that maps the region through the host's own functions. Observed on 2026-11-26: it put a counter on every addition of the long recursion, read 21,787 and then 43,701, took it off, and the recursion answered 2178309.
+status: inferred
+from: 5.14.45 5.14.40 5.7.6 7.21 7.13
+src: 2.30.7 2.30.11 2.30.6
+conf: mid
+why: Diagnostics is reading the region; this is the one step past reading, and it needs nothing in the walker but a look at one count a step, since everything a run is lies in the region between two steps.
+flip: The asker waits by looking once a millisecond, where 5.4.11 asks for an event. Anything that can map the region can ask.
+limit: One asker at a time. Code that runs long without returning to the walker delays the answer. The first run of this flow answered wrongly and so found an older fault: a lazy bound while an operation's arguments were being evaluated was given their answers (ground/bound-in-flight.ck).
+at: 2026-11-26

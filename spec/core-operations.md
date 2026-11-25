@@ -196,6 +196,8 @@ have.
   wholly on the bindings beneath that code. A
   leaf of any other blueprint is run by whatever that blueprint is bound to, which is how a new
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
+  A `lazy` bound while a node's children are already being evaluated leaves that node to what
+  lies beneath it: it takes nodes, and there are only answers (`ground/bound-in-flight.ck`).
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
   implementation stands, with its arguments and in its cut scope, from however deep inside the
   implementation they are used. The user is whoever stands at the node a `lazy` or a step was

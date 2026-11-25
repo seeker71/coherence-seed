@@ -70,16 +70,25 @@ or, from a program written in form, with every binding shown in the lens's words
 printf /ck.demo | ./ck text region/watch.ck
 ```
 
+A running program can also be asked. A second process hands it a node, written in the lens's
+words, and gets back how it ended, while the run goes on: put a counter on every addition, read
+the count, take the counter off again.
+
+```bash
+printf '/ck.demo\n(held #1002)' | ./ck text region/ask.ck
+```
+
 ## Check it
 
 ```bash
 make check
 ```
 
-Five lines: the header against the nodes it is made from; the ground programs, the encoding's 142 vectors among them, run and judged by a
-program written in form (`ground/check.ck`); a freeze and a thaw, both in form, across two
-processes; a machine-code leaf both unsigned and under the hardened runtime; and a live run
-recorded from a second process.
+Six lines: the header against the nodes it is made from; the ground programs, the encoding's 142
+vectors among them, run and judged by a program written in form (`ground/check.ck`); a freeze and
+a thaw, both in form, across two processes; a machine-code leaf both unsigned and under the
+hardened runtime; a live run recorded from a second process; and a run asked from a second
+process to count its own additions while it goes on.
 
 ## Replace an operation
 

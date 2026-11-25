@@ -163,7 +163,8 @@ static void fb_open(void) {
     [A_READER_OPENED] = { WORD_TABLE, 4, 1u << 22 },             [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 1u << 22 },
     [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1u << 26 },               [A_PRINT] = { BYTE_TABLE, 1, 1u << 26 },
     [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 1u << 22 },
-    [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 } };
+    [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
+    [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 } };
   uint64_t off[A_COUNT], at = FB_PAGE;
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
@@ -671,6 +672,14 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   if (sigsetjmp(in_code, 1)) { coding = 0; fault("crash"); }      /* the processor faulted inside code: the walker goes on */
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
+    if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
+      uint32_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
+      if (n > fb->a[A_ASKED].cap) n = 0;
+      char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
+      if (!(q = read_print(s, &why))) { p = txt(why); q = mk(1, E(FAULT), &p, 1, &why); }
+      ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
+      W->k = push(F_ASKED, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); W->x = q; W->env = W->one = 0; W->cut = ncp;
+    }
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n, b = 0; int given = 0;
     uint32_t lim = W->one ? W->one - 1 : act[W->env].lim; W->one = 0;
@@ -757,6 +766,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->mode = M_FAILED; break;
     case F_NEED: if (!W->v || W->v == E(NO)) W->mode = M_FAILED; break;
     case F_RECOVER: break;
+    case F_ASKED: {                       /* the outcome goes back to who asked, and the run goes on where it was */
+      print(W->v); uint32_t n = nob < fb->a[A_ANSWERED].cap ? nob : (uint32_t)fb->a[A_ANSWERED].cap;
+      memcpy((uint8_t *)fb + fb->a[A_ANSWERED].off, ob, n); N(A_ANSWERED) = n; N(A_ASKED) = 0;
+      W->env = f.env; W->cut = f.cut; W->x = f.node; W->one = f.i; W->reason = f.vals; W->mode = M_EVAL; break; }
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
       uint32_t j = (uint32_t)argn(KID(f.node, 0));
       W->env = again(f.env, j + 1); argp[act[W->env].off + j] = W->v;
@@ -776,9 +789,9 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp); int64_t m, n, r = 0;
-      uint32_t b = 0, lim = f.aux;        /* code that declines leaves the values to what lies beneath it */
-      W->cut = f.cut;
-      while ((nbind || nout) && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && !apply(b, lim, a, c, f.env, 0)) { lim = under(b, lim); b = 0; }
+      uint32_t b = 0, lim = f.aux;        /* code that declines leaves the values to what lies beneath it. So does a */
+      W->cut = f.cut;                     /* lazy bound after this node began: it takes nodes, and here are answers */
+      while ((nbind || nout) && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && (is_lazy(B(b)->impl) || !apply(b, lim, a, c, f.env, 0))) { lim = under(b, lim); b = 0; }
       if (b) break;
       if (op == UP || op == BASE || op == STEP) {       /* a node in hand is evaluated: by step where this node */
         if (c != 1) { fault("arity"); break; }           /* stands; by the others where the implementation's user */

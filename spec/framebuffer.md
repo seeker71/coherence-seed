@@ -49,6 +49,7 @@ reads any other place is tied to one layout version.
 | trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
 | stack | bytes | the machine stack of the C code and of code leaves |
+| asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
 
 ## Rules
 
@@ -62,7 +63,8 @@ reads any other place is tied to one layout version.
 4. **A record is complete before the count that makes it reachable moves past it.** A reader that
    takes the counts first never sees a record half made.
 5. **The writer does nothing for a reader.** It makes no call, takes no lock and waits for no one.
-   It cannot tell whether anyone is reading.
+   It cannot tell whether anyone is reading. What it does look at, once a step, is whether
+   someone has asked it something (below).
 
 The walker's registers are fields of the machine record: its mode, the node being evaluated, the
 value in hand, the reason, the running activation, the continuation, and `at`, the program node now
@@ -91,6 +93,33 @@ The same program reads another process's region. `look` maps it to be read only,
 so the node is built again here from its record, its blueprint first, and what is shown is the
 node and not the number. The address of the mapping is the machine's `watch`, the one address
 kept in the region beside where code pages lie.
+
+## Asking a running program
+
+A second process can ask a running program to evaluate a node. It writes the node's print in the
+area `asked` and then that area's count; between two steps the walker sees the count, evaluates
+the node, writes the outcome's print in the area `answered` with its count, and sets the count
+of `asked` back to nothing. The run goes on where it was: the node it was about to evaluate, its
+activation, its cut scope and the reason in hand are kept in a frame and taken up again.
+
+The node is evaluated as `(outcome (outside x))` (`spec/core-operations.md`, entries 82 and
+101), with no arguments. So a request can read any cell and call anything the program has
+bound; what it binds is bound from outside the run, seen at every layer and kept; and nothing
+else it did stays, whether it answered, failed or faulted. A print that cannot be read is the
+fault `syntax`. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)`
+or `(list "fault" reason)`.
+
+`region/ask.ck`, written in form, is the asker. Its first line of input is the region's name and
+the rest a node in the lens's words:
+
+```bash
+printf '/ck.demo\n(bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $0))))' | ./ck text region/ask.ck
+```
+
+puts a counter on every addition the program makes from then on, `(held #1002)` reads it while
+the program runs, and `(unbind add)` takes it off. The asker maps the region through the host's
+own `shm_open` and `mmap`, called by name, writes with `memcpy`, and waits by looking at the
+count once a millisecond.
 
 ## Frames, recording and replay
 
@@ -139,3 +168,9 @@ in it was complete when its count was read.
 - **Areas have fixed sizes.** A run that outgrows one stops with the area's name. A process that is
   killed leaves its region behind until `fb drop NAME`.
 - One hand wrote the layout, the writer and the observer, and only this Mac ran them.
+- **One asker at a time.** Two processes asking at once can overwrite each other's request. The
+  asker waits by looking, not by an event. A request is answered between two steps of the walker,
+  so code that runs long without returning to it, emitted or the host's, delays the answer; a
+  program that has ended answers nothing, and the asker gives up after five seconds.
+- **Asking is not gated.** Any process that can map the region can ask it anything a program can
+  do. The region is the owner's alone, created with mode 0600.

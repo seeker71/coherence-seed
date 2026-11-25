@@ -34,8 +34,9 @@ watch: ck fb
 	@./fb drop /ck.watch; rm -f .ck-watch.rec
 
 # What the floor must show: the encoding's vectors, the ground programs, freeze and thaw in two
-# processes, native code unsigned and under the hardened runtime, and a live run recorded from
-# a second process whose last frame holds the answer and names the node that wrote it.
+# processes, native code unsigned and under the hardened runtime, a live run recorded from a
+# second process whose last frame holds the answer and names the node that wrote it, and a run
+# asked from a second process to count its own additions while it goes on.
 check: ck fb
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
@@ -58,6 +59,16 @@ check: ck fb
 	  case "$$last" in "outcome  node 2178309 "*"written by (add (call (self)"*) ok=1;; *) ok=0;; esac; \
 	  if [ $$ok = 1 ] && [ $$frames -ge 10 ]; then echo "framebuffer: a second process recorded $$frames frames of a run in motion; the last holds the answer and its writer"; \
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
+	@(CK_FB=/ck.ask ./ck run $(LONG) > /dev/null &) ; sleep 0.2; \
+	  ask() { printf '/ck.ask\n%s' "$$1" | ./ck text region/ask.ck | tr -d '()\n'; }; \
+	  on=$$(ask '(bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $$0))))'); \
+	  one=$$(ask '(held #1002)'); two=$$(ask '(held #1002)'); off=$$(ask '(unbind add)'); three=$$(ask '(held #1002)'); four=$$(ask '(held #1002)'); \
+	  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do ./fb show /ck.ask | grep -q 'mode done' && break; sleep 0.5; done; \
+	  last=$$(./fb show /ck.ask | grep '^outcome'); ./fb drop /ck.ask; n1=$${one##* }; n2=$${two##* }; \
+	  case "$$last" in "outcome  node 2178309 "*) ok=1;; *) ok=0;; esac; \
+	  if [ $$ok = 1 ] && [ "$$on" = 'list "node" yes' ] && [ "$$off" = "$$on" ] && [ "$${n1:-0}" -gt 0 ] && [ "$${n2:-0}" -gt "$$n1" ] && [ "$$three" = "$$four" ]; \
+	  then echo "asked: a second process put a counter on add in a running program, read $$n1 and then $$n2, took it off, and the program answered as before"; \
+	  else echo "asked: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', the run's '$$last'"; exit 1; fi
 
 clean:
 	rm -f ck fb kg .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened

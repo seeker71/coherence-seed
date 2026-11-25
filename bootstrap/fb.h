@@ -35,10 +35,10 @@ AT = 96, LOOK = 97, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, LAST = 101 
 [90] = "held", [91] = "trail", [92] = "note", [93] = "unbind", [94] = "peek", [95] = "handle", \
 [96] = "at", [97] = "look", [98] = "host", [99] = "range", [100] = "let", [101] = "outside", \
 
-enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_COUNT };
-#define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", 
-enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUTCOME, F_LAYER, F_LET, F_COUNT };
-#define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", 
+enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_COUNT };
+#define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", 
+enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUTCOME, F_LAYER, F_LET, F_ASKED, F_COUNT };
+#define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", "asked", 
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE, M_COUNT };
 #define FB_MODE_NAMES "eval", "ret", "failed", "fault", "done", 
 typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t pcount; uint32_t one; uint32_t ncode; uint64_t watch; uint64_t step; uint64_t code; } Machine;
