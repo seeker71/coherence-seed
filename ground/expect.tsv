@@ -12,3 +12,7 @@ range	nothing [#2 72616e6765]
 recover	node [#2 6b696e64]
 recursion	node [#4 37]
 long-recursion	node [#4 053d21]
+nat-rule	node (#16 [#3] [#3 2a] [#2 6d696e696d616c] [#3 0001] ^3)
+rebuild	node (#16 [#4 01] [#2 68c3a9] (#16 #3 [#14 0000000000000440] (#16)) [#1])
+refused-build	nothing [#2 6d696e696d616c]
+out-of-range	nothing [#2 72616e6765]

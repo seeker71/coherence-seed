@@ -491,6 +491,34 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
+/* Entries 64 to 70: a node taken apart, and a node built from parts. A build the encoding
+ * refuses answers nothing, and the reason is the refusal's word. */
+static void parts(long long op, const H *a, uint32_t c) {
+  const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
+  if (c != (op == BLUEPRINT || op == COUNT || op == LEAF ? 1u : 2u)) { fault("arity"); return; }
+  if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
+  if (op == COUNT) { W->v = mki(nd[x].n); return; }
+  if (op == LEAF) { W->v = nd[x].comp ? E(NO) : E(YES); return; }
+  if (op == CHILD || op == BYTE) {
+    if (nd[x].comp != (op == CHILD) || !geti(l, &k)) { fault("kind"); return; }
+    if (k < 0 || (uint64_t)k >= nd[x].n) { W->v = 0; W->reason = txt("range"); return; }
+    W->v = op == CHILD ? KID(x, k) : mki(bytes[nd[x].off + k]); return;
+  }
+  if (!nd[l].comp || nd[l].bp != E(LIST)) { fault("kind"); return; }
+  uint32_t n = nd[l].n;
+  if (op == JOIN) W->v = mk(1, x, kids + nd[l].off, n, &why);
+  else {
+    room(A_TB, (uint64_t)ntb + n);
+    for (uint32_t i = 0; i < n; i++) {
+      if (!geti(KID(l, i), &k)) { fault("kind"); return; }
+      if (k < 0 || k > 255) { W->v = 0; W->reason = txt("range"); return; }
+      tb[ntb + i] = (uint8_t)k;
+    }
+    W->v = mk(0, x, tb + ntb, n, &why);
+  }
+  if (!W->v) W->reason = txt(why);
+}
 
 static void run(H top) {                  /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
@@ -500,7 +528,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   case M_EVAL: {
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n;
-    if (op < QUOTE || op > NATIVE_OP || op == RECIPE) { answer(x); break; }
+    if (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op > JOIN) { answer(x); break; }
     switch (op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -535,7 +563,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->k = push(F_ALL, x, 0, W->env, W->cut, 0, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, 0, W->k, ncp); W->x = KID(x, 0); break;
-    default:                              /* call, arithmetic, eq, lt, native: children first, in order */
+    default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (!c || c > 8) { fault("arity"); break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     }
@@ -586,6 +614,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!fn) { W->v = 0; W->reason = txt("no-native"); break; }
         W->v = mki(host.call(fn, arg)); break;
       }
+      if (op >= BLUEPRINT) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
       if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }

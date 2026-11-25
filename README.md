@@ -53,9 +53,10 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 make check
 ```
 
-Five lines: the 142 encoding vectors through the bootstrap's own reader, the 14 ground programs, a
+Six lines: the 142 encoding vectors through the bootstrap's own reader, the 18 ground programs, a
 freeze and thaw across two processes, a machine-code leaf both unsigned and under the hardened
-runtime, and a live run recorded from a second process.
+runtime, a live run recorded from a second process, and a program kept as nodes that reads bytes
+into leaves, with each leaf and the node that wrote it read back from its region.
 
 ## The knowledge graph
 

@@ -173,7 +173,9 @@ Made here, not given by the owner or measured. Each can be reopened; changing an
 - One reader holds the vectors: the bootstrap's, by the hand that wrote this page. The ids in the
   vectors were checked against the system's `shasum`.
 - A second reader is owed: one written from this page alone, in the grammar, kept as nodes (graph
-  nodes 7.2 and 7.13). The walker cannot run one yet: it has no operation that takes a node apart
-  or reads a leaf's bytes.
+  nodes 7.2 and 7.13). One rule, the shortest form of a `nat`, runs as nodes in
+  `ground/nat-rule.ck`; a hand that had read the bootstrap wrote it, so it shows that a rule can
+  run as nodes and is no part of the second reader. A whole reader cannot run yet: the walker has
+  no operation on the bits of a number, which SHA-256 needs.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).
 - The core operations are not named. That belongs to stage 2, with the walker's laws.

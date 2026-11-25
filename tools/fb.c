@@ -26,7 +26,7 @@
 
 #define STACK_TOP (1u << 18)              /* how much of the machine stack a frame keeps: its newest end */
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
-static const char *const NAMES[64] = { [2] = "text", [3] = "nat", [4] = "int", [16] = "list",
+static const char *const NAMES[71] = { [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", [2] = "text", [3] = "nat", [4] = "int", [16] = "list",
   [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
   "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
   "frame", "link", "activation", "choice-point", "gathered", "words", "bytes" };
@@ -103,7 +103,7 @@ static void shown(H h, int depth) {
   if (!h) { sp("nothing"); return; }
   if (h >= hd->a[A_NODE].n) { sp("?"); return; }
   long long c = catn(h); const Node *x = &nd[h]; const uint8_t *b = bytes + x->off;
-  if (c >= 0) { if (c < 64 && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
+  if (c >= 0) { if (c < (long long)(sizeof NAMES / sizeof *NAMES) && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
   if (x->comp) {
     if (depth <= 0) { sp("(..)"); return; }
     sp("("); shown(x->bp, depth - 1);

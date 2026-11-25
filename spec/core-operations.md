@@ -3,9 +3,9 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 32 entries: 32 to 52 are operations and data, 53 to 63 are the kinds of the
-floor's own records. It does not yet name operations that build or take apart nodes, hold an offer,
-or bind a cell; those come with the stage that first needs them.
+it. This page names 39 entries: 32 to 52 are operations and data, 53 to 63 are the kinds of the
+floor's own records, and 64 to 70 take a node apart and build one. It does not yet name operations
+that hold an offer or bind a cell; those come with the stage that first needs them.
 
 ## Outcomes
 
@@ -66,6 +66,48 @@ Everything the floor keeps in memory is a record whose first word is one of thes
 
 The table of code leaves that have a runnable copy uses entry 52.
 
+## Entries 64 to 70: a node's parts
+
+With these a program reaches everything `spec/node-encoding.md` says a node is: its blueprint,
+whether it is a leaf, and its bytes or its children. Each evaluates its children first, in order.
+A number here is an `int` leaf; positions count from 0.
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 64 | blueprint | x | answers x's blueprint; for the root, nothing with the reason `root` |
+| 65 | count | x | how many bytes a leaf has, or how many children a composite has |
+| 66 | child | x, k | child k of the composite x |
+| 67 | byte | x, k | byte k of the leaf x, as a number from 0 to 255 |
+| 68 | leaf | x | yes if x is a leaf, no if it is a composite |
+| 69 | pack | b, l | the leaf with blueprint b whose bytes are the numbers in the list l |
+| 70 | join | b, l | the composite with blueprint b whose children are the children of the list l |
+
+- `child` and `byte` answer nothing with the reason `range` when k is below 0 or not below the
+  count. So does `pack` when a number in the list is outside 0 to 255.
+- `pack` and `join` make the one node with that content: building a node that exists answers that
+  same node, and `pack` under the root answers the catalogue entry of that number.
+- A build the encoding refuses answers nothing, and the reason is the refusal's word from section 7
+  of `spec/node-encoding.md`: `(pack #3 l)` with l holding 1 and 0 answers nothing with `minimal`.
+- A node a program builds is stamped with the `pack` or `join` node that built it, as every record
+  is with its writer (`spec/framebuffer.md`).
+- An argument that is nothing answers nothing with the reason `nothing-in`. `child` on a leaf,
+  `byte` on a composite, a position that is not an `int`, and an l that is not a list are the
+  fault `kind`.
+
+A list is built with `all`. The recipe below answers byte i of x and, when the program fails back
+into it, each byte after it; `(all (call it x 0))` is the list of x's bytes. It is shown with the
+names the observer prints; on file it is the canonical print:
+
+```
+(recipe (seq (need (lt (arg 1) (count (arg 0))))
+             (choice (byte (arg 0) (arg 1))
+                     (call (self) (arg 0) (add (arg 1) 1)))))
+```
+
+`ground/rebuild.ck` takes a nested node apart to its bytes with two such recipes and builds it
+again; the answer is the node it was given. `ground/nat-rule.ck` is the first rule of the encoding
+kept as nodes: given candidate bytes it answers the `nat` leaf they are, or the word `minimal`.
+
 ## Fail, choice and cut
 
 The owner's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
@@ -112,3 +154,8 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   recursion only.
 - Recipes do not capture the arguments of an enclosing recipe.
 - Integer law is still question 6.1.11; the 64-bit bound is the floor's.
+- The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.
+- An operation that evaluates its children first takes at most eight, so a call passes at most
+  seven arguments.
+- Programs are written by hand in the canonical print (`./ck canon` numbers the repeats). There is
+  no operation on the bits of a number, which a content id needs.

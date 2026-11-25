@@ -22,7 +22,8 @@ typedef uint32_t H;                       /* a handle: an index into the node ta
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
        ADD, SUB, MUL, EQ, LT, NATIVE_OP, CODE,                      /* 32 to 52: spec/core-operations.md */
-       FB, AREA, MACHINE, NODE, FRAME, LINK, ACT, CHOICEPT, GATHERED, WORDS, BYTES };  /* 53 to 63 */
+       FB, AREA, MACHINE, NODE, FRAME, LINK, ACT, CHOICEPT, GATHERED, WORDS, BYTES,    /* 53 to 63 */
+       BLUEPRINT, COUNT, CHILD, BYTE, LEAF, PACK, JOIN };           /* 64 to 70: a node's parts */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER };

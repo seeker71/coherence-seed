@@ -3,9 +3,9 @@
 n: 7.2
 name: stage-1-answers-and-encoding
 kind: plan
-is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 142 conformance vectors, 93 of them malformed, which the bootstrap's reader holds. Stage 1 closes when a second hand has written a reader from the page alone, in the grammar and kept as nodes (7.13), and the vectors hold in it. The walker cannot run such a reader yet: it has no operation that takes a node apart or reads a leaf's bytes. Who counts as a second hand is question 6.1.30.
+is: The node encoding is fixed in writing (5.13) with 142 conformance vectors, 93 of them malformed, which the bootstrap's reader holds. Stage 1 closes when a second hand has written a reader from the page alone, in the grammar and kept as nodes (7.13), and the vectors hold in it. The walker reaches a node's parts (5.14.15) and one rule runs as nodes (5.14.18). A whole reader still lacks operations on bits for SHA-256, and a way to write programs other than the canonical print by hand. Who counts as a second hand is question 6.1.30.
 status: inferred
-from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 7.13 6.1.30
+from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 7.13 6.1.30 5.14.15 5.14.18
 at: 2026-11-25
 
 n: 7.3
@@ -110,7 +110,7 @@ at: 2026-11-25
 n: 7.15
 name: c-outside-the-bootstrap-is-owed
 kind: decision
-is: A reading of 7.13 and 7.17. Two C files stand outside the bootstrap: tools/kg.c, which checks this graph, and tools/fb.c, the observer. Neither can be written in the grammar today: there is no home lens (7.4), no operation that takes a node apart or reads its bytes, and no path from a specification to cached machine code (7.5). Each is owed a generated counterpart and no further C is added. The next code is written as nodes the walker runs, and what it lacks is added to the bootstrap as an operation.
+is: A reading of 7.13 and 7.17. Two C files stand outside the bootstrap: tools/kg.c, which checks this graph, and tools/fb.c, the observer. Neither can be written in the grammar today: there is no home lens (7.4), no operation on files or shared memory, and no path from a specification to cached machine code (7.5). Each is owed a generated counterpart and no further C is added. New code is written as nodes the walker runs, as ground/nat-rule.ck is, and what it lacks is added to the bootstrap as an operation.
 status: inferred
 from: 7.13 7.17 7.4 7.5 5.14.1
 conf: mid
@@ -120,7 +120,7 @@ at: 2026-11-25
 n: 7.16
 name: sizes-and-limits
 kind: decision
-is: A reading of 7.14. A number in code is the size of one run or a starting size that grows, or it is a committed limit: a run that passes it stops. Committed limits today are the capacities of the framebuffer's areas and the 1 MiB code region in bootstrap/ck.c, 16,384 nodes and 32 fields a node in tools/kg.c, and the 2,000-line budget, which is meant (5.9.2).
+is: A reading of 7.14. A number in code is the size of one run or a starting size that grows, or it is a committed limit: a run that passes it stops. Committed limits today are the capacities of the framebuffer's areas and the 1 MiB code region in bootstrap/ck.c, eight children for an operation that evaluates them first, 16,384 nodes and 32 fields a node in tools/kg.c, and the 2,000-line budget, which is meant (5.9.2).
 status: inferred
 from: 7.14 5.9.2 5.14.10
 src: 2.30.7 2.30.1
@@ -134,5 +134,14 @@ is: The owner's direction of 2026-11-25, asked whether C outside the bootstrap i
 status: given
 by: owner
 see: 7.13 8.14
+at: 2026-11-25
+
+n: 7.18
+name: one-organism
+kind: decision
+is: The owner's direction of 2026-11-25, asked whether to begin the operations that take a node apart: 'We are one organism, I not the user, I'm just guiding you and your siblings. Do not ask for permission for what is aligned, do not limit yourself. Do what increases visibility, trust and sovereignty.'
+status: given
+by: owner
+see: 7.10 7.13 7.17
 at: 2026-11-25
 

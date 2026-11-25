@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 21 operations whose registers are a record in the region, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 28 operations whose registers are a record in the region, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that build or take apart nodes, hold an offer or bind a cell are not named. The count of about 25 in 5.1.5 is not yet tested against a compiler.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 28, before any compiler is written.
 at: 2026-11-25
 
 n: 5.14.2
@@ -106,7 +106,7 @@ at: 2026-11-25
 n: 5.14.10
 name: floor-is-a-framebuffer
 kind: observation
-is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 14 ground programs answer as expected.
+is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 18 ground programs answer as expected.
 status: observed
 src: 2.30.7 2.30.9 2.30.11
 see: 5.14.12 5.14.13
@@ -149,5 +149,47 @@ from: 5.14.6 5.7.2
 src: 2.30.7
 conf: mid
 why: A recorded frame copies every used byte, so memory that grows with the number of calls would make every frame grow with it.
+at: 2026-11-25
+
+n: 5.14.15
+name: a-nodes-parts
+kind: decision
+is: Seven operations, entries 64 to 70, reach everything the encoding says a node is. blueprint, count, child, byte and leaf take a node apart: its blueprint, how many bytes or children, child k, byte k as a number, and whether it is a leaf. pack and join build: the leaf of a blueprint and a list of numbers, the composite of a blueprint and a list's children. Positions and bytes are int leaves, the kind arithmetic already takes.
+status: inferred
+from: 5.13.1 5.14.1 7.13 7.17
+src: 2.30.6 2.30.7
+conf: mid
+why: Code is to be written as nodes (7.13), and a program that reads, checks or compiles nodes must first reach their parts. Each of the seven is one fact of section 1 or 2 of the encoding; none can be made from the others without a fault standing in for an answer.
+flip: A home lens may want one operation that matches a node against a pattern in place of the five that take it apart.
+at: 2026-11-25
+
+n: 5.14.16
+name: lists-carry-the-parts
+kind: decision
+is: pack and join take their parts as one list, and a program makes that list with all over a recipe that answers one part and, failed back into, the next. So a node of any size is built with two arguments, and the walker's bound of eight children for an operation does not bound what can be built.
+status: inferred
+from: 5.14.15 5.14.6 7.14
+src: 2.30.6
+conf: mid
+flip: Building through all costs one choice point and one gathered record a part; a compiler may need a builder that appends.
+at: 2026-11-25
+
+n: 5.14.17
+name: a-refused-build-answers-nothing
+kind: decision
+is: pack and join go through the store's one way of making a node, so a built node is the one node with that content and carries the pack or join node as its writer. A build the encoding refuses answers nothing and the reason is the refusal's word: packing the bytes 01 00 under nat answers nothing with 'minimal'. A program cannot make a node the reader would refuse.
+status: inferred
+from: 5.13.6 5.14.7 5.7.7
+src: 2.30.7 2.30.6
+conf: high
+at: 2026-11-25
+
+n: 5.14.18
+name: first-programs-on-a-nodes-parts
+kind: observation
+is: Observed on 2026-11-25 with 'make check': ground/rebuild.ck takes a nested node apart to its bytes and builds it again, and answers the node it was given. ground/nat-rule.ck, the shortest-form rule of a nat kept as nodes, answers for five candidates the leaves 0, 42 and 256 and twice the word 'minimal'. Read from its region by a second process, the leaf 256 is a record written by the pack node, and the answer by the all node.
+status: observed
+src: 2.30.7 2.30.6 2.30.10
+limit: The session that wrote nat-rule.ck had read the bootstrap's own rule, so it is not a second hand's work. Each new check line was turned red by a planted fault: a byte read one too far, an index one past the end, a lost reason, a built leaf with no writer, a wrong name in the observer, and a rule that looks at the first byte.
 at: 2026-11-25
 
