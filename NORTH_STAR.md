@@ -19,7 +19,9 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
   runtime. Diagnostics is reading that memory.
 - **The system writes itself.** The stored bootstrap is a small C file. A compiler written in the
   home grammar replaces it piece by piece with machine code, until the C file is needed only for a
-  cold start on a new host.
+  cold start on a new host. New code is written in the grammar and kept as nodes; from a
+  specification to nodes to machine code every phase is generated and cached. C is the bootstrap
+  and nothing else.
 - **The host's own speed.** Compiled code reaches what the hardware allows: scalar code first, then
   matrix instructions and the GPU, with a model reading and choosing nodes inline on the same
   substrate.

@@ -15,7 +15,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Native code | catalogue entry 52 | an AArch64 leaf runs unsigned and under the hardened runtime |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region, records it as frames, replays a recording |
-| Claim graph | [`graph/`](graph), [`tools/kg.c`](tools/kg.c) | 1,321 nodes: the ground, the design, what is open, the path, and only the evidence and sources they refer to; every source resolves |
+| Claim graph | [`graph/`](graph), [`tools/kg.c`](tools/kg.c) | 1,325 nodes: the ground, the design, what is open, the path, and only the evidence and sources they refer to; every source resolves |
 
 ## Observed
 
@@ -43,13 +43,18 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - Recording every 1 ms slows that run by up to about 4%. Keeping the walker's registers and every
   record's writer in the region costs it about a quarter of its speed, measured against a build
   with registers in C locals.
-- `./kg check`: 0 errors, 0 warnings over 1,143 claims. None is confirmed by an independent
+- `./kg check`: 0 errors, 0 warnings over 1,147 claims. None is confirmed by an independent
   reading, and 64 pieces of evidence are marked assumed because no source for them is kept here.
 - `./kg release` finds nothing to take out: every source and piece of evidence is referred to by
   the design, a question or a limit.
 
 ## Not there
 
+- Code written in the grammar. Every line that runs is C. Outside the bootstrap that is the graph
+  checker, the observer and the second reader; each is owed a counterpart generated from its
+  specification (7.13, 7.15).
+- Memory that grows. The framebuffer's areas, the code region and the graph checker's tables have
+  fixed capacities, and a run that outgrows one stops (7.16).
 - The host functions for symbol lookup, the framework trampoline, thread start and the clock.
 - A cell a program can change in place, and the journal that undoes it.
 - Recipes that name each other; operations that build or take apart nodes.
@@ -71,4 +76,6 @@ Each is recorded word for word in the node named.
 | 5.7.6, 5.7.7 | the framebuffer: all memory in one shared space, recorded like video at no cost and played back, with blueprint and last writer beside each object |
 | 7.10 | follow real end-to-end flows, watched live |
 | 7.11 | this repository is built with a C compiler alone |
+| 7.13 | new code is written in the grammar and stored as nodes; the only C is the bootstrap; all else is generated from specification to nodes to machine code, every phase cached |
+| 7.14 | numbers in code are fine as long as they are not committed limits |
 | 8.14 | documents keep only what is; history lives in git; a north star and a dated floor; what is not needed to close the gap between them is released |

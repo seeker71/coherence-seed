@@ -7,6 +7,7 @@ CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
+# How many variations the two-hands run makes: the size of one run, set with 'make check VARY=n'.
 VARY = 200000
 
 all: ck fb second
@@ -74,12 +75,12 @@ check: ck fb second
 	  both=$$(printf '%s\n%s' "$$a" "$$(cat $$p)") && [ "$$a" = "$$c" ] && [ "$$b" = "$$both" ] && [ "$$d" = "$$both" ] && \
 	  cmp -s .ck-second.ice .ck-first.ice || { echo "two hands: $$p frozen by one does not thaw the same in the other"; exit 1; }; \
 	done < $(EXPECT); rm -f .ck-second.ice .ck-first.ice; \
-	./second vary spec/node-vectors.tsv $(VARY) 1 > .ck-vary.tsv; lines=$$(grep -c . .ck-vary.tsv); \
+	./second vary spec/node-vectors.tsv $(VARY) 1 > .ck-vary.tsv; lines=$$(grep -c . .ck-vary.tsv); asked=$$(( $(VARY) + $$(grep -c '^ok' spec/node-vectors.tsv) )); \
 	first=$$(CK_FB=/ck.hands ./ck vectors .ck-vary.tsv | tail -1); second=$$(./second vectors .ck-vary.tsv | tail -1); \
 	seen=$$(./fb show /ck.hands | sed -n 's/^frame .* nodes \([0-9]*\) .*/\1/p'); ./fb drop /ck.hands; rm -f .ck-vary.tsv; \
 	held=$${second##*; }; held=$${held%% *}; \
 	if [ "$$first" = "ck: $$lines vectors hold, 0 do not" ] && [ "$${second%%;*}" = "second: $$lines vectors hold, 0 do not" ] && \
-	   [ $$lines -ge 100000 ] && [ "$$seen" = "$$((held + 65))" ]; then \
+	   [ $(VARY) -gt 0 ] && [ $$lines = $$asked ] && [ "$$seen" = "$$((held + 65))" ]; then \
 	  echo "two hands: $$n programs frozen by either thaw in the other; $$lines varied lines hold in both; the observer counts the second reader's $$held nodes in the bootstrap's region"; \
 	else echo "two hands: of $$lines variations, '$$first' and '$$second'; the observer counts $$seen node records"; exit 1; fi
 

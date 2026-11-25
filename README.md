@@ -113,5 +113,5 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `bootstrap/` | the C bootstrap and the framebuffer's layout |
 | `spec/` | the node encoding, the core operations, the framebuffer, and the vectors |
 | `ground/` | programs that witness the floor, with their expected answers |
-| `tools/` | the graph checker `kg`, the second reader of the encoding `second`, the observer `fb` |
+| `tools/` | the graph checker `kg`, the second reader of the encoding `second`; C until generated code replaces them, the observer `fb` |
 | `graph/` | the claims |
