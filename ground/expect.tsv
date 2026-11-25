@@ -16,3 +16,15 @@ nat-rule	node (#16 [#3] [#3 2a] [#2 6d696e696d616c] [#3 0001] ^3)
 rebuild	node (#16 [#4 01] [#2 68c3a9] (#16 #3 [#14 0000000000000440] (#16)) [#1])
 refused-build	nothing [#2 6d696e696d616c]
 out-of-range	nothing [#2 72616e6765]
+invented	node [#4 31]
+bound	node [#4 63]
+bind-undone	node [#4 03]
+enhanced	node [#4 04]
+range-add	nothing [#2 72616e6765]
+range-sub	nothing [#2 72616e6765]
+lt-edges	node (#16 #33 #32 #33 #32 #32)
+bind-control	fault [#2 6b696e64]
+on-form	node (#16 [#4 37] #33 #32 [#4 d6] [#4 fe])
+on-form-range	nothing [#2 72616e6765]
+on-code	node (#16 [#4 37] #33 #32 [#4 d6] [#4 fe])
+on-code-range	nothing [#2 72616e6765]

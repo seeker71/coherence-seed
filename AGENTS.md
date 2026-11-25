@@ -46,9 +46,15 @@ reading in a separate node with `status: inferred`.
 - **Say how each claim is known.** An observation names a source and what was run; an inferred
   claim names its premises; a limit says what was not tested. A check counts once a planted fault
   has turned it red.
-- **New code is nodes.** Only the bootstrap is C (node 7.13). The two C files under `tools/` stand
-  until generated code replaces them; add no other. When a program cannot be written as nodes the
-  walker runs, the missing operation goes into the bootstrap and the program is written on it.
+- **New code is nodes.** Only the bootstrap is C (node 7.13). When a program cannot be written as
+  nodes the walker runs, the missing operation goes into the bootstrap and the program is written
+  on it.
+- **Only form is written and stored** (node 7.20). No Python, shell or other code, not even a
+  helper that is thrown away: edit by hand and compute with form programs. The Makefile, the two
+  C files under `tools/`, the pages, the graph's blocks and the tables stand until form does their
+  work, and none gains a line. A new check is a form program under `ground/`.
+- **Every part can be replaced** (node 7.19). An operation is a binding; write it in form under
+  `form/` as well, and see that programs answer the same with it in place.
 - **Do the hard work.** No shortcut is committed (node 7.17). When the aligned way cannot run yet,
   build what it needs first, or leave the piece in `FLOOR.md` under "Not there".
 - **No committed limits.** A number in code is the size of a run or a starting size that grows. A

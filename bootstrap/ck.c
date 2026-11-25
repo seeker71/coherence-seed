@@ -1,7 +1,8 @@
 /* ck.c - the bootstrap: framebuffer, node store, canonical reader and printer, walker, code pages.
  *
  *   make            builds ./ck and fails when the bootstrap is over its line budget
- *   ./ck run F      read the canonical print in F, evaluate it, print the outcome
+ *   ./ck run F [B..] read the canonical print in F, evaluate it, print the outcome; each B is
+ *                   evaluated first and the bindings it makes stay in place for F
  *   ./ck canon S    read a print that may repeat nodes; print the canonical form
  *   ./ck id F       print the content id of the node in F
  *   ./ck freeze F O write the node in F and everything under it to the ice file O
@@ -96,7 +97,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *seen, *text; static char *ob;
 static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum;
-static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born;
+static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born; static Bind *bd;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
 #define nn N(A_NODE)
@@ -111,6 +112,7 @@ static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Ga
 #define ncp N(A_CHOICE)
 #define ncoll N(A_GATHER)
 #define nborn N(A_BORN)
+#define nbind N(A_BIND)
 #define nopen N(A_OPEN)
 #define ntk N(A_TK)
 #define ntb N(A_TB)
@@ -131,6 +133,7 @@ static void fb_open(void) {
     [A_LINK] = { LINK, sizeof(Link), 1u << 23 },   [A_ACT] = { ACT, sizeof(Act), 1u << 23 },
     [A_ARG] = { WORDS, 4, 1u << 25 },              [A_CHOICE] = { CHOICEPT, sizeof(Choice), 1u << 20 },
     [A_GATHER] = { GATHERED, sizeof(Gathered), 1u << 22 }, [A_BORN] = { CODE, sizeof(Born), 1u << 12 },
+    [A_BIND] = { BINDING, sizeof(Bind), 1u << 16 },
     [A_OPEN] = { WORDS, 4, 1u << 22 },             [A_TK] = { WORDS, 4, 1u << 22 },
     [A_TB] = { BYTES, 1, 1u << 26 },               [A_OUT] = { BYTES, 1, 1u << 26 },
     [A_PNUM] = { WORDS, 4, 1u << 22 },             [A_SEEN] = { BYTES, 1, 1u << 22 },
@@ -145,11 +148,11 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FB); fb->version = 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FB); fb->version = 2; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODE); bytes = AT(A_BYTES); kids = AT(A_KIDS); tab = AT(A_TAB); idtab = AT(A_IDTAB); fr = AT(A_FRAME);
-  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN);
+  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND);
   opened = AT(A_OPEN); tk = AT(A_TK); tb = AT(A_TB); ob = AT(A_OUT); pnum = AT(A_PNUM); seen = AT(A_SEEN); text = AT(A_TEXT);
   nn = 1;
 }
@@ -476,10 +479,17 @@ static void *birth(H leaf) {              /* the leaf's instructions, runnable; 
 static uint32_t push(uint32_t t, H node, uint32_t i, uint32_t env, uint32_t cut, uint32_t vals, uint32_t k, uint32_t aux) {
   room(A_FRAME, (uint64_t)nfr + 1); fr[nfr] = (Frame){ E(FRAME), W->at, t, node, i, env, cut, vals, k, aux, nact }; return nfr++;
 }
-static uint32_t enter(H recipe, const H *a, uint32_t n) {
+static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim) {
   room(A_ACT, (uint64_t)nact + 1); room(A_ARG, (uint64_t)nargp + n);
-  memcpy(argp + nargp, a, sizeof(H) * n); act[nact] = (Act){ E(ACT), W->at, recipe, nargp, n }; nargp += n;
+  memcpy(argp + nargp, a, sizeof(H) * n); act[nact] = (Act){ E(ACT), W->at, recipe, nargp, n, lim }; nargp += n;
   return nact++;
+}
+/* The newest binding of entry e among the first lim, counted from 1; 0 when the bootstrap's own
+ * code runs it. An implementation runs on the bindings beneath its own, so it can use the entry
+ * it replaces and two entries can each be written with the other. */
+static uint32_t bound(H e, uint32_t lim) {
+  for (uint32_t i = nbind < lim ? nbind : lim; i > 0; i--) if (bd[i-1].entry == e) return i;
+  return 0;
 }
 /* The c links ending at vals hold values already copied out. When they are the newest
  * links and no open choice could return to them, their room is given back. */
@@ -491,12 +501,27 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
-/* Entries 64 to 70: a node taken apart, and a node built from parts. A build the encoding
- * refuses answers nothing, and the reason is the refusal's word. */
+/* Run binding b on values already in hand: a recipe is entered on the bindings beneath b,
+ * a code leaf is called with the values as integers. */
+static void apply(uint32_t b, const H *a, uint32_t c) {
+  H impl = bd[b-1].impl; int64_t arg[6] = {0};
+  if (nd[impl].comp) { W->env = enter(impl, a, c, b - 1); W->cut = ncp; W->x = KID(impl, 0); W->mode = M_EVAL; return; }
+  for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) { fault("kind"); return; }
+  void *fn = birth(impl);
+  W->mode = M_RET; if (fn) W->v = mki(host.call(fn, arg)); else { W->v = 0; W->reason = txt("no-native"); }
+}
+/* Entries 64 to 71: a node taken apart, a node built from parts, and an entry bound. A build
+ * the encoding refuses answers nothing, and the reason is the refusal's word. */
 static void parts(long long op, const H *a, uint32_t c) {
   const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
   if (c != (op == BLUEPRINT || op == COUNT || op == LEAF ? 1u : 2u)) { fault("arity"); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  if (op == BIND) {                       /* control and data entries keep the bootstrap's meaning */
+    long long e = catn(x);
+    if (e < CALL || (e > CALL && e < ADD) || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING
+        || !(is_recipe(l) || (!nd[l].comp && nd[l].bp == E(CODE)))) { fault("kind"); return; }
+    room(A_BIND, (uint64_t)nbind + 1); bd[nbind] = (Bind){ E(BINDING), W->at, x, l }; nbind++; W->v = E(YES); return;
+  }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
   if (op == COUNT) { W->v = mki(nd[x].n); return; }
   if (op == LEAF) { W->v = nd[x].comp ? E(NO) : E(YES); return; }
@@ -523,12 +548,13 @@ static void parts(long long op, const H *a, uint32_t c) {
 static void run(H top) {                  /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
   W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
-  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0;
+  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Act){ E(ACT), 0, 0, 0, 0, ~0u };
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n;
-    if (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op > JOIN) { answer(x); break; }
+    uint32_t b = nbind && op >= QUOTE ? bound(nd[x].bp, act[W->env].lim) : 0;
+    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op > BIND)) { answer(x); break; }
     switch (op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -546,7 +572,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       if (!c) { W->mode = M_FAILED; break; }
       W->cut = ncp;
       if (c > 1) { room(A_CHOICE, (uint64_t)ncp + 1);
-        cp[ncp] = (Choice){ E(CHOICEPT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0 }; ncp++; }
+        cp[ncp] = (Choice){ E(CHOICEPT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
       if (c > 1) { fault("arity"); break; }
@@ -559,12 +585,13 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case ALL:
       if (c != 1) { fault("arity"); break; }
       room(A_CHOICE, (uint64_t)ncp + 1);
-      cp[ncp] = (Choice){ E(CHOICEPT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers }; ncp++;
+      cp[ncp] = (Choice){ E(CHOICEPT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, 0, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, 0, W->k, ncp); W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
-      if (!c || c > 8) { fault("arity"); break; }
+      if (c > 8 || (!c && !b)) { fault("arity"); break; }
+      if (!c) { apply(b, a, 0); break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     }
     break; }
@@ -592,7 +619,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case F_RECOVER: break;
     case F_HANDLER:
       if (!is_recipe(W->v)) { fault("not-a-recipe"); break; }
-      a[0] = f.node; W->env = enter(W->v, a, 1); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
+      a[0] = f.node; W->env = enter(W->v, a, 1, act[f.env].lim); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
     case F_ARGS: {
       room(A_LINK, (uint64_t)nlink + 1); lk[nlink] = (Link){ E(LINK), W->at, W->v, f.vals }; uint32_t vals = nlink++;
       uint32_t c = nd[f.node].n;
@@ -601,9 +628,11 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp); int64_t m, n, r = 0;
+      uint32_t b = nbind ? bound(nd[f.node].bp, act[f.env].lim) : 0;
+      if (b) { apply(b, a, c); break; }
       if (op == CALL) {
         if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
-        W->env = enter(a[0], a + 1, c - 1); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
+        W->env = enter(a[0], a + 1, c - 1, act[f.env].lim); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
         int64_t arg[6] = {0};
@@ -628,7 +657,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = txt("no-path"); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     Choice *q = &cp[ncp-1]; W->at = q->node;
-    nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k;
+    nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; nbind = q->mbind; W->env = q->env; W->k = q->k;
     if (q->all) {                         /* every answer has been gathered */
       uint32_t base = ntk, w = 0, id = q->coll;
       for (uint32_t i = 0; i < ncoll; i++) {
@@ -736,7 +765,8 @@ static int vectors(const char *path) {
 static int command(int argc, char **argv) {
   const char *cmd = argc > 1 ? argv[1] : "", *why; char idh[65];
   store_init();
-  if (argc == 3 && !strcmp(cmd, "run")) {
+  if (argc >= 3 && !strcmp(cmd, "run")) {
+    for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
     run(file_node(argv[2]));
     if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
     return W->outcome == 'f';
@@ -757,7 +787,7 @@ static int command(int argc, char **argv) {
     hexs(idof(x), 32, idh); say("", idh); say("", print(x)); return 0;
   }
   if (argc == 3 && !strcmp(cmd, "vectors")) return vectors(argv[2]);
-  put(2, "usage: ck run F | canon S | id F | freeze F O | thaw O | vectors F\n");
+  put(2, "usage: ck run F [B..] | canon S | id F | freeze F O | thaw O | vectors F\n");
   return 2;
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */

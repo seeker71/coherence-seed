@@ -30,6 +30,14 @@ status: open
 see: 7.2 7.13 8.8
 at: 2026-11-25
 
+n: 6.1.31
+name: who-asked-for-sha-256
+kind: question
+is: The owner asked on 2026-11-25: 'Who asked for sha256?' Nobody did. 5.2.2 chose it from a timing and a collision estimate, and the encoding page, the ice file and the vectors follow it. What should a node's id be, and must it be a digest? An id that needs operations on bits also asks them of every reader written in form.
+status: open
+see: 5.2.2 6.1.4 6.1.18 7.2
+at: 2026-11-25
+
 n: 6.1.4
 name: id-shape
 kind: question

@@ -27,9 +27,8 @@ watch: ck fb
 	@./fb drop /ck.watch; rm -f .ck-watch.rec
 
 # What the floor must show: the encoding's vectors, the ground programs, freeze and thaw in two
-# processes, native code unsigned and under the hardened runtime, a live run recorded from a
-# second process whose last frame holds the answer and names the node that wrote it, and a
-# program kept as nodes that takes leaves apart and builds new ones, read back from its region.
+# processes, native code unsigned and under the hardened runtime, and a live run recorded from
+# a second process whose last frame holds the answer and names the node that wrote it.
 check: ck fb
 	./ck vectors spec/node-vectors.tsv
 	@bad=0; while IFS='	' read -r name want; do \
@@ -51,12 +50,6 @@ check: ck fb
 	  case "$$last" in "outcome  node 2178309 "*"written by (add (call (self)"*) ok=1;; *) ok=0;; esac; \
 	  if [ $$ok = 1 ] && [ $$frames -ge 10 ]; then echo "framebuffer: a second process recorded $$frames frames of a run in motion; the last holds the answer and its writer"; \
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
-	@CK_FB=/ck.parts ./ck run ground/nat-rule.ck > /dev/null; last=$$(./fb show /ck.parts | grep '^outcome'); \
-	  h=$$(echo "$$last" | sed 's/.*(node \([0-9]*\), written by.*/\1/'); \
-	  built=$$(./fb show /ck.parts $$((h - 1)) | tail -2 | tr -s ' \n' ' '); ./fb drop /ck.parts; \
-	  case "$$last|$$built" in 'outcome  node (list 0n 42n "minimal" 256n "minimal") '*'written by (all (call (recipe'*'| leaf, 2 bytes written by (pack nat (all '*) \
-	    echo "parts: a program kept as nodes reads bytes into nat leaves; the region holds each leaf it built and the pack node that wrote it";; \
-	  *) echo "parts: the region says '$$last' and '$$built'"; exit 1;; esac
 
 clean:
 	rm -f ck fb kg .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened

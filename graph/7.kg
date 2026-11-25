@@ -3,9 +3,9 @@
 n: 7.2
 name: stage-1-answers-and-encoding
 kind: plan
-is: The node encoding is fixed in writing (5.13) with 142 conformance vectors, 93 of them malformed, which the bootstrap's reader holds. Stage 1 closes when a second hand has written a reader from the page alone, in the grammar and kept as nodes (7.13), and the vectors hold in it. The walker reaches a node's parts (5.14.15) and one rule runs as nodes (5.14.18). A whole reader still lacks operations on bits for SHA-256, and a way to write programs other than the canonical print by hand. Who counts as a second hand is question 6.1.30.
+is: The node encoding is fixed in writing (5.13) with 142 conformance vectors, 93 of them malformed, which the bootstrap's reader holds. Stage 1 closes when a second hand has written a reader from the page alone, in the grammar and kept as nodes (7.13), and the vectors hold in it. The walker reaches a node's parts (5.14.15) and one rule runs as nodes (5.14.18). A reader's rules and print need nothing more; its content id does while that id is SHA-256, which nobody asked for (6.1.31). Who counts as a second hand is question 6.1.30.
 status: inferred
-from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 7.13 6.1.30 5.14.15 5.14.18
+from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 7.13 6.1.30 5.14.15 5.14.18 6.1.31
 at: 2026-11-25
 
 n: 7.3
@@ -110,11 +110,11 @@ at: 2026-11-25
 n: 7.15
 name: c-outside-the-bootstrap-is-owed
 kind: decision
-is: A reading of 7.13 and 7.17. Two C files stand outside the bootstrap: tools/kg.c, which checks this graph, and tools/fb.c, the observer. Neither can be written in the grammar today: there is no home lens (7.4), no operation on files or shared memory, and no path from a specification to cached machine code (7.5). Each is owed a generated counterpart and no further C is added. New code is written as nodes the walker runs, as ground/nat-rule.ck is, and what it lacks is added to the bootstrap as an operation.
+is: A reading of 7.13, 7.17 and 7.20. Beside the bootstrap the tree holds code that is not form: tools/kg.c, tools/fb.c and the shell in the Makefile. It also holds what is not yet form nodes: the pages, this graph's blocks, the vectors and the expected answers. None gains a line; each is owed as form nodes and goes when its counterpart runs. No helper in another language is written, kept or not. New code is nodes the walker runs, as ground/ and form/ are, and what it lacks is added to the bootstrap as an operation.
 status: inferred
-from: 7.13 7.17 7.4 7.5 5.14.1
+from: 7.13 7.17 7.20 7.4 7.5 5.14.1
 conf: mid
-flip: Fully aligned may mean the two are taken out before their counterparts exist. Then nothing checks the graph and nothing watches a run, which 7.10 asks for.
+flip: Fully aligned may mean they are taken out before their counterparts exist. Then nothing builds the bootstrap, checks the graph or watches a run, which 7.10 asks for.
 at: 2026-11-25
 
 n: 7.16
@@ -143,5 +143,23 @@ is: The owner's direction of 2026-11-25, asked whether to begin the operations t
 status: given
 by: owner
 see: 7.10 7.13 7.17
+at: 2026-11-25
+
+n: 7.19
+name: every-part-replaceable
+kind: decision
+is: The owner's direction of 2026-11-25: 'Implement all operations in form as well, and design the runtime so that any part can be dynamically replaced, enhanced, evolved, with form recipes, the JIT assembly replacement recipe, any new invention we come up with.'
+status: given
+by: owner
+see: 5.9.6 5.9.7 5.14.19 7.13
+at: 2026-11-25
+
+n: 7.20
+name: only-form-is-written-and-stored
+kind: decision
+is: The owner's direction of 2026-11-25: 'we don't write python, or bash, or zsh, or any other non-form code, and we only story form nodes (other than the bootstrap code)'.
+status: given
+by: owner
+see: 7.13 7.17 7.19
 at: 2026-11-25
 

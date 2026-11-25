@@ -17,30 +17,32 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 64u
+#define SEEDED 73u                        /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
        ADD, SUB, MUL, EQ, LT, NATIVE_OP, CODE,                      /* 32 to 52: spec/core-operations.md */
        FB, AREA, MACHINE, NODE, FRAME, LINK, ACT, CHOICEPT, GATHERED, WORDS, BYTES,    /* 53 to 63 */
-       BLUEPRINT, COUNT, CHILD, BYTE, LEAF, PACK, JOIN };           /* 64 to 70: a node's parts */
+       BLUEPRINT, COUNT, CHILD, BYTE, LEAF, PACK, JOIN,             /* 64 to 70: a node's parts */
+       BIND, BINDING };                       /* 71 gives an entry an implementation; 72 is that record's kind */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER };
 typedef struct { H bp, by; uint32_t t; H node; uint32_t i, env, cut, vals, k, aux, mact; } Frame;
 typedef struct { H bp, by; H v; uint32_t next; } Link;
-typedef struct { H bp, by; H recipe; uint32_t off, n; } Act;
-typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll; } Choice;
+typedef struct { H bp, by; H recipe; uint32_t off, n, lim; } Act;   /* lim: how many bindings it runs on */
+typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll, mbind; } Choice;
 typedef struct { H bp, by; uint32_t id; H v; } Gathered;
 typedef struct { H bp, by; H leaf; uint32_t off; } Born;      /* a runnable copy of a code leaf */
+typedef struct { H bp, by; H entry, impl; } Bind;             /* entry is run by impl: a recipe or a code leaf */
 
 /* An area is one table. "of" is the blueprint of its records, "size" one record's bytes,
  * "n" how many are in use and "cap" how many it can hold. "off" is where it starts. */
 typedef struct { H bp, by; H of; uint32_t size, cap, n; uint64_t off; } Area;
 enum { A_NODE, A_BYTES, A_KIDS, A_TAB, A_IDTAB, A_FRAME, A_LINK, A_ACT, A_ARG, A_CHOICE,
-       A_GATHER, A_BORN, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_SEEN, A_TEXT, A_STACK, A_COUNT };
+       A_GATHER, A_BORN, A_BIND, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_SEEN, A_TEXT, A_STACK, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", \
-  "activations", "arguments", "choice-points", "gathered", "born-code", "reader-opened", \
+  "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "reader-opened", \
   "gathering-children", "gathering-bytes", "print", "print-numbers", "frozen-marks", "text", "stack"
 
 /* The walker's registers. "at" is the program node being run: the writer stamped on

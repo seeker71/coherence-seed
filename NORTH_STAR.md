@@ -21,7 +21,11 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
   home grammar replaces it piece by piece with machine code, until the C file is needed only for a
   cold start on a new host. New code is written in the grammar and kept as nodes; from a
   specification to nodes to machine code every phase is generated and cached. C is the bootstrap
-  and nothing else.
+  and nothing else; no other language is written, and beside the bootstrap only form nodes are
+  stored.
+- **Every part can be replaced.** The bootstrap's code is one implementation of each part. Any
+  part can be replaced, enhanced and evolved while the system runs: by a form recipe, by machine
+  code, by whatever is invented next.
 - **The host's own speed.** Compiled code reaches what the hardware allows: scalar code first, then
   matrix instructions and the GPU, with a model reading and choosing nodes inline on the same
   substrate.

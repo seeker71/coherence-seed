@@ -37,6 +37,7 @@ records are, how large one is, how many are in use, how many fit, and where the 
 | choice-points | choice-point | each open choice and the marks it returns to |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |
+| bindings | binding | which entries a program has given a new implementation, oldest first |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, frozen-marks, text | words, bytes | working lists of the reader, the printer and freeze, and every file read |
 | stack | bytes | the machine stack of the C code |
 
@@ -45,8 +46,8 @@ records are, how large one is, how many are in use, how many fit, and where the 
 1. **Every record starts with two handles**: its blueprint, and the program node that last wrote it.
    A writer of nothing means the bootstrap's own reader wrote it, before any program ran.
 2. **A record names its kind in the system's own numbers.** The kinds of the floor's records are
-   catalogue entries 53 to 63 (`spec/core-operations.md`), so a reader needs no table that is not
-   itself in the catalogue.
+   catalogue entries 53 to 63 and 72 (`spec/core-operations.md`), so a reader needs no table that
+   is not itself in the catalogue.
 3. **A reference is a handle or an offset from the region's first byte, never an address.** A copy
    of the region reads the same in another process and at a later time.
 4. **A record is complete before the count that makes it reachable moves past it.** A reader that

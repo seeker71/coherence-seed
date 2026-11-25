@@ -3,9 +3,14 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 39 entries: 32 to 52 are operations and data, 53 to 63 are the kinds of the
-floor's own records, and 64 to 70 take a node apart and build one. It does not yet name operations
-that hold an offer or bind a cell; those come with the stage that first needs them.
+it. This page names 41 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+the floor's own records, 64 to 70 take a node apart and build one, and 71 gives an entry a new
+implementation. It does not yet name operations that hold an offer or bind a cell; those come with
+the stage that first needs them.
+
+The bootstrap's C is one implementation of each operation, the one a cold start runs. The same
+operations are written in form under `form/`, and any of them can take the C's place while a
+program runs (entry 71).
 
 ## Outcomes
 
@@ -63,6 +68,7 @@ Everything the floor keeps in memory is a record whose first word is one of thes
 | 61 | gathered | one answer collected by `all` |
 | 62 | words | a table of 32-bit words: handles or counts |
 | 63 | bytes | a table of bytes |
+| 72 | binding | one entry and the implementation that runs it |
 
 The table of code leaves that have a runnable copy uses entry 52.
 
@@ -107,6 +113,46 @@ names the observer prints; on file it is the canonical print:
 `ground/rebuild.ck` takes a nested node apart to its bytes with two such recipes and builds it
 again; the answer is the node it was given. `ground/nat-rule.ck` is the first rule of the encoding
 kept as nodes: given candidate bytes it answers the `nat` leaf they are, or the word `minimal`.
+
+## Entry 71: an operation's implementation
+
+`(bind e i)` gives catalogue entry e the implementation i and answers yes. From then on a
+composite under e evaluates its children in order and hands their answers to i.
+
+- **i is a recipe or a code leaf.** A recipe is called with the answers as its arguments. A leaf
+  under entry 52 is called with them as up to six integers and its result is the answer.
+- **e is an operation that evaluates its children first, or an entry with no meaning yet.** That is
+  37 `call`, 46 to 51, 64 to 71, and every entry from 73 up, so a program can bring a new operation
+  into being. The control entries (34 `quote`, 35 `arg`, 38 to 45), the data entries and the
+  record kinds keep the bootstrap's meaning; binding one is the fault `kind`.
+- **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
+  calls, e means what it meant before this binding. So a new `add` can use the `add` it replaces,
+  and `add` and `sub` can each be written with the other.
+- **A binding is undone like anything else.** A fail that returns to a choice entered before the
+  binding takes the binding away.
+- **A binding is a record in the region** (`spec/framebuffer.md`): the entry, the implementation,
+  and the `bind` node that wrote it. The observer counts them in the `bindings` area and does not
+  yet print them.
+- `./ck run F B..` evaluates each B first and leaves its bindings in place for F.
+
+### The operations in form
+
+Each file under `form/` is one `bind` node.
+
+| entry | in form | as AArch64 code |
+| --- | --- | --- |
+| 46 add | `form/add.ck`: a minus (0 minus b) | `form/add.aarch64.ck` |
+| 47 sub | `form/sub.ck`: a plus (b times -1) | `form/sub.aarch64.ck` |
+| 48 mul | `form/mul.ck`: a added b times, by recursion | `form/mul.aarch64.ck` |
+| 50 lt | `form/lt.ck`: when the signs differ, whether a is negative; otherwise whether a minus b is | `form/lt.aarch64.ck` |
+
+`lt` in form reads the sign from the encoding: a byte from 128 up is an `int` leaf of two bytes, so
+a number is negative when `(count (byte d last))` is 2. The code versions are recipes around two
+leaves each: one answers whether the result leaves the 64-bit range, and the recipe then answers
+nothing with `range` as the bootstrap does; the other computes it.
+
+Not yet written in form: 37 `call`, 49 `eq`, 51 `native`, 64 to 71. The control entries cannot be
+replaced yet, so they have no form either.
 
 ## Fail, choice and cut
 
@@ -158,4 +204,13 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - An operation that evaluates its children first takes at most eight, so a call passes at most
   seven arguments.
 - Programs are written by hand in the canonical print (`./ck canon` numbers the repeats). There is
-  no operation on the bits of a number, which a content id needs.
+  no operation on the bits of a number.
+- A control entry cannot be given a new implementation: its children are not evaluated first, and
+  the floor has no way yet to hand a recipe the unevaluated node and the caller's arguments.
+- `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
+  an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
+  inside may name another reason than the bootstrap's.
+- A binding has no name of its own and cannot be taken away except by a fail.
+- Nothing bounds a run but the region's capacities: a wrong recipe under a recursion gives no
+  answer and goes on until an area is full.
+- The observer has no names for entries 64 to 72 and prints them as numbers.

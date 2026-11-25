@@ -147,13 +147,16 @@ table. The vectors use these words:
 Sixteen of these depend only on the bytes or the text at hand. `unknown` depends on what the reader
 holds: a reader that takes nodes in from bytes keeps each one it accepts, and can place a node
 only under a blueprint and over children it already has. It holds the root and entries 1 to 31
-from the start, and may hold more; the bootstrap starts with entries 0 to 63. A node read from
+from the start, and may hold more; the bootstrap starts with entries 0 to 72. A node read from
 text is never `unknown`, because its blueprint and children are written before it closes.
 
 ## Choices
 
 Made here, not given by the owner or measured. Each can be reopened; changing any changes ids.
 
+- **SHA-256 as the content id.** Nobody asked for it. Any function that gives each node's
+  canonical bytes one id would serve this page; which function, how many bits, and whether the id
+  is a digest at all are questions 6.1.4, 6.1.18 and 6.1.31.
 - **A kind byte and no length.** The hash covers the whole message, so a length adds nothing to
   identity. A store frames its records itself.
 - **Child ids, not child bytes.** A node's bytes stay small whatever it holds, and a reader can
@@ -175,7 +178,8 @@ Made here, not given by the owner or measured. Each can be reopened; changing an
 - A second reader is owed: one written from this page alone, in the grammar, kept as nodes (graph
   nodes 7.2 and 7.13). One rule, the shortest form of a `nat`, runs as nodes in
   `ground/nat-rule.ck`; a hand that had read the bootstrap wrote it, so it shows that a rule can
-  run as nodes and is no part of the second reader. A whole reader cannot run yet: the walker has
-  no operation on the bits of a number, which SHA-256 needs.
+  run as nodes and is no part of the second reader. A reader's rules and its print need nothing
+  more than the walker has. The content id as section 3 writes it does: SHA-256 works on the bits
+  of numbers, and the walker has no such operation.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).
 - The core operations are not named. That belongs to stage 2, with the walker's laws.
