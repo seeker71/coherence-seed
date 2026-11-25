@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 67 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 68 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 97 read a region, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 97 read a region, 98 calls the host, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -279,6 +279,23 @@ mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a pla
 process's memory and means nothing in another or in a stored node. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
 
+## Entry 98: the host, called by name
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 98 | host | name, up to six arguments | looks the name up in the host and calls it; answers what it returns, as an integer |
+
+One lookup and one raw call reach everything the host offers, the C library and a framework
+alike (graph node 5.8.3). An `int` argument goes as it is; any other leaf goes as the address of
+its bytes with a zero byte after them, good for the length of the call. A name the host does not
+know answers nothing with the reason `no-symbol`.
+
+What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is
+open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over
+them. With no choice open a program wrote a file through `creat`, `write` and `close`, and found
+the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
+refusal.
+
 ## Entry 81: the step
 
 | N | name | children | what it does |
@@ -435,8 +452,11 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   answers it will discard.
 - Finding a leaf's runnable copy reads the born code from the oldest up, so it grows with how
   many leaves have been run. What runs a node is found through an index and does not.
-- What is not an operation has no binding yet: the store's own making of nodes and the other
-  host functions.
+- What is not an operation has no binding yet: the store's own making of nodes and the host
+  functions that reserve memory and make code runnable. A raw call passes six arguments in
+  registers, so a host function that takes a varying number of them, `open` or `printf`, does
+  not get the ones after its fixed ones. Nothing catches a fault of the processor: a call of the
+  wrong thing ends the process.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.

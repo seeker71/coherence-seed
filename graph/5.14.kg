@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 52 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of eight host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 53 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of nine host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 97 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 98 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 52.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 53.
 at: 2026-11-25
 
 n: 5.14.2
@@ -96,7 +96,7 @@ at: 2026-11-25
 n: 5.14.9
 name: host-functions-so-far
 kind: decision
-is: Eight host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, and map another process's region to be read. A program reaches the file and the clock as operations. Symbol lookup, the trampoline for host frameworks and thread start in 5.8.1 are not written.
+is: Nine host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, map another process's region to be read, and look up a symbol. A program reaches the file, the clock and, by name, any function of the host as operations (5.14.40). Thread start in 5.8.1 is not written.
 status: inferred
 from: 5.8.1 5.9.4
 src: 2.30.7
@@ -424,4 +424,17 @@ is: Observed on 2026-11-25. Entry 97, look, reads bytes of a region another proc
 status: observed
 src: 2.30.7 2.30.9 2.30.10 2.30.11
 limit: One frame of a region kept after its run. Recording a run in motion and replaying it are still the observer in C.
+at: 2026-11-25
+
+n: 5.14.40
+name: the-host-is-called-by-name
+kind: decision
+is: Entry 98, host, looks a name up in the host and calls what it finds with up to six arguments, an int as it is and any other leaf as the address of its bytes: one lookup and one raw call for the C library and a framework alike (5.8.3). What the host does cannot be undone, so the call is a fault, irreversible, while any choice is open. Observed on 2026-11-25: with no choice open a program in form wrote a file through creat, write and close, and found the host's getpid equal to the pid in its own region's head; inside an outcome the call was refused.
+status: inferred
+from: 5.8.1 5.8.3 5.4.8 5.9.3 7.3
+src: 2.30.7 2.30.6
+conf: mid
+why: 5.4.8 refuses an irreversible effect inside an open choice unless it is buffered until the commit. Nothing is buffered yet, so the rule is the refusal.
+flip: A program that must act on the world from inside a search needs the buffering 5.4.8 names: effects held until the choice is closed.
+limit: Arguments go in registers only, so a function taking a varying number of them does not get those; nothing but integers comes back; a call of the wrong thing ends the process, since no fault of the processor is caught.
 at: 2026-11-25

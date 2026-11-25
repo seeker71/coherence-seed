@@ -28,6 +28,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <dlfcn.h>
 #include "fb.h"
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <libkern/OSCacheControl.h>
@@ -53,6 +54,7 @@ typedef struct {
   Ret (*call)(void *fn, const int64_t *a);
   int64_t (*clock)(void);                          /* nanoseconds that only move forward */
   void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
+  void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -99,7 +101,8 @@ static void *h_watch(const char *name) {
   void *p = fstat(fd, &st) ? MAP_FAILED : mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   close(fd); return p == MAP_FAILED ? NULL : p;
 }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch };
+static void *h_symbol(const char *name) { return dlsym(RTLD_DEFAULT, name); }
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -744,6 +747,20 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (nd[a[0]].comp) { fault("kind"); break; }
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
+      }
+      if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
+        int64_t arg[8] = {0}; uint32_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
+        if (c < 1 || c > 7) { fault("arity"); break; }
+        if (ncp) { fault("irreversible"); break; }        /* what cannot be undone is refused while a choice is open */
+        for (uint32_t j = 0; j < c && W->mode != M_FAULT; j++) {
+          if (!a[j] || nd[a[j]].comp) { fault("kind"); break; }
+          if (j && geti(a[j], &arg[j-1])) continue;
+          char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
+          if (j) arg[j-1] = (int64_t)(intptr_t)s; else arg[7] = (int64_t)(intptr_t)host.symbol(s);
+        }
+        if (W->mode == M_FAULT) { ntext = mark; break; }
+        if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; break; }
+        void *fn = (void *)(intptr_t)arg[7]; arg[7] = 0; W->v = mki(host.call(fn, arg).v); ntext = mark; break;
       }
       if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
         int64_t o = 0, n = 0; uint32_t mark = ntext;

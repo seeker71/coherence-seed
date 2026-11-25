@@ -8,17 +8,17 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 933 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 950 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 52 operations: control with backtracking, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the bytes of its own region and of another's |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 53 operations: control with backtracking, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
 | Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form: compiles a recursion over numbers to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
-| Programs | [`ground/`](ground) | 38 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 39 that witness the above; one more runs them and judges how each ends |
 | Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and a program in form shows its own region or another process's through it |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,352 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,353 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -40,7 +40,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   recursion deeper than the machine stack, the answer, the reason and the fault were the
   walker's own in seventeen trials by hand.
 - **The lens reads its own definition.** It shows its stored node, through its own rows, as 382
-  lines and reads them back to the same node, byte for byte, and does the same for each of the 67
+  lines and reads them back to the same node, byte for byte, and does the same for each of the 68
   files of nodes here in 0.2 s. Its rows and their matcher were written in it. Text it cannot read
   is a fault that names what and where.
 - **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
@@ -48,9 +48,14 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   where it took 0.37 s.
 - **What were C commands are programs.** The conformance check, freeze and thaw are written in
   form; the form freeze wrote the same bytes as the C freeze it replaced.
+- **The region describes itself.** The layout of its records is a node. The C header is made
+  from it and from the lexicon, and the stored header equals what they generate. A program in
+  form shows its own region through it, or another process's, with every binding in words.
+- **The host is reached by name.** With no choice open, a program in form wrote a file through
+  the host's own functions; while a choice is open the call is refused, since it cannot be undone.
 - **Being seen costs little.** Keeping the walker's registers and each record's writer in the
   region costs about a quarter of its speed; recording every millisecond costs up to about 4%.
-- **The graph holds.** `./kg check`: no errors over 1,173 claims, none of them reviewed by a second
+- **The graph holds.** `./kg check`: no errors over 1,174 claims, none of them reviewed by a second
   reader.
 
 ## Not there
@@ -66,12 +71,16 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - **The home lens.** The first lens's shapes are brackets only: nothing infix, no names for a
   recipe's arguments, no way to name a part and use it twice. Most stored programs were composed
   in numbers before it existed; they show through it and were not rewritten in it.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 68 files of nodes in the canonical
-  print. Everything else stored is neither: the observer and the graph's checker (664 lines of C
-  under `tools/`), the Makefile's 65 lines, nine pages, the claim graph as 51 text files, and the
-  axioms' text. Three of the checks are still lines of the Makefile's shell.
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 69
+  files of nodes in the canonical print. Everything else stored is neither: the recorder and the
+  graph's checker (659 lines of C under `tools/`), the Makefile's 65 lines, nine pages, the claim
+  graph as 51 text files, and the axioms' text. Three of the checks are still lines of the
+  Makefile's shell.
 - **Objects.** A cell holds a node and has a trail. It has no declared blueprint, no access or
-  constructor recipe and no view; composed parents, threads and symbol lookup are not built.
+  constructor recipe and no view; composed parents are not built.
+- **Threads, and effects inside a search.** One walker runs on one thread. What cannot be undone
+  is refused while a choice is open; nothing holds an effect back until the choice is closed.
+  Nothing catches a fault of the processor.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
 - **Bounds that give way.** The region's areas have fixed capacities: a wrong recursion runs until
