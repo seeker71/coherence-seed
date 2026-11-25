@@ -26,23 +26,18 @@
 
 #define STACK_TOP (1u << 18)              /* how much of the machine stack a frame keeps: its newest end */
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
-static const char *const NAMES[SEEDED + 1] = { [1] = "bytes", "text", "nat", "int", [16] = "list",
-  [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", "bind", "binding", "up", "base", "lazy",
-  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer", "encode", "decode", "hold", "held", "trail", "note", "unbind", "peek", "handle", "at",
-  [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
-  "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
-  "frame", "link", "activation", "choice-point", "gathered", "word-table", "byte-table" };
-static const char *const MODE[] = { "eval", "ret", "failed", "fault", "done" };
-static const char *const FKIND[] = { "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer" };
+static const char *const NAMES[SEEDED + 1] = { FB_ENTRY_NAMES };     /* the words, as the lexicon has them */
+static const char *const MODE[] = { FB_MODE_NAMES };
+static const char *const FKIND[] = { FB_FRAME_NAMES };
 
 static uint8_t *img; static uint64_t size;                /* a private copy of one frame, laid out as the region is */
 static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
-static Frame *fr; static Act *act; static Choice *cp; static Bind *bd;
+static Frame *fr; static Activation *act; static ChoicePoint *cp; static Binding *bd;
 static void stop(const char *m, const char *n) { fprintf(stderr, "fb: %s%s\n", m, n); exit(2); }
 static void *at(int i) { return img + hd->a[i].off; }
 static void bind(void) {
-  hd = (Head *)img; nd = at(A_NODE); bytes = at(A_BYTES); kids = at(A_KIDS); argp = at(A_ARG);
-  fr = at(A_FRAME); act = at(A_ACT); cp = at(A_CHOICE); bd = at(A_BIND);
+  hd = (Head *)img; nd = at(A_NODES); bytes = at(A_LEAF_BYTES); kids = at(A_CHILDREN); argp = at(A_ARGUMENTS);
+  fr = at(A_FRAMES); act = at(A_ACTIVATIONS); cp = at(A_CHOICE_POINTS); bd = at(A_BINDINGS);
 }
 static double now_ms(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec * 1e3 + t.tv_nsec / 1e6; }
 
@@ -96,14 +91,14 @@ static void sp(const char *s) {           /* appends to the line being shown; a 
 }
 static long long catn(H h) {
   if (h >= 1 && h <= SEEDED) return h - 1;
-  if (!h || h >= hd->a[A_NODE].n || nd[h].comp || nd[h].bp != ROOT) return -1;
+  if (!h || h >= hd->a[A_NODES].n || nd[h].comp || nd[h].bp != ROOT) return -1;
   long long v = 0; for (uint32_t i = nd[h].n; i > 0; i--) v = v << 8 | bytes[nd[h].off + i - 1];
   return v;
 }
 static void shown(H h, int depth) {
   char t[40];
   if (!h) { sp("nothing"); return; }
-  if (h >= hd->a[A_NODE].n) { sp("?"); return; }
+  if (h >= hd->a[A_NODES].n) { sp("?"); return; }
   long long c = catn(h); const Node *x = &nd[h]; const uint8_t *b = bytes + x->off;
   if (c >= 0) { if (c <= SEEDED && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
   if (x->comp) {
@@ -130,10 +125,10 @@ static void line(int i, double ms, uint64_t after, uint32_t pages) {
   const Machine *m = &hd->m;
   printf("frame %4d  %9.2f ms  step %11llu%s  %-6s  nodes %-7u frames %-5u links %-5u activations %-8u choices %-3u pages %-5u at %s\n",
          i, ms, (unsigned long long)m->step, after != m->step ? " moving" : "       ", MODE[m->mode <= M_DONE ? m->mode : 0],
-         hd->a[A_NODE].n, hd->a[A_FRAME].n, hd->a[A_LINK].n, hd->a[A_ACT].n, hd->a[A_CHOICE].n, pages, str(m->at, 70));
+         hd->a[A_NODES].n, hd->a[A_FRAMES].n, hd->a[A_LINKS].n, hd->a[A_ACTIVATIONS].n, hd->a[A_CHOICE_POINTS].n, pages, str(m->at, 70));
 }
 static void node(H h) {
-  if (!h || h >= hd->a[A_NODE].n) { printf("node %u: not in this frame\n", h); return; }
+  if (!h || h >= hd->a[A_NODES].n) { printf("node %u: not in this frame\n", h); return; }
   printf("node %u\n  is         %s\n", h, str(h, 2000));
   printf("  blueprint  %s\n", str(nd[h].bp, 200));
   printf("  %s, %u %s\n  written by ", nd[h].comp ? "composite" : "leaf", nd[h].n, nd[h].comp ? "children" : "bytes");
@@ -155,23 +150,23 @@ static void detail(void) {
   printf("areas\n");
   for (int i = 0; i < A_COUNT; i++) { const Area *a = &hd->a[i];
     printf("  %-20s %-13s %10u in use %12llu bytes\n", AREA_NAME[i], str(a->of, 40), a->n, (unsigned long long)a->n * a->size); }
-  if (m->env && m->env < hd->a[A_ACT].n) {
-    const Act *e = &act[m->env];
+  if (m->env && m->env < hd->a[A_ACTIVATIONS].n) {
+    const Activation *e = &act[m->env];
     printf("activation %u  recipe %s\n  arguments", m->env, str(e->recipe, 120));
     for (uint32_t i = 0; i < e->n && i < 8; i++) printf("  %s", str(argp[e->off + i], 60));
     printf("\n");
   }
   printf("continuation, newest first\n");
   uint32_t k = m->k;
-  for (int i = 0; k && k < hd->a[A_FRAME].n && i < 12; i++, k = fr[k].k) {
+  for (int i = 0; k && k < hd->a[A_FRAMES].n && i < 12; i++, k = fr[k].k) {
     const Frame *f = &fr[k];
     printf("  frame %-6u %-8s child %-2u of %s\n", k, FKIND[f->t <= F_LAYER ? f->t : 0], f->i, str(f->node, 100));
     printf("  %14s written by ", ""); writer(f->by); printf("\n");
   }
   if (k) printf("  ... and older frames\n");
-  for (uint32_t i = hd->a[A_CHOICE].n, j = 0; i > 0 && j < 4; i--, j++)
+  for (uint32_t i = hd->a[A_CHOICE_POINTS].n, j = 0; i > 0 && j < 4; i--, j++)
     printf("choice point %u  next option %u of %s\n", i - 1, cp[i-1].i, str(cp[i-1].node, 100));
-  for (uint32_t i = hd->a[A_BIND].n, j = 0; i > 0 && j < 12; i--, j++) {      /* what runs, newest first */
+  for (uint32_t i = hd->a[A_BINDINGS].n, j = 0; i > 0 && j < 12; i--, j++) {      /* what runs, newest first */
     printf("binding %u  %s ", i, str(bd[i-1].entry, 60)); printf(bd[i-1].impl ? "is run by %s\n" : "is released%s\n", bd[i-1].impl ? str(bd[i-1].impl, 100) : ""); }
 }
 

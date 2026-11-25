@@ -23,7 +23,8 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
 - **Form first.** New code is written in form and kept as nodes. C is the bootstrap only, and no
   other language is written. What a program lacks becomes an operation of the bootstrap. Write in
   words through the lens and read stored nodes through it ([`spec/lens.md`](spec/lens.md)); what
-  is stored is the canonical print.
+  is stored is the canonical print. A new operation, area or field is added in a node
+  (`lens/words.ck`, `region/layout.ck`) and `make header` writes the C header from them.
 - **Every part can be replaced.** The bootstrap's code is one implementation of each part; a
   recipe or machine code can take its place while the system runs.
 - **Follow a real flow.** Make something run end to end and watch it through the framebuffer. A

@@ -69,7 +69,7 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 make check
 ```
 
-Four lines: the ground programs, the encoding's 142 vectors among them, run and judged by a
+Five lines: the header against the nodes it is made from; the ground programs, the encoding's 142 vectors among them, run and judged by a
 program written in form (`ground/check.ck`); a freeze and a thaw, both in form, across two
 processes; a machine-code leaf both unsigned and under the hardened runtime; and a live run
 recorded from a second process.

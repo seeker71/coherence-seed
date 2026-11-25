@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 930 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 909 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 51 operations: control with backtracking, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the region's own bytes |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
@@ -16,9 +16,9 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Programs | [`ground/`](ground) | 38 that witness the above; one more runs them and judges how each ends |
-| Region | [`region/`](region) | the layout of the region's records is a node; a program reads and shows its own region through it |
+| Region | [`region/`](region) | the layout of the region's records is a node: a program reads and shows its own region through it, and the C header is made from it |
 | Observer | [`tools/fb.c`](tools/fb.c) | from a second process: shows a running region and what is bound in it, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,350 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,351 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -40,7 +40,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   recursion deeper than the machine stack, the answer, the reason and the fault were the
   walker's own in seventeen trials by hand.
 - **The lens reads its own definition.** It shows its stored node, through its own rows, as 382
-  lines and reads them back to the same node, byte for byte, and does the same for each of the 65
+  lines and reads them back to the same node, byte for byte, and does the same for each of the 66
   files of nodes here in 0.2 s. Its rows and their matcher were written in it. Text it cannot read
   is a fault that names what and where.
 - **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
@@ -50,7 +50,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   form; the form freeze wrote the same bytes as the C freeze it replaced.
 - **Being seen costs little.** Keeping the walker's registers and each record's writer in the
   region costs about a quarter of its speed; recording every millisecond costs up to about 4%.
-- **The graph holds.** `./kg check`: no errors over 1,171 claims, none of them reviewed by a second
+- **The graph holds.** `./kg check`: no errors over 1,172 claims, none of them reviewed by a second
   reader.
 
 ## Not there
@@ -66,9 +66,9 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - **The home lens.** The first lens's shapes are brackets only: nothing infix, no names for a
   recipe's arguments, no way to name a part and use it twice. Most stored programs were composed
   in numbers before it existed; they show through it and were not rewritten in it.
-- **Form everywhere.** Stored here are the bootstrap and 66 files of nodes in the canonical
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 67 files of nodes in the canonical
   print. Everything else stored is neither: the observer and the graph's checker (664 lines of C
-  under `tools/`), the Makefile's 59 lines, nine pages, the claim graph as 51 text files, and the
+  under `tools/`), the Makefile's 65 lines, nine pages, the claim graph as 51 text files, and the
   axioms' text. Three of the checks are still lines of the Makefile's shell.
 - **Objects.** A cell holds a node and has a trail. It has no declared blueprint, no access or
   constructor recipe and no view; composed parents, threads and symbol lookup are not built.

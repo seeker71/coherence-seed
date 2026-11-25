@@ -401,6 +401,18 @@ from: 5.7.6 5.7.7 5.14.10 5.14.33 6.1.11 7.13
 src: 2.30.7 2.30.9 2.30.11
 conf: mid
 why: The region was to carry its blueprints, and the layouts lived only in a C header: emitted code read a record by a position typed in by hand and a change of layout broke it with no check failing (5.14.33). A layout that is a node can be read, checked and used to compute where a field lies.
-flip: Two descriptions, the node and the header, can still drift where the check does not look: the order and width of fields inside a record of the right size. One should be made from the other.
-limit: It reads its own region only; watching another process is still the observer in C. The emitter does not yet take its offsets from the description.
+flip: A leaf of machine code that needs a field's place should take it from the description, as a program in form now can; the emitter still carries two numbers.
+limit: It reads its own region only; watching another process is still the observer in C.
+at: 2026-11-25
+
+n: 5.14.38
+name: the-c-header-is-made-from-nodes
+kind: decision
+is: bootstrap/fb.h is written by a program in form, region/header.ck, from two nodes: the lexicon, which gives each catalogue entry its number and word, and the layout of the region's records. The stored header must equal what they generate, and make check holds it to that. The C sources use the names that come out, so an operation, an area or a field is added in a node and the C follows. Before, the numbers were kept by hand in three places and the layouts in two.
+status: inferred
+from: 5.14.37 5.15.1 7.13 5.9.1
+src: 2.30.9 2.30.7 2.30.14
+conf: mid
+why: New code is to be generated from its description, and a number written twice by hand drifts: the observer's table of words had fallen behind the catalogue more than once in a day.
+limit: The header is the only C that is generated. A cold start still needs the stored copy, since making it needs the bootstrap it belongs to.
 at: 2026-11-25

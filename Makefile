@@ -21,6 +21,10 @@ fb: tools/fb.c bootstrap/fb.h
 kg: tools/kg.c
 	$(CC) $(CFLAGS) -o kg tools/kg.c
 
+# bootstrap/fb.h is made from nodes: the catalogue's words and the layout of the region's records.
+header: ck
+	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
+
 # One real run, watched live: the long recursion runs while a second process records its
 # memory every 5 ms; then the recording is replayed and the answer is asked who wrote it.
 watch: ck fb
@@ -33,6 +37,8 @@ watch: ck fb
 # processes, native code unsigned and under the hardened runtime, and a live run recorded from
 # a second process whose last frame holds the answer and names the node that wrote it.
 check: ck fb
+	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
+	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
 	@got=$$(./ck run ground/check.ck); \
 	  if [ "$$got" = "node (#16)" ]; then echo "ground: every program ends as expected, checked by a program in form"; \
 	  else echo "ground: path and outcome of each program that ends otherwise: $$got"; exit 1; fi
@@ -54,6 +60,6 @@ check: ck fb
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
 
 clean:
-	rm -f ck fb kg .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
+	rm -f ck fb kg .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
-.PHONY: all check watch clean
+.PHONY: all check watch clean header

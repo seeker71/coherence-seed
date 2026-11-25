@@ -14,7 +14,7 @@ writes into the core the walker runs, and back.
 ```
 node = "(" node { space node } ")"    a composite: its blueprint, then its children
      | "[" node [ space hex ] "]"     a leaf of any blueprint, its bytes in hex
-     | '"' bytes '"'                  a text leaf; the bytes hold no '"' and no control byte
+     | '"' bytes '"'                  a text leaf; \" is a quote, \\ a backslash, \n a line end
      | [ "-" ] digits                 an int leaf
      | digits "n"                     a nat leaf
      | "$" digits                     an argument: $0 is (arg 0n)
@@ -29,8 +29,8 @@ one node; nothing marks sharing, and nothing needs to.
 
 Reading takes any of these forms. Showing chooses one for each node: the word when the entry has
 one and `#N` when it has none, the number for an `int` of at most eight bytes and a `nat` of at
-most seven, `$k` for an argument, the quoted form for a text without `"` or control bytes, and the
-bracket form for every other leaf. A composite that fits in a hundred columns is shown on one
+most seven, `$k` for an argument, the quoted form for a text whose only control byte is the line
+end, and the bracket form for every other leaf. A composite that fits in a hundred columns is shown on one
 line, a longer one with each child on a line of its own. So showing is total: every node has a
 showing, and reading it gives back that node.
 
@@ -98,7 +98,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
   words; since then its source is its own showing, and the rows and their matcher were written in
   it.
 - `ground/lens-round-trip.ck`, written in the lens, raises, shows, reads and lowers every file of
-  nodes in the repository: 65 files, none differs, in 0.2 s.
+  nodes in the repository: 66 files, none differs, in 0.2 s.
 
 ## Limits
 
@@ -108,7 +108,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.
 - Every row is tried at every node. Words are found through cells, indexed once when the lens loads.
 - The observer prints words from a table of its own in C, not from these rows.
-- Entries 129 to 185 and 194 to 196 are the lens's, 186 to 193 the ice's, 197 and 198 the watcher's and 199 to 213 the region's by convention; no row yet says which numbers a
+- Entries 129 to 185 and 194 to 196 are the lens's, 186 to 193 the ice's, 197 and 198 the watcher's and 199 to 227 the region's by convention; 228 and 229 are the lens's again; no row yet says which numbers a
   module may take.
 - Most stored programs were composed before the lens existed. They show through it; they were
   not rewritten in it.

@@ -73,7 +73,9 @@ serves as the region's clock.
 What each record looks like is a node, `region/layout.ck`: for the head, the machine, an area
 entry and each kind of record, its fields in order with their widths and whether each holds a
 handle, a number or bytes; and the areas by name in the order of the table. `bootstrap/fb.h` is
-the same layout as the C compiler needs it.
+made from it and from the lexicon (`lens/words.ck`) by a program in form, `region/header.ck`:
+`make header` writes it, and `make check` holds the stored header to what the nodes generate. So
+the catalogue's numbers and the records' layouts are said once, in nodes, and the C follows.
 
 A program reads its own region with `peek` (`spec/core-operations.md`, entries 94 to 96), and
 `region/region.ck`, written in form, reads it through the description: `(fb.get "area" "n"
