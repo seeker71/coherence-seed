@@ -3,7 +3,7 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 53 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of nine host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 53 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
@@ -96,7 +96,7 @@ at: 2026-11-25
 n: 5.14.9
 name: host-functions-so-far
 kind: decision
-is: Nine host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, map another process's region to be read, and look up a symbol. A program reaches the file, the clock and, by name, any function of the host as operations (5.14.40). Thread start in 5.8.1 is not written.
+is: Ten host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, map another process's region to be read, look up a symbol, and hand a fault of the processor to a handler on its own stack. A program reaches the file, the clock and, by name, any function of the host as operations (5.14.40). Thread start in 5.8.1 is not written.
 status: inferred
 from: 5.8.1 5.9.4
 src: 2.30.7
@@ -436,5 +436,18 @@ src: 2.30.7 2.30.6
 conf: mid
 why: 5.4.8 refuses an irreversible effect inside an open choice unless it is buffered until the commit. Nothing is buffered yet, so the rule is the refusal.
 flip: A program that must act on the world from inside a search needs the buffering 5.4.8 names: effects held until the choice is closed.
-limit: Arguments go in registers only, so a function taking a varying number of them does not get those; nothing but integers comes back; a call of the wrong thing ends the process, since no fault of the processor is caught.
+limit: Arguments go in registers only, so a function taking a varying number of them does not get those; nothing but integers comes back.
+at: 2026-11-25
+
+n: 5.14.41
+name: a-crash-inside-code-is-a-fault
+kind: decision
+is: When the processor faults inside a code leaf or a host function a program called, the walker goes on and the program has the fault crash, caught by recover and seen by outcome like any other. The handler runs on its own stack and returns to the walker's loop, whose state is the region's machine record and not the C stack, so nothing of the walker is lost. A fault outside such code ends the process. Observed on 2026-11-25: a read of address 0, machine code that recurses off its stack and a host function given a bad address were each caught, in any order, a hundred times in a loop.
+status: inferred
+from: 5.9.3 5.14.6 5.14.40 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: 5.9.3 asks for a fault handler. Trying machine code and host functions while a system runs is only safe if getting one wrong costs a fault and not the process.
+flip: 5.9.3 says the handler records and does not resume; this one resumes the walker, which it can because the walker keeps no state outside the region. What a host function changed before it faulted stays changed.
+limit: Saving the return point once per run and a mark around each call of code; the mark costs the per-node code step about a seventh of its speed.
 at: 2026-11-25

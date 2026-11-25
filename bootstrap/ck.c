@@ -29,6 +29,8 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <dlfcn.h>
+#include <signal.h>
+#include <setjmp.h>
 #include "fb.h"
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <libkern/OSCacheControl.h>
@@ -55,6 +57,7 @@ typedef struct {
   int64_t (*clock)(void);                          /* nanoseconds that only move forward */
   void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
+  void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -102,7 +105,12 @@ static void *h_watch(const char *name) {
   close(fd); return p == MAP_FAILED ? NULL : p;
 }
 static void *h_symbol(const char *name) { return dlsym(RTLD_DEFAULT, name); }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol };
+static void h_guard(void (*on)(int), void *stack, size_t n) {
+  stack_t ss; struct sigaction sa; memset(&sa, 0, sizeof sa); memset(&ss, 0, sizeof ss);
+  ss.ss_sp = stack; ss.ss_size = n; sa.sa_handler = on; sa.sa_flags = SA_ONSTACK; sigemptyset(&sa.sa_mask);
+  sigaltstack(&ss, NULL); sigaction(SIGSEGV, &sa, NULL); sigaction(SIGBUS, &sa, NULL); sigaction(SIGILL, &sa, NULL); sigaction(SIGFPE, &sa, NULL);
+}
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -527,10 +535,18 @@ static void answer(H v) { W->v = v; W->mode = M_RET; }
 static H seen_as(const char *word, H v) { const char *why; H p[2] = { txt(word), v }; return mk(1, E(LIST), p, 2, &why); }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
+/* Code a program gave is called under watch: when the processor faults inside it, the walker goes
+ * on and the program has a fault, crash, like any other. A fault anywhere else ends the process. */
+static sigjmp_buf in_code; static volatile sig_atomic_t coding;
+static void crashed(int sig) {
+  (void)sig; if (coding) siglongjmp(in_code, 1);
+  put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
+}
+static Ret called(void *fn, const int64_t *arg) { coding = 1; Ret r = host.call(fn, arg); coding = 0; return r; }
 static int landed(void *fn, int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
-  Ret r = host.call(fn, arg);
+  Ret r = called(fn, arg);
   if (r.k == 3) return 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
   else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
@@ -608,6 +624,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   const char *why; H a[8];
   W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~0u, 0, 0 }; W->one = 0;
+  if (sigsetjmp(in_code, 1)) { coding = 0; fault("crash"); }      /* the processor faulted inside code: the walker goes on */
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
     H x = W->x; W->at = x;
@@ -760,7 +777,9 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         }
         if (W->mode == M_FAULT) { ntext = mark; break; }
         if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; break; }
-        void *fn = (void *)(intptr_t)arg[7]; arg[7] = 0; W->v = mki(host.call(fn, arg).v); ntext = mark; break;
+        void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0; ntext = mark;
+        r = called(fn, arg); W->v = mki(r.v);
+        break;
       }
       if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
         int64_t o = 0, n = 0; uint32_t mark = ntext;
@@ -882,7 +901,10 @@ static int command(int argc, char **argv) {
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
-static void *on_region(void *p) { Start *s = p; s->rc = command(s->argc, s->argv); W->mode = M_DONE; return NULL; }
+static void *on_region(void *p) {
+  Start *s = p; host.guard(crashed, talloc(1u << 17), 1u << 17);
+  s->rc = command(s->argc, s->argv); W->mode = M_DONE; return NULL;
+}
 int main(int argc, char **argv) {
   Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at;
   fb_open();

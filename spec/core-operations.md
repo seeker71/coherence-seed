@@ -420,7 +420,12 @@ the reason `no-native`.
 ## Faults the walker names
 
 `arity` (wrong number of children), `arg` (no such argument), `no-recipe` (`self` outside a
-recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wrong kind).
+recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wrong kind),
+`irreversible` (a call of the host while a choice is open), and `crash`: the processor faulted
+inside a code leaf or a host function a program called. A bad address, an instruction that is
+none, a recursion in machine code that runs off its stack: each is a fault like the others,
+caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is-a-fault.ck`). A
+fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
 ## Limits
 
@@ -455,8 +460,8 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - What is not an operation has no binding yet: the store's own making of nodes and the host
   functions that reserve memory and make code runnable. A raw call passes six arguments in
   registers, so a host function that takes a varying number of them, `open` or `printf`, does
-  not get the ones after its fixed ones. Nothing catches a fault of the processor: a call of the
-  wrong thing ends the process.
+  not get the ones after its fixed ones. A host function that faults is caught, but what it
+  changed before it faulted stays changed.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.
