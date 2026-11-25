@@ -9,7 +9,7 @@ at: 2026-11-25
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 99 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 99 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.18.1).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only numbers (5.14.26). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
+is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only numbers (5.18.1). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
 status: inferred
 from: 5.14.19 5.14.24 7.13 5.9.3
 conf: high
@@ -265,18 +265,6 @@ src: 2.30.7 2.30.6 2.30.10
 limit: The marks were counted by hand from the region's node count with and without the step. The code step compiles nothing: it is a socket shown to hold.
 at: 2026-11-25
 
-n: 5.14.26
-name: an-emitter-in-form
-kind: decision
-is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, bound to the recipe or to the entry asked for. It knows numbers: any int leaf, arguments, let, the five operations, tests of lt and eq joined by if, and a call of the recipe itself by self or by name (5.14.48). For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
-status: inferred
-from: 5.10.4 5.14.19 5.14.15 7.13 7.21
-src: 2.30.6
-conf: mid
-why: The emitter is to be a program in the language (5.10.4), and the walker already gives it what it needs: a node's parts, arithmetic, all and pack. Dividing by 256 is done by reading the bytes of a product, since no operation works on bits.
-flip: Per-node hand-back to the walker, as 5.10.4 describes, needs emitted code to call the walker; until then a recipe with one unknown node is not compiled at all.
-at: 2026-11-25
-
 n: 5.14.27
 name: a-recipe-runs-on-code-the-emitter-wrote
 kind: observation
@@ -291,7 +279,7 @@ name: emitted-code-answers-a-number-or-declines
 kind: decision
 is: Every call of code carries the region's address in its seventh register and the count of its values in its eighth, and code is not asked when a value is not an integer. Emitted code declines when an overflow is left at its end, when it was given fewer arguments than the recipe reads, and when the stack, whose end it reads from the region, has no room. The decline travels up through its calls and the walker runs the whole call on the bindings beneath that code. Observed: a recursion a million deep answers in 0.15 s, 0.13 s on the walker alone.
 status: inferred
-from: 5.14.26 5.14.19 5.14.20 5.7.6
+from: 5.18.1 5.14.19 5.14.20 5.7.6
 src: 2.30.7 2.30.6
 conf: mid
 why: Code that is faster must not be different. Where it cannot be sure, the answer, the reason and the fault are the walker's own, at the cost of doing the work twice. Declining a whole call is the hand-back that needs nothing new: the walker already runs what a binding declines.
@@ -490,28 +478,6 @@ flip: Nodes a run made are still never given back, so the store is the bound a l
 limit: Witnessed by ground/loop-in-place.ck and ground/user-kept.ck, each turned red by a planted fault. One machine.
 at: 2026-11-26
 
-n: 5.14.48
-name: code-and-walker-are-held-equal-by-a-program
-kind: observation
-is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-three recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Six faults planted in it each turned the program red.
-status: observed
-src: 2.30.6 2.30.7
-limit: The program's first version saw none of the planted faults: its helper was a bound entry, which runs on the bindings beneath its own and so never saw the code. The numbers are 64-bit integers only. One machine.
-at: 2026-11-26
-
-n: 5.14.49
-name: bound-says-what-runs-an-entry
-kind: decision
-is: Entry 102, bound, answers the newest binding of an entry or a recipe as the top of the program sees it, as a node: the entry, its implementation, and whether that runs on its own binding. A program can read what is bound; the emitter takes an entry's recipe from it and compiles a call by the recipe's own name only where that name means the recipe itself, which is so for a binding made in a layer.
-status: inferred
-from: 5.14.19 5.14.26 7.13
-src: 2.30.7 2.30.6
-conf: mid
-why: Without it a program could bind and release but not look, and the emitter had to be handed the recipe again.
-flip: It answers the top's view and not the asker's layer. An implementation asking about its own entry gets itself.
-limit: With a second entry it answers as that entry's implementation sees the first.
-at: 2026-11-26
-
 n: 5.14.50
 name: a-call-held-back-until-the-search-has-settled
 kind: decision
@@ -567,26 +533,4 @@ conf: mid
 why: A program that runs away should cost a fault and not the process, most of all when something from outside is watching it or asking it.
 flip: Nodes are never given back, so a full store stays full and what catches that can do little. A full area while a fault is being handled still ends the process.
 limit: Witnessed by ground/full-is-a-fault.ck. Frames grew by a word to hold the mark for values.
-at: 2026-11-26
-
-n: 5.14.57
-name: code-is-a-faster-form-of-the-binding
-kind: decision
-is: Entry 112, fast, gives the newest binding of an entry a code leaf as its faster form: tried first on integers wherever that binding runs, the recipe running when it declines. The binding stays where it is, so the other definitions of its layer see the code. It steps aside while something bound from outside sits on a bootstrap operation or on an entry the program defines. Observed on 2026-11-26: a definition of the same layer ran on the code; with a counter on add from outside every addition was seen, and without it the code ran again.
-status: inferred
-from: 5.14.26 5.14.49 5.17.1 5.14.19 7.21
-src: 2.30.7 2.30.6
-conf: mid
-why: Code bound above a recipe is unseen by everything bound before it, which is most of a program written as a layer of definitions. Code is not another meaning of the entry; it is the same meaning in another form, so it belongs with the binding it is a form of.
-flip: A form set on a binding is not undone by a fail. Watching from outside turns every faster form off, not only those that replaced what is watched.
-limit: Witnessed in ground/code-or-walker.ck, turned red by two planted faults. Code still calls no recipe but its own.
-at: 2026-11-26
-
-n: 5.14.58
-name: definitions-compiled-together
-kind: observation
-is: Observed on 2026-11-26. The emitter compiles an entry with every definition it calls into one leaf behind a table of branches, so the leaf lies wherever it is put. A call in the last position is a jump when nothing has overflowed. Two definitions that call each other, and a loop calling a third, ended as on the walker; that loop ran thirty million rounds in 0.4 s. Beneath a faster form that declined, faster forms are not tried again: a recursion deeper than the machine stack was answered by the walker.
-status: observed
-src: 2.30.6 2.30.7
-limit: Numbers only: nothing that reads or builds a node, no backtracking. Before the rule about declining, such a recursion tried its code again at every step and did not end in two minutes. Two more faults planted in the emitter, a wrong slot and a jump that ignores an overflow, each turned ground/code-or-walker.ck red.
 at: 2026-11-26
