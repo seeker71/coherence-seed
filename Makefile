@@ -46,7 +46,7 @@ check: ck fb
 	  else echo "ground: path and outcome of each program that ends otherwise: $$got"; exit 1; fi
 	@./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$(./ck run ice/thaw.ck lens/all.ck ice/ice.ck < .ck-check.ice); rm -f .ck-check.ice; \
-	  if [ "$$b" = "node $$(cat ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \
+	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \
 	  else echo "ice: thawed '$$b'"; exit 1; fi
 	@if [ "$$(uname -sm)" = "Darwin arm64" ]; then \
 	  cp ck .ck-hardened && codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements .ck-hardened 2>/dev/null && \
