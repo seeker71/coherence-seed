@@ -506,14 +506,14 @@ static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && n
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
-/* Call code and take its answer: k 0 a number, k 1 yes or no, k 2 the node whose handle v is,
+/* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
 static int landed(void *fn, const int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
   Ret r = host.call(fn, arg);
   if (r.k == 3) return 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
-  else if (r.k == 2 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
+  else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
   return 1;
 }
 /* Run binding b: a recipe is entered on the bindings beneath b, a code leaf is called. With
@@ -547,7 +547,9 @@ static void parts(long long op, const H *a, uint32_t c) {
   if (op == READ || op == FILEOP) {       /* a leaf's bytes as a print to read, or as the path of a file */
     if (nd[x].comp) { fault("kind"); return; }
     uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
-    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
+    if (op == READ) {                     /* a print file ends in one line feed, which is not part of the print */
+      if (nd[x].n && s[nd[x].n - 1] == '\n') s[nd[x].n - 1] = 0;
+      if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
     else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
       if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(1), text + ntext, (uint32_t)got, &why); }
     ntext = m; return;

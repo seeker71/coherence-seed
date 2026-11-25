@@ -3,9 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 50 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 51 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
-what runs, 76 to 80 are what the bootstrap does for itself, and 81 is the walker's step. It does
+what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, and 82 is
+the first operation that exists only in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
 needs them.
 
@@ -173,7 +174,7 @@ like any other.
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 76 | read | t | the node whose canonical print is the bytes of leaf t; a refused print answers nothing with the refusal's word |
+| 76 | read | t | the node whose canonical print is the bytes of leaf t, with or without the one line feed a print file ends in; a refused print answers nothing with the refusal's word |
 | 77 | print | x | a text leaf holding x's canonical print |
 | 78 | id | x | a bytes leaf holding x's content id |
 | 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |
@@ -210,6 +211,23 @@ word "form", and a step of eleven instructions laid over it reads each node's re
 region, answers the leaves itself and declines the rest to the step beneath. `form/step.traced.ck`
 and `form/step.leaf.aarch64.ck` are the two as bindings for `ck run`.
 
+## Entry 82: compile, which exists only in form
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 82 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
+
+The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
+in form: one pass over the recipe's body, each node's instructions gathered as bytes by `all` and
+packed into one leaf under entry 52. A node's result is kept in a register chosen by its depth, x9
+to x15; a sticky register collects overflow, so the leaf answers out of range as the hand-written
+ones do. It knows five kinds of node: an `int` leaf from 0 to 65,535, `arg`, `add`, `sub` and
+`mul`. For any other node it emits a byte that `pack` refuses, so a recipe is compiled whole or
+not at all, and what is not compiled stays on the walker.
+
+`ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recipe on the walker,
+compiles it, runs it again on the emitted leaf, and asks for a recipe the emitter does not know.
+
 ## Fail, choice and cut
 
 The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
@@ -238,7 +256,7 @@ language's. An argument that is nothing answers nothing. An argument of another 
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
 integers in x0 to x5 and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
-unless x0 is zero), 2 the handle of a node in the region, 3 nothing at all: the code declines
+unless x0 is zero), 4 the handle of a node in the region, 3 nothing at all: the code declines
 and what lies beneath its binding runs. Anything else is no answer, which is nothing with the
 reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
 copies it once into the process's code region and calls it; code that declines there answers
@@ -267,8 +285,13 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   no operation on the bits of a number.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
-  The one step in machine code is written by hand and takes only the leaves; nothing compiles a
-  node yet.
+  The one step in machine code is written by hand and takes only the leaves.
+- The emitter compiles arithmetic over arguments and nothing else: no call, no control, no `eq` or
+  `lt`, no negative or large literal, and an expression nested deeper than seven registers is not
+  compiled. A program asks for it; nothing offers a recipe by how often it runs. Compiled code
+  differs from the walker at the edges: an overflow inside a larger expression has the reason
+  `range` where the walker says `nothing-in`, an argument that is nothing is a fault, and an
+  argument the caller did not pass reads as zero.
 - What is not an operation has no binding yet: the store, freeze and thaw and the other host
   functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have

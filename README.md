@@ -68,6 +68,9 @@ operations written as nodes, and a running program can put any of them, or a new
 
 `ground/on-form.ck` and `ground/on-code.ck` do it from inside a program, with `bind`.
 
+`ground/compiles-a-recipe.ck` loads an emitter written in form (`form/compile.aarch64.ck`), has it
+write machine code for a recipe, and runs the recipe on that code.
+
 The walker's step is replaced the same way. This marks every node the program evaluates:
 
 ```bash
