@@ -8,14 +8,14 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 923 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 925 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 37 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, reading, printing, files and the clock, and the step itself |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
 | Programs as nodes | [`ground/`](ground) | 31 programs that witness the above |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,333 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,334 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -36,19 +36,21 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   times one workload on two implementations of `add`, 36 ms in form and 15 ms as machine code,
   and binds the faster.
 - The walker's step is replaced while a program runs. A step in form marks every node and hands
-  it on: 17 marks for the 17 distinct nodes of the small recursion, the same answer, and a fail
-  takes the marking away. A step of eleven machine instructions reads each node's record in the
-  region, answers the leaves and declines the rest to the step beneath it. The long recursion
-  takes 0.80 s on the walker alone, 1.39 s under that code step and 8.6 s under the marking step.
+  it on: 17 marks for the 17 distinct nodes of the small recursion, and the same answer. A step
+  that reads every 2 as 3 changes the answer inside the recipes a program calls, and a fail takes
+  it away. A step of ten machine instructions reads each node's record in the region, answers the
+  leaves and declines the rest to the step beneath it. The long recursion takes 0.75 s on the
+  walker alone, 1.29 s under that code step and 8.1 s under the marking step.
   A `cut` reaches the program that used an implementation from inside a helper recipe.
 - An emitter written in form compiles a recipe and binds it to the code. For the recursion it
-  writes one leaf of 52 instructions; on it the long recursion answers the same in 0.02 s and
-  5,952 walker steps, loading and compiling included, where the walker takes 0.75 s and 158.6
-  million. Factorial, overflow and an overflow inside a condition answer as on the walker. A
-  recipe it does not know stays on the walker.
+  writes one leaf of 61 instructions; on it the long recursion answers the same in 0.02 s and
+  6,123 walker steps, loading and compiling included, where the walker takes 0.75 s and 158.6
+  million. Factorial, overflow and an overflow inside a condition answer as on the walker, and
+  so does a recursion a million deep: the code finds the stack's end in the region, declines, and
+  the walker runs the call. A recipe it does not know stays on the walker.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,155 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,156 claims, none of them reviewed by a second reader.
 
 ## Not there
 
@@ -68,8 +70,8 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
 - **Cells and the journal**, recipes that name each other, threads, symbol lookup.
 - **Bounds that give way.** The region's areas have fixed capacities; a wrong recursion runs until
-  one is full. Emitted code recursing a million deep ends the process at the stack's guard page,
-  where the walker answers.
+  one is full. Emitted code that runs out of machine stack declines and the walker runs the
+  call, so the work is done twice.
 
 ## Guidance
 

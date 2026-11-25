@@ -247,7 +247,7 @@ at: 2026-11-25
 n: 5.14.24
 name: the-step-is-an-entry
 kind: decision
-is: Evaluating one node is the walker's step, and the step is entry 81. Used, it runs a node a program holds. Bound, its implementation is given every node about to be evaluated, leaves and data included: a lazy or a recipe gets the node, and code gets the region's address, the node's handle and its activation. The newest binding that applies to a node runs it, its blueprint's or the step's; base, or code that declines, hands the node to what lies beneath. A tracing, a compiling or a remote evaluator is then one more implementation.
+is: Evaluating one node is the walker's step, and the step is entry 81. Used, it runs a node a program holds. Bound, its implementation is given every node about to be evaluated, leaves and data included: a lazy or a recipe gets the node, and code gets the node's handle and its activation. The newest binding that applies to a node runs it, its blueprint's or the step's; base, or code that declines, hands the node to what lies beneath. A tracing, a compiling or a remote evaluator is then one more implementation.
 status: inferred
 from: 5.14.19 5.14.20 7.13 7.21 5.9.6
 src: 2.30.7 2.30.6
@@ -259,7 +259,7 @@ at: 2026-11-25
 n: 5.14.25
 name: the-step-in-form-and-in-machine-code
 kind: observation
-is: Observed on 2026-11-25. A step in form that marks each node and hands it on left 17 marks in the region for the 17 distinct nodes the small recursion evaluates, and the answer was the same; inside an option, a fail took it away. A step of eleven hand-written AArch64 instructions read each node's record in the region, answered the leaves and declined the rest; laid over a form step that turns every leaf into a word, the program still answered 55. The long recursion took 0.80 s on the walker alone, 1.39 s under the code step and 8.6 s under the marking step.
+is: Observed on 2026-11-25. A marking step in form left 17 marks for the 17 distinct nodes the small recursion evaluates, and the answer was the same. A step that reads every 2 as 3 changed the recursion's answer from 55 to 32, and a fail took it away. A step of ten hand-written AArch64 instructions read each node's record in the region, answered the leaves and declined the rest; over a form step that turns every leaf into a word, the program still answered 55. The long recursion took 0.75 s on the walker alone, 1.29 s under the code step and 8.1 s under the marking step, two runs each.
 status: observed
 src: 2.30.7 2.30.6 2.30.10
 limit: The marks were counted by hand from the region's node count with and without the step. The code step compiles nothing: it is a socket shown to hold.
@@ -280,9 +280,21 @@ at: 2026-11-25
 n: 5.14.27
 name: a-recipe-runs-on-code-the-emitter-wrote
 kind: observation
-is: Observed on 2026-11-25. For the recursion of ground/recursion.ck the emitter wrote a leaf of 52 instructions. On it the long recursion answered 2178309 in 0.02 s and 5,952 walker steps, loading and compiling included, where the walker alone takes 0.75 s and 158.6 million. A million calls of a*a + b*3 - 7 took 0.23 s compiled and 0.53 s on the walker. Factorial, an overflow, and an overflow inside a condition answered as on the walker in nine trials; a recipe that answers yes or no got the answer no and stayed on the walker.
+is: Observed on 2026-11-25. For the recursion of ground/recursion.ck the emitter wrote a leaf of 61 instructions. On it the long recursion answered 2178309 in 0.02 s and 6,123 walker steps, loading and compiling included, where the walker alone takes 0.75 s and 158.6 million. A million calls of a*a + b*3 - 7 took 0.23 s compiled and 0.53 s on the walker. Factorial, an overflow, and an overflow inside a condition answered as on the walker in nine trials; a recipe that answers yes or no got the answer no and stayed on the walker.
 status: observed
 src: 2.30.7 2.30.6 2.30.10
-limit: Three recipes, one machine, trials by hand. Compiled code differs at the edges: a nested overflow says range where the walker says nothing-in, an argument that is nothing is a fault, and a missing argument reads as zero. A recursion a million deep answers on the walker and ends the process on emitted code (signal 10 at the stack's guard page); 100,000 deep answers.
+limit: Three recipes, one machine, trials by hand. Compiled code differs at the edges: a nested overflow says range where the walker says nothing-in, an argument that is nothing is a fault, and a missing argument reads as zero.
+at: 2026-11-25
+
+n: 5.14.28
+name: code-out-of-stack-declines
+kind: decision
+is: Every call of code carries the region's address in its seventh register. Emitted code reads from the region where the machine stack ends before it takes a frame; with no room it declines, the calls above it unwind carrying the decline, and the walker runs the whole call on the bindings beneath that code. Observed on 2026-11-25: a recursion a million deep answered 1000000 on emitted code in 0.15 s, 0.13 s on the walker alone; before the check it ended the process with signal 10. A decline raised inside a condition reached the top in a trial 200,000 deep.
+status: inferred
+from: 5.14.26 5.14.19 5.14.20 5.7.6
+src: 2.30.7 2.30.6
+conf: mid
+why: A bound of the machine should cost time, not change an answer or end the process. Declining a whole call is the hand-back to the walker that needs nothing new: the walker already runs what a binding declines.
+flip: Code that goes on computing while it unwinds wastes work in a branching recursion; a jump straight to the leaf's end would not.
 at: 2026-11-25
 

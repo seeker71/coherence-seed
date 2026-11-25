@@ -92,7 +92,7 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
   close(fd); return r < 0 ? -1 : n;
 }
 static Ret h_call(void *fn, const int64_t *a) {
-  return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5]);
+  return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
 }
 static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock };
 
@@ -508,8 +508,9 @@ static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
-static int landed(void *fn, const int64_t *arg) {
+static int landed(void *fn, int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
+  arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
   Ret r = host.call(fn, arg);
   if (r.k == 3) return 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
@@ -518,10 +519,10 @@ static int landed(void *fn, const int64_t *arg) {
 }
 /* Run binding b: a recipe is entered on the bindings beneath b, a code leaf is called. With
  * node nothing they get values already in hand, code as integers. Otherwise they get the node
- * itself, unevaluated: a lazy keeps the cut scope, code gets the region's address, the node's
- * handle and the activation it stands in. Answers 0 when code declined. */
+ * itself, unevaluated: a lazy keeps the cut scope, code gets the node's handle and the
+ * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
-  H impl = bd[b-1].impl, t[9]; int64_t arg[6] = {0};
+  H impl = bd[b-1].impl, t[9]; int64_t arg[7] = {0};
   if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, b - 1);          /* is bound to runs it, given the leaf and the values */
     if (!r || !nd[bd[r-1].impl].comp) { fault("kind"); return 1; }
@@ -531,7 +532,7 @@ static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
     W->env = enter(impl, a, c, b - 1, from, W->cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
-  if (node) { arg[0] = (int64_t)(intptr_t)fb; arg[1] = node; arg[2] = from; }
+  if (node) { arg[0] = node; arg[1] = from; }
   else for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) { fault("kind"); return 1; }
   if (!landed(birth(impl), arg)) return 0;
   W->mode = M_RET; return 1;
@@ -687,13 +688,14 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         W->x = a[0]; W->mode = M_EVAL; break;
       }
       if (op == CALL) {
-        for (lim = f.aux; nbind && (b = bound(a[0], 0, lim)) && !apply(b, a + 1, c - 1, f.env, 0); lim = b - 1, b = 0) ;
+        uint32_t on = act[f.env].lim;     /* a call its own code declined runs wholly on what lies beneath that code */
+        for (lim = f.aux; nbind && (b = bound(a[0], 0, lim)) && !apply(b, a + 1, c - 1, f.env, 0); lim = b - 1, b = 0) on = b - 1;
         if (b) break;
         if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
-        W->env = enter(a[0], a + 1, c - 1, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
+        W->env = enter(a[0], a + 1, c - 1, on, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
-        int64_t arg[6] = {0};
+        int64_t arg[7] = {0};
         if (c > 7 || !a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE)) { fault("kind"); break; }
         for (uint32_t j = 1; j < c; j++) if (!geti(a[j], &arg[j-1])) fault("kind");
         if (W->mode == M_FAULT) break;

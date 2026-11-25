@@ -128,6 +128,7 @@ have.
   (entry 75, shaped like a recipe) is given the node itself, unevaluated, and so can stand for a
   control operation. A code leaf is called with the answers as integers; it may decline, and
   then what lies beneath it runs, so code can take the cases it is good at and leave the rest. A
+  recipe's call that its code declined runs wholly on the bindings beneath that code. A
   leaf of any other blueprint is run by whatever that blueprint is bound to, which is how a new
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
@@ -200,16 +201,18 @@ that compiles, or that runs elsewhere is then one more implementation in the sam
 - **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
   lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
   children are evaluated as the user sees them, so the step meets each of them in turn.
-- **A code leaf gets the region's address in x0, the node's handle in x1 and the number of the
-  activation it stands in in x2**, and reads what it needs from the region
+- **A code leaf gets the node's handle in x0 and the number of the activation it stands in in
+  x1**, and reads what it needs from the region, whose address every call of code carries in x6
   (`spec/framebuffer.md`). It answers as any code does, or declines.
 - **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.
 
-`ground/traced-steps.ck` puts a mark on every step of a program and takes the marking away again;
-the answers are the same. In `ground/step-in-code.ck` a step in form makes every leaf answer the
-word "form", and a step of eleven instructions laid over it reads each node's record in the
-region, answers the leaves itself and declines the rest to the step beneath. `form/step.traced.ck`
-and `form/step.leaf.aarch64.ck` are the two as bindings for `ck run`.
+In `ground/step-in-form.ck` a step reads every 2 as 3, inside the recipes the program calls too,
+so the recursion answers 32; a fail takes the step away and it answers 55 again. In
+`ground/step-in-code.ck` a step in form makes every leaf answer the
+word "form", and a step of ten instructions laid over it reads each node's record in the
+region, answers the leaves itself and declines the rest to the step beneath.
+`form/step.traced.ck`, which leaves a mark for every node evaluated and changes no answer, and
+`form/step.leaf.aarch64.ck` are bindings for `ck run`.
 
 ## Entry 82: compile, which exists only in form
 
@@ -229,9 +232,11 @@ packed into one leaf under entry 52. It knows seven shapes of node:
 - a call of `self`, as a machine call of the leaf's own first instruction.
 
 The leaf keeps its arguments and the registers it uses in a frame on the machine stack, and a
-node's result in a register chosen by its depth, x19 to x25. For any other node the emitter emits
-a byte that `pack` refuses, so a recipe is compiled whole or not at all, and what is not compiled
-stays on the walker.
+node's result in a register chosen by its depth, x19 to x25. Before it takes a frame it reads
+from the region where the stack ends. With no room left it declines, the calls above it unwind,
+and the walker runs the whole call instead: a recursion too deep for the machine stack is slower,
+not different. For any other node the emitter emits a byte that `pack` refuses, so a recipe is
+compiled whole or not at all, and what is not compiled stays on the walker.
 
 `ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recursion on the walker,
 compiles it, runs a much longer one on the emitted leaf, and asks for a recipe the emitter does
@@ -264,7 +269,7 @@ language's. An argument that is nothing answers nothing. An argument of another 
 ## Native code
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
-integers in x0 to x5 and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
+integers in x0 to x5, finds the region's address in x6, and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
 unless x0 is zero), 4 the handle of a node in the region, 3 nothing at all: the code declines
 and what lies beneath its binding runs. Anything else is no answer, which is nothing with the
 reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
@@ -302,9 +307,9 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   differs from the walker at the edges: an overflow inside a larger expression has the reason
   `range` where the walker says `nothing-in`, an argument that is nothing is a fault, and an argument
   the caller did not pass reads as zero.
-- Emitted code keeps its frames on the machine stack, 144 bytes a call. A recursion 100,000 deep
-  answers; one a million deep answers on the walker and ends the process on emitted code, with
-  no reason given.
+- Emitted code that runs out of machine stack does the work twice: once until it declines, then
+  on the walker. It goes on computing while it unwinds, so a recursion that branches can spend
+  long on answers it will discard.
 - What is not an operation has no binding yet: the store, freeze and thaw and the other host
   functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
