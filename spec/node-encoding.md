@@ -63,8 +63,8 @@ can change, and a new entry can be named, without changing any id. The names of 
 | 15, 17 to 31 | (kept) | refused in version 1 |
 | 32 and above | (unnamed) | any leaf or any composite |
 
-Entries 32 and above are where the core operations will be named. Naming one adds a lens row and
-no rule, so no node written under version 1 becomes malformed.
+Entries 32 and above are where the core operations are named (`spec/core-operations.md`). Naming
+one adds a lens row and no rule, so no node written under version 1 becomes malformed.
 
 A node whose blueprint is not a catalogue entry is any leaf or any composite.
 
@@ -177,13 +177,13 @@ Made here, not given by the guide or measured. Each can be reopened; changing an
 
 ## Limits
 
-- One reader holds the vectors: the bootstrap's, by the hand that wrote this page. The ids in the
-  vectors were checked against the system's `shasum`.
-- A second reader is owed: one written from this page alone, in the grammar, kept as nodes (graph
-  nodes 7.2 and 7.13). One rule, the shortest form of a `nat`, runs as nodes in
-  `ground/nat-rule.ck`; a hand that had read the bootstrap wrote it, so it shows that a rule can
-  run as nodes and is no part of the second reader. A reader's rules and its print need nothing
-  more than the walker has. The content id as section 3 writes it does: SHA-256 works on the bits
-  of numbers, and the walker has no such operation.
+- Two readers of the print hold the vectors: the bootstrap's, and one written in form and kept
+  as nodes, `form/read.ck`, with its printer `form/print.ck`. Bound in place of the bootstrap's
+  they run every program here. Both are by the hand that wrote this page. The ids in the vectors
+  were checked against the system's `shasum`.
+- A second reader is still owed: one written from this page alone by another hand (graph nodes
+  7.2 and 7.13). The reader in form checks every leaf rule itself, and a node is then made by
+  the bootstrap's `pack` or `join`. The reader of bytes, section 2, is not written in form, and
+  neither is the content id: SHA-256 works on the bits of numbers, and the walker has no such
+  operation.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).
-- The core operations are not named. That belongs to stage 2, with the walker's laws.

@@ -559,3 +559,12 @@ why: 5.4.8 names buffering until the commit as the way an irreversible effect ma
 flip: The rule is absolute, no choice open at all, and not relative to the choices open when it was held back; under an all or an outcome a held call is never made. A held call cannot give its answer to the search.
 limit: Witnessed by ground/held-back.ck, run in the open by make check and turned red by two planted faults. Question 6.1.15 stays the guide's: this builds one of its three answers beside the refusal.
 at: 2026-11-26
+
+n: 5.14.51
+name: reading-and-printing-in-form
+kind: observation
+is: Observed on 2026-11-26. form/read.ck and form/print.ck are entries 76 and 77 written in form from the page of the encoding: the reader checks each leaf's bytes itself and names the first rule broken, and both keep their numbering in notes. Bound in place of the bootstrap's own, they hold the 142 vectors, the lens shows and reads all 83 files of nodes through them, and every ground program ends as before. A fault planted in each was reported by the vectors. Entry 104, nothing, lets the reader refuse as the bootstrap's does: an answer of nothing with the rule's word as its reason.
+status: observed
+src: 2.30.3 2.30.6 2.30.7
+limit: One hand wrote the page, the bootstrap's reader and this one, so it is no second reader in the sense of 7.2. Nodes are still made by the bootstrap's pack and join, the id is the bootstrap's SHA-256, and the bytes' reader, decode, is not written in form. Running the ground programs on it found an older fault of the walker: step evaluated its node in the activation of whatever computed it (ground/step-stands-here.ck).
+at: 2026-11-26

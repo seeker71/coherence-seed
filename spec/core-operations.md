@@ -5,15 +5,16 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 73 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 74 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
-outside the run, 102 says what runs an entry and 103 holds a call back until a search has
-settled. 128 is the first operation that exists only in form: entries below 128 are the
-bootstrap's to name, and from 128 up they are named by modules written in form.
+outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
+and 104 answers nothing with a reason. 128 is the first operation that exists only in form:
+entries below 128 are the bootstrap's to name, and from 128 up they are named by modules written
+in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -199,6 +200,8 @@ have.
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
   A `lazy` bound while a node's children are already being evaluated leaves that node to what
   lies beneath it: it takes nodes, and there are only answers (`ground/bound-in-flight.ck`).
+- **`(step x)`** evaluates the node x where the step stands, with that place's arguments,
+  whoever computed x (`ground/step-stands-here.ck`).
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
   implementation stands, with its arguments and in its cut scope, from however deep inside the
   implementation they are used. The user is whoever stands at the node a `lazy` or a step was
@@ -235,6 +238,14 @@ Each file under `form/` is one `bind` node.
 a number is negative when `(count (byte d last))` is 2. Each code version is one leaf bound
 directly: it computes, and says in its second result whether the answer is a number, a yes or no,
 or out of range.
+
+`form/read.ck` and `form/print.ck` are entries 76 and 77 in form: the reader and the printer of
+the canonical print, written from `spec/node-encoding.md`. The reader goes through the text
+once, numbers each node it opens, checks each leaf's bytes itself and names the first rule
+broken; the printer numbers what it opens and writes `^k` for what it has closed. Both keep
+their numbering in notes. The 142 vectors hold with them bound, the lens shows and reads every
+file here through them, and every ground program ends as it does on the bootstrap's own
+(`ground/read-and-print-in-form.ck`).
 
 Every operation can be replaced; the others are not yet written in form. `ground/` shows the
 kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked on every call and
@@ -480,6 +491,13 @@ the file holds the one line of the try that held. A line held back before a faul
 a direct `host` inside the search is refused, and a line still held when the program ends is
 written before its outcome. It runs in the open, as a line of `make check`, since the checker's
 own `outcome` would end by failing over it.
+
+## Entry 104: nothing, with its reason
+
+`(nothing r)` answers nothing, and r is the reason beside it: what an operation of the bootstrap
+does when it has no answer, said by a program. It is not a fail and not a fault: the caller gets
+nothing, and `outcome` shows `(list "nothing" r)`. The reader written in form refuses a print
+this way, with the same word the bootstrap's reader gives.
 
 ## Entry 128: compile, which exists only in form
 

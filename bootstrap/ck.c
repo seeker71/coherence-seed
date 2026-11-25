@@ -817,7 +817,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp); int64_t m, n, r = 0;
       uint32_t b = 0, lim = f.aux;        /* code that declines leaves the values to what lies beneath it. So does a */
-      W->cut = f.cut;                     /* lazy bound after this node began: it takes nodes, and here are answers */
+      W->cut = f.cut; W->env = f.env;     /* lazy bound after this node began: it takes nodes, and here are answers */
       while ((nbind || nout) && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && (is_lazy(B(b)->impl) || !apply(b, lim, a, c, f.env, 0))) { lim = under(b, lim); b = 0; }
       if (b) break;
       if (op == UP || op == BASE || op == STEP) {       /* a node in hand is evaluated: by step where this node */
@@ -913,6 +913,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (op == AT) { W->v = (H)o; break; }
         uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
         W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
+      }
+      if (op == NOTHING) {                /* an answer of nothing, and the reason beside it */
+        if (c != 1) { fault("arity"); break; }
+        W->v = 0; W->reason = a[0] ? a[0] : txt("nothing-in"); break;
       }
       if (op == BOUND) {                  /* what runs an entry or a recipe, as the top of the program sees it: its newest */
         if (c != 1) { fault("arity"); break; }      /* binding as a node, the entry, the implementation and whether that runs */
