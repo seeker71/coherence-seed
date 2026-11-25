@@ -457,8 +457,10 @@ binding stays when the option that called it fails.
 | 128 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
-in form: one pass over the recipe's body, each node's instructions gathered as bytes by `all` and
-packed into one leaf under entry 52. It knows seven shapes of node:
+in form: a layer of definitions, one for each instruction it uses, which answers the
+instruction's word as a number, and one for the shapes of node it knows. It makes one pass over
+the recipe's body, each node's instructions gathered as bytes by `all` and packed into one leaf
+under entry 52. It knows seven shapes of node:
 
 - an `int` leaf from 0 to 65,535, and `arg`;
 - `add`, `sub` and `mul`, with overflow collected in one register;

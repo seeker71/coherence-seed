@@ -19,6 +19,7 @@ node = "(" node { space node } ")"        a composite: its blueprint, then its c
      | "[" node [ space hex ] "]"         a leaf of any blueprint, its bytes in hex
      | '"' bytes '"'                      a text leaf; \" is a quote, \\ a backslash, \n a line end
      | [ "-" ] digits                     an int leaf
+     | "0x" hex                           an int leaf, written in hexadecimal
      | digits "n"                         a nat leaf
      | "$" digits                         an argument by its number: $0 is (arg 0n)
      | name                               an argument by its name
@@ -33,8 +34,8 @@ space = one or more spaces, tabs or line ends
 one node; nothing marks sharing, and nothing needs to.
 
 Reading takes any of these forms. Showing chooses one for each node: the word when the entry has
-one and `#N` when it has none, the number for an `int` of at most eight bytes and a `nat` of at
-most seven, the name of an argument that has one and `$k` otherwise, braces for a recipe, the
+one and `#N` when it has none, the number for an `int` of at most eight bytes, in hexadecimal from 2 to the 28th up, and for
+a `nat` of at most seven, the name of an argument that has one and `$k` otherwise, braces for a recipe, the
 quoted form for a text whose only control byte is the line end, and the bracket form for every
 other leaf. What fits in a hundred columns is shown on one line. So showing is total: every node
 has a showing, and reading it gives back that node.
