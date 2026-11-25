@@ -32,7 +32,7 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 853 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 97 files of nodes here and names none that differs, in 0.8 s. Fourteen malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 988 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 97 files of nodes here and names none that differs, in 0.8 s. Fourteen malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
@@ -88,4 +88,29 @@ conf: mid
 why: 5.3.5 asks for lambdas. Without this an inner recipe had to be passed everything by hand, or the outer text repeated.
 flip: All outer arguments are closed over, not only those used. The inner text is read twice when it turns out to use none.
 limit: Every file here reads back to itself with it, in one process and across two.
+at: 2026-11-26
+
+n: 5.15.8
+name: a-shape-is-an-entry-and-its-constructor
+kind: decision
+is: A shape is an entry that is the blueprint of its instances, bound to a recipe that joins its arguments under it; the names of that recipe's arguments are the names of the shape's parts. A name may say the shape of what it names (mine:emit.row), and then mine.ints is read as the child at that part's place and shown back so. The part is found when the text is read: the stored node holds a number, the running program pays nothing, and the name with its shape lies beside the node like any other name.
+status: inferred
+from: 5.1.1 5.1.3 5.2.4 5.15.5 5.5.3
+src: 2.30.14 2.30.15
+conf: mid
+why: 5.1.1 allows a node nothing but a blueprint and children, so a record is a node under its shape and a part is a child. What was missing was only the name of the part, and names already lie beside nodes.
+flip: Nothing checks that a value has the shape its name says. A part is named only from a name, not from an expression.
+limit: The shape must have been read before its parts are named, in the same reading.
+at: 2026-11-26
+
+n: 5.15.9
+name: an-if-of-several-conditions
+kind: decision
+is: (if c a d b e) is (if c a (if d b e)), for any number of conditions. Reading nests, showing writes an if whose last part is an if in a row, with each condition above what it gives. No node changes: every stored definition that was a ladder of ifs is shown flat.
+status: inferred
+from: 5.3.5 5.15.4
+src: 2.30.14 2.30.15
+conf: mid
+why: The emitter's largest definition was shown 80 columns deep. Its cases are alternatives of one rank, and the text should say so.
+flip: An if written out nested is shown flat when read back.
 at: 2026-11-26

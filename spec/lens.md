@@ -16,6 +16,7 @@ core the walker runs, and back.
 node = "(" node { space node } ")"        a composite: its blueprint, then its children
      | "{" { name } "|" node "}"          a recipe, with a name for each of its arguments
      | "(" "let" { bind node } node ")"   parts given a name, then the body that uses them
+     | "(" "if" { node node } node ")"    conditions and what each gives, then what is left
      | "(" node sign node ")"             an operation of two, written between them: (a + b)
      | "[" node [ space hex ] "]"         a leaf of any blueprint, its bytes in hex
      | '"' bytes '"'                      a text leaf; \" is a quote, \\ a backslash, \n a line end
@@ -24,10 +25,11 @@ node = "(" node { space node } ")"        a composite: its blueprint, then its c
      | digits "n"                         a nat leaf
      | "$" digits                         an argument by its number: $0 is (arg 0n)
      | name                               an argument by its name
+     | name "." part                      a part of what a name of a known shape names: row.ints
      | "'" byte "'"                       the int of one byte: '(' is 40
      | "#" digits                         a catalogue entry by its number
      | word                               a catalogue entry by its word
-bind = name | "$" digits
+bind = name [ ":" word ] | "$" digits        a name, and the shape of what it names
 sign = "+" | "-" | "*" | "/" | "%" | "<" | "="     add sub mul div mod lt eq
 space = one or more spaces, tabs or line ends
 ```
@@ -79,6 +81,20 @@ the order the node holds them. A node is its first line alone: giving a name, or
 changes no id. Where a name cannot be read back as it stands, because it has become a word or
 would land on another number, the number is shown.
 
+## Shapes
+
+A shape is an entry that is the blueprint of its instances, and it needs nothing new in the
+core. `(bind emit.row {key body ints | (join emit.row (tuple key body ints))})` binds the entry
+to a recipe that joins its arguments under it. The lens takes that recipe's names for the names
+of the entry's parts.
+
+A name may say what shape it names: `{mine:emit.row | ..}` or `(let mine:emit.row (child rows
+k) ..)`. Then `mine.ints` is `(child mine 2)`: the part is found when the text is read, so
+reading a part by its name costs nothing when the program runs, and the stored node holds no
+names. Showing gives `mine.ints` back wherever a part of a name with a shape is read by a
+number that the shape has a name for. The shape is written into the name as it is stored
+beside the node (`mine:emit.row`), so the second line of the file carries it.
+
 ## Rows
 
 A row is two shapes with holes: the surface a person writes and the core it stands for.
@@ -86,7 +102,7 @@ A row is two shapes with holes: the surface a person writes and the core it stan
 
 | surface | core |
 | --- | --- |
-| `(if c a b)` | `(choice (seq (cut (need c)) a) b)` |
+| `(if c a b)` | `(choice (seq (cut (need c)) a) b)`; `(if c a d b e)` is `(if c a (if d b e))`, and so on for any number |
 | `(first x)` | `(choice (cut x))` |
 | `(when c x)` | `(seq (need c) x)` |
 | `(not x)` | `(eq x no)` |
@@ -111,7 +127,7 @@ a count of bytes from the start. `(add 1 (mull 2 3))` faults with
 `(list "unknown-word" (list 8 "mull"))`. The words are `unknown-word`, `unclosed`, `empty`,
 `odd-hex`, `too-large`, `number`, `char`, `unexpected`, `trailing`, `name` for a name that is a
 word, is written twice or cannot be one, `named` for the number of a place that has a name, `let`
-for a let with nothing to bind, `infix` for a sign between more than two, `row` for a row whose two shapes do not hold the same holes, and
+for a let with nothing to bind, `if` for an if of several conditions with nothing left at its end, `infix` for a sign between more than two, `row` for a row whose two shapes do not hold the same holes, and
 `refused` when the encoding refuses the node that was written.
 
 ## Using it
@@ -136,7 +152,7 @@ the text of the file that stores x.
 
 ## How it is known
 
-- The lens shows its own definition, through its own rows and with its own names, and reads that
+- The lens shows its own definition, 988 lines and 118 definitions, through its own rows and with its own names, and reads that
   text back to the file it is stored as, byte for byte, both lines. It was brought into being
   once by a substitution of numbers for words; since then its source is its own showing. Names
   were read by a second lens written in the first, and its own arguments were then named without
@@ -148,6 +164,9 @@ the text of the file that stores x.
 
 - It is not yet the surface of graph node 5.3.5. Every form is in brackets: a sign stands between
   two and no more, there is no precedence and no pattern over text.
+- A part is read by name only from a name, not from an expression, and only where the shape's
+  constructor was read before in the same reading. Nothing checks that what a name is given
+  has the shape it says.
 - A recipe closes over the outer names only where every outer argument has a name. In a recipe
   whose arguments have no names, or at the top of a program, the first name a let gives takes
   `$0`.

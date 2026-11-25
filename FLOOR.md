@@ -18,7 +18,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 57 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,389 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,391 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -94,7 +94,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **Writing**
 
-- **The lens reads its own definition**: 853 lines, shown and read back to the file it is, byte
+- **The lens reads its own definition**: 988 lines, shown and read back to the file it is, byte
   for byte, as is each of the 97 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
@@ -110,7 +110,7 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,207 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,209 claims, none reviewed by a second reader.
 
 ## Not there
 
