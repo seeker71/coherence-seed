@@ -435,14 +435,19 @@ the program's own bindings:
   takes the newest one for e away, and nothing brings it back.
 - **It runs on what lies beneath it**: the outside bindings made before it, and the program as
   the place that used it sees the program. So `base` inside it gives exactly what would have run
-  without it, at that layer.
+  without it, at that layer. Under `(outside (layer x))` the bindings x makes see each other, as
+  a layer's do.
+- **It acts from outside.** What an implementation bound from outside binds or releases, however
+  deep inside it, is bound and released outside too. So a whole module can be loaded from
+  outside and manage its own bindings there: the watcher and the emitter are, below.
 
 The limit an activation runs under holds both counts, the program's own bindings and the ones
 from outside, and whether what is bound under it is the program's own. At most 127 can be bound
 from outside at once; one more is a fault, `full`. `ground/from-outside.ck` holds a diagnostic
 that sees one use of `add` when the program binds it and both when it is bound from outside, a
 binding kept through a fail, a release, and two outside bindings of one entry with the newer
-running on the older.
+running on the older, a layer of two that call each other, and an implementation whose own
+binding stays when the option that called it fails.
 
 ## Entry 128: compile, which exists only in form
 

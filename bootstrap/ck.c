@@ -608,7 +608,9 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
   if (nd[impl].comp) {
     uint32_t up = node ? from : act[from].up, cut = node ? W->cut : act[from].cut;      /* given answers, it has no user */
     if (!node) last(up);                                                                /* of its own: its caller's */
-    W->env = enter(impl, a, c, b > OUT ? under(b, lim) : (lim & ~PM) | bd[b-1].sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
+    uint32_t sees = b > OUT ? (lim & PM) | out[b-OUT-1].sees << 24                         /* bound from outside, it acts from there */
+                            : (lim & OMOST << 24) | bd[b-1].sees | (act[from].lim & OWN);  /* the program's own acts as its user does */
+    W->env = enter(impl, a, c, sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
   if (node) { arg[0] = node; arg[1] = from; }
@@ -638,7 +640,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     if (!own) {                           /* bound from outside the run: seen at every limit, and no fail undoes it */
       if (nout == OMOST) { fault("full"); return; }
-      out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, 0 }; nout++; W->v = E(YES); return; }
+      out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout }; nout++; W->v = E(YES); return; }
     room(A_BINDINGS, (uint64_t)nbind + 1); room(A_BOUND_BY_NODE, (uint64_t)x + 1); if (N(A_BOUND_BY_NODE) <= x) N(A_BOUND_BY_NODE) = x + 1;
     bd[nbind] = (Binding){ E(BINDING), W->at, x, l, bykey[x], nbind }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
@@ -729,7 +731,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case OUTSIDE:                         /* x runs as if asked from outside the run: what it binds is seen by every */
       if (c != 1) { fault("arity"); break; }      /* layer of the program, and a fail does not take it away */
       W->env = again(W->env, 0); act[W->env].lim &= ~OWN; W->x = KID(x, 0); break;
-    case LAYER: if (c != 1) { fault("arity"); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, 0, W->k, nbind); W->x = KID(x, 0); break;
+    case LAYER: if (c != 1) { fault("arity"); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, nout, W->k, nbind); W->x = KID(x, 0); break;
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1); W->reason = 0;
@@ -774,7 +776,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       uint32_t j = (uint32_t)argn(KID(f.node, 0));
       W->env = again(f.env, j + 1); argp[act[W->env].off + j] = W->v;
       W->cut = f.cut; W->x = KID(f.node, 2); W->mode = M_EVAL; break; }
-    case F_LAYER: for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind; break;    /* made together, they see each other */
+    case F_LAYER:                         /* made together, they see each other */
+      for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind;
+      for (uint32_t i = f.vals; i < nout; i++) out[i].sees = nout;
+      break;
     case F_OUTCOME:
       cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
@@ -802,7 +807,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       }
       if (op == CALL) {
         uint32_t on = act[f.env].lim;     /* a call its own code declined runs wholly on what lies beneath that code */
-        for (lim = f.aux; (nbind || nout) && (b = bound(a[0], 0, lim)) && !apply(b, lim, a + 1, c - 1, f.env, 0); b = 0) on = lim = under(b, lim);
+        for (lim = f.aux; (nbind || nout) && (b = bound(a[0], 0, lim)) && !apply(b, lim, a + 1, c - 1, f.env, 0); b = 0) { lim = under(b, lim); on = (lim & ~OWN) | (on & OWN); }
         if (b) break;
         if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);

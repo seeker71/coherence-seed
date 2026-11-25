@@ -76,6 +76,10 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   does. The first such run answered wrongly, which is how a fault older than the asking was
   found: a lazy bound while an operation's arguments were being evaluated was handed their
   answers.
+- **A running program can be told to make itself faster.** Asked from a second process to load
+  the watcher and the emitter, a recursion that takes 14.3 s on the walker ended 0.3 s after
+  the asking, with the same answer. What a module bound from outside binds is outside too, so
+  the watcher manages its own bindings there.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back
   the activations nothing can return to: three million rounds of a recursion ended with 5
   activations in use where there had been three million.

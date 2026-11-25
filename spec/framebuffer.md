@@ -121,6 +121,16 @@ the program runs, and `(unbind add)` takes it off. The asker maps the region thr
 own `shm_open` and `mmap`, called by name, writes with `memcpy`, and waits by looking at the
 count once a millisecond.
 
+A request can load a module. Asked
+
+```
+(seq (step (read (file "form/compile.aarch64.ck"))) (step (read (file "form/heat.ck"))) (heat.watch))
+```
+
+a running program loads the emitter and the watcher from outside, and the watcher then compiles
+what runs hot. A recursion that takes 14.3 s on the walker, asked this one second after it
+began, ended at 1.3 s with the same answer.
+
 ## Frames, recording and replay
 
 A **frame** is a copy of the head page and of the used part of every area, taken by a second

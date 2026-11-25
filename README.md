@@ -78,6 +78,21 @@ the count, take the counter off again.
 printf '/ck.demo\n(held #1002)' | ./ck text region/ask.ck
 ```
 
+It can be told to make itself faster. Start a recursion that takes a quarter of a minute, and from
+a second terminal ask it to load the watcher and the emitter; it ends within a second.
+
+```bash
+printf '(call {n | (if (lt n 2) n (add (call (self) (sub n 1)) (call (self) (sub n 2))))} 38)' | ./ck text lens/to-nodes.ck lens/all.ck > slow.ck
+```
+
+```bash
+CK_FB=/ck.demo ./ck run slow.ck
+```
+
+```bash
+printf '/ck.demo\n(seq (step (read (file "form/compile.aarch64.ck"))) (step (read (file "form/heat.ck"))) (heat.watch))' | ./ck text region/ask.ck
+```
+
 ## Check it
 
 ```bash

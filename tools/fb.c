@@ -168,7 +168,7 @@ static void detail(void) {
     printf("choice point %u  next option %u of %s\n", i - 1, cp[i-1].i, str(cp[i-1].node, 100));
   const Binding *ob = at(A_OUTSIDE);
   for (uint32_t i = hd->a[A_OUTSIDE].n; i > 0; i--) if (ob[i-1].entry)          /* what was bound from outside the run */
-    printf("outside %u  %s is run by %s\n", i, str(ob[i-1].entry, 60), str(ob[i-1].impl, 100));
+    { printf("outside %u  %s ", i, str(ob[i-1].entry, 60)); printf("is run by %s\n", str(ob[i-1].impl, 100)); }
   for (uint32_t i = hd->a[A_BINDINGS].n, j = 0; i > 0 && j < 12; i--, j++) {      /* what runs, newest first */
     printf("binding %u  %s ", i, str(bd[i-1].entry, 60)); printf(bd[i-1].impl ? "is run by %s\n" : "is released%s\n", bd[i-1].impl ? str(bd[i-1].impl, 100) : ""); }
 }
