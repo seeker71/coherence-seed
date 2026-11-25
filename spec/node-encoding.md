@@ -177,13 +177,13 @@ Made here, not given by the guide or measured. Each can be reopened; changing an
 
 ## Limits
 
-- Two readers of the print hold the vectors: the bootstrap's, and one written in form and kept
-  as nodes, `form/read.ck`, with its printer `form/print.ck`. Bound in place of the bootstrap's
-  they run every program here. Both are by the hand that wrote this page. The ids in the vectors
-  were checked against the system's `shasum`.
+- Two readers hold the vectors: the bootstrap's, and one written in form and kept as nodes:
+  `form/read.ck` and `form/print.ck` for the print, `form/id.ck` for the canonical bytes and the
+  id, `form/decode.ck` for the bytes. Both are by the hand that wrote this page. The ids in the
+  vectors were checked against the system's `shasum`, and so was the SHA-256 written in form.
 - A second reader is still owed: one written from this page alone by another hand (graph nodes
-  7.2 and 7.13). The reader in form checks every leaf rule itself, and a node is then made by
-  the bootstrap's `pack` or `join`. The reader of bytes, section 2, is not written in form, and
-  neither is the content id: SHA-256 works on the bits of numbers, and the walker has no such
-  operation.
+  7.2 and 7.13). The reader in form checks every rule itself; a node is then made by the
+  bootstrap's `pack` or `join`, which is the store and not a reader.
+- The id in form is slow: about a tenth of a millisecond for each node on the walker, where the
+  bootstrap's takes far less. It holds the vectors; it is not what runs every day.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).

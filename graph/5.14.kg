@@ -599,3 +599,12 @@ status: observed
 src: 2.30.7 2.30.11 2.30.6
 limit: The recipe was one the emitter can compile and called itself by self, so its code is found wherever it is called. A recipe reached only as an entry's implementation is compiled where the entry is bound, which the run has to be asked for by name.
 at: 2026-11-26
+
+n: 5.14.55
+name: the-id-and-the-bytes-in-form
+kind: observation
+is: Observed on 2026-11-26. Entries 107 to 111 are and, or, exclusive or and two shifts on the 64 bits of an integer. With them SHA-256 is written in form; it gave the system's shasum for the empty text and for abc at its first run. form/id.ck is the canonical bytes and the id; form/decode.ck the reader of bytes, which holds every node whose id it has computed. With these and the reader and printer of the print bound in place of the bootstrap's, the 142 vectors hold. A fault planted in the hash and one in the reader of bytes each turned ground/encoding-in-form.ck red.
+status: observed
+src: 2.30.3 2.30.6 2.30.7
+limit: An id in form takes about a tenth of a millisecond a node on the walker; the lens's round trip is not run on it. Nodes are made by the bootstrap's store. The first run of the vectors failed four, all under entry 32: the reader asked whether a node was there with if, and the node no reads as no.
+at: 2026-11-26

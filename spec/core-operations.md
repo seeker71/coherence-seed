@@ -5,16 +5,16 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 76 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 81 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
-104 answers nothing with a reason, and 105 with 106 close a recipe over values. 128 is the first
-operation that exists only in form: entries below 128 are the bootstrap's to name, and from 128
-up they are named by modules written in form.
+104 answers nothing with a reason, 105 with 106 close a recipe over values, and 107 to 111 work
+on the bits of an integer. 128 is the first operation that exists only in form: entries below
+128 are the bootstrap's to name, and from 128 up they are named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -239,13 +239,16 @@ a number is negative when `(count (byte d last))` is 2. Each code version is one
 directly: it computes, and says in its second result whether the answer is a number, a yes or no,
 or out of range.
 
-`form/read.ck` and `form/print.ck` are entries 76 and 77 in form: the reader and the printer of
-the canonical print, written from `spec/node-encoding.md`. The reader goes through the text
-once, numbers each node it opens, checks each leaf's bytes itself and names the first rule
-broken; the printer numbers what it opens and writes `^k` for what it has closed. Both keep
-their numbering in notes. The 142 vectors hold with them bound, the lens shows and reads every
-file here through them, and every ground program ends as it does on the bootstrap's own
-(`ground/read-and-print-in-form.ck`).
+The whole of `spec/node-encoding.md` is written in form as well. `form/read.ck` and
+`form/print.ck` are entries 76 and 77, the reader and the printer of the canonical print: the
+reader goes through the text once, numbers each node it opens, checks each leaf's bytes itself
+and names the first rule broken; the printer numbers what it opens and writes `^k` for what it
+has closed. `form/id.ck` is entries 78 and 87: SHA-256 written over the bits of integers, the
+canonical bytes of a node, and the id as the one of the other, kept once computed.
+`form/decode.ck` is entry 88, the reader of bytes: it holds every node whose id it has computed
+and names the first rule a node's bytes break. With all five bound, the 142 vectors hold, ids
+among them; with the reader and the printer bound, the lens shows and reads every file here and
+every ground program ends as it does on the bootstrap's own (`ground/encoding-in-form.ck`).
 
 Every operation can be replaced; the others are not yet written in form. `ground/` shows the
 kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked on every call and
@@ -514,6 +517,16 @@ This is how a recipe written inside another sees what the outer one holds: the l
 over nine at once, calls itself through a closed node, hands one to another definition and to
 `recover`, and is refused a closing over what is no recipe.
 
+## Entries 107 to 111: the bits of an integer
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 107, 108, 109 | band, bor, bxor | a, b | and, or and exclusive or of the 64 bits of two integers |
+| 110, 111 | shl, shr | a, n | the bits of a moved n places up or down, zeros coming in; n from 0 to 63, otherwise nothing, `range` |
+
+They work on the two's-complement bits and never overflow: what is moved out is lost.
+SHA-256 in `form/id.ck` is written with them.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
@@ -578,7 +591,6 @@ is called sees it wherever the caller would.
 - The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.
 - An operation that evaluates its children first takes at most eight, so a call passes at most
   seven arguments.
-- There is no operation on the bits of a number.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.

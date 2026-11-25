@@ -977,6 +977,11 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
           cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), f.node, 3, f.node, mki(m + 1), f.env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter }; ncp++; }
         W->v = a[0]; break;
       }
+      if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
+        if (op >= SHL && (n < 0 || n > 63)) { W->v = 0; W->reason = txt("range"); break; }
+        uint64_t u = (uint64_t)m, w = (uint64_t)n;
+        W->v = mki((int64_t)(op == BAND ? u & w : op == BOR ? u | w : op == BXOR ? u ^ w : op == SHL ? u << w : u >> w)); break;
+      }
       if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
         if (!n) { W->v = 0; W->reason = txt("zero"); break; }
         if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); break; }
