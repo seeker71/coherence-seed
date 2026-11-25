@@ -3,7 +3,7 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 54 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 65 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
@@ -490,41 +490,6 @@ flip: Nodes a run made are still never given back, so the store is the bound a l
 limit: Witnessed by ground/loop-in-place.ck and ground/user-kept.ck, each turned red by a planted fault. One machine.
 at: 2026-11-26
 
-n: 5.14.45
-name: a-scope-above-the-program
-kind: decision
-is: Entry 101, outside, evaluates a node as if asked from outside the run: what it binds goes in a table of its own, above all of the program's bindings. Every layer of the program sees it, implementations bound earlier included; no fail undoes it; it runs on the outside bindings made before it and on the program as its user sees the program. An activation's limit holds both counts. Observed on 2026-11-26: a diagnostic on add saw one use when the program bound it and both, one of them inside an implementation, when bound from outside; it stayed through a fail and was released from outside.
-status: inferred
-from: 5.14.19 5.14.24 5.4.8 7.21 7.13
-src: 2.30.7 2.30.6 2.30.11
-conf: mid
-why: A program's binding is seen only by what stands above it, so a diagnostic made late misses everything inside what was bound before. Watching and swapping from outside need a scope that is no part of the run's history: not layered into it and not undone with it.
-flip: An outside binding is the one thing a fail does not put back, with notes. A search that binds from outside leaves that standing when it fails.
-limit: 127 at once. Bindings made together outside do not see each other as a layer's do. Witnessed by ground/from-outside.ck, turned red by three planted faults.
-at: 2026-11-26
-
-n: 5.14.46
-name: a-running-program-can-be-asked
-kind: decision
-is: A second process writes a node's print and its length in the region; between two steps the walker evaluates it as (outcome (outside x)), writes the outcome's print back and goes on where it was. So a request reads any cell and calls anything bound, what it binds is bound from outside the run, and nothing else it did stays. The asker is a program in form that maps the region through the host's own functions. Observed on 2026-11-26: it put a counter on every addition of the long recursion, read 21,787 and then 43,701, took it off, and the recursion answered 2178309.
-status: inferred
-from: 5.14.45 5.14.40 5.7.6 7.21 7.13
-src: 2.30.7 2.30.11 2.30.6
-conf: mid
-why: Diagnostics is reading the region; this is the one step past reading, and it needs nothing in the walker but a look at one count a step, since everything a run is lies in the region between two steps.
-flip: The asker waits by looking once a millisecond, where 5.4.11 asks for an event. Anything that can map the region can ask.
-limit: One asker at a time. Code that runs long without returning to the walker delays the answer. The first run of this flow answered wrongly and so found an older fault: a lazy bound while an operation's arguments were being evaluated was given their answers (ground/bound-in-flight.ck).
-at: 2026-11-26
-
-n: 5.14.47
-name: asked-to-make-itself-faster
-kind: observation
-is: Observed on 2026-11-26. A recursion that takes 14.3 s on the walker was asked by a second process, one second after it began, to load the emitter and the watcher and to start watching. It ended at 1.3 s with the same answer, 39088169. The request's bindings were made from outside: five of them, the emitter, the watcher's two definitions, the code for the recursion and the watcher's place on call. An implementation bound from outside acts from outside, so the watcher released and renewed its own place there, and bindings made together outside see each other.
-status: observed
-src: 2.30.7 2.30.11 2.30.6
-limit: One machine, one recursion over numbers, which is what the emitter can compile. Calls already begun on the walker finish on the walker; only calls made after the code is bound run it.
-at: 2026-11-26
-
 n: 5.14.48
 name: code-and-walker-are-held-equal-by-a-program
 kind: observation
@@ -580,24 +545,6 @@ conf: mid
 why: A recipe is a node and holds no values (5.1.1), so what an inner recipe needs from outside has to be given to it; a node that pairs the recipe with those values keeps both immutable and needs no new kind of activation.
 flip: Each closing makes a node that is never given back, so a closing inside a long loop fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
 limit: Witnessed by ground/closes-over.ck, turned red by two planted faults. At most forty arguments in all.
-at: 2026-11-26
-
-n: 5.14.53
-name: the-framebuffer-read-as-a-profiler
-kind: observation
-is: Observed on 2026-11-26. The lens showing its own source was looked at from a second process every millisecond and the node the walker was at was counted: 94 of 169 looks stood at the end of a small all. Ending an all, the walker went through everything gathered by every all open around it; it now goes through its own answers only. The showing took 0.28 s before and 0.09 s after. region/profile.ck, in form, does the looking and counting, by node and by the recipe that was running.
-status: observed
-src: 2.30.7 2.30.10 2.30.11
-limit: A frame is a sample; a node that takes little time and is met often is seen, one met rarely is not. One program, one machine.
-at: 2026-11-26
-
-n: 5.14.54
-name: what-is-hot-is-seen-from-outside
-kind: observation
-is: Observed on 2026-11-26. region/warm.ck, a program in form in a second process, asked a running recursion to load the emitter, looked at it three hundred times a millisecond apart, found it in one recipe every time, and asked it to compile that recipe. The run, which takes 14.3 s on the walker, ended at 1.3 s with the same answer. Nothing was put on the run's calls: the counting was done by the process that looked.
-status: observed
-src: 2.30.7 2.30.11 2.30.6
-limit: The recipe was one the emitter can compile and called itself by self, so its code is found wherever it is called. A recipe reached only as an entry's implementation is compiled where the entry is bound, which the run has to be asked for by name.
 at: 2026-11-26
 
 n: 5.14.55
