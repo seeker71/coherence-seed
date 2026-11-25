@@ -26,3 +26,12 @@ status: observed
 src: 2.30.16 2.30.7
 limit: The example is this repository's own; the thesis example 7.6 names was not at hand. One machine.
 at: 2026-11-25
+
+n: 5.16.3
+name: a-view-by-structure-and-a-template
+kind: observation
+is: Observed on 2026-11-26. A cell is seen through a shape it never named when it has that shape's slots and knows the methods it lists: through such a view only its slots are reached, a send finds the cell's own method, and a cell that lacks a slot is refused. A template is a recipe that answers a shape; called twice with one shape it answers one node. A shape's line and slots are composed once and kept. ground/fits-by-structure.ck holds these, and a fit that asks nothing of the slots turned it red.
+status: observed
+src: 2.30.16
+limit: The example is this repository's own. Attributes (5.5.6) are not built.
+at: 2026-11-26

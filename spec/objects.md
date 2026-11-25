@@ -25,6 +25,13 @@ definitions and no operation of the bootstrap. Design nodes it follows: 5.5.1, 5
 - **Super moves the view.** `(obj.super r parent name x)` names a parent of the view's shape and
   runs that parent's method with the view moved to where it is defined.
 - **Cast.** `(obj.as r s)` is the same cell seen through s, when s is in the cell's line.
+- **A view by structure.** `(obj.through r face)` is the same cell seen through a shape it never
+  named: it fits when it has every slot of face and knows every method face lists by name.
+  Through it only face's slots are reached; a send still finds the cell's own method. A cell
+  that does not fit is a fault, `no-fit`. So an interface can be written after the shapes that
+  fit it (5.5.3).
+- **A template is a recipe that answers a shape.** `{of | (obj.make ..)}` called twice with the
+  same shape answers one node, since a shape is its content; nothing else is needed (5.5.5).
 
 A method is a recipe of two arguments: `$0` the reference it runs on, `$1` what was sent.
 
@@ -45,14 +52,18 @@ Each of those was turned red by a fault planted in `objects/objects.ck` and take
 ancestor held twice, a super that keeps the caller's view, slots read past the view, a set no
 fail undoes, a guess between two parents.
 
+`ground/fits-by-structure.ck`: a cell of Named, seen through Labelled, which Named never named:
+its name is read and its describe answered, its id is refused through that view, a view through
+Sized, whose slot it lacks, is refused, and a template called twice answers one shape. A fit that
+asks nothing of the slots turned it red.
+
 ## Limits
 
 - The example is this repository's own. The thesis example the path names for stage 5 (graph node
   7.6) was not at hand.
-- A view is a shape of the cell's line. Views through an interface the shape conforms to by
-  structure (5.5.3) are not built, nor templates (5.5.5), nor attributes (5.5.6).
+- Attributes (5.5.6) are not built. A fit is remembered once found; a view is not kept apart
+  from the reference that carries it.
 - A method takes one thing sent, since a call cannot yet pass on a list of arguments.
 - The activation does not carry the reference; a method is handed it as its first argument.
-- A shape names its parents by holding them, so a text that builds a shape repeats or computes
-  its parents: the lens cannot yet name a part and use it twice.
-- Composing is done at each use and not once when the shape is made.
+- A shape's line and its slots are composed the first time they are asked for and kept, not
+  when the shape is made.

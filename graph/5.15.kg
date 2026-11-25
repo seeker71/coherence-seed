@@ -32,7 +32,7 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 853 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 85 files of nodes here and names none that differs, in 0.5 s. Fourteen malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 853 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 86 files of nodes here and names none that differs, in 0.5 s. Fourteen malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
