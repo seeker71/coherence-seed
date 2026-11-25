@@ -39,7 +39,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 - **Emitted code is the walker or faster, never different.** It answers a number or declines,
   and the walker runs what it declines. A program in form runs twenty-three recipes both ways,
   through overflows, a division by zero, the most negative number and tests with a nothing
-  inside, and holds the outcomes equal; five faults planted in the emitter each turned it red.
+  inside, and holds the outcomes equal; six faults planted in the emitter each turned it red.
   Its first version compared the walker with the walker and saw none of them: its helper was a
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with

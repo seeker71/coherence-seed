@@ -528,7 +528,7 @@ at: 2026-11-26
 n: 5.14.48
 name: code-and-walker-are-held-equal-by-a-program
 kind: observation
-is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-three recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Five faults planted in it each turned the program red.
+is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-three recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Six faults planted in it each turned the program red.
 status: observed
 src: 2.30.6 2.30.7
 limit: The program's first version saw none of the planted faults: its helper was a bound entry, which runs on the bindings beneath its own and so never saw the code. The numbers are 64-bit integers only. One machine.
@@ -537,7 +537,7 @@ at: 2026-11-26
 n: 5.14.49
 name: bound-says-what-runs-an-entry
 kind: decision
-is: Entry 102, bound, answers the newest implementation of an entry or a recipe as the top of the program sees it, or nothing. A program can read what is bound; the emitter takes an entry's recipe from it, so a definition written by its own name can be compiled where it stands.
+is: Entry 102, bound, answers the newest binding of an entry or a recipe as the top of the program sees it, as a node: the entry, its implementation, and whether that runs on its own binding. A program can read what is bound; the emitter takes an entry's recipe from it and compiles a call by the recipe's own name only where that name means the recipe itself, which is so for a binding made in a layer.
 status: inferred
 from: 5.14.19 5.14.26 7.13
 src: 2.30.7 2.30.6

@@ -453,10 +453,13 @@ binding stays when the option that called it fails.
 
 ## Entry 102: bound, what runs an entry
 
-`(bound e)` answers the implementation that runs e, an entry or a recipe: the newest one, as the
-top of the program sees it, wherever it is asked from. With none it answers nothing, `unbound`.
-It is how a program reads what it or another has bound: the emitter takes the recipe of an entry
-from it.
+`(bound e)` answers the binding that runs e, an entry or a recipe: the newest one, as the top of
+the program sees it, wherever it is asked from. With none it answers nothing, `unbound`. The
+answer is a node of entry 72, `(binding e i s)`: the entry, its implementation, and yes when the
+implementation runs on its own binding, as one made in a layer does, so that its own name inside
+it means itself. It is how a program reads what it or another has bound. The emitter takes an
+entry's recipe from it, and compiles a call of the recipe by its own name only when s is yes:
+outside a layer the name means what it meant before, and the code would not be the walker.
 
 ## Entry 128: compile, which exists only in form
 
@@ -496,8 +499,8 @@ register chosen by its depth, x19 to x25.
 `ground/code-or-walker.ck` runs twenty-three recipes on the walker and again after asking for
 their code, and holds the two outcomes equal: every shape above, the largest and the most
 negative numbers, a division by zero, tests with a nothing inside, and three the emitter must
-refuse. Its last line shows the walker's `add` is not used while an entry's code runs. Five
-faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+refuse. Its last lines show the walker's `add` unused while an entry's code runs, and an entry
+bound outside a layer left on the walker. Six faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 The code is bound as any implementation is: above what was bound before it, and unseen by
