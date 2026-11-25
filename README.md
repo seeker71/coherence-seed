@@ -70,6 +70,12 @@ or, from a program written in form, with every binding shown in the lens's words
 printf /ck.demo | ./ck text region/watch.ck
 ```
 
+and where a run that is still going spends its time, by looking at it once a millisecond:
+
+```bash
+printf /ck.demo | ./ck text region/profile.ck
+```
+
 A running program can also be asked. A second process hands it a node, written in the lens's
 words, and gets back how it ended, while the run goes on: put a counter on every addition, read
 the count, take the counter off again.

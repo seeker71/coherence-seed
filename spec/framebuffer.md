@@ -95,6 +95,21 @@ so the node is built again here from its record, its blueprint first, and what i
 node and not the number. The address of the mapping is the machine's `watch`, the one address
 kept in the region beside where code pages lie.
 
+## Where a run spends its time
+
+The walker's registers are in the region, so looking at them at intervals is a profile.
+`region/profile.ck`, written in form, looks at another process's region once a millisecond until
+it ends, at most two thousand times, and counts two things: the node the walker was at, and the
+recipe of the activation that was running. It then shows the most frequent of each, in the lens's
+words and with the names the recipes' arguments have:
+
+```bash
+printf /ck.demo | ./ck text region/profile.ck
+```
+
+The run that is looked at does nothing for it. A look is a sample: what is met often is seen,
+what is met rarely is not.
+
 ## Asking a running program
 
 A second process can ask a running program to evaluate a node. It writes the node's print in the

@@ -17,9 +17,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, and super that moves the view |
 | Programs | [`ground/`](ground) | 50 that witness the above; one more runs them and judges how each ends |
-| Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and a program in form shows its own region or another process's through it |
+| Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and programs in form show their own region or another process's through it, ask a running program to evaluate a node, and say where it spends its time |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,359 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,373 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -45,7 +45,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
   its own names, as 853 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 84 files of nodes here in 0.5 s. Its rows and their matcher were
+  does the same for each of the 85 files of nodes here in 0.5 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
   numbers in the node and names on a second line of its file. The definitions of the lens, the
@@ -101,8 +101,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back
   the activations nothing can return to: three million rounds of a recursion ended with 5
   activations in use where there had been three million.
-- **The framebuffer is a profiler.** A run recorded every millisecond says which node the walker
-  was at. Read that way, the lens showing its own source was more than half its time in ending
+- **The framebuffer is a profiler.** A program in form looks at a running process once a
+  millisecond and says which recipes it was in and which nodes it was at. Read that way, the lens showing its own source was more than half its time in ending
   small `all`s: each scanned what every `all` around it had gathered. Gathering only its own
   took the showing from 0.28 s to 0.09 s.
 - **Being seen costs little.** Keeping the walker's registers and each record's writer in the
@@ -123,7 +123,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   them, do not see it.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 84
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 85
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 52 text files, and the axioms' text. Five of the checks are still lines of the
