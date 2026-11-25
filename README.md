@@ -23,7 +23,23 @@ make
 `ck` is the bootstrap: [`bootstrap/ck.c`](bootstrap/ck.c) with the memory layout
 [`bootstrap/fb.h`](bootstrap/fb.h), under a budget of 2,000 lines that the build enforces. It holds
 a node store, a reader and printer of the canonical print, a walker over the operations in
-[`spec/core-operations.md`](spec/core-operations.md), and the birth of machine-code pages.
+[`spec/core-operations.md`](spec/core-operations.md), and the birth of machine-code pages. It has
+two commands, `run` and `text`; everything else is a program they run.
+
+## Read it and write it
+
+What is stored is the canonical print, numbers and brackets. The lens
+([`spec/lens.md`](spec/lens.md)), itself a program in form, shows a stored node in words:
+
+```bash
+./ck text lens/to-words.ck lens/all.ck < ground/warms-itself.ck
+```
+
+and turns what is written in words into a node to store:
+
+```bash
+./ck text lens/to-nodes.ck lens/all.ck < words.txt > new.ck
+```
 
 ## Watch it
 
@@ -53,10 +69,10 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 make check
 ```
 
-Five lines: the 142 encoding vectors through the bootstrap's own reader, the ground programs run
-and judged by a program written in form (`ground/check.ck`), a freeze and thaw across two
-processes, a machine-code leaf both unsigned and under the hardened
-runtime, and a live run recorded from a second process.
+Four lines: the ground programs, the encoding's 142 vectors among them, run and judged by a
+program written in form (`ground/check.ck`); a freeze and a thaw, both in form, across two
+processes; a machine-code leaf both unsigned and under the hardened runtime; and a live run
+recorded from a second process.
 
 ## Replace an operation
 
@@ -70,7 +86,9 @@ operations written as nodes, and a running program can put any of them, or a new
 `ground/on-form.ck` and `ground/on-code.ck` do it from inside a program, with `bind`.
 
 `ground/compiles-a-recipe.ck` loads an emitter written in form (`form/compile.aarch64.ck`), has it
-write machine code for a recipe, and runs the recipe on that code.
+write machine code for a recipe, and runs the recipe on that code. `ground/warms-itself.ck` does
+it without being asked: a watcher counts the calls of a running recursion, has the hot recipe
+compiled, binds the code and takes itself away, and the run ends on machine code.
 
 The walker's step is replaced the same way. This marks every node the program evaluates:
 
@@ -117,9 +135,10 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | --- | --- |
 | `axioms/` | the five axioms, the only fixed thing |
 | `bootstrap/` | the C bootstrap and the framebuffer's layout |
-| `spec/` | the node encoding, the core operations, the framebuffer, the word lens, and the vectors |
-| `lens/` | the word lens as nodes: its reader and printer, its words, and two programs that run it on standard input |
+| `spec/` | the node encoding and its vectors, the core operations, the framebuffer, and the lens |
+| `lens/` | the lens as nodes: its reader, printer and matcher, its words, its rows, and two programs that run it on standard input |
+| `ice/` | freeze and thaw as nodes |
 | `ground/` | programs that witness the floor; `check.ck` runs them against the outcomes in `expect.ck` |
-| `form/` | operations written in form and as machine code, each one `bind` node |
+| `form/` | operations written in form and as machine code, the emitter, and the watcher |
 | `tools/` | the graph checker `kg`, the observer `fb`; both are C until generated code replaces them |
 | `graph/` | the claims |
