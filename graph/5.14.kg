@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 38 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 40 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes, control with backtracking, arithmetic and native code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), and 83 is compile, in form only (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes, control with backtracking, arithmetic and native code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), 83 and 84 divide. From 128 up entries are named by modules in form; 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -202,7 +202,7 @@ from: 7.13 5.9.6 5.9.7 5.7.7 5.14.1
 src: 2.30.7 2.30.6
 conf: mid
 why: Any part is to be replaceable by a form recipe, by machine code and by what is invented later (7.13). One table the walker asks before it runs its own code serves all three, and the observer reads it.
-flip: Compiled code will want the lookup resolved once, not on every evaluation.
+flip: Compiled code will want the lookup resolved once, not on every evaluation; the walker finds it through an index by node, each binding naming the one before it for the same entry.
 at: 2026-11-25
 
 n: 5.14.20
@@ -268,7 +268,7 @@ at: 2026-11-25
 n: 5.14.26
 name: an-emitter-in-form
 kind: decision
-is: Entry 83, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6

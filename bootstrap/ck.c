@@ -3,6 +3,7 @@
  *   make            builds ./ck and fails when the bootstrap is over its line budget
  *   ./ck run F [B..] read the canonical print in F, evaluate it, print the outcome; each B is
  *                   evaluated first and the bindings it makes stay in place for F
+ *   ./ck text F [B..] the same, and an answer that is a leaf is written as its own bytes
  *   ./ck canon S    read a print that may repeat nodes; print the canonical form
  *   ./ck id F       print the content id of the node in F
  *   ./ck freeze F O write the node in F and everything under it to the ice file O
@@ -100,7 +101,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *seen, *text; static char *ob;
-static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum;
+static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum, *bykey;
 static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born; static Bind *bd;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
@@ -137,7 +138,7 @@ static void fb_open(void) {
     [A_LINK] = { LINK, sizeof(Link), 1u << 23 },   [A_ACT] = { ACT, sizeof(Act), 1u << 23 },
     [A_ARG] = { WORDS, 4, 1u << 25 },              [A_CHOICE] = { CHOICEPT, sizeof(Choice), 1u << 20 },
     [A_GATHER] = { GATHERED, sizeof(Gathered), 1u << 22 }, [A_BORN] = { CODE, sizeof(Born), 1u << 12 },
-    [A_BIND] = { BINDING, sizeof(Bind), 1u << 16 },
+    [A_BIND] = { BINDING, sizeof(Bind), 1u << 16 },   [A_BOUND] = { WORDS, 4, 1u << 22 },
     [A_OPEN] = { WORDS, 4, 1u << 22 },             [A_TK] = { WORDS, 4, 1u << 22 },
     [A_TB] = { BYTES, 1, 1u << 26 },               [A_OUT] = { BYTES, 1, 1u << 26 },
     [A_PNUM] = { WORDS, 4, 1u << 22 },             [A_SEEN] = { BYTES, 1, 1u << 22 },
@@ -152,11 +153,11 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FB); fb->version = 3; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FB); fb->version = 4; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODE); bytes = AT(A_BYTES); kids = AT(A_KIDS); tab = AT(A_TAB); idtab = AT(A_IDTAB); fr = AT(A_FRAME);
-  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND);
+  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND); bykey = AT(A_BOUND);
   opened = AT(A_OPEN); tk = AT(A_TK); tb = AT(A_TB); ob = AT(A_OUT); pnum = AT(A_PNUM); seen = AT(A_SEEN); text = AT(A_TEXT);
   nn = 1;
 }
@@ -493,9 +494,14 @@ static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t u
 /* The newest binding of entry e among the first lim, counted from 1; 0 when the bootstrap's own
  * code runs it. An implementation runs on the bindings beneath its own, so it can use the entry
  * it replaces and two entries can each be written with the other. */
+static uint32_t newest(H e, uint32_t lim) {             /* down the chain of e's own bindings, newest first */
+  uint32_t i = e < N(A_BOUND) ? bykey[e] : 0;
+  while (i > lim) i = bd[i-1].prev;
+  return i;
+}
 static uint32_t bound(H e, H any, uint32_t lim) {       /* any: a second entry that also counts, or nothing */
-  for (uint32_t i = nbind < lim ? nbind : lim; i > 0; i--) if (bd[i-1].entry == e || bd[i-1].entry == any) return i;
-  return 0;
+  uint32_t i = newest(e, lim), j = any ? newest(any, lim) : 0;
+  return i > j ? i : j;
 }
 /* The c links ending at vals hold values already copied out. When they are the newest
  * links and no open choice could return to them, their room is given back. */
@@ -565,7 +571,8 @@ static void parts(long long op, const H *a, uint32_t c) {
   if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
     long long e = catn(x);
     if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
-    room(A_BIND, (uint64_t)nbind + 1); bd[nbind] = (Bind){ E(BINDING), W->at, x, l }; nbind++; W->v = E(YES); return;
+    room(A_BIND, (uint64_t)nbind + 1); room(A_BOUND, (uint64_t)x + 1); if (N(A_BOUND) <= x) N(A_BOUND) = x + 1;
+    bd[nbind] = (Bind){ E(BINDING), W->at, x, l, bykey[x] }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
   if (op == COUNT) { W->v = mki(nd[x].n); return; }
@@ -606,7 +613,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       lim = b - 1; b = 0;
     }
     if (given) break;
-    if (!b && (is_data(op) || op > OUTCOME)) { answer(x); break; }    /* data, or an entry with no meaning yet */
+    if (!b && (is_data(op) || op > MOD)) { answer(x); break; }    /* data, or an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -718,13 +725,18 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
         break;
       }
-      if (op > OUTCOME) { fault("kind"); break; }    /* an entry only code ran, and the code declined these values */
-      if (op >= BLUEPRINT) { parts(op, a, c); break; }
+      if (op > MOD) { fault("kind"); break; }        /* an entry only code ran, and the code declined these values */
+      if (op >= BLUEPRINT && op < DIV) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
       if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }
       if (!geti(a[0], &m) || !geti(a[1], &n)) { fault("kind"); break; }
       if (op == LT) { W->v = m < n ? E(YES) : E(NO); break; }
+      if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
+        if (!n) { W->v = 0; W->reason = txt("zero"); break; }
+        if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); break; }
+        W->v = mki(op == DIV ? m / n : m % n); break;
+      }
       if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
                     : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = txt("range"); break; }
       W->v = mki(r); break; }
@@ -733,7 +745,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = txt("no-path"); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     Choice *q = &cp[ncp-1]; W->at = q->node;
-    nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; nbind = q->mbind; W->env = q->env; W->k = q->k;
+    nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k;
+    while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
       ncp--; W->v = q->coll ? q->coll : seen_as("nothing", W->reason ? W->reason : txt("no-path"));
       W->reason = 0; W->mode = M_RET; break;
@@ -848,11 +861,15 @@ static int vectors(const char *path) {
 static int command(int argc, char **argv) {
   const char *cmd = argc > 1 ? argv[1] : "", *why; char idh[65];
   store_init();
-  if (argc >= 3 && !strcmp(cmd, "run")) {
+  if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
     for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
     run(file_node(argv[2]));
+    if (cmd[0] == 't' && W->outcome == 'n' && !nd[W->v].comp) {      /* a leaf answer leaves as its own bytes */
+      for (uint32_t at = 0, n = nd[W->v].n; at < n; ) { ssize_t w = write(1, bytes + nd[W->v].off + at, n - at); if (w <= 0) return 2; at += (uint32_t)w; }
+      return 0;
+    }
     if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
-    return W->outcome == 'f';
+    return W->outcome == 'f' || cmd[0] == 't';
   }
   if (argc == 3 && !strcmp(cmd, "canon")) {
     char *s = talloc(strlen(argv[2]) + 1); memcpy(s, argv[2], strlen(argv[2]));
@@ -870,7 +887,7 @@ static int command(int argc, char **argv) {
     hexs(idof(x), 32, idh); say("", idh); say("", print(x)); return 0;
   }
   if (argc == 3 && !strcmp(cmd, "vectors")) return vectors(argv[2]);
-  put(2, "usage: ck run F [B..] | canon S | id F | freeze F O | thaw O | vectors F\n");
+  put(2, "usage: ck run F [B..] | text F [B..] | canon S | id F | freeze F O | thaw O | vectors F\n");
   return 2;
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */

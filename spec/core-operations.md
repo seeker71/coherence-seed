@@ -3,10 +3,11 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 52 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 54 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, and 83 is the first operation that exists only in form. It does
+an outcome, 83 and 84 divide, and 128 is the first operation that exists only in form. Entries
+below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
 needs them.
 
@@ -182,6 +183,10 @@ like any other.
 | 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |
 | 80 | clock | | nanoseconds on a clock that only moves forward |
 
+Text comes in through `file`, which reads the standard input under its usual path, and goes out
+at the end of a run: `./ck text F` runs F as `./ck run F` does and writes an answer that is a
+leaf as its own bytes. Nothing is written while a program runs, so nothing written needs undoing.
+
 `ground/runs-a-file.ck` reads a program from a file, reads its print into a node and runs it: what
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
 and on `add` as machine code, and binds the one that took less.
@@ -232,11 +237,11 @@ outcome, runs each one, and answers the list of those that ended otherwise, whic
 all is well. `ground/observe.ck` answers the same list filled with what the programs do now: the
 node to store when an expected outcome is meant to change.
 
-## Entry 83: compile, which exists only in form
+## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 83 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
+| 128 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
 in form: one pass over the recipe's body, each node's instructions gathered as bytes by `all` and
@@ -287,6 +292,13 @@ answer only" is `(choice (cut x))`.
 that range answers nothing with the reason `range`: the bound is the machine's, not the
 language's. An argument that is nothing answers nothing. An argument of another kind is a fault.
 
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 83 | div | a, b | the quotient of a by b, rounded toward zero |
+| 84 | mod | a, b | what is left of a: a minus b times that quotient, so it has a's sign |
+
+Dividing by zero answers nothing with the reason `zero`.
+
 ## Native code
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
@@ -329,8 +341,8 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - Where emitted code declines, the work is done twice: once until it declines, then on the
   walker. It goes on computing while it unwinds, so a recursion that branches can spend long on
   answers it will discard.
-- Looking up what runs a node reads the bindings from the newest down, and finding a leaf's
-  runnable copy reads the born code the same way: both grow with how many there are.
+- Finding a leaf's runnable copy reads the born code from the oldest up, so it grows with how
+  many leaves have been run. What runs a node is found through an index and does not.
 - What is not an operation has no binding yet: the store, freeze and thaw and the other host
   functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have

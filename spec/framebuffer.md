@@ -37,7 +37,8 @@ records are, how large one is, how many are in use, how many fit, and where the 
 | choice-points | choice-point | each open choice and the marks it returns to |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |
-| bindings | binding | which entries a program has given a new implementation, oldest first |
+| bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
+| bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, frozen-marks, text | words, bytes | working lists of the reader, the printer and freeze, and every file read |
 | stack | bytes | the machine stack of the C code |
 

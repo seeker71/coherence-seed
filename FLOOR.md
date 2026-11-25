@@ -8,9 +8,9 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 951 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 970 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 38 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 40 operations: control with backtracking, arithmetic with division, a node's parts, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
 | Programs as nodes | [`ground/`](ground) | 32 programs that witness the above; a 33rd, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
