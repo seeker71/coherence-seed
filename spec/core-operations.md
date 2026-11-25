@@ -591,8 +591,8 @@ under entry 52. What it knows:
 - any other node as a constant, a leaf standing for itself or a node under `quote`: an entry of
   the bootstrap's catalogue by its handle, which is the same in every run, and any other by its
   id, written into the leaf and looked up by the bootstrap where it is used;
-- `let`: the part is kept in the frame at its argument's place, and what was there is put back
-  after the body;
+- `let`: the part is kept in the frame at its argument's place. What was there is put back
+  after the body only where something outside the let could read it, which costs a register;
 - `add`, `sub`, `mul`, `div` and `mod`, with an overflow or a division by zero collected in one
   register, and the five operations on bits;
 - the parts of a node and the building of one: `blueprint`, `count`, `leaf`, `child`, `byte`,
@@ -602,6 +602,7 @@ under entry 52. What it knows:
 - `(if c a b)`, where c is an `lt` of numbers, an `eq` of numbers or of nodes, anything that
   answers a node, which holds unless the node is `no` or there is none, `yes`, `no`, or an `if`
   of such tests. A nothing inside a test makes that test fail, as on the walker;
+- an `lt` or an `eq` as a value: `yes`, `no`, or nothing when a part of it is nothing;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
@@ -640,18 +641,18 @@ register chosen by its depth, x19 to x25.
 
 `ground/code-or-walker.ck` runs twenty-nine recipes on the walker and again after asking for
 their code, and holds the two outcomes equal: every shape above, the largest and the most
-negative numbers, a division by zero, a shift too far, tests with a nothing inside, and three
+negative numbers, a division by zero, a shift too far, tests with a nothing inside, and two
 the emitter must refuse. Its last lines show an entry's code used by another definition of its layer, stepping
 aside while `add` is watched from outside and back after; an entry bound outside a layer left on
 the walker; two definitions that call each other and a loop that calls a third, compiled
 together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
 answered by the walker. Nine faults planted in the emitter each turned it red.
-`ground/code-on-nodes.ck` does the same for sixty recipes over nodes: reading, comparing and
-building them, texts, lists and entries as constants, a nothing and a fault at each place one
+`ground/code-on-nodes.ck` does the same for sixty-seven recipes over nodes: reading, comparing
+and building them, texts, lists and entries as constants, comparisons as values, a nothing and a fault at each place one
 can arise, a number where a node is wanted and the other way round, definitions that hand nodes
 to each other, and a chain of a hundred thousand pairs built by one and walked by another. For
 each it says whether the code answered or handed the call back: thirteen hand back, each one
-that ends in nothing or in a fault, and the rest the code answers. Eight faults planted in the
+that ends in nothing or in a fault, and the rest the code answers. Eleven faults planted in the
 emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
@@ -685,8 +686,7 @@ would not be what the walker does there.
   `fail`, `seq`, `need`, `cut` or `recover`, and no `all` but over a row of parts. Nothing that
   leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
-  A test stands only as the condition of an `if`. An expression nested deeper than seven
-  registers is not compiled. So the emitter does not yet compile itself.
+  An expression nested deeper than seven registers is not compiled. So the emitter does not yet compile itself.
 - Code for a recipe that is not an entry's is bound to the recipe as it read when the code was
   made. What the program binds afterwards, an operation or a definition the recipe calls, that
   code does not see, though the walker running the recipe where it is called would; and when

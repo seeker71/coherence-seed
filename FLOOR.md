@@ -56,7 +56,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **Emitted code is the walker or faster, never different.** It answers a number or a node, or declines. For
   an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
   and it steps aside while something from outside watches an operation it replaced.
-  Twenty-nine recipes over numbers and sixty over nodes end the same both ways; seventeen
+  Twenty-nine recipes over numbers and sixty-seven over nodes end the same both ways; twenty
   faults planted in the emitter turned that red.
   Definitions that call each other are compiled into one leaf, and a recursion written as a loop
   runs as one: thirty million rounds, each calling a second definition, in 0.4 s.

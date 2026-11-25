@@ -90,8 +90,8 @@ at: 2026-11-26
 n: 5.18.8
 name: code-on-nodes-is-held-to-the-walker
 kind: observation
-is: Observed on 2026-11-26. ground/code-on-nodes.ck runs sixty recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: forty-seven did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
+is: Observed on 2026-11-26. ground/code-on-nodes.ck runs sixty-seven recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, constants, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: fifty-four did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
 status: observed
 src: 2.30.6 2.30.7
-limit: Eight faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
+limit: Eleven faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
 at: 2026-11-26
