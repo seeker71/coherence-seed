@@ -121,6 +121,8 @@ holds the operation's number.
 
 - `quote` is the value itself, so a number comes back as its node.
 - `all` is the list of those values that are something.
+- `node` takes the address of thirty-two bytes and answers the node whose id they are, or
+  faults `no-node`. So code names a node by what it is and not by where one run keeps it.
 - Any operation that works on values alone is itself: the parts of a node, building one,
   arithmetic, cells, the encoding. Control and the calling of recipes are not, and asking for
   them is the fault `kind`.
@@ -585,8 +587,10 @@ instruction's word as a number, and a few for the shapes of node it knows. It ma
 the recipe's body, each node's instructions gathered as bytes by `all` and packed into one leaf
 under entry 52. What it knows:
 
-- an `int` leaf of any size, an argument, and an entry of the bootstrap's catalogue as a
-  constant;
+- an `int` leaf of any size and an argument;
+- any other node as a constant, a leaf standing for itself or a node under `quote`: an entry of
+  the bootstrap's catalogue by its handle, which is the same in every run, and any other by its
+  id, written into the leaf and looked up by the bootstrap where it is used;
 - `let`: the part is kept in the frame at its argument's place, and what was there is put back
   after the body;
 - `add`, `sub`, `mul`, `div` and `mod`, with an overflow or a division by zero collected in one
@@ -642,12 +646,13 @@ aside while `add` is watched from outside and back after; an entry bound outside
 the walker; two definitions that call each other and a loop that calls a third, compiled
 together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
 answered by the walker. Nine faults planted in the emitter each turned it red.
-`ground/code-on-nodes.ck` does the same for fifty-six recipes over nodes: reading, comparing and
-building them, a nothing and a fault at each place one can arise, a number where a node is
-wanted and the other way round, definitions that hand nodes to each other, and a chain of a
-hundred thousand pairs built by one and walked by another. For each it says whether the code
-answered or handed the call back: thirteen hand back, each one that ends in nothing or in a
-fault, and the rest the code answers. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+`ground/code-on-nodes.ck` does the same for sixty recipes over nodes: reading, comparing and
+building them, texts, lists and entries as constants, a nothing and a fault at each place one
+can arise, a number where a node is wanted and the other way round, definitions that hand nodes
+to each other, and a chain of a hundred thousand pairs built by one and walked by another. For
+each it says whether the code answered or handed the call back: thirteen hand back, each one
+that ends in nothing or in a fault, and the rest the code answers. Eight faults planted in the
+emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
@@ -680,13 +685,19 @@ would not be what the walker does there.
   `fail`, `seq`, `need`, `cut` or `recover`, and no `all` but over a row of parts. Nothing that
   leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
   its start, and building a node twice gives the same node while writing a cell twice does not.
-  A test stands only as the condition of an `if`. A node is a constant only when it is an entry
-  of the bootstrap's catalogue: the handle of a text, a list or an entry a module added belongs
-  to one run. An expression nested deeper than seven registers is not compiled. So the emitter
-  does not yet compile itself.
+  A test stands only as the condition of an `if`. An expression nested deeper than seven
+  registers is not compiled. So the emitter does not yet compile itself.
+- Code for a recipe that is not an entry's is bound to the recipe as it read when the code was
+  made. What the program binds afterwards, an operation or a definition the recipe calls, that
+  code does not see, though the walker running the recipe where it is called would; and when
+  such code declines, the recipe runs beneath it and misses those later bindings too. An entry's
+  code has neither gap: an entry's recipe sees only what is older than its binding, with code
+  or without. The watcher relies on the first: it binds `call` again after each compile.
 - Each operation on a node is a call into the bootstrap; none is written out as instructions.
   A chain of a million pairs is built and summed in 0.13 s, against 0.53 s on the walker, and
-  most of what is left is the store finding each node.
+  most of what is left is the store finding each node. A constant named by its id is looked up
+  at each use: a loop of 300,000 rounds, each comparing a child with a text, took 2 ms against
+  88 ms.
 - The watcher that offers recipes by how often they run sees only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the
   walker. It goes on computing while it unwinds, so a recursion that branches can spend long on

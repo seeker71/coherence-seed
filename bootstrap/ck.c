@@ -859,7 +859,8 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
 /* Code asks the bootstrap for an operation on values in hand, as the bootstrap asks code: an integer
  * as the number it is, any other value as its handle, the eighth register saying how many and which.
  * The seventh is the operation: quote is the value itself, all the list of those that are something,
- * and any operation on values alone is itself. With 256 added the answer is asked as a number: k 0,
+ * node the node whose id lies at the address given, so that code names a node by what it is and not
+ * by where it is in one run, and any operation on values alone is itself. With 256 added the answer is asked as a number: k 0,
  * or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
  * nothing. A fault goes to the walker and does not come back here. */
 static int basic(long long op) {
@@ -869,6 +870,7 @@ static int basic(long long op) {
 static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
   int64_t v[6] = { a0, a1, a2, a3, a4, a5 }, m; H a[8] = {0}, x; uint32_t c = cm & 255, n = 0; int num = op >> 8 & 1; const char *why;
   op &= 255; if (c > 6) c = 6;
+  if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault("no-node"); siglongjmp(in_code, 3); }
   for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
   x = a[0];                               /* what code reads most is answered without a number being built for it */
   if (x && op == COUNT && num && c == 1) return (Ret){ nd[x].n, 0 };

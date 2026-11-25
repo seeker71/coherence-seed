@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,213 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,215 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 66 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -56,13 +56,14 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **Emitted code is the walker or faster, never different.** It answers a number or a node, or declines. For
   an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
   and it steps aside while something from outside watches an operation it replaced.
-  Twenty-nine recipes over numbers and fifty-six over nodes end the same both ways; sixteen
+  Twenty-nine recipes over numbers and sixty over nodes end the same both ways; seventeen
   faults planted in the emitter turned that red.
   Definitions that call each other are compiled into one leaf, and a recursion written as a loop
   runs as one: thirty million rounds, each calling a second definition, in 0.4 s.
 - **Code works on nodes by asking the bootstrap.** One address in the region does any operation
   on values in hand, under the contract by which code itself is called, so emitted code reads
-  and builds nodes and the store stays the bootstrap's. Counting the lens's own definition as a
+  and builds nodes and the store stays the bootstrap's. A node it names is named by its id, not
+  by where one run keeps it. Counting the lens's own definition as a
   tree, 5,711 nodes, three hundred times took 0.67 s on the walker and 0.04 s compiled; a chain
   of a million pairs was built and summed in 0.13 s against 0.53 s.
 - **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
@@ -107,9 +108,9 @@ helper could not see the code (found by planting faults that nothing noticed).
 - **A compiler worth the name.** The emitter compiles what answers once: numbers, the parts of a
   node and the building of one, tests, lets, and calls among definitions compiled together. It
   compiles a definition whole or not at all, and nothing that searches (`choice`, `fail`, an
-  `all` over a search), nothing that leaves a mark, and no constant but a number or an entry of
-  the bootstrap's catalogue. The lens, the region, the objects and the emitter itself are
-  written with all three, so none of them is compiled. Each operation on a node is a call into
+  `all` over a search) and nothing that leaves a mark. The lens, the region, the objects and
+  the emitter itself are written with both, so none of them is compiled. Code for a recipe that
+  is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
