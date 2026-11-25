@@ -7,11 +7,13 @@
  *
  * Everything else, the lens, the ice and the checks among it, is a program these two run.
  *
- * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md.
+ * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md. The header
+ * fb.h is made from nodes (region/header.ck); it is not written by hand.
  * Everything this program reads and writes lives in one shared region laid out by fb.h,
  * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
- * Host symbols used: shm_open shm_unlink ftruncate mmap mprotect open read write close
- * getenv getpid atexit exit clock_gettime snprintf memcpy memcmp memset strlen strcmp
+ * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
+ * getenv getpid atexit exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
+ * siglongjmp snprintf memcpy memcmp memset strlen strcmp
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
  * pthread_jit_write_protect_np and sys_icache_invalidate.
  */
@@ -388,7 +390,7 @@ static void store_init(void) {
   for (H h = 1; h <= SEEDED; h++) idof(h);
   memcpy(fb->magic, FB_MAGIC, 8);                         /* from here a reader can make sense of the region */
 }
-static H txt(const char *s) { const char *why; return mk(0, E(2), s, (uint32_t)strlen(s), &why); }
+static H txt(const char *s) { const char *why; return mk(0, E(TEXT), s, (uint32_t)strlen(s), &why); }
 static int geti(H h, int64_t *out) {
   if (!h || nd[h].comp || nd[h].bp != E(INT) || nd[h].n > 8) return 0;
   uint32_t n = nd[h].n; const uint8_t *b = bytes + nd[h].off;
@@ -579,8 +581,8 @@ static void parts(long long op, const H *a, uint32_t c) {
   const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
   if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault("arity"); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
-  if (op == PRINT) { print(x); W->v = mk(0, E(2), ob, nob, &why); return; }
-  if (op == ID) { W->v = mk(0, E(1), idof(x), 32, &why); return; }
+  if (op == PRINT) { print(x); W->v = mk(0, E(TEXT), ob, nob, &why); return; }
+  if (op == ID) { W->v = mk(0, E(BYTES), idof(x), 32, &why); return; }
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
     if (nd[x].comp) { fault("kind"); return; }
     uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
@@ -588,7 +590,7 @@ static void parts(long long op, const H *a, uint32_t c) {
       if (nd[x].n && s[nd[x].n - 1] == '\n') s[nd[x].n - 1] = 0;
       if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
     else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
-      if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(1), text + ntext, (uint32_t)got, &why); }
+      if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
     ntext = m; return;
   }
   if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
@@ -760,7 +762,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
         if (c != 1) { fault("arity"); break; }
         if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(1), cb, (uint32_t)len, &why); ntext = mark; break; }
+        if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, (uint32_t)len, &why); ntext = mark; break; }
         if (nd[a[0]].comp) { fault("kind"); break; }
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
@@ -777,7 +779,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         }
         if (W->mode == M_FAULT) { ntext = mark; break; }
         if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; break; }
-        void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0; ntext = mark;
+        void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0;
+        ntext = mark;                     /* given back before the call, since a crash does not return here */
         r = called(fn, arg); W->v = mki(r.v);
         break;
       }
@@ -808,7 +811,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
                                               || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = txt("range"); break; }
         if (op == AT) { W->v = (H)o; break; }
         uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
-        W->v = mk(0, E(1), copy, (uint32_t)n, &why); ntext = mark; break;
+        W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
       }
       if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
         if (c != 1) { fault("arity"); break; }      /* that says so points back at it, so a fail restores it */
