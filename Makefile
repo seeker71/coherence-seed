@@ -33,13 +33,13 @@ watch: ck fb
 # processes, native code unsigned and under the hardened runtime, and a live run recorded from
 # a second process whose last frame holds the answer and names the node that wrote it.
 check: ck fb
-	./ck vectors spec/node-vectors.tsv
 	@got=$$(./ck run ground/check.ck); \
 	  if [ "$$got" = "node (#16)" ]; then echo "ground: every program ends as expected, checked by a program in form"; \
 	  else echo "ground: path and outcome of each program that ends otherwise: $$got"; exit 1; fi
-	@a=$$(./ck freeze ground/recursion.ck .ck-check.ice) && b=$$(./ck thaw .ck-check.ice) && rm -f .ck-check.ice && \
-	  if [ "$$b" = "$$(printf '%s\n%s' "$$a" "$$(cat ground/recursion.ck)")" ]; then echo "ice: thawed in a second process to the same id and print"; \
-	  else echo "ice: froze $$a, thawed $$b"; exit 1; fi
+	@./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
+	  b=$$(./ck run ice/thaw.ck lens/all.ck ice/ice.ck < .ck-check.ice); rm -f .ck-check.ice; \
+	  if [ "$$b" = "node $$(cat ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \
+	  else echo "ice: thawed '$$b'"; exit 1; fi
 	@if [ "$$(uname -sm)" = "Darwin arm64" ]; then \
 	  cp ck .ck-hardened && codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements .ck-hardened 2>/dev/null && \
 	  got=$$(./.ck-hardened run ground/native-add.ck); rm -f .ck-hardened; \

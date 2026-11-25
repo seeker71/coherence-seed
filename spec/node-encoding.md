@@ -2,7 +2,8 @@
 
 This fixes what a node is as bytes, what its identity is, how it is written as text, and which
 nodes exist before any other. It is meant to be enough to write a reader from this page alone.
-`spec/node-vectors.tsv` holds the conformance vectors and the bootstrap's reader holds them. Where
+`spec/node-vectors.ck` holds the conformance vectors as a node, and `ground/vectors.ck`, a program in
+form, holds the bootstrap's reader to them through the operations read, print, id, encode and decode. Where
 the page, the vectors and a reader disagree, this page is right and the others are wrong.
 
 Design nodes this stands on: 5.1.1, 5.1.4, 5.1.5, 5.2.2, 5.2.4, 5.3.4. Choices made here that

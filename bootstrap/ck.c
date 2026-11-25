@@ -4,17 +4,14 @@
  *   ./ck run F [B..] read the canonical print in F, evaluate it, print the outcome; each B is
  *                   evaluated first and the bindings it makes stay in place for F
  *   ./ck text F [B..] the same, and an answer that is a leaf is written as its own bytes
- *   ./ck canon S    read a print that may repeat nodes; print the canonical form
- *   ./ck id F       print the content id of the node in F
- *   ./ck freeze F O write the node in F and everything under it to the ice file O
- *   ./ck thaw O     read an ice file; print the top node's id and print
- *   ./ck vectors F  run the conformance vectors of spec/node-encoding.md
+ *
+ * Everything else, the lens, the ice and the checks among it, is a program these two run.
  *
  * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md.
  * Everything this program reads and writes lives in one shared region laid out by fb.h,
  * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
- * Host symbols used: shm_open shm_unlink ftruncate mmap mprotect open read write close rename
- * getenv getpid atexit exit clock_gettime snprintf memcpy memcmp memset strlen strcmp strchr
+ * Host symbols used: shm_open shm_unlink ftruncate mmap mprotect open read write close
+ * getenv getpid atexit exit clock_gettime snprintf memcpy memcmp memset strlen strcmp
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
  * pthread_jit_write_protect_np and sys_icache_invalidate.
  */
@@ -100,7 +97,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
-static Node *nd; static uint8_t *bytes, *tb, *seen, *text; static char *ob;
+static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
 static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum, *bykey;
 static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born; static Bind *bd;
 #define N(i) (fb->a[i].n)
@@ -141,7 +138,7 @@ static void fb_open(void) {
     [A_BIND] = { BINDING, sizeof(Bind), 1u << 16 },   [A_BOUND] = { WORDS, 4, 1u << 22 },
     [A_OPEN] = { WORDS, 4, 1u << 22 },             [A_TK] = { WORDS, 4, 1u << 22 },
     [A_TB] = { BYTES, 1, 1u << 26 },               [A_OUT] = { BYTES, 1, 1u << 26 },
-    [A_PNUM] = { WORDS, 4, 1u << 22 },             [A_SEEN] = { BYTES, 1, 1u << 22 },
+    [A_PNUM] = { WORDS, 4, 1u << 22 },
     [A_TEXT] = { BYTES, 1, 1u << 28 },             [A_STACK] = { BYTES, 1, 1u << 26 } };
   uint64_t off[A_COUNT], at = FB_PAGE;
   for (int i = 0; i < A_COUNT; i++) {
@@ -153,12 +150,12 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FB); fb->version = 4; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FB); fb->version = 5; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODE); bytes = AT(A_BYTES); kids = AT(A_KIDS); tab = AT(A_TAB); idtab = AT(A_IDTAB); fr = AT(A_FRAME);
   lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND); bykey = AT(A_BOUND);
-  opened = AT(A_OPEN); tk = AT(A_TK); tb = AT(A_TB); ob = AT(A_OUT); pnum = AT(A_PNUM); seen = AT(A_SEEN); text = AT(A_TEXT);
+  opened = AT(A_OPEN); tk = AT(A_TK); tb = AT(A_TB); ob = AT(A_OUT); pnum = AT(A_PNUM); text = AT(A_TEXT);
   nn = 1;
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
@@ -429,10 +426,8 @@ static H read_node(Rd *r) {
     x = mk(0, bp, tb + base, ntb - base, &why); ntb = base;
   }
   if (!x) return refuse(r, why);
-  if (!W->loose) {
-    if (catn(x) >= 0) return refuse(r, "not-canonical");                       /* rule 2 */
-    for (uint32_t j = 0; j < nopen; j++) if (opened[j] == x) return refuse(r, "not-canonical");   /* rule 4 */
-  }
+  if (catn(x) >= 0) return refuse(r, "not-canonical");                         /* rule 2 */
+  for (uint32_t j = 0; j < nopen; j++) if (opened[j] == x) return refuse(r, "not-canonical");     /* rule 4 */
   opened[me] = x; return x;
 }
 static H read_print(const char *s, const char **why) {    /* s lies in the region */
@@ -733,6 +728,14 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; break;
       }
       if (op >= BLUEPRINT && op < DIV) { parts(op, a, c); break; }
+      if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
+        if (c != 1) { fault("arity"); break; }
+        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(1), cb, (uint32_t)len, &why); ntext = mark; break; }
+        if (nd[a[0]].comp) { fault("kind"); break; }
+        if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
+        break;
+      }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
       if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }
@@ -781,45 +784,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
   }
 }
 
-/* ---- ice: a file of canonical bytes, children before parents --------------------------- */
-static const char MAGIC[8] = "CKICE1\n";
-static void out(int fd, const void *b, size_t n) { if (write(fd, b, n) != (ssize_t)n) die("cannot write"); }
-static void freeze_node(H h, int fd) {
-  if (h == ROOT || seen[h]) return;
-  seen[h] = 1; freeze_node(nd[h].bp, fd);
-  if (nd[h].comp) for (uint32_t i = 0; i < nd[h].n; i++) freeze_node(KID(h, i), fd);
-  uint32_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), l[4] = { (uint8_t)len, (uint8_t)(len >> 8), (uint8_t)(len >> 16), (uint8_t)(len >> 24) };
-  out(fd, l, 4); out(fd, b, len); ntext = m;
-}
-static void freeze(H top, const char *path) {
-  char tmp[1024]; snprintf(tmp, sizeof tmp, "%s.tmp", path);
-  int fd = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0644); if (fd < 0) die("cannot write");
-  room(A_SEEN, (uint64_t)nn + 1); memset(seen, 0, nn); N(A_SEEN) = nn;
-  out(fd, MAGIC, 8);
-  if (top == ROOT) { uint8_t z[37] = { 33 }; out(fd, z, 37); } else freeze_node(top, fd);
-  if (close(fd) || rename(tmp, path)) die("cannot write");
-}
-static H thaw(const char *path, const char **why) {
-  size_t len; const uint8_t *b = load(path, &len); H top = 0;
-  *why = "short";
-  if (len < 8 + 4 + 33 || memcmp(b, MAGIC, 8)) return 0;
-  for (size_t at = 8; at < len; ) {
-    if (len - at < 4) return 0;
-    size_t n = (size_t)b[at] | (size_t)b[at+1] << 8 | (size_t)b[at+2] << 16 | (size_t)b[at+3] << 24;
-    if (n > len - at - 4) return 0;
-    if (!(top = from_bytes(b + at + 4, n, why))) return 0;
-    *why = "short"; at += 4 + n;
-  }
-  return top;
-}
-
-/* ---- commands --------------------------------------------------------------------------- */
-static void hexs(const uint8_t *b, size_t n, char *o) { for (size_t i = 0; i < n; i++) { o[2*i] = HEX[b[i] >> 4]; o[2*i+1] = HEX[b[i] & 15]; } o[2*n] = 0; }
-static long unhex(const char *s, uint8_t *o) {
-  long n = 0;
-  for (; s[0] && s[1]; s += 2) { if (hexval(s[0]) < 0 || hexval(s[1]) < 0) return -1; o[n++] = (uint8_t)(hexval(s[0]) << 4 | hexval(s[1])); }
-  return *s ? -1 : n;
-}
+/* ---- commands: a program is run, and everything else is a program -------------------------- */
 static H file_node(const char *path) {      /* a print file: one node and one line feed */
   size_t len; char *s = (char *)load(path, &len); const char *why;
   if (len && s[len-1] == '\n') s[len-1] = 0;
@@ -827,45 +792,8 @@ static H file_node(const char *path) {      /* a print file: one node and one li
   if (!x) { say("refused ", why); exit(1); }
   return x;
 }
-static int vectors(const char *path) {
-  size_t flen; char *line = (char *)load(path, &flen), idh[65], t[24];
-  uint8_t *raw = talloc(flen + 1); char *hx = talloc(2 * flen + 80);
-  int ok = 0, bad = 0, ln = 0; const char *why;
-  while (*line) {
-    char *end = strchr(line, '\n'), *next = end ? end + 1 : line + strlen(line); if (end) *end = 0;
-    ln++;
-    if (line[0] && line[0] != '#') {
-      char *a = line, *b = strchr(a, '\t'), *c = NULL, *d = NULL;
-      if (b) { *b++ = 0; c = strchr(b, '\t'); if (c) { *c++ = 0; d = strchr(c, '\t'); if (d) *d++ = 0; } }
-      const char *miss = NULL, *got = "";
-      if (!strcmp(a, "ok") && b && c && d) {
-        H x = read_print(b, &why);
-        if (!x) { miss = "refused"; got = why; }
-        else {
-          uint32_t mark = ntext; size_t n; uint8_t *cb = cbytes(x, &n); hexs(cb, n, hx); ntext = mark; hexs(idof(x), 32, idh);
-          long m = unhex(c, raw);
-          if (strcmp(hx, c)) miss = "bytes differ";
-          else if (strcmp(idh, d)) { miss = "id differs"; got = idh; }
-          else if (strcmp(print(x), b)) miss = "prints back differently";
-          else if (m < 0 || from_bytes(raw, (size_t)m, &why) != x) miss = "its bytes do not read back to it";
-        }
-      } else if (!strcmp(a, "bad-print") && b && c && !d) {
-        H x = read_print(b, &why);
-        if (x) miss = "accepted"; else if (strcmp(why, c)) { miss = "refused for another reason"; got = why; }
-      } else if (!strcmp(a, "bad-bytes") && b && c && !d) {
-        long m = unhex(b, raw); H x = 0; why = "syntax";
-        if (m >= 0) x = from_bytes(raw, (size_t)m, &why);
-        if (x) miss = "accepted"; else if (strcmp(why, c)) { miss = "refused for another reason"; got = why; }
-      } else miss = "not a vector line";
-      if (miss) { bad++; put(1, path); put(1, ":"); put(1, dec(t, (uint64_t)ln)); put(1, ": "); put(1, miss); say(*got ? ": " : "", got); } else ok++;
-    }
-    line = next;
-  }
-  put(1, "ck: "); put(1, dec(t, (uint64_t)ok)); put(1, " vectors hold, "); put(1, dec(t, (uint64_t)bad)); put(1, " do not\n");
-  return bad ? 1 : 0;
-}
 static int command(int argc, char **argv) {
-  const char *cmd = argc > 1 ? argv[1] : "", *why; char idh[65];
+  const char *cmd = argc > 1 ? argv[1] : "";
   store_init();
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
     for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
@@ -877,23 +805,7 @@ static int command(int argc, char **argv) {
     if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
     return W->outcome == 'f' || cmd[0] == 't';
   }
-  if (argc == 3 && !strcmp(cmd, "canon")) {
-    char *s = talloc(strlen(argv[2]) + 1); memcpy(s, argv[2], strlen(argv[2]));
-    W->loose = 1; H x = read_print(s, &why); W->loose = 0;
-    if (!x) { say("refused ", why); return 1; }
-    say("", print(x)); return 0;
-  }
-  if (argc == 3 && !strcmp(cmd, "id")) { hexs(idof(file_node(argv[2])), 32, idh); say("", idh); return 0; }
-  if (argc == 4 && !strcmp(cmd, "freeze")) {
-    H x = file_node(argv[2]); freeze(x, argv[3]); hexs(idof(x), 32, idh); say("", idh); return 0;
-  }
-  if (argc == 3 && !strcmp(cmd, "thaw")) {
-    H x = thaw(argv[2], &why);
-    if (!x) { say("refused ", why); return 1; }
-    hexs(idof(x), 32, idh); say("", idh); say("", print(x)); return 0;
-  }
-  if (argc == 3 && !strcmp(cmd, "vectors")) return vectors(argv[2]);
-  put(2, "usage: ck run F [B..] | text F [B..] | canon S | id F | freeze F O | thaw O | vectors F\n");
+  put(2, "usage: ck run F [B..] | text F [B..]\n");
   return 2;
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */

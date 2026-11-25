@@ -26,6 +26,11 @@ The first page is the **head**: a magic word, the layout version, the writer's p
 walker's registers (the **machine**), and one **area** entry per table. An area entry says what its
 records are, how large one is, how many are in use, how many fit, and where the table starts.
 
+Machine code reads the region too, and two places in the head are kept for it whatever else
+moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
+16,384 bytes from the region's start; and at byte 152 where the nodes area starts. A leaf that
+reads any other place is tied to one layout version.
+
 | Area | Records | Holds |
 | --- | --- | --- |
 | nodes | node | every node: blueprint, writer, child or byte count, where its payload is, its content id once asked for |
@@ -39,8 +44,8 @@ records are, how large one is, how many are in use, how many fit, and where the 
 | born-code | code | which code leaves have a runnable copy, and where |
 | bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
 | bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
-| reader-opened, gathering-children, gathering-bytes, print, print-numbers, frozen-marks, text | words, bytes | working lists of the reader, the printer and freeze, and every file read |
-| stack | bytes | the machine stack of the C code |
+| reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
+| stack | bytes | the machine stack of the C code and of code leaves |
 
 ## Rules
 

@@ -17,7 +17,7 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 87u                 /* every entry this file names is in the store from the start */
+#define SEEDED 89u                /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
@@ -31,7 +31,8 @@ enum { NAT = 3, INT = 4, LIST = 16,
        OUTCOME,                               /* 82: how a node's evaluation ended, as a node; what it did is undone */
        DIV, MOD,                              /* 83, 84: integer division and its remainder */
        RAISE,                                 /* 85, fault: a program breaks off with a reason, as the walker does */
-       LAYER, LAST = LAYER };                 /* 86: the bindings made inside it are one layer and see each other */
+       LAYER,                                 /* 86: the bindings made inside it are one layer and see each other */
+       ENCODE, DECODE, LAST = DECODE };       /* 87, 88: a node's canonical bytes, and the node such bytes are */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUT, F_LAYER };
@@ -51,20 +52,23 @@ typedef struct { H bp, by; H entry, impl; uint32_t prev, sees; } Bind;   /* entr
  * "n" how many are in use and "cap" how many it can hold. "off" is where it starts. */
 typedef struct { H bp, by; H of; uint32_t size, cap, n; uint64_t off; } Area;
 enum { A_NODE, A_BYTES, A_KIDS, A_TAB, A_IDTAB, A_FRAME, A_LINK, A_ACT, A_ARG, A_CHOICE,
-       A_GATHER, A_BORN, A_BIND, A_BOUND, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_SEEN, A_TEXT, A_STACK, A_COUNT };
+       A_GATHER, A_BORN, A_BIND, A_BOUND, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_TEXT, A_STACK, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", \
   "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "reader-opened", \
-  "gathering-children", "gathering-bytes", "print", "print-numbers", "frozen-marks", "text", "stack"
+  "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack"
 
 /* The walker's registers. "at" is the program node being run: the writer stamped on
  * whatever is made next. "step" counts the walker's steps and is the region's clock.
  * "code" is the one address kept here: where this process mapped its executable pages. */
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE };
 typedef struct { H bp, by; uint32_t mode; H at, x, v, reason; uint32_t env, cut, k;
-                 uint32_t outcome, gathers, ids, pcount, loose, ncode, one, pad; uint64_t step, code; } Machine;
+                 uint32_t outcome, gathers, ids, pcount, spare, ncode, one, pad; uint64_t step, code; } Machine;
 
+/* What code that reads the region may count on, whatever else moves: at byte 28 of the head,
+ * "floor", the lowest page the machine stack may reach, counted in pages from the region's
+ * start; and at byte 152 where the nodes area starts, the first entry of the area table. */
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_PAGE 16384u
-typedef struct { char magic[8]; H bp, by; uint32_t version, areas, pid, pad; uint64_t bytes;
+typedef struct { char magic[8]; H bp, by; uint32_t version, areas, pid, floor; uint64_t bytes;
                  Machine m; Area a[A_COUNT]; } Head;
 #endif

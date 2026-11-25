@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 56 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 58 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -198,6 +198,28 @@ leaf as its own bytes. Nothing is written while a program runs, so nothing writt
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
 and on `add` as machine code, and binds the one that took less.
 
+## Entries 87 and 88: the encoding as operations
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 87 | encode | x | a bytes leaf holding x's canonical bytes (`spec/node-encoding.md`, section 2) |
+| 88 | decode | b | the node the bytes of leaf b are; refused bytes answer nothing with the refusal's word |
+
+With `read`, `print` and `id` these are the whole of what the encoding's page fixes, so what the
+bootstrap once did as commands is written in form:
+
+- **The conformance check.** `ground/vectors.ck` reads the vectors, a list in
+  `spec/node-vectors.ck`, and answers those the reader does not hold: for a good vector that its
+  print reads to those bytes and that id, prints back unchanged and decodes to the same node; for
+  a bad one that it is refused with the word the page names. It faults if it finds no vectors.
+- **Ice.** `ice/ice.ck` binds `ice.freeze`, which answers a bytes leaf holding a node and
+  everything under it, each node once and children before parents, every record four bytes of
+  length and the canonical bytes; and `ice.thaw`, which decodes such bytes record by record and
+  answers the last node. `ice/freeze.ck` and `ice/thaw.ck` run them on standard input. A file
+  frozen by one process thaws in another to the same node.
+
+`ck` itself has two commands, `run` and `text`. Everything else is a program they run.
+
 ## Entry 81: the step
 
 | N | name | children | what it does |
@@ -264,8 +286,9 @@ For any other node the emitter emits a byte that `pack` refuses, so a recipe is 
 not at all, and what is not compiled stays on the walker.
 
 **The leaf answers a number or declines.** It declines when an overflow is left at its end, when
-it was given fewer arguments than the recipe reads, and when the machine stack, whose end it reads
-from the region, has no room for its frame. A decline travels up through the calls above it, and
+it was given fewer arguments than the recipe reads, and when the machine stack, whose floor it
+reads from the region's head, has no room for its frame (`ground/deep-on-code.ck` goes 600,000
+deep). A decline travels up through the calls above it, and
 the walker then runs the whole call. So wherever emitted code cannot be sure, the answer, the
 reason and the fault are the walker's own: emitted code is faster or it is the walker, never
 different. It keeps its arguments and the registers it uses in a frame on the machine stack, and

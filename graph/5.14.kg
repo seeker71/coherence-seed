@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 42 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 44 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are control, arithmetic and native code; 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), 83 and 84 divide, 85 is a fault (5.14.31), 86 a layer (5.14.30). From 128 up modules in form name them (5.15.1).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 88 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome and a fault. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 28, before any compiler is written.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 44.
 at: 2026-11-25
 
 n: 5.14.2
@@ -333,4 +333,27 @@ from: 5.3.8 5.4.6 5.14.29
 src: 2.30.7 2.30.6
 conf: mid
 why: Without it a reader written in form could only fail, and a fail inside a gathering loses the reason and reads as the end of the list.
+at: 2026-11-25
+
+n: 5.14.32
+name: the-encoding-and-ice-are-programs
+kind: decision
+is: Entries 87 and 88, encode and decode, are a node's canonical bytes and the node such bytes are. With read, print and id they are all the encoding's page fixes, so its conformance check (ground/vectors.ck over the vectors as a node), freeze and thaw (ice/ice.ck) are programs in form, and the bootstrap keeps two commands, run and text. Observed on 2026-11-25: the form check holds all 142 vectors and names planted wrong ones; the form freeze wrote the same 1,875 bytes as the C freeze it replaced, and its file thawed in a second process to the same node.
+status: inferred
+from: 5.13 5.14.7 7.21 7.13 5.11.4
+src: 2.30.7 2.30.6 2.30.3
+conf: mid
+why: What is an operation can be replaced and used by a program; what was a command could be neither. Each command taken out is C that no longer has to be right.
+limit: freeze keeps the nodes it has written in a list it searches, so its work grows with the square of their number. The two-process check is still one line of the Makefile's shell.
+at: 2026-11-25
+
+n: 5.14.33
+name: code-reads-two-fixed-places-of-the-head
+kind: decision
+is: Code that reads the region may count on two places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach, and at byte 152 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. ground/deep-on-code.ck now runs a recursion 600,000 deep, more than the stack holds, on emitted code.
+status: inferred
+from: 5.14.28 5.7.6 5.14.10
+src: 2.30.7 2.30.9 2.30.11
+conf: mid
+flip: A leaf that needs more of the region than these two places wants a table it is handed, as 5.10.9 describes, not more fixed bytes.
 at: 2026-11-25

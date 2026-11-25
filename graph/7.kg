@@ -102,7 +102,7 @@ at: 2026-11-25
 n: 7.21
 name: every-part-swappable
 kind: plan
-is: The path to anything being exchanged while it runs. One table says what runs for each operation and each recipe (5.14.19). The walker's step is an entry too (5.14.24), and an emitter in form compiles a recursion over numbers (5.14.26). Next the emitter hands back to the walker a node it does not know, calls other recipes, and is offered a recipe by how often it runs. Then the store and ice as entries, and the continuation and undo the walker still keeps. After that: bindings from outside through the region, with a scope, chosen by more than time.
+is: The path to anything being exchanged while it runs. One table says what runs for each operation and each recipe (5.14.19). The walker's step is an entry too (5.14.24), and an emitter in form compiles a recursion over numbers (5.14.26). The encoding and ice are operations and programs (5.14.32). Next the emitter hands back to the walker a node it does not know, calls other recipes, and is offered a recipe by how often it runs; then the continuation and undo the walker still keeps. After that: bindings from outside through the region, with a scope, chosen by more than time.
 status: inferred
 from: 7.13 5.14.19 5.14.23 5.14.24 5.14.26 5.9.6
 at: 2026-11-25

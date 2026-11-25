@@ -50,6 +50,7 @@ A row is two shapes with holes: the surface a person writes and the core it stan
 | `(not x)` | `(eq x no)` |
 | `(let v.. body)` | `(call (recipe body) v..)`, so inside body `$0` is the first v |
 | `(def e body)` | `(bind e (recipe body))` |
+| `(tuple a..)` | `(join list (all (choice a..)))`, a list of what a.. answer |
 
 A hole is `(hole k)`; `(rest k)` holds every child from its place on, and a shape may have one.
 One matcher runs a row both ways. Reading lowers: where a node has a row's surface shape, the core
@@ -105,7 +106,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.
 - A word is looked up by reading the rows in order, and every row is tried at every node.
 - The observer prints words from a table of its own in C, not from these rows.
-- Entries 129 to 184 are the lens's by convention of this page; no row yet says which numbers a
+- Entries 129 to 185 are the lens's and 186 to 193 the ice's by convention; no row yet says which numbers a
   module may take.
 - Most stored programs were composed before the lens existed. They show through it; they were
   not rewritten in it.

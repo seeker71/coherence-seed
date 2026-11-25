@@ -7,21 +7,25 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 979 lines of C under a 2,000-line budget |
+| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors, which are a node checked by a program in form |
+| Bootstrap | [`bootstrap/`](bootstrap) | 895 lines of C under a 2,000-line budget; two commands, `run` and `text` |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 42 operations: control with backtracking and a program's own fault, arithmetic with division, a node's parts, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 44 operations: control with backtracking and a program's own fault, arithmetic with division, a node's parts and its canonical bytes, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
-| Programs as nodes | [`ground/`](ground) | 33 programs that witness the above; one more, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
+| Programs as nodes | [`ground/`](ground) | 35 programs that witness the above, the encoding's conformance check among them; one more, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | the first lens, written in form: words beside the numbers, and rows that turn a surface into the core and back; it reads its own definition |
-| Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
+| Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another to the same node |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region and what is bound in it, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,344 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,346 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
-- `make check` passes: the vectors, the ground programs, freeze and thaw across two processes,
-  native code unsigned and hardened, and a live run recorded from a second process.
+- `make check` passes: the ground programs and the encoding's vectors, judged by programs in
+  form; freeze and thaw, both in form, across two processes; native code unsigned and hardened;
+  and a live run recorded from a second process.
+- The encoding's conformance check, freeze and thaw were C commands and are programs in form. The
+  form freeze wrote the same 1,875 bytes as the C freeze it replaced. The check written in form
+  found the two vectors a careless conversion had spoiled, and reports planted wrong ones.
 - `make watch`: the long recursion, 158.6 million walker steps, runs in about 0.75 s while a second
   process records it and reads the answer and the node that wrote it from the last frame.
 - A program takes a node apart to its bytes and builds it again; the answer is the same node. A
@@ -58,19 +62,20 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   name because they were bound as one layer.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,165 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,167 claims, none of them reviewed by a second reader.
 
 ## Not there
 
-- **Everything swappable** (path: graph node 7.21). Operations, recipes and the step are. The
-  store, ice and the other host functions are C with no binding, and so is what carries a run
-  between nodes: the continuation, the choice points and the undo. A binding comes only from the
+- **Everything swappable** (path: graph node 7.21). Operations, recipes and the step are, and
+  the encoding's bytes and ice are operations and programs. The store's own making of nodes and
+  the other host functions are C with no binding, and so is what carries a run between nodes:
+  the continuation, the choice points and the undo. A binding comes only from the
   running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. Stored here are the bootstrap (two C
-  files and an entitlements list) and 53 files of nodes in the canonical print, each of which
+  files and an entitlements list) and 59 files of nodes in the canonical print, each of which
   reads and prints back to itself. Everything else stored is neither: the observer and the graph's
   checker (664 lines of C under `tools/`), the Makefile's 59 lines, nine pages, the claim graph
-  as 50 text files, the table of the encoding's vectors and the axioms' text.
+  as 51 text files, and the axioms' text.
 - **A compiler worth the name.** The emitter in form knows numbers, one shape of condition and
   calls of the recipe itself. It compiles a recipe whole or not at all, runs only when a program
   asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
@@ -79,9 +84,9 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   infix, no names for a recipe's arguments, and no way to name a part and use it twice. Most
   stored programs were composed in numbers before it existed; they show through it and were not
   rewritten in it.
-- **Checks in form.** One check is in form, the ground programs'; the vectors, the ice, the
-  hardened run and the recording are still checked by C and the Makefile's shell. There is no
-  observer written in form.
+- **Checks in form.** The ground programs and the vectors are judged in form. That the ice
+  crosses two processes, the hardened run and the recording are still lines of the Makefile's
+  shell. There is no observer written in form.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
 - **Cells and the journal**, recipes that name each other, threads, symbol lookup.
