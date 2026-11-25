@@ -8,14 +8,14 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 898 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 921 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 36 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, and reading, printing, files and the clock |
-| Swapping | [`form/`](form) | any operation, control included, and any recipe can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code |
-| Programs as nodes | [`ground/`](ground) | 27 programs that witness the above |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 37 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, reading, printing, files and the clock, and the step itself |
+| Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code |
+| Programs as nodes | [`ground/`](ground) | 30 programs that witness the above |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,329 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,331 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -35,19 +35,27 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - A program reads another program from a file, turns its print into a node and runs it. A program
   times one workload on two implementations of `add`, 36 ms in form and 15 ms as machine code,
   and binds the faster.
+- The walker's step is replaced while a program runs. A step in form marks every node and hands
+  it on: 17 marks for the 17 distinct nodes of the small recursion, the same answer, and a fail
+  takes the marking away. A step of eleven machine instructions reads each node's record in the
+  region, answers the leaves and declines the rest to the step beneath it. The long recursion
+  takes 0.80 s on the walker alone, 1.39 s under that code step and 8.6 s under the marking step.
+  A `cut` now reaches the program that used an implementation from inside a helper recipe.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,151 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,153 claims, none of them reviewed by a second reader.
 
 ## Not there
 
-- **Everything swappable** (path: graph node 7.21). Operations and recipes are, reading, printing
-  and the clock among them; the store, ice, the other host functions and the walker's own step are
-  C with no binding. A binding comes only from the running program and has no scope of its own.
+- **Everything swappable** (path: graph node 7.21). Operations, recipes and the step are. The
+  store, ice and the other host functions are C with no binding, and so is what carries a run
+  between nodes: the continuation, the choice points and the undo. A binding comes only from the
+  running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. The Makefile's shell, the two C tools,
   these pages, the graph's blocks and the tables are not form nodes.
-- **A compiler.** Machine code is written by hand, one leaf an operation; the walker still drives
-  every step.
+- **A compiler.** Machine code is written by hand, one leaf an operation. The step can be machine
+  code and can decline what it does not know, which is where an emitter would begin; none is
+  written.
 - **A way to write form.** Programs are written by hand in the canonical print; there is no home
   lens, and no check or observer written in form.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).

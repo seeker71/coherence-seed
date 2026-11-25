@@ -68,6 +68,12 @@ operations written as nodes, and a running program can put any of them, or a new
 
 `ground/on-form.ck` and `ground/on-code.ck` do it from inside a program, with `bind`.
 
+The walker's step is replaced the same way. This marks every node the program evaluates:
+
+```bash
+./ck run ground/recursion.ck form/step.traced.ck
+```
+
 ## The knowledge graph
 
 What is known, decided and open is held as a graph of claims under [`graph/`](graph). Each claim

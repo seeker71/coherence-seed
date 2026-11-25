@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 36 operations whose registers are a record in the region and whose operations a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 37 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19), and 76 to 80 are reading, printing, the id, a file and the clock.
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are reading, printing, the id, a file and the clock, and 81 is the walker's step (5.14.24).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -196,7 +196,7 @@ at: 2026-11-25
 n: 5.14.19
 name: an-operation-is-a-binding
 kind: decision
-is: The bootstrap's C is one implementation of an operation, the one a cold start runs. bind gives any operation, any unnamed entry or any recipe another, and the implementation says how it is used: a recipe takes the children's answers, a lazy takes the node unevaluated and so can stand for a control operation, a code leaf takes integers, and a leaf of another blueprint is run by what that blueprint is bound to. up and base let an implementation evaluate a node where its user stands. A binding is a record in the region with its writer.
+is: The bootstrap's C is one implementation of an operation, the one a cold start runs. bind gives any operation, any unnamed entry or any recipe another, and the implementation says how it is used: a recipe takes the children's answers, a lazy takes the node unevaluated and so can stand for a control operation, a code leaf takes integers and may decline to what lies beneath, and a leaf of another blueprint is run by what that blueprint is bound to. up and base evaluate a node where the implementation's user stands, in that user's cut scope. A binding is a record in the region.
 status: inferred
 from: 7.13 5.9.6 5.9.7 5.7.7 5.14.1
 src: 2.30.7 2.30.6
@@ -238,9 +238,30 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation and every recipe can be replaced, and only add, sub, mul and lt are written in form. Reading, printing, the id, files and the clock are operations too, so a program loads and runs a file and times what it tries. What is not an operation has no binding: the store, freeze, thaw, the other host functions and the walker's own step are C. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own. A control operation rewritten from nothing in form cannot pass a cut through a helper recipe.
+is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, and the one step in machine code takes only leaves. What is not an operation has no binding: the store, freeze, thaw and the other host functions are C. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
 status: inferred
-from: 5.14.19 7.13 5.9.3
+from: 5.14.19 5.14.24 7.13 5.9.3
 conf: high
+at: 2026-11-25
+
+n: 5.14.24
+name: the-step-is-an-entry
+kind: decision
+is: Evaluating one node is the walker's step, and the step is entry 81. Used, it runs a node a program holds. Bound, its implementation is given every node about to be evaluated, leaves and data included: a lazy or a recipe gets the node, and code gets the region's address, the node's handle and its activation. The newest binding that applies to a node runs it, its blueprint's or the step's; base, or code that declines, hands the node to what lies beneath. A tracing, a compiling or a remote evaluator is then one more implementation.
+status: inferred
+from: 5.14.19 5.14.20 7.13 7.21 5.9.6
+src: 2.30.7 2.30.6
+conf: mid
+why: One table already says what runs for each operation. Putting the step in it means nothing about evaluation is outside what a running program can exchange, and an emitter can start with the node kinds it knows and decline the rest (5.10.4).
+flip: A compiled evaluator that runs whole recipes without returning to the walker will want to be asked once per recipe, not once per node.
+at: 2026-11-25
+
+n: 5.14.25
+name: the-step-in-form-and-in-machine-code
+kind: observation
+is: Observed on 2026-11-25. A step in form that marks each node and hands it on left 17 marks in the region for the 17 distinct nodes the small recursion evaluates, and the answer was the same; inside an option, a fail took it away. A step of eleven hand-written AArch64 instructions read each node's record in the region, answered the leaves and declined the rest; laid over a form step that turns every leaf into a word, the program still answered 55. The long recursion took 0.80 s on the walker alone, 1.39 s under the code step and 8.6 s under the marking step.
+status: observed
+src: 2.30.7 2.30.6 2.30.10
+limit: The marks were counted by hand from the region's node count with and without the step. The code step compiles nothing: it is a socket shown to hold.
 at: 2026-11-25
 

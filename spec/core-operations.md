@@ -3,10 +3,11 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 49 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 50 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
-what runs, and 76 to 80 are what the bootstrap does for itself. It does not yet name operations
-that hold an offer or bind a cell; those come with the stage that first needs them.
+what runs, 76 to 80 are what the bootstrap does for itself, and 81 is the walker's step. It does
+not yet name operations that hold an offer or bind a cell; those come with the stage that first
+needs them.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -124,11 +125,13 @@ have.
   a compiled version and back. Only data entries keep their meaning.
 - **i says how it wants to be used.** A `recipe` is called with the children's answers. A `lazy`
   (entry 75, shaped like a recipe) is given the node itself, unevaluated, and so can stand for a
-  control operation. A code leaf is called with the answers as integers. A leaf of any other
-  blueprint is run by whatever that blueprint is bound to, which is how a new kind of
-  implementation, another processor or a table, comes in without a change to the bootstrap.
+  control operation. A code leaf is called with the answers as integers; it may decline, and
+  then what lies beneath it runs, so code can take the cases it is good at and leave the rest. A
+  leaf of any other blueprint is run by whatever that blueprint is bound to, which is how a new
+  kind of implementation, another processor or a table, comes in without a change to the bootstrap.
 - **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
-  implementation stands, with its arguments. Under `base` the node's own entry means what it meant
+  implementation stands, with its arguments and in its cut scope, from however deep inside the
+  implementation they are used. Under `base` the node's own entry means what it meant
   beneath this binding, and everything inside it is as the user sees it: a `lazy` that records
   something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
@@ -160,7 +163,8 @@ or out of range.
 Every operation can be replaced; the others are not yet written in form. `ground/` shows the
 kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked on every call and
 then released (`tracked-recipe.ck`), a control operation brought into being (`invented-control.ck`),
-and a new kind of implementation (`new-kind.ck`).
+a `cut` handed through a helper recipe to the program that used it (`cut-through.ck`), and a new
+kind of implementation (`new-kind.ck`).
 
 ## Entries 76 to 80: what the bootstrap does for itself
 
@@ -178,6 +182,33 @@ like any other.
 `ground/runs-a-file.ck` reads a program from a file, reads its print into a node and runs it: what
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
 and on `add` as machine code, and binds the one that took less.
+
+## Entry 81: the step
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 81 | step | x | evaluates x, then evaluates the node x answered, where this node stands |
+
+Evaluating one node is the walker's step, and the step is an entry like the others. Used, it lets
+a program run a node it holds. Bound, its implementation is given **every** node that is about to
+be evaluated, leaves and data included, before the walker looks at it. An evaluator that traces,
+that compiles, or that runs elsewhere is then one more implementation in the same table.
+
+- **The newest binding that applies to a node runs it**: the one for its blueprint, or the step's.
+  A step bound after an operation's binding is asked first for that operation's nodes.
+- **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
+  lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
+  children are evaluated as the user sees them, so the step meets each of them in turn.
+- **A code leaf gets the region's address in x0, the node's handle in x1 and the number of the
+  activation it stands in in x2**, and reads what it needs from the region
+  (`spec/framebuffer.md`). It answers as any code does, or declines.
+- **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.
+
+`ground/traced-steps.ck` puts a mark on every step of a program and takes the marking away again;
+the answers are the same. In `ground/step-in-code.ck` a step in form makes every leaf answer the
+word "form", and a step of eleven instructions laid over it reads each node's record in the
+region, answers the leaves itself and declines the rest to the step beneath. `form/step.traced.ck`
+and `form/step.leaf.aarch64.ck` are the two as bindings for `ck run`.
 
 ## Fail, choice and cut
 
@@ -207,10 +238,12 @@ language's. An argument that is nothing answers nothing. An argument of another 
 
 A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
 integers in x0 to x5 and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes
-unless x0 is zero), anything else no answer, which is nothing with the reason `range`. So one
-leaf can be a whole operation. `native` copies it once into the process's code
-region and calls it. On a host that cannot run it, `native` answers nothing with the reason
-`no-native`.
+unless x0 is zero), 2 the handle of a node in the region, 3 nothing at all: the code declines
+and what lies beneath its binding runs. Anything else is no answer, which is nothing with the
+reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
+copies it once into the process's code region and calls it; code that declines there answers
+nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
+the reason `no-native`.
 
 ## Faults the walker names
 
@@ -232,11 +265,12 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   seven arguments.
 - Programs are written by hand in the canonical print (`./ck canon` numbers the repeats). There is
   no operation on the bits of a number.
-- A `lazy` keeps the cut scope it was used in, but a recipe it calls starts a new one. A control
-  operation rewritten from nothing in form therefore cannot yet pass a `cut` through a helper;
-  wrapping with `base` has no such limit.
-- What is not an operation has no binding yet: the store, freeze and thaw, the other host
-  functions and the walker's own step. The commands of `ck` still call the C directly.
+- A replaced step decides what each node means, and the bootstrap's walker still carries the run
+  between nodes: the continuation, the choice points and the undo are its own and have no binding.
+  The one step in machine code is written by hand and takes only the leaves; nothing compiles a
+  node yet.
+- What is not an operation has no binding yet: the store, freeze and thaw and the other host
+  functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.

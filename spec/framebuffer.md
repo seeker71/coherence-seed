@@ -33,7 +33,7 @@ records are, how large one is, how many are in use, how many fit, and where the 
 | by-content, by-id | words | the two indexes over nodes; they can be rebuilt from the nodes |
 | frames | frame | the walker's continuations |
 | links | link | values gathered for an operation that takes several |
-| activations, arguments | activation, words | each running recipe and its arguments |
+| activations, arguments | activation, words | each running recipe and its arguments; for an implementation, how many bindings it runs on and the activation and cut scope of whoever used it |
 | choice-points | choice-point | each open choice and the marks it returns to |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |

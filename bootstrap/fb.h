@@ -17,7 +17,7 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 81u                      /* every entry this file names is in the store from the start */
+#define SEEDED 82u                     /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
@@ -26,14 +26,15 @@ enum { NAT = 3, INT = 4, LIST = 16,
        BLUEPRINT, COUNT, CHILD, BYTE, LEAF, PACK, JOIN,             /* 64 to 70: a node's parts */
        BIND, BINDING,                         /* 71 gives a node an implementation; 72 is that record's kind */
        UP, BASE, LAZY,                        /* 73, 74: evaluate where the caller stands; 75: a recipe given the node */
-       READ, PRINT, ID, FILEOP, CLOCK };      /* 76 to 80: what the bootstrap does for itself, as operations */
+       READ, PRINT, ID, FILEOP, CLOCK,        /* 76 to 80: what the bootstrap does for itself, as operations */
+       STEP };                                /* 81: a node is evaluated; what it is bound to is given every node */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER };
 typedef struct { H bp, by; uint32_t t; H node; uint32_t i, env, cut, vals, k, aux, mact; } Frame;
 typedef struct { H bp, by; H v; uint32_t next; } Link;
-typedef struct { H bp, by; H recipe; uint32_t off, n, lim, up; } Act;   /* lim: how many bindings it runs
-                                                 on; up: the activation that used the implementation it belongs to */
+typedef struct { H bp, by; H recipe; uint32_t off, n, lim, up, cut; } Act;   /* lim: how many bindings it
+                 runs on; up, cut: the activation and the cut scope of whoever used the implementation it belongs to */
 typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll, mbind; } Choice;
 typedef struct { H bp, by; uint32_t id; H v; } Gathered;
 typedef struct { H bp, by; H leaf; uint32_t off; } Born;      /* a runnable copy of a code leaf */

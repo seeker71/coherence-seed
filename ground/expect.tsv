@@ -25,3 +25,6 @@ invented-control	node (#16 [#2 79] [#2 6e])
 new-kind	node [#4 2a]
 runs-a-file	node [#4 37]
 keeps-the-faster	node [#2 636f6465]
+cut-through	node (#16 [#4 01])
+traced-steps	node (#16 [#4 37] ^1)
+step-in-code	node [#4 37]
