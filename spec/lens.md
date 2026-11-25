@@ -16,6 +16,7 @@ core the walker runs, and back.
 node = "(" node { space node } ")"        a composite: its blueprint, then its children
      | "{" { name } "|" node "}"          a recipe, with a name for each of its arguments
      | "(" "let" { bind node } node ")"   parts given a name, then the body that uses them
+     | "(" node sign node ")"             an operation of two, written between them: (a + b)
      | "[" node [ space hex ] "]"         a leaf of any blueprint, its bytes in hex
      | '"' bytes '"'                      a text leaf; \" is a quote, \\ a backslash, \n a line end
      | [ "-" ] digits                     an int leaf
@@ -27,6 +28,7 @@ node = "(" node { space node } ")"        a composite: its blueprint, then its c
      | "#" digits                         a catalogue entry by its number
      | word                               a catalogue entry by its word
 bind = name | "$" digits
+sign = "+" | "-" | "*" | "/" | "%" | "<" | "="     add sub mul div mod lt eq
 space = one or more spaces, tabs or line ends
 ```
 
@@ -36,12 +38,17 @@ one node; nothing marks sharing, and nothing needs to.
 Reading takes any of these forms. Showing chooses one for each node: the word when the entry has
 one and `#N` when it has none, the number for an `int` of at most eight bytes, in hexadecimal
 from 2 to the 28th up, and for a `nat` of at most seven, the name of an argument that has one and `$k` otherwise, braces for a recipe, the
-quoted form for a text whose only control byte is the line end, and the bracket form for every
-other leaf. What fits in a hundred columns is shown on one line. So showing is total: every node
+quoted form for a text whose only control byte is the line end, the bracket form for every
+other leaf, and the sign between its two children for an operation that has one. What fits in a hundred columns is shown on one line. So showing is total: every node
 has a showing, and reading it gives back that node.
 
 `lens/words.ck` binds `lens.words` to a list of rows, each a word and the entry it names. A word
 is a row beside the node and no part of it: changing a word changes no id.
+
+The signs are rows too: `lens/rows.ck` binds `lens.ops` to a list of them, each a sign and the
+entry it stands for. `(n < 2)` is `(lt n 2)` and `((a + b) * c)` is `(mul (add a b) c)`. A sign
+stands between exactly two, in brackets of its own, so no rule of precedence is needed and none
+exists: `(a + b + c)` is refused.
 
 ## Names
 
@@ -99,7 +106,7 @@ a count of bytes from the start. `(add 1 (mull 2 3))` faults with
 `(list "unknown-word" (list 8 "mull"))`. The words are `unknown-word`, `unclosed`, `empty`,
 `odd-hex`, `too-large`, `number`, `char`, `unexpected`, `trailing`, `name` for a name that is a
 word, is written twice or cannot be one, `named` for the number of a place that has a name, `let`
-for a let with nothing to bind, `row` for a row whose two shapes do not hold the same holes, and
+for a let with nothing to bind, `infix` for a sign between more than two, `row` for a row whose two shapes do not hold the same holes, and
 `refused` when the encoding refuses the node that was written.
 
 ## Using it
@@ -134,8 +141,8 @@ the text of the file that stores x.
 
 ## Limits
 
-- It is not yet the surface of graph node 5.3.5. Shapes are brackets only: there is no operator
-  table and no pattern over text, so nothing is written infix.
+- It is not yet the surface of graph node 5.3.5. Every form is in brackets: a sign stands between
+  two and no more, there is no precedence and no pattern over text.
 - A recipe inside another does not see the outer one's names, since a recipe does not capture.
   In a recipe whose arguments have no names, or at the top of a program, the first name a let
   gives takes `$0`.

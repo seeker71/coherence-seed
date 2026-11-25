@@ -13,7 +13,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 59 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
 | Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form, a module of named definitions: compiles a recipe over numbers, with lets, tests and its own recursion, to one machine-code leaf |
-| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, and rows that turn a surface into the core and back |
+| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, and super that moves the view |
 | Programs | [`ground/`](ground) | 49 that witness the above; one more runs them and judges how each ends |
@@ -44,7 +44,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   Its first version compared the walker with the walker and saw none of them: its helper was a
   bound entry, which does not see what is bound after it.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
-  its own names, as 675 lines and reads them back to the file it is stored as, byte for byte, and
+  its own names, as 730 lines and reads them back to the file it is stored as, byte for byte, and
   does the same for each of the 83 files of nodes here in 0.4 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
@@ -113,8 +113,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   compiles no call of another recipe, no backtracking and nothing that builds a node. Its code
   is bound like any implementation, so definitions bound before it, its own layer's among
   them, do not see it.
-- **The home lens.** The first lens's shapes are brackets only: nothing is written infix, and a
-  recipe inside another sees none of the outer names.
+- **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
+  no more, with no precedence, and a recipe inside another sees none of the outer names.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 83
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim

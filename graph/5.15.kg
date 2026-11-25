@@ -3,7 +3,7 @@
 n: 5.15
 name: word-lens
 kind: hub
-is: The first lens, one module written in form. Words beside the catalogue's numbers and leaves written as people write them turn text into nodes and back; names kept beside a recipe and a let stand for arguments; rows of two shapes turn a surface into the core and back. The canonical print stays what is stored. It is a step toward the home lens of 5.3.5 and not that lens: its shapes are brackets only.
+is: The first lens, one module written in form. Words beside the catalogue's numbers and leaves written as people write them turn text into nodes and back; names kept beside a recipe and a let stand for arguments; rows of two shapes turn a surface into the core and back. The canonical print stays what is stored. It is a step toward the home lens of 5.3.5 and not that lens: every form is in brackets.
 at: 2026-11-25
 
 n: 5.15.1
@@ -32,7 +32,7 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 675 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 83 files of nodes here and names none that differs, in 0.4 s. Fourteen malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 730 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 83 files of nodes here and names none that differs, in 0.4 s. Fourteen malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
@@ -63,3 +63,16 @@ why: 5.2.4 keeps names as rows keyed by node and lens and bound variables by pos
 flip: Two recipes that are one node share one row, so they cannot be named differently. A second lens with other names for the same node would need its own rows; the line holds one lens's.
 limit: A recipe inside another sees none of the outer names, as a recipe captures nothing. In a recipe with no names the first let name takes argument 0.
 at: 2026-11-25
+
+n: 5.15.6
+name: a-sign-stands-between-two
+kind: decision
+is: An operation of two children that has a sign is written with the sign between them, in brackets of its own: (n < 2) is (lt n 2). The signs are rows of data the lens holds, a sign and its entry, for add, sub, mul, div, mod, lt and eq. Reading takes the form when the second thing in a bracket is a sign; showing uses it for every such node. A sign between more than two is refused, so there is no precedence to learn and none to get wrong.
+status: inferred
+from: 5.3.2 5.3.5 5.15.2 5.15.4
+src: 2.30.14 2.30.15
+conf: mid
+why: 5.3.2 names an operator table among a lens's rows. Arithmetic and tests are most of what is read in a definition, and written in front they hide what is compared with what.
+flip: A reader used to precedence must write every bracket. A pattern over text, which a host language's lens needs, is still not built.
+limit: Seven signs. A name may not be a sign.
+at: 2026-11-26
