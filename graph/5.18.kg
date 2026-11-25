@@ -112,7 +112,7 @@ at: 2026-11-26
 n: 5.18.10
 name: the-emitter-compiles-part-of-itself
 kind: observation
-is: Observed on 2026-11-26. In ground/compiles-its-own.ck the emitter, walked, compiles the 213 definitions the other modules bind: 100 give code. It then compiles its own 91, of which 61 give code, and on that code compiles the 213 again: every leaf is byte for byte what it wrote walked, in 0.5 s against 2.1 s; the program holds the equality and that the second pass took under half the first. Each of the 161 compiles the same alone in a fresh process. The reader of the print in form read the lens's 19,780 bytes in 20 ms walked and 7 ms after.
+is: Observed on 2026-11-26. In ground/compiles-its-own.ck the emitter, walked, compiles the 228 definitions the other modules bind: 112 give code. It then compiles its own 149, of which 95 give code, and on that code compiles the 228 again: every leaf is byte for byte what it wrote walked, in 0.5 s against 2.1 s; the program holds the equality and that the second pass took under half the first. Each of the 207 compiles the same alone in a fresh process. The reader of the print in form read the lens's 19,780 bytes in 20 ms walked and 7 ms after.
 status: observed
 src: 2.30.6 2.30.7
 limit: At 292 definitions the count first differed between two programs, 85 and 102 against 103 alone: the root as a constant had been taken for a number, so a compiled test of the emitter's own answered no for every entry. One machine.

@@ -713,11 +713,11 @@ nodes of the lens's definition were handed up by a definition calling itself, co
 as on the walker.
 
 `ground/compiles-its-own.ck` has the emitter compile the system and then itself. Walked, it
-compiles the 213 definitions the other modules bind, and 100 of them give code. Then it
-compiles its own 91: 61 give code, all 26 instruction builders among them. Then, running on
-that code, it compiles the 213 again, and the program holds two things: every leaf is byte for
+compiles the 228 definitions the other modules bind, and 112 of them give code. Then it
+compiles its own 149: 95 give code, all 55 instruction builders among them. Then, running on
+that code, it compiles the 228 again, and the program holds two things: every leaf is byte for
 byte the one the walked emitter wrote, and the second pass took less than half the time of the
-first (2.1 s and 0.5 s when measured). Each of the 161 also compiles the same alone in a fresh
+first (2.1 s and 0.5 s when measured). Each of the 207 also compiles the same alone in a fresh
 process. That count once came out differently in two programs, which is how a wrong kind for
 the root as a constant was found.
 The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 20 ms

@@ -72,9 +72,9 @@ Each line here is held by a program that runs under `make check`, or names how i
   and the pairs below 400 were counted in 79 ms on the walker and 2 ms compiled. A definition
   that answers more than once hands each answer to the search that called it, so a search
   crosses definitions: one that calls itself handed up all 5,711 nodes of the lens's definition.
-- **The emitter compiles part of the system, itself included, and is faster for it.** Of the 304
-  definitions the repository's modules bind it compiles 161, each the same alone and after all
-  the others. Having compiled 61 of its own 91, it compiles the other 213 again on that code:
+- **The emitter compiles part of the system, itself included, and is faster for it.** Of the 377
+  definitions the repository's modules bind it compiles 207, each the same alone and after all
+  the others. Having compiled 95 of its own 149, it compiles the other 228 again on that code:
   every leaf byte for byte what it wrote walked, in 0.5 s where walked took 2.1 s. The reader of
   the print written in form read the lens's 19,780 bytes in 20 ms on the walker and in 7 ms
   after.
@@ -95,7 +95,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 988 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 97 files of nodes here, in 0.8 s. Text it cannot read is a fault
+  for byte, as is each of the 99 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -121,13 +121,13 @@ helper could not see the code (found by planting faults that nothing noticed).
   nodes, tests, lets, searches, notes, and calls among definitions compiled together. It
   compiles no mark but a note, no call of a recipe held as a value, no search as the condition
   of an `if`, and nothing nested deeper than seven registers; a definition that answers more
-  than once is compiled only where another searches it. 143 of the system's 304 definitions
+  than once is compiled only where another searches it. 170 of the system's 377 definitions
   wait on those. A third of the emitter itself is among them, the part that searches. Code for a recipe that
   is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 97
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 99
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
   graph as 54 text files, and the axioms' text. Five of the checks are still lines of the

@@ -27,7 +27,7 @@ at: 2026-11-25
 n: 7.5
 name: stage-4-self-compile
 kind: plan
-is: The one-pass emitter written in the grammar compiles the compiler. Closes when the system regenerates its own seed byte for byte, cold and compiled runs print the same values over the whole core, and the walker is off the running path after the cold start. An emitter written in form stands (5.18): it compiles 161 of the repository's 304 definitions, 61 of its own 91 among them (5.18.10); no mark but a note and no recipe called as a value, so not yet the whole of itself.
+is: The one-pass emitter written in the grammar compiles the compiler. Closes when the system regenerates its own seed byte for byte, cold and compiled runs print the same values over the whole core, and the walker is off the running path after the cold start. An emitter written in form stands (5.18): it compiles 207 of the repository's 377 definitions, 95 of its own 149 among them (5.18.10); no mark but a note and no recipe called as a value, so not yet the whole of itself.
 status: inferred
 from: 5.10.4 5.10.1 5.10.8 5.9.5 5.10.5 5.18
 at: 2026-11-26
