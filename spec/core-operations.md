@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 61 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 63 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 91 are cells and their trail, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -242,6 +242,27 @@ What follows from that: a table built inside an option is gone when the option f
 meant to last is built before the choices that will use it, as the lens indexes its words when
 it loads. `ground/cells.ck` runs each kind of undo.
 
+## Entries 92 and 93: what is seen of a run, and a binding released
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 92 | note | k, v | the cell k now holds v, and no fail undoes it; answers v |
+| 93 | unbind | e | takes away e's newest binding and answers yes, or answers no when it has none |
+
+A note is for what is observed about a run and is no part of it: a count of calls is true
+whether or not the path that made them was kept. `held` reads it like any cell. `unbind` uncovers
+the binding beneath, or the bootstrap's own code, and a fail restores what it took away. Mind
+that `all`, and so `(tuple ..)`, fails between its answers: a binding or an unbinding made inside
+one of them is gone before the next.
+
+With these a run can watch itself and change what runs it. `form/heat.ck` binds `heat.watch`,
+which puts a `lazy` on `call`: each call is counted in a note under its recipe, and at the
+hundredth the emitter is asked to compile that recipe; when it does, the code is bound and the
+watcher takes itself off `call`. `ground/warms-itself.ck` starts the long recursion on the walker
+under the watcher and ends it on machine code: the same answer, in 18,523 walker steps where the
+walker alone takes 158.6 million. The observer shows the three bindings afterwards: `call`
+watched, the recipe run by code, `call` released.
+
 ## Entry 81: the step
 
 | N | name | children | what it does |
@@ -371,8 +392,7 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 ## Limits
 
 - A cell holds a node and has a trail, and that is all: it has no blueprint it is declared with,
-  no access or constructor recipe, no view, and nothing that is exempt from undo (a log that
-  must outlast a fail cannot be kept in one). Those belong to stage 5.
+  no access or constructor recipe and no view. Those belong to stage 5.
 - A call in the last position of a recipe keeps no frame. The activations and gathered values of
   calls that have returned are given back as soon as no open choice can return to them.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct
@@ -392,17 +412,19 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - The emitter compiles numbers only: no call of another recipe, no control beyond the one shape
   of condition, no answer of yes or no, no negative or large literal, and an expression nested
   deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
-  walker. A program asks for it; nothing offers a recipe by how often it runs.
+  walker: code may decline only before it has done anything, because a declined call is run
+  again from its start. The watcher that offers recipes by how often they run stops at the first
+  one compiled and watches only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the
   walker. It goes on computing while it unwinds, so a recursion that branches can spend long on
   answers it will discard.
 - Finding a leaf's runnable copy reads the born code from the oldest up, so it grows with how
   many leaves have been run. What runs a node is found through an index and does not.
-- What is not an operation has no binding yet: the store, freeze and thaw and the other host
-  functions. The commands of `ck` still call the C directly.
+- What is not an operation has no binding yet: the store's own making of nodes and the other
+  host functions.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.
-- A binding has no name of its own and cannot be taken away except by a fail.
+- A binding has no name of its own: `unbind` takes the newest of an entry, not one in the middle.
 - Nothing bounds a run but the region's capacities: a wrong recipe under a recursion gives no
   answer and goes on until an area is full.

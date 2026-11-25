@@ -28,7 +28,7 @@
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
 static const char *const NAMES[SEEDED + 1] = { [1] = "bytes", "text", "nat", "int", [16] = "list",
   [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", "bind", "binding", "up", "base", "lazy",
-  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer", "encode", "decode", "hold", "held", "trail",
+  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer", "encode", "decode", "hold", "held", "trail", "note", "unbind",
   [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
   "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
   "frame", "link", "activation", "choice-point", "gathered", "word-table", "byte-table" };
@@ -172,7 +172,7 @@ static void detail(void) {
   for (uint32_t i = hd->a[A_CHOICE].n, j = 0; i > 0 && j < 4; i--, j++)
     printf("choice point %u  next option %u of %s\n", i - 1, cp[i-1].i, str(cp[i-1].node, 100));
   for (uint32_t i = hd->a[A_BIND].n, j = 0; i > 0 && j < 12; i--, j++) {      /* what runs, newest first */
-    printf("binding %u  %s is run by ", i, str(bd[i-1].entry, 60)); printf("%s\n", str(bd[i-1].impl, 100)); }
+    printf("binding %u  %s ", i, str(bd[i-1].entry, 60)); printf(bd[i-1].impl ? "is run by %s\n" : "is released%s\n", bd[i-1].impl ? str(bd[i-1].impl, 100) : ""); }
 }
 
 /* ---- commands ---------------------------------------------------------------------------- */

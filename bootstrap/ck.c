@@ -152,7 +152,7 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FB); fb->version = 6; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FB); fb->version = 7; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODE); bytes = AT(A_BYTES); kids = AT(A_KIDS); tab = AT(A_TAB); idtab = AT(A_IDTAB); fr = AT(A_FRAME);
@@ -738,13 +738,20 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
       }
-      if (op == HOLD || op == HELD) {     /* a cell is any node; what it holds is a node. While a choice is */
+      if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
+        if (c != 1) { fault("arity"); break; }      /* that says so points back at it, so a fail restores it */
+        if (!a[0] || a[0] >= N(A_BOUND) || !bykey[a[0]]) { W->v = E(NO); break; }
+        room(A_BIND, (uint64_t)nbind + 1); bd[nbind] = (Bind){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind }; nbind++;
+        bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); break;
+      }
+      if (op == HOLD || op == HELD || op == NOTE) {   /* a cell is any node; what it holds is a node. While a choice is */
         H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
-        if (c != (op == HOLD ? 2u : 1u)) { fault("arity"); break; }
-        if (!key || (op == HOLD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (c != (op == HELD ? 1u : 2u)) { fault("arity"); break; }
+        if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
         if (op == HELD) { if (!(W->v = key < N(A_HELD) ? held[key] : 0)) W->reason = txt("empty"); break; }
         room(A_HELD, (uint64_t)key + 1); if (N(A_HELD) <= key) N(A_HELD) = key + 1;
-        if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
+        if (op == NOTE) ;                 /* a note is what was seen of a run, not part of it: no fail undoes it */
+        else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
         W->v = held[key] = a[1]; break;
       }
       if (c != 2) { fault("arity"); break; }

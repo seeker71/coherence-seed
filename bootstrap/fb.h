@@ -17,7 +17,7 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 92u                /* every entry this file names is in the store from the start */
+#define SEEDED 94u                /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
@@ -33,7 +33,8 @@ enum { NAT = 3, INT = 4, LIST = 16,
        RAISE,                                 /* 85, fault: a program breaks off with a reason, as the walker does */
        LAYER,                                 /* 86: the bindings made inside it are one layer and see each other */
        ENCODE, DECODE,                        /* 87, 88: a node's canonical bytes, and the node such bytes are */
-       HOLD, HELD, TRAIL, LAST = TRAIL };     /* 89, 90: a cell is given a node, and asked for it; 91: the kind of a trail record */
+       HOLD, HELD, TRAIL,                     /* 89, 90: a cell is given a node, and asked for it; 91: the kind of a trail record */
+       NOTE, UNBIND, LAST = UNBIND };         /* 92: a cell given a node outside undo; 93: an entry's newest binding is released */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUT, F_LAYER };

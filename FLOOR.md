@@ -8,15 +8,15 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors, which are a node checked by a program in form |
-| Bootstrap | [`bootstrap/`](bootstrap) | 909 lines of C under a 2,000-line budget; two commands, `run` and `text` |
+| Bootstrap | [`bootstrap/`](bootstrap) | 917 lines of C under a 2,000-line budget; two commands, `run` and `text` |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 46 operations: control with backtracking and a program's own fault, cells with a trail, arithmetic with division, a node's parts and its canonical bytes, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 48 operations: control with backtracking and a program's own fault, cells with a trail and notes outside it, arithmetic with division, a node's parts and its canonical bytes, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
-| Programs as nodes | [`ground/`](ground) | 36 programs that witness the above, the encoding's conformance check among them; one more, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
+| Programs as nodes | [`ground/`](ground) | 37 programs that witness the above, the encoding's conformance check among them; one more, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | the first lens, written in form: words beside the numbers, and rows that turn a surface into the core and back; it reads its own definition |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another to the same node |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region and what is bound in it, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,347 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,349 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -29,6 +29,11 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - A program keeps what it changes in cells, and a fail, the end of an `all` and of an `outcome`
   put back what a cell held. With its words in cells the lens's round trip takes 0.20 s where it
   took 0.37 s, and freezing the lens 0.04 s where it took 0.18 s, the file the same.
+- A run watches itself and changes what runs it. A watcher written in form counts calls, has
+  the emitter compile the recipe at its hundredth call, binds the code and takes itself away.
+  Under it the long recursion starts on the walker and ends on machine code with the same
+  answer, in 0.018 s and 18,523 walker steps where the walker alone takes 0.75 s and 158.6
+  million. The observer shows the bindings afterwards: watched, compiled, released.
 - `make watch`: the long recursion, 158.6 million walker steps, runs in about 0.75 s while a second
   process records it and reads the answer and the node that wrote it from the last frame.
 - A program takes a node apart to its bytes and builds it again; the answer is the same node. A
@@ -59,13 +64,13 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   does not know stays on the walker.
 - A lens written in form shows its own stored definition, through its own rows, as 382 lines of
   text and reads that text back to the same node, byte for byte. A program written in it does the
-  same for each of the 59 files of nodes here, in 0.2 s. Seven rows (if, first, when, not, let,
+  same for each of the 61 files of nodes here, in 0.2 s. Seven rows (if, first, when, not, let,
   def, tuple) are read and shown by one matcher; the matcher and the rows were written in the lens.
   Text it cannot read is a fault that names what and where. Its definitions call each other by
   name because they were bound as one layer.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,168 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,170 claims, none of them reviewed by a second reader.
 
 ## Not there
 
@@ -75,13 +80,13 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   the continuation, the choice points and the undo. A binding comes only from the
   running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. Stored here are the bootstrap (two C
-  files and an entitlements list) and 60 files of nodes in the canonical print, each of which
+  files and an entitlements list) and 62 files of nodes in the canonical print, each of which
   reads and prints back to itself. Everything else stored is neither: the observer and the graph's
   checker (664 lines of C under `tools/`), the Makefile's 59 lines, nine pages, the claim graph
   as 51 text files, and the axioms' text.
 - **A compiler worth the name.** The emitter in form knows numbers, one shape of condition and
-  calls of the recipe itself. It compiles a recipe whole or not at all, runs only when a program
-  asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
+  calls of the recipe itself. It compiles a recipe whole or not at all, when a program or the
+  watcher asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
   backtracking and nothing that builds a node.
 - **The home lens.** The first lens's shapes are brackets only: no pattern over text, nothing
   infix, no names for a recipe's arguments, and no way to name a part and use it twice. Most
