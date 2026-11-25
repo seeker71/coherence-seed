@@ -156,3 +156,12 @@ why: A note is what was seen of a run and no fail undoes it, so it needs no trai
 flip: A note is not seen by another process until the code that wrote it has answered.
 limit: Witnessed in ground/code-on-nodes.ck; three faults planted in the bootstrap, a dropped note written all the same, a kept one never written and one not read back, each turned it red, two of them only after cases were written for them.
 at: 2026-11-26
+
+n: 5.18.14
+name: the-emitter-is-written-with-shapes-and-named-cases
+kind: observation
+is: Observed on 2026-11-26. The emitter was rewritten in steps, each holding that it wrote byte for byte the code it wrote before for every definition of the other modules. Its rows, its place among them and its surroundings are shapes read by name; the definition that picked a case in 655 lines picks it in 72, each case a definition of its own; every instruction has one of 55 named builders, and no raw encoding stands outside them; sequences written several times are defined once. It has 149 definitions, the longest 102 lines, and 95 of them compile where 61 of 91 did.
+status: observed
+src: 2.30.6 2.30.7
+limit: 61 reads by a bare number are left in it, most the first or second child of a node of unknown blueprint. One machine.
+at: 2026-11-26

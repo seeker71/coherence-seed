@@ -92,7 +92,10 @@ A name may say what shape it names: `{mine:emit.row | ..}` or `(let mine:emit.ro
 k) ..)`. Then `mine.ints` is `(child mine 2)`: the part is found when the text is read, so
 reading a part by its name costs nothing when the program runs, and the stored node holds no
 names. Showing gives `mine.ints` back wherever a part of a name with a shape is read by a
-number that the shape has a name for. The shape is written into the name as it is stored
+number that the shape has a name for. The lexicon can name the parts of an entry as well: its
+row for `let` is the word, the entry, and `place`, `value`, `body`, so `{x:let | x.value}`
+reads the value of a let node. An entry that only names parts, with no meaning of its own, is
+an interface: `emit.two` names `left` and `right` for any operation of two. The shape is written into the name as it is stored
 beside the node (`mine:emit.row`), so the second line of the file carries it.
 
 ## Rows
@@ -152,7 +155,7 @@ the text of the file that stores x.
 
 ## How it is known
 
-- The lens shows its own definition, 988 lines and 118 definitions, through its own rows and with its own names, and reads that
+- The lens shows its own definition, 984 lines and 119 definitions, through its own rows and with its own names, and reads that
   text back to the file it is stored as, byte for byte, both lines. It was brought into being
   once by a substitution of numbers for words; since then its source is its own showing. Names
   were read by a second lens written in the first, and its own arguments were then named without

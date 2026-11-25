@@ -18,7 +18,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 57 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,391 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,393 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -26,10 +26,10 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, seven lines: the header against its nodes; 57 ground programs and the
+- **`make check` passes**, eight lines: the header against its nodes; 57 ground programs and the
   142 vectors, judged by a program in form; ice across two processes; native code unsigned and
-  hardened; a run recorded from a second process; a run asked from one; and a search that writes
-  a file only for the path that held.
+  hardened; a run recorded from a second process; a run asked from one; a search that writes
+  a file only for the path that held; and the reads by a bare number against their budget.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells and bindings; a
   note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
@@ -94,7 +94,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **Writing**
 
-- **The lens reads its own definition**: 988 lines, shown and read back to the file it is, byte
+- **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
   for byte, as is each of the 99 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
@@ -110,9 +110,18 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,209 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,211 claims, none reviewed by a second reader.
 
 ## Not there
+
+- **Proper form everywhere.** The emitter is written with shapes, named cases and named
+  instructions: 149 definitions, the longest 102 lines where one was 655, no raw encoding
+  outside its 55 builders. The lens reads its readers' answers and the parts of a let by name.
+  300 reads of a node by a bare number are left in the stored form, the budget `make check`
+  holds: 77 in the lens, 61 in the emitter, 39 in the rest of `form/`, 32 in the region's
+  programs, 21 in the objects, 63 in the ground programs. Nothing checks that a value has the
+  shape its name says, no module is written with the objects' send and super, there are no
+  templates over shapes, and a module's words are still numbered by hand in one lexicon.
 
 - **Everything swappable** (path: graph node 7.21). The store's own making of nodes, the host
   functions, and what carries a run between nodes, the continuation, the choice points and the

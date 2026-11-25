@@ -115,12 +115,12 @@ them.
 make check
 ```
 
-Seven lines: the header against the nodes it is made from; the ground programs, the encoding's 142
+Eight lines: the header against the nodes it is made from; the ground programs, the encoding's 142
 vectors among them, run and judged by a program written in form (`ground/check.ck`); a freeze and
 a thaw, both in form, across two processes; a machine-code leaf both unsigned and under the
 hardened runtime; a live run recorded from a second process; a run asked from a second process
-to count its own additions while it goes on; and a search that writes a file only for the path
-that held.
+to count its own additions while it goes on; a search that writes a file only for the path
+that held; and the count of reads by a bare number left in the stored form, against its budget.
 
 ## Replace an operation
 

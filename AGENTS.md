@@ -25,6 +25,12 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
   words through the lens and read stored nodes through it ([`spec/lens.md`](spec/lens.md)); what
   is stored is the canonical print. A new operation, area or field is added in a node
   (`lens/words.ck`, `region/layout.ck`) and `make header` writes the C header from them.
+- **Written properly.** Form is written with shapes whose parts are read by name, each case a
+  definition of its own, every encoding behind a named builder, and what repeats defined once.
+  Reading a node by a bare number, a raw constant in the middle of a definition and one long
+  ladder of cases are prelude: like the bootstrap they stand only until they can be replaced.
+  `make check` counts the reads by a bare number against a budget that is lowered and never
+  raised.
 - **Every part can be replaced.** The bootstrap's code is one implementation of each part; a
   recipe or machine code can take its place while the system runs.
 - **Follow a real flow.** Make something run end to end and watch it through the framebuffer. A

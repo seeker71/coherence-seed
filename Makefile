@@ -1,6 +1,9 @@
 # The bootstrap's build. The line budget is graph node 5.9.2; raising it is a change to that node.
 # Nothing here needs more than a C compiler: no part of the old kernel builds or runs this repository.
 BUDGET = 2000
+# How many times the stored form may still read a part of a node by a bare number, where no shape
+# names the part (graph node 7.22). It is lowered as code is written properly, and never raised.
+BARE = 300
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h
@@ -74,6 +77,9 @@ check: ck fb
 	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a]) " ]; \
 	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing"; \
 	  else echo "held back: '$$got'"; exit 1; fi
+	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
+	  if [ "$${n:-99999}" -le $(BARE) ]; then echo "parts by name: $$n reads by a bare number are left in the stored form, within the budget of $(BARE)"; \
+	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; exit 1; fi
 
 clean:
 	rm -f ck fb kg .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
