@@ -8,15 +8,15 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,012 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,042 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 55 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 56 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
 | Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form: compiles a recursion over numbers to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, and super that moves the view |
-| Programs | [`ground/`](ground) | 43 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 44 that witness the above; one more runs them and judges how each ends |
 | Region | [`region/`](region) | the layout of the region's records is a node: the C header is made from it, and a program in form shows its own region or another process's through it |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
 | Claim graph | [`graph/`](graph) | 1,359 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
@@ -42,7 +42,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   walker's own in seventeen trials by hand.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
   its own names, as 675 lines and reads them back to the file it is stored as, byte for byte, and
-  does the same for each of the 74 files of nodes here in 0.4 s. Its rows and their matcher were
+  does the same for each of the 75 files of nodes here in 0.4 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
   numbers in the node and names on a second line of its file. The definitions of the lens, the
@@ -66,6 +66,10 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   that share an ancestor holds the ancestor's slot once, sends to both parents through super
   with the view moving, refuses a slot the view does not have, and refuses to choose between
   two parents. Each of those tests turned red under a fault planted for it.
+- **A binding can stand outside the run.** Bound from outside, a diagnostic sits on every use of
+  an operation at every layer, inside implementations that a program's own binding does not
+  reach; no fail undoes it, and it is released from outside. A program in form shows the
+  bindings of its own region or another's with the names their arguments were given.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back
   the activations nothing can return to: three million rounds of a recursion ended with 5
   activations in use where there had been three million.
@@ -78,8 +82,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 
 - **Everything swappable** (path: graph node 7.21). The store's own making of nodes, the host
   functions, and what carries a run between nodes, the continuation, the choice points and the
-  undo, are C with no binding. A binding has no scope of its own and comes only from the running
-  program.
+  undo, are C with no binding. What is bound from outside the run is still asked for by the
+  running program: no second process can ask yet.
 - **A compiler worth the name.** The emitter knows numbers, one shape of condition and calls of
   the recipe itself. It compiles a recipe whole or not at all and cannot hand a node back to the
   walker, so it compiles no call of another recipe, no backtracking and nothing that builds a
@@ -87,7 +91,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 - **The home lens.** The first lens's shapes are brackets only: nothing is written infix, and a
   recipe inside another sees none of the outer names. The emitter and most ground programs still
   show their arguments as numbers: they were composed before names existed.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 74
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 75
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (659 lines of C under `tools/`), the Makefile's 65 lines, ten pages, the claim
   graph as 52 text files, and the axioms' text. Three of the checks are still lines of the

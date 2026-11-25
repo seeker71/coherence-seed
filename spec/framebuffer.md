@@ -38,12 +38,13 @@ reads any other place is tied to one layout version.
 | by-content, by-id | words | the two indexes over nodes; they can be rebuilt from the nodes |
 | frames | frame | the walker's continuations |
 | links | link | values gathered for an operation that takes several |
-| activations, arguments | activation, words | each running recipe and its arguments; for an implementation, how many bindings it runs on and the activation and cut scope of whoever used it |
+| activations, arguments | activation, words | each running recipe and its arguments; for an implementation, the limit it runs under, which counts the program's own bindings and those made from outside, and the activation and cut scope of whoever used it |
 | choice-points | choice-point | each open choice and the marks it returns to |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |
 | bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
 | bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
+| outside | binding | what was bound from outside the run: seen by every layer of the program, and not undone by a fail |
 | cells | words | for each node used as a cell, the node it holds |
 | trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |

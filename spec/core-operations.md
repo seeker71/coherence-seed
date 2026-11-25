@@ -5,14 +5,14 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 70 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 71 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
-94 to 97 read a region; 98 calls the host, 99 counts and 100 gives a part a place. 128 is the
-first operation that exists only in form: entries below 128 are the bootstrap's to name, and from
-128 up they are named by modules written in form.
+94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place and 101 binds from
+outside the run. 128 is the first operation that exists only in form: entries below 128 are the
+bootstrap's to name, and from 128 up they are named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -419,6 +419,28 @@ old one inside body only; outside the let it is what it was, since the let makes
 and the old one is never changed. `(let $0 5 $0)` at the top of a program answers 5.
 
 A wrong shape, three children of which the first is an argument, is a fault, `arity`.
+
+## Entry 101: outside, a scope above the program
+
+`(outside x)` evaluates x as if it were asked from outside the run. What x binds is not one of
+the program's own bindings:
+
+- **Every layer sees it.** A program's own binding is seen by what stands above it and not by
+  the implementations bound before it. One made outside is seen everywhere, inside every
+  implementation, so a diagnostic bound there sits on every use of an operation and not only on
+  the uses at the top.
+- **No fail undoes it.** It was not part of the run, as a note is not. `(outside (unbind e))`
+  takes the newest one for e away, and nothing brings it back.
+- **It runs on what lies beneath it**: the outside bindings made before it, and the program as
+  the place that used it sees the program. So `base` inside it gives exactly what would have run
+  without it, at that layer.
+
+The limit an activation runs under holds both counts, the program's own bindings and the ones
+from outside, and whether what is bound under it is the program's own. At most 127 can be bound
+from outside at once; one more is a fault, `full`. `ground/from-outside.ck` holds a diagnostic
+that sees one use of `add` when the program binds it and both when it is bound from outside, a
+binding kept through a fail, a release, and two outside bindings of one entry with the newer
+running on the older.
 
 ## Entry 128: compile, which exists only in form
 

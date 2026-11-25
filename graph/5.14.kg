@@ -489,3 +489,16 @@ why: Loops are written as recursions here. Without this every round of one staye
 flip: Nodes a run made are still never given back, so the store is the bound a long loop meets next.
 limit: Witnessed by ground/loop-in-place.ck and ground/user-kept.ck, each turned red by a planted fault. One machine.
 at: 2026-11-26
+
+n: 5.14.45
+name: a-scope-above-the-program
+kind: decision
+is: Entry 101, outside, evaluates a node as if asked from outside the run: what it binds goes in a table of its own, above all of the program's bindings. Every layer of the program sees it, implementations bound earlier included; no fail undoes it; it runs on the outside bindings made before it and on the program as its user sees the program. An activation's limit holds both counts. Observed on 2026-11-26: a diagnostic on add saw one use when the program bound it and both, one of them inside an implementation, when bound from outside; it stayed through a fail and was released from outside.
+status: inferred
+from: 5.14.19 5.14.24 5.4.8 7.21 7.13
+src: 2.30.7 2.30.6 2.30.11
+conf: mid
+why: A program's binding is seen only by what stands above it, so a diagnostic made late misses everything inside what was bound before. Watching and swapping from outside need a scope that is no part of the run's history: not layered into it and not undone with it.
+flip: An outside binding is the one thing a fail does not put back, with notes. A search that binds from outside leaves that standing when it fails.
+limit: 127 at once. Bindings made together outside do not see each other as a layer's do. Witnessed by ground/from-outside.ck, turned red by three planted faults.
+at: 2026-11-26

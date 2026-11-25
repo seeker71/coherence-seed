@@ -129,7 +129,7 @@ the text of the file that stores x.
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 74 files, none differs in either line, in 0.4 s.
+  nodes in the repository: 75 files, none differs in either line, in 0.4 s.
 
 ## Limits
 
