@@ -34,8 +34,8 @@ space = one or more spaces, tabs or line ends
 one node; nothing marks sharing, and nothing needs to.
 
 Reading takes any of these forms. Showing chooses one for each node: the word when the entry has
-one and `#N` when it has none, the number for an `int` of at most eight bytes, in hexadecimal from 2 to the 28th up, and for
-a `nat` of at most seven, the name of an argument that has one and `$k` otherwise, braces for a recipe, the
+one and `#N` when it has none, the number for an `int` of at most eight bytes, in hexadecimal
+from 2 to the 28th up, and for a `nat` of at most seven, the name of an argument that has one and `$k` otherwise, braces for a recipe, the
 quoted form for a text whose only control byte is the line end, and the bracket form for every
 other leaf. What fits in a hundred columns is shown on one line. So showing is total: every node
 has a showing, and reading it gives back that node.
@@ -130,7 +130,7 @@ the text of the file that stores x.
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 77 files, none differs in either line, in 0.4 s.
+  nodes in the repository: 78 files, none differs in either line, in 0.4 s.
 
 ## Limits
 

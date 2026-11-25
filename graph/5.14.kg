@@ -268,7 +268,7 @@ at: 2026-11-25
 n: 5.14.26
 name: an-emitter-in-form
 kind: decision
-is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, bound to the recipe or to the entry asked for. It knows numbers: any int leaf, arguments, let, the five operations, tests of lt and eq joined by if, and a call of the recipe itself by self or by name (5.14.48). For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
@@ -523,4 +523,26 @@ is: Observed on 2026-11-26. A recursion that takes 14.3 s on the walker was aske
 status: observed
 src: 2.30.7 2.30.11 2.30.6
 limit: One machine, one recursion over numbers, which is what the emitter can compile. Calls already begun on the walker finish on the walker; only calls made after the code is bound run it.
+at: 2026-11-26
+
+n: 5.14.48
+name: code-and-walker-are-held-equal-by-a-program
+kind: observation
+is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-three recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Five faults planted in it each turned the program red.
+status: observed
+src: 2.30.6 2.30.7
+limit: The program's first version saw none of the planted faults: its helper was a bound entry, which runs on the bindings beneath its own and so never saw the code. The numbers are 64-bit integers only. One machine.
+at: 2026-11-26
+
+n: 5.14.49
+name: bound-says-what-runs-an-entry
+kind: decision
+is: Entry 102, bound, answers the newest implementation of an entry or a recipe as the top of the program sees it, or nothing. A program can read what is bound; the emitter takes an entry's recipe from it, so a definition written by its own name can be compiled where it stands.
+status: inferred
+from: 5.14.19 5.14.26 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: Without it a program could bind and release but not look, and the emitter had to be handed the recipe again.
+flip: It answers the top's view and not the asker's layer. An implementation asking about its own entry gets itself.
+limit: Code bound for an entry lies above its recipe as any binding does, so definitions bound earlier, its own layer's among them, still run the recipe on the walker.
 at: 2026-11-26

@@ -882,6 +882,12 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
         W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
       }
+      if (op == BOUND) {                  /* what runs an entry or a recipe, as the top of the program sees it: the newest */
+        if (c != 1) { fault("arity"); break; }      /* implementation, wherever this is asked from, or nothing */
+        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
+        if (!(W->v = r ? B(r)->impl : 0)) W->reason = txt("unbound");
+        break;
+      }
       if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
         if (c != 1) { fault("arity"); break; }      /* that says so points back at it, so a fail restores it */
         if (!(act[f.env].lim & OWN)) {    /* from outside: the newest one made there, which no fail brings back */

@@ -5,14 +5,15 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 71 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 72 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
-94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place and 101 binds from
-outside the run. 128 is the first operation that exists only in form: entries below 128 are the
-bootstrap's to name, and from 128 up they are named by modules written in form.
+94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
+outside the run and 102 says what runs an entry. 128 is the first operation that exists only in
+form: entries below 128 are the bootstrap's to name, and from 128 up they are named by modules
+written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -450,39 +451,58 @@ binding kept through a fail, a release, and two outside bindings of one entry wi
 running on the older, a layer of two that call each other, and an implementation whose own
 binding stays when the option that called it fails.
 
+## Entry 102: bound, what runs an entry
+
+`(bound e)` answers the implementation that runs e, an entry or a recipe: the newest one, as the
+top of the program sees it, wherever it is asked from. With none it answers nothing, `unbound`.
+It is how a program reads what it or another has bound: the emitter takes the recipe of an entry
+from it.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 128 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
+| 128 | compile | x | writes machine code for the recipe x, or for the recipe an entry x is bound to, binds x to it and answers the code leaf; answers no, and binds nothing, when it cannot |
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
 in form: a layer of definitions, one for each instruction it uses, which answers the
-instruction's word as a number, and one for the shapes of node it knows. It makes one pass over
+instruction's word as a number, and a few for the shapes of node it knows. It makes one pass over
 the recipe's body, each node's instructions gathered as bytes by `all` and packed into one leaf
-under entry 52. It knows seven shapes of node:
+under entry 52. What it knows is numbers:
 
-- an `int` leaf from 0 to 65,535, and `arg`;
-- `add`, `sub` and `mul`, with overflow collected in one register;
-- `(choice (seq (cut (need c)) a) b)` where c is an `lt` or an `eq` of numbers, as a compare and
-  two branches. An overflow inside c takes the second branch, as on the walker;
-- a call of `self`, as a machine call of the leaf's own first instruction.
+- an `int` leaf of any size, and an argument;
+- `let`: the part is kept in the frame at its argument's place, and what was there is put back
+  after the body;
+- `add`, `sub`, `mul`, `div` and `mod`, with an overflow or a division by zero collected in one
+  register;
+- `(if c a b)`, where c is an `lt` or an `eq` of numbers, `yes`, `no`, or an `if` of such tests.
+  A nothing inside a test makes that test fail, as on the walker;
+- a call of the recipe itself, as a machine call of the leaf's own first instruction: by
+  `(call (self) ..)`, or by its own name when an entry was compiled.
 
 For any other node the emitter emits a byte that `pack` refuses, so a recipe is compiled whole or
 not at all, and what is not compiled stays on the walker.
 
-**The leaf answers a number or declines.** It declines when an overflow is left at its end, when
-it was given fewer arguments than the recipe reads, and when the machine stack, whose floor it
-reads from the region's head, has no room for its frame (`ground/deep-on-code.ck` goes 600,000
-deep). A decline travels up through the calls above it, and
-the walker then runs the whole call. So wherever emitted code cannot be sure, the answer, the
+**The leaf answers a number or declines.** It declines when an overflow or a division by zero is
+left at its end, when it was given fewer arguments than the recipe reads, and when the machine
+stack, whose floor it reads from the region's head, has no room for its frame
+(`ground/deep-on-code.ck` goes 600,000 deep). A decline travels up through the calls above it,
+and the walker then runs the whole call. So wherever emitted code cannot be sure, the answer, the
 reason and the fault are the walker's own: emitted code is faster or it is the walker, never
-different. It keeps its arguments and the registers it uses in a frame on the machine stack, and
-a node's result in a register chosen by its depth, x19 to x25.
+different. It keeps its arguments, fourteen places for them and for the parts a let names, and
+the registers it uses in a frame of 208 bytes on the machine stack, and a node's result in a
+register chosen by its depth, x19 to x25.
 
-`ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recursion on the walker,
-compiles it, runs a much longer one on the emitted leaf, and asks for a recipe the emitter does
-not know.
+`ground/code-or-walker.ck` runs twenty-three recipes on the walker and again after asking for
+their code, and holds the two outcomes equal: every shape above, the largest and the most
+negative numbers, a division by zero, tests with a nothing inside, and three the emitter must
+refuse. Its last line shows the walker's `add` is not used while an entry's code runs. Five
+faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
+
+The code is bound as any implementation is: above what was bound before it, and unseen by
+implementations bound earlier, the other definitions of its own layer among them. A recipe that
+is called sees it wherever the caller would.
 
 ## Limits
 
