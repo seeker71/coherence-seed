@@ -219,14 +219,23 @@ and `form/step.leaf.aarch64.ck` are the two as bindings for `ck run`.
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
 in form: one pass over the recipe's body, each node's instructions gathered as bytes by `all` and
-packed into one leaf under entry 52. A node's result is kept in a register chosen by its depth, x9
-to x15; a sticky register collects overflow, so the leaf answers out of range as the hand-written
-ones do. It knows five kinds of node: an `int` leaf from 0 to 65,535, `arg`, `add`, `sub` and
-`mul`. For any other node it emits a byte that `pack` refuses, so a recipe is compiled whole or
-not at all, and what is not compiled stays on the walker.
+packed into one leaf under entry 52. It knows seven shapes of node:
 
-`ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recipe on the walker,
-compiles it, runs it again on the emitted leaf, and asks for a recipe the emitter does not know.
+- an `int` leaf from 0 to 65,535, and `arg`;
+- `add`, `sub` and `mul`, with overflow collected in one register so the leaf answers out of
+  range as the hand-written ones do;
+- `(choice (seq (cut (need c)) a) b)` where c is an `lt` or an `eq` of numbers, as a compare and
+  two branches. An overflow inside c takes the second branch, as on the walker;
+- a call of `self`, as a machine call of the leaf's own first instruction.
+
+The leaf keeps its arguments and the registers it uses in a frame on the machine stack, and a
+node's result in a register chosen by its depth, x19 to x25. For any other node the emitter emits
+a byte that `pack` refuses, so a recipe is compiled whole or not at all, and what is not compiled
+stays on the walker.
+
+`ground/compiles-a-recipe.ck` loads the emitter from its file, runs a recursion on the walker,
+compiles it, runs a much longer one on the emitted leaf, and asks for a recipe the emitter does
+not know.
 
 ## Fail, choice and cut
 
@@ -286,12 +295,16 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles arithmetic over arguments and nothing else: no call, no control, no `eq` or
-  `lt`, no negative or large literal, and an expression nested deeper than seven registers is not
-  compiled. A program asks for it; nothing offers a recipe by how often it runs. Compiled code
+- The emitter compiles numbers only: no call of another recipe, no control beyond the one shape
+  of condition, no answer of yes or no, no negative or large literal, and an expression nested
+  deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
+  walker. A program asks for it; nothing offers a recipe by how often it runs. Compiled code
   differs from the walker at the edges: an overflow inside a larger expression has the reason
-  `range` where the walker says `nothing-in`, an argument that is nothing is a fault, and an
-  argument the caller did not pass reads as zero.
+  `range` where the walker says `nothing-in`, an argument that is nothing is a fault, and an argument
+  the caller did not pass reads as zero.
+- Emitted code keeps its frames on the machine stack, 144 bytes a call. A recursion 100,000 deep
+  answers; one a million deep answers on the walker and ends the process on emitted code, with
+  no reason given.
 - What is not an operation has no binding yet: the store, freeze and thaw and the other host
   functions. The commands of `ck` still call the C directly.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have

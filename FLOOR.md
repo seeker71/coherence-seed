@@ -41,10 +41,11 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   region, answers the leaves and declines the rest to the step beneath it. The long recursion
   takes 0.80 s on the walker alone, 1.39 s under that code step and 8.6 s under the marking step.
   A `cut` reaches the program that used an implementation from inside a helper recipe.
-- An emitter written in form compiles a recipe: for a*a + b*3 - 7 it writes one leaf of 34
-  instructions and binds the recipe to it. The answers are the same, an overflow is still out of
-  range, and a million calls take 0.27 s where the walker takes 0.62 s. Compiling takes about
-  1,500 walker steps. A recipe it does not know stays on the walker.
+- An emitter written in form compiles a recipe and binds it to the code. For the recursion it
+  writes one leaf of 52 instructions; on it the long recursion answers the same in 0.02 s and
+  5,952 walker steps, loading and compiling included, where the walker takes 0.75 s and 158.6
+  million. Factorial, overflow and an overflow inside a condition answer as on the walker. A
+  recipe it does not know stays on the walker.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
 - `./kg check`: no errors over 1,155 claims, none of them reviewed by a second reader.
@@ -57,16 +58,18 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. The Makefile's shell, the two C tools,
   these pages, the graph's blocks and the tables are not form nodes.
-- **A compiler worth the name.** The emitter in form knows five kinds of node, compiles a recipe
-  whole or not at all, and runs only when a program asks. It cannot hand a node back to the
-  walker, so it compiles no call and no control, and the walker is still on every running path.
+- **A compiler worth the name.** The emitter in form knows numbers, one shape of condition and
+  calls of the recipe itself. It compiles a recipe whole or not at all, runs only when a program
+  asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
+  backtracking and nothing that builds a node.
 - **A way to write form.** Programs are written by hand in the canonical print; there is no home
   lens, and no check or observer written in form.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
 - **Cells and the journal**, recipes that name each other, threads, symbol lookup.
 - **Bounds that give way.** The region's areas have fixed capacities; a wrong recursion runs until
-  one is full.
+  one is full. Emitted code recursing a million deep ends the process at the stack's guard page,
+  where the walker answers.
 
 ## Guidance
 

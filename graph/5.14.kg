@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the one step in machine code takes only leaves, and the emitter compiles only arithmetic over arguments (5.14.26). What is not an operation has no binding: the store, freeze, thaw and the other host functions are C. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
+is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only numbers (5.14.26). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
 status: inferred
 from: 5.14.19 5.14.24 7.13 5.9.3
 conf: high
@@ -268,7 +268,7 @@ at: 2026-11-25
 n: 5.14.26
 name: an-emitter-in-form
 kind: decision
-is: Entry 82, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. A node's result is kept in a register chosen by its depth and a sticky register collects overflow. It knows five kinds of node: a small int leaf, arg, add, sub and mul. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 82, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
@@ -280,9 +280,9 @@ at: 2026-11-25
 n: 5.14.27
 name: a-recipe-runs-on-code-the-emitter-wrote
 kind: observation
-is: Observed on 2026-11-25. For the recipe a*a + b*3 - 7 the emitter wrote a leaf of 34 instructions, read here one by one against the intended encoding. The recipe answered 50 on the walker and 50 on the leaf; an overflow answered nothing with the reason range. A million calls in a loop took 0.62 s and 47.0 million walker steps on the walker, and 0.27 s and 30.0 million steps once compiled; compiling took about 1,500 steps. A recipe with eq in it got the answer no and stayed on the walker.
+is: Observed on 2026-11-25. For the recursion of ground/recursion.ck the emitter wrote a leaf of 52 instructions. On it the long recursion answered 2178309 in 0.02 s and 5,952 walker steps, loading and compiling included, where the walker alone takes 0.75 s and 158.6 million. A million calls of a*a + b*3 - 7 took 0.23 s compiled and 0.53 s on the walker. Factorial, an overflow, and an overflow inside a condition answered as on the walker in nine trials; a recipe that answers yes or no got the answer no and stayed on the walker.
 status: observed
 src: 2.30.7 2.30.6 2.30.10
-limit: One recipe, one machine. Compiled code differs at the edges: a nested overflow says range where the walker says nothing-in, an argument that is nothing is a fault, and a missing argument reads as zero.
+limit: Three recipes, one machine, trials by hand. Compiled code differs at the edges: a nested overflow says range where the walker says nothing-in, an argument that is nothing is a fault, and a missing argument reads as zero. A recursion a million deep answers on the walker and ends the process on emitted code (signal 10 at the stack's guard page); 100,000 deep answers.
 at: 2026-11-25
 
