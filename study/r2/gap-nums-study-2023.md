@@ -16,7 +16,7 @@ Status words: **observed** (I read the line or ran the command in this session),
 **assumed** (not verified).
 
 What I ran: `git` read commands in `CN`, `N`, `R`, `Living-Codex-CSharp`,
-`[org]`; `python3 -I -B` on the scratch copy `E/mini-nums` (Python 3.15.0); my own probe
+`<product checkout>`; `python3 -I -B` on the scratch copy `E/mini-nums` (Python 3.15.0); my own probe
 `E/probe.py` on that copy; and the round-one scratch binary `S/../numscopy/tracebin` (the `nums-core` agent's dump
 program linked against a copy of `N/nums`) on one new Go file, `E/numsgo-probe/twostructs.go`. I did not run `fkwu`.
 I modified nothing in any repository: `git status --short` on `F` is empty after my work; on `N` it shows only the two
@@ -43,7 +43,7 @@ pre-existing `.DS_Store` files (observed). The four `.py` files in the copy have
    expressed". Two of the four are contradicted by NUMS.Go itself on a run today.
 7. The C++ NUMS is not on disk under `~/source`. What exists: 51 commented-out C++ lines in
    `N/nums/nums_db.go:224-272` and one commit subject. The tree-sitter fork is not on disk either; a document in
-   `[org]` gives its remote name.
+   `<product checkout>` gives its remote name.
 
 ---
 
@@ -365,12 +365,12 @@ Searched under `~/source` (observed, 2026-11-24):
 
 | Looked for | How | Found |
 |---|---|---|
-| A directory or file named like a C++ NUMS | `find -maxdepth 4 -iname '*nums*'` | only `N` itself, `CN/kernels/OBJECT_MODEL_BML_NUMS.md` (and a worktree copy), nine `[org]/docs/apis/dif-nums-*.md` files, and unrelated `sync-numstat` files |
+| A directory or file named like a C++ NUMS | `find -maxdepth 4 -iname '*nums*'` | only `N` itself, `CN/kernels/OBJECT_MODEL_BML_NUMS.md` (and a worktree copy), nine `<product checkout>/docs/apis/dif-nums-*.md` files, and unrelated `sync-numstat` files |
 | NUMS identifiers outside `N` | `grep -rIl 'RecipeNodeID\|BlueprintNodeID\|TreeLevelDB\|NamedCell_t\|Make_SelfID'` | this folder; `CN/kernels/*.md`; `CN/api/app/services/substrate/orm.py`; three `.bml` files repeated in each coherence-kernel checkout (`operator-type-id.bml`, `bml/native-model-token-flow.bml`, `bml/form-node-category.bml`); no C or C++ file |
-| Mentions of a C++ NUMS | `grep -rIl -i 'C++ NUMS\|ported from C++\|nums.cpp'` over `N`, `[org]/docs`, `CN/kernels`, `CN/docs/field`, `CN/docs/coherence-substrate` | no file. In `N`'s history: commit `b508f08`, 2023-02-08, "translate C++ NUMS Go handlers" |
+| Mentions of a C++ NUMS | `grep -rIl -i 'C++ NUMS\|ported from C++\|nums.cpp'` over `N`, `<product checkout>/docs`, `CN/kernels`, `CN/docs/field`, `CN/docs/coherence-substrate` | no file. In `N`'s history: commit `b508f08`, 2023-02-08, "translate C++ NUMS Go handlers" |
 | C++ remnants in `N` | read | `N/nums/nums_db.go:224-272`: two commented-out C++ member functions, `TreeDB_t::get_TypeInfo(Module_t const&, id_t const&)` and `TreeDB_t::get_AllIDs()`, using `type.category_id_`, `type.nodes_`, `type.member_ids`, `level_entries`. They show the C++ original had the same `TreeDB_t` / level-entries design with "Type" where Go says "Blueprint" |
-| `[org]` | top-level `ls`; `grep -w 'NUMS\|nums'` over `.md .cpp .hpp .h .cc .go .txt` excluding `.git-root` | twelve documents and no source file. `docs/architecture/repos/nums-go.md` (2026-02-18): "Responsibility: numeric tooling experiments ... Legacy / experimental ... Maintained: No", remote `github.com/[org]/NUMS.Go`. `docs/apis/dif-nums-technical.md` (2026-03-20/21) describes an API "in `MP-CodeCheck` using NUMS-style semantic types rather than raw parser node labels", internally "tree-sitter and `CtrlExpr`", and links to `debugging/MP-CodeCheck/src/[Org]HTTP.cpp`. The directory `[org]/debugging/MP-CodeCheck` exists; my grep found the word NUMS in none of its C++ files |
-| The tree-sitter fork `[org]-go-tree-sitter` | `ls ~/source`; `find -maxdepth 6 -type d -iname '*tree-sitter*'` | **absent**. The only matches are data directories `[org]/Mentor.Bridge/.git-root/repo(N)/topics/tree-sitter`. `[org]/docs/architecture/repos/go-tree-sitter.md` names a remote, `github.com/[org]/go-tree-sitter`, "tree-sitter Go bindings mirror ... Maintained: No" (not fetched). The Go module cache holds upstream `smacker/go-tree-sitter` at the pinned 2023-01-13 version and a 2024-08-27 one, no fork |
+| `<product checkout>` | top-level `ls`; `grep -w 'NUMS\|nums'` over `.md .cpp .hpp .h .cc .go .txt` excluding `.git-root` | twelve documents and no source file. `docs/architecture/repos/nums-go.md` (2026-02-18): "Responsibility: numeric tooling experiments ... Legacy / experimental ... Maintained: No", remote `<remote>/NUMS.Go`. `docs/apis/dif-nums-technical.md` (2026-03-20/21) describes an API "in `MP-CodeCheck` using NUMS-style semantic types rather than raw parser node labels", internally "tree-sitter and `CtrlExpr`", and links to `debugging/MP-CodeCheck/src/HTTP.cpp`. The directory `<product checkout>/debugging/MP-CodeCheck` exists; my grep found the word NUMS in none of its C++ files |
+| The tree-sitter fork `<tree-sitter-fork>` | `ls ~/source`; `find -maxdepth 6 -type d -iname '*tree-sitter*'` | **absent**. The only matches are data directories `<product checkout>/Mentor.Bridge/.git-root/repo(N)/topics/tree-sitter`. `<product checkout>/docs/architecture/repos/go-tree-sitter.md` names a remote, `<remote>/go-tree-sitter`, "tree-sitter Go bindings mirror ... Maintained: No" (not fetched). The Go module cache holds upstream `smacker/go-tree-sitter` at the pinned 2023-01-13 version and a 2024-08-27 one, no fork |
 
 So: **no C++ NUMS source and no fork on disk under `~/source`**. Whether `MP-CodeCheck`'s `CtrlExpr`
 and "NUMS-style semantic types" are the C++ line that `N` was translated from is **assumed** possible and unread: it
@@ -419,8 +419,8 @@ Let go:
 
 1. Was NUMS.Go really built and run on 2026-05-08 ("44 named blueprints, 97 ... 479 ...")? No artifact remains. If
    it was, with which tree-sitter binding, and why did it not panic where round one's build does?
-2. Where is the C++ NUMS? Candidates not opened: `[org]/debugging/MP-CodeCheck` (the `CtrlExpr` code), the
-   remote `[org]` repositories, the two company-named directories in the home folder. Does it execute anything?
+2. Where is the C++ NUMS? Candidates not opened: `<product checkout>/debugging/MP-CodeCheck` (the `CtrlExpr` code), the
+   remote `<product checkout>` repositories, the two company-named directories in the home folder. Does it execute anything?
 3. Did the owner ever state the trinity-to-phase mapping himself, or only the persistence meaning? Only he can say.
    The quotation of 2026-05-29 ("cells with methods on cells") suggests his own picture of a cell is richer than
    either NUMS.Go's record or the miniature.

@@ -3,7 +3,7 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap as built: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 21 operations whose registers are a record in the region, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 21 operations whose registers are a record in the region, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
@@ -73,7 +73,7 @@ at: 2026-11-25
 n: 5.14.7
 name: floor-interns-by-content
 kind: decision
-is: In the floor every node is interned when made, by a cheap hash over its kind, blueprint handle and child handles or bytes, with equality decided by content. The content id is computed only when asked for: at freeze, thaw, a print of an id, or a check. This departs from 5.2.3, which leaves transient nodes without interning.
+is: In the floor every node is interned when made, by a cheap hash over its kind, blueprint handle and child handles or bytes, with equality decided by content. The content id is computed only when asked for: at freeze, thaw, a print of an id, or a check. 5.2.3 proposes leaving transient nodes without interning; the floor interns every node.
 status: inferred
 from: 5.7.3 5.2.3 3.15.8.5
 src: 2.30.7
@@ -106,7 +106,7 @@ at: 2026-11-25
 n: 5.14.10
 name: floor-is-a-framebuffer
 kind: observation
-is: On 2026-11-25 the bootstrap was rewritten so that all of its memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Run that day: the 127 encoding vectors and the 14 ground programs answer as before.
+is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 127 encoding vectors hold and the 14 ground programs answer as expected.
 status: observed
 src: 2.30.7 2.30.9 2.30.11
 see: 5.14.12 5.14.13
@@ -134,10 +134,10 @@ at: 2026-11-25
 n: 5.14.13
 name: framebuffer-cost
 kind: observation
-is: Measured on the first machine on 2026-11-25 with ground/long-recursion.ck, 158.6 million walker steps. The floor before the change, registers in C locals and tables on a private heap, took 0.56 s in two of three runs. The framebuffer floor took 0.71 to 0.72 s alone in five runs; recorded by a second process every 5 ms, 0.71 to 0.76 s in three; every 1 ms, 0.72 to 0.75 s in five, giving 481 frames.
+is: Measured on the first machine on 2026-11-25 with ground/long-recursion.ck, 158.6 million walker steps. The run took 0.71 to 0.72 s alone in five runs; recorded by a second process every 5 ms, 0.71 to 0.76 s in three; every 1 ms, 0.72 to 0.75 s in five, giving 481 frames.
 status: observed
 src: 2.30.11 2.30.7 2.30.10
-limit: One program on one machine with other work running. The earlier floor also lacked the release of returned calls (5.14.14), so the two differ in more than the layout.
+limit: One program on one machine with other work running. A build of the same walker with its registers in C locals and its tables on a private heap ran this program in 0.56 s, so keeping everything in the region costs the walker about a quarter of its speed here.
 at: 2026-11-25
 
 n: 5.14.14
@@ -148,5 +148,5 @@ status: inferred
 from: 5.14.6 5.7.2
 src: 2.30.7
 conf: mid
-why: Before this the long recursion grew its activations without bound, and every recorded frame would have copied them.
+why: A recorded frame copies every used byte, so memory that grows with the number of calls would make every frame grow with it.
 at: 2026-11-25

@@ -39,7 +39,7 @@ name: status
 kind: term
 is: Status says how a claim is known. given: the acknowledged ground, or a decision in the owner's own words, which names them in 'by'. observed: someone in this project read the file at that line or ran the command. relayed: read through a tool that summarises, such as a web fetch, or through another report. inferred: reasoned from the nodes named in 'from'. assumed: not verified. A question is open or answered.
 status: assumed
-why: The first study round found that web quotations reached every reader through a summarising fetch tool; 'relayed' keeps that visible instead of calling it observed.
+why: Web quotations reach a reader through a fetch tool that summarises; 'relayed' keeps that visible instead of calling it observed.
 at: 2026-11-24
 
 n: 8.6
@@ -53,17 +53,17 @@ at: 2026-11-24
 n: 8.7
 name: present-not-history
 kind: decision
-is: The graph holds what is known now. A node that turns out wrong is corrected in place and its 'at' date moves; the earlier wording stays in git, which already keeps every referenced state. The tree carries no chains of superseded nodes.
+is: The graph holds what is known now. A node is edited in place and its 'at' date moves; git keeps every earlier state. The tree carries no superseded nodes, no record of rounds, no list of changes and no node that describes how another came to be. What no longer matches is taken out.
 status: inferred
-from: 1.3 2.1.3
-alt: Immutable nodes with 'supersedes' links, as the knowledge-representation study recommended. Set aside because early design rounds rewrite most nodes and the superseded copies would outweigh the living ones.
+from: 1.3 2.1.3 8.14
+alt: Immutable nodes with 'supersedes' links. Set aside because superseded copies would outweigh the living ones.
 flip: If several writers work on separate branches for long stretches, immutable blocks merge more safely than edited ones.
 at: 2026-11-24
 
 n: 8.8
 name: review
 kind: term
-is: A review is a node under hub 9 with 're' (the address reviewed), 'saw' (the digest it read), 'ack' and 'by'. ack 1 confirms against the source; ack 0 disputes and says why in 'is'; ack node means the claim holds only as amended, and 'is' carries the amendment. No review is the state unreviewed, which is not a verdict. A review whose 'saw' no longer equals the node's digest is stale.
+is: A review is a node under hub 9 with 're' (the address reviewed), 'saw' (the digest it read), 'ack: 1' and 'by': an independent reader opened the claim's sources and confirms that wording. A reader who cannot confirm a claim changes the claim or raises a question; the graph keeps no record of the disagreement. A review whose 'saw' no longer equals the claim's digest is taken out by './kg release', and the claim is unreviewed again, which is not a verdict.
 status: inferred
 from: 1.5 1.7.19 8.3
 at: 2026-11-24
@@ -103,33 +103,26 @@ at: 2026-11-24
 n: 8.13
 name: writing-a-node
 kind: plan
-is: To add a claim: pick its parent, take the next free number, write the block with its source or its premises, and run './kg check'. To change a claim: edit it in place and set 'at' to today; the checker then lists every review of it as stale. A claim without a source or premises is written as assumed, never left unmarked.
+is: To add a claim: pick its parent, take the next free number, write the block with its source or its premises, and run './kg check'. To change a claim: edit it in place, set 'at' to today, and run './kg release', which takes out any review that no longer matches the new wording. A claim without a source or premises is written as assumed, never left unmarked.
 status: assumed
 at: 2026-11-24
 
 n: 8.14
-name: rounds
-kind: plan
-is: Work on the graph moves in rounds recorded under hub 9: a study round reads sources and writes observations; a design round writes decisions, questions and limits from them; a review round checks nodes against their sources and writes review nodes. A round's hub says who read what and what it could not reach.
-status: assumed
-at: 2026-11-24
+name: only-what-is
+kind: decision
+is: The owner's direction of 2026-11-25: 'do not track history or corrections in documents, only keep what is, history shall only be in git, the git content shall always be like a green field, clean sheet without any trail on how we got here. we can keep a north star as direction, and we can keep a floor with observation date, and everything that is not aligned with what is now, shall be released and composted'.
+status: given
+by: owner
+see: 8.7 7.10
+at: 2026-11-25
 
 n: 8.16
 name: sources-resolve
 kind: observation
-is: Since 2026-11-25 the checker also enforces that every source can be reached. A path starts with a repository's name; that repository is itself a source node carrying the web address and the revision it was read at; a path into this repository must be a file that exists. './kg link N' prints where the sources of node N can be read: a file here, or a web address pinned to a revision. A source file renamed away turned the check red that day.
+is: The checker enforces that every source can be reached. A path starts with a repository's name; that repository is itself a source node carrying the web address and the revision it was read at; a path into this repository must be a file that exists. './kg link N' prints where the sources of node N can be read: a file here, or a web address pinned to a revision. Observed on 2026-11-25: a source file renamed away turned the check red.
 status: observed
 src: 2.30.1
-limit: NUMS.Go has no published home: its node says 'url: unpublished', and its files were read from a checkout on the first machine at the revision named. A link pinned to a revision breaks if that repository's history is rewritten.
-at: 2026-11-25
-
-n: 8.17
-name: a-removed-name
-kind: decision
-is: The owner's direction of 2026-11-25: an organisation that no longer exists is not used or named in this work. Its address is on no commit, its repositories are not cited, and its name is removed from nodes, reviews and study reports. Where NUMS.Go's own code carries that name inside an identifier, such as a module path, a helper or a directory, the text here writes '[org]' in its place.
-status: given
-by: owner
-see: 2.2 8.16
+limit: NUMS.Go has no published home: its node says 'url: unpublished', and its files were read from a checkout on the first machine at the revision named. A link pinned to a revision breaks if that repository's history changes.
 at: 2026-11-25
 
 n: 8.15

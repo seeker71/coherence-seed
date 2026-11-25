@@ -1,4 +1,4 @@
-# What the study of the NUMS.Go core package found (study/r1/nums-core.md, with the first-round critic's corrections applied).
+# What the study of the NUMS.Go core package found (study/r1/nums-core.md).
 
 n: 3.1
 name: nums-core
@@ -36,7 +36,7 @@ by: r1/nums-core
 n: 3.1.1.3
 name: build
 kind: observation
-is: As checked in, go build and go vet in nums/ exit 1 under go1.27.2: line 8 of go.work and line 5 of nums/go.mod point at a sibling directory, [org]-go-tree-sitter, that is absent. In a copy with four lines removed (that replace line, and the verilog import and case in parser.go) both commands exit 0 offline against the pinned upstream binding.
+is: As checked in, go build and go vet in nums/ exit 1 under go1.27.2: line 8 of go.work and line 5 of nums/go.mod point at a sibling directory, <tree-sitter-fork>, that is absent. In a copy with four lines removed (that replace line, and the verilog import and case in parser.go) both commands exit 0 offline against the pinned upstream binding.
 status: observed
 src: 2.4.18#8 2.4.17#5 2.4.6#24 2.4.6#148-149 2.4.1#7.1 2.4.1#7.2
 limit: One machine, darwin/arm64. The build needs cgo and a C compiler. The absent directory is a private fork that added a Verilog grammar; whether the fork changed anything else is unknown.

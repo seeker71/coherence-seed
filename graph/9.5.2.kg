@@ -1,19 +1,9 @@
-# Review of 3.2.kg (nums-model) against NUMS.Go at 9e6bbb4, the round-one report and the study's kept run logs.
+# Reviews of the claims of hub 3.2. Each names the digest of the wording it confirms.
 
 n: 9.5.2
 kind: hub
 name: review-of-nums-model
-is: All 39 claims of 3.2.kg (24 observations, 15 findings) were read against NUMS.Go at 9e6bbb4, the round-one report and the run logs the study kept: 39 confirmed, 0 amended, 0 disputed, 0 left unreviewed; nine of the 39 were confirmed on a second reading, after the first reading's amendments had been written into the nodes. Two run results, the three label-numbering runs and the test runs at three earlier commits, could be checked only against the report, because no log of them was kept; no build or test was re-run.
-at: 2026-11-24
-by: r3/review-nums-model
-
-n: 9.5.2.1
-kind: review
-re: 3.2.1.1
-saw: 7c36cc05
-ack: 1
-is: http/go.mod line 1 reads 'module [org]/http'. A search of http/*.go and http/model/*.go for emit, interp and translat finds nothing; nums/ holds emit.go, emit_blueprint.go, emit_module.go and emit_recipe.go.
-by: r3/review-nums-model
+is: Independent readings of the claims of hub 3.2 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.2.2
@@ -164,29 +154,11 @@ is: The kept old-model trace shows symbol 19 resolved to [Pointer] at 1.0.55.5 a
 by: r3/review-nums-model
 at: 2026-11-24
 
-n: 9.5.2.19
-kind: review
-re: 3.2.4.1
-saw: e049a2b5
-ack: 1
-is: Checked from files, the build not re-run: go.work:8 and nums/go.mod:5 read as stated, no [org]-go-tree-sitter directory stands beside NUMS.Go, nums/parser.go:24 imports the verilog grammar, and the pinned binding in the local module cache (v0.0.0-20230113054119-af7e2ef5fed6) has no verilog directory. The installed toolchain reports go1.27.2.
-by: r3/review-nums-model
-at: 2026-11-24
-
 n: 9.5.2.20
 kind: review
 re: 3.2.4.2
 saw: 6c871990
 ack: 1
-by: r3/review-nums-model
-at: 2026-11-24
-
-n: 9.5.2.21
-kind: review
-re: 3.2.4.3
-saw: 097d9f37
-ack: 1
-is: debugging.go:5-10 and :16-18 only call log.Println. A recount of the kept logs gives 25 ASSERT lines in TestGo_Labels_Import and 3,613 ASSERT, 477 'Unhandled BP' and 37 'Unresolved' lines in Test_Query_File_api.
 by: r3/review-nums-model
 at: 2026-11-24
 

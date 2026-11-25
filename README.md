@@ -1,14 +1,14 @@
 # coherence-seed
 
-A restart of the [coherence-kernel](https://github.com/seeker71/coherence-kernel) from its five
-axioms. The aim is one numeric space of immutable nodes, one grammar over it, and a small C
-bootstrap that the system replaces with machine code it compiles for itself.
+One numeric space of immutable nodes, one grammar over it, and a small C bootstrap that the system
+replaces with machine code it compiles for itself. It is built from five axioms, and only they are
+fixed: [`axioms/core-axioms.form`](axioms/core-axioms.form).
 
-Only the axioms are fixed: [`axioms/core-axioms.form`](axioms/core-axioms.form), carried byte for
-byte. Everything else can move, and says how it is known.
+- [`NORTH_STAR.md`](NORTH_STAR.md): where this is going.
+- [`FLOOR.md`](FLOOR.md): what stands today, with the date it was observed.
+- [`AGENTS.md`](AGENTS.md): where a new session starts.
 
-This repository builds with a C compiler and `make`, and nothing else. The old kernel and its
-runtime are evidence that was read; they are not a tool, a dependency or a step of any build here.
+It builds with a C compiler and `make`, and nothing else.
 
 ## Build and run
 
@@ -76,51 +76,23 @@ cc -O2 -o kg tools/kg.c
 | --- | --- |
 | 1 ground | the five axioms word for word, their theorems, what they force on a kernel |
 | 2 sources | every file, repository, paper and page a claim cites, with dates |
-| 3 references read | NUMS.Go, Form, BML, the old runtime and its lessons, as read and run |
-| 4 prior art | what systems outside this body show |
+| 3 references read | NUMS.Go, Form, BML and an earlier kernel, as read and run |
+| 4 prior art | what systems outside this one show |
 | 5 design | the architecture, decision by decision; 5.13 and 5.14 are what is built |
 | 6 open | questions, assumptions and limits: everything that can move |
-| 7 path | the stages from here to the hardware's speed |
+| 7 path | the stages ahead |
 | 8 graph | how this graph is written, checked and reviewed |
-| 9 rounds | the study, design, build and review rounds, and the reviews of single nodes |
+| 9 reviews | independent readings that confirm single claims |
 
 A node is one block of `key: value` lines. Its address (`n`) is the handle other nodes cite.
 `status` says how the claim is known: `given` (the owner's word), `observed`, `relayed`, `inferred`,
 `assumed` or `open`.
 
-```bash
-./kg check
-```
-
-The last line counts the claims a review has confirmed against their present wording, the ones
-disputed, the ones changed since their review, and the ones nobody has reviewed. An unreviewed
-claim is not a refuted one.
-
-```bash
-./kg link 5.14.13
-```
-
-prints where the sources of a node can be read: a file in this repository, or a web address pinned
-to the revision that was read. The checker refuses a source that does not resolve.
-
-## Where it stands
-
-Beside the axioms, the owner has given these, each recorded word for word:
-
-- `fail` is backtracking with undo, and an offer whose every option failed receives nothing (5.4.2)
-- several parents mean one composed shape (5.5.4)
-- ice, water and gas are states of any node (5.6.2)
-- the framebuffer is all memory in one shared space, recorded and replayed at no cost (5.7.6, 5.7.7)
-- the work follows real end-to-end flows, watched live (7.10)
-- this repository is built with a C compiler alone (7.11)
-
-Stage 1, the node encoding ([`spec/node-encoding.md`](spec/node-encoding.md), 127 vectors), is
-written; it closes when a second hand has written a reader from the page alone. Stage 2, the floor,
-stands on the framebuffer. Stage 3 is next: the home lens, written as rows in the grammar.
-
-Not established: no second hand has reviewed the design, the specifications or the code, and only
-one machine has built them. Of 1,687 claims, 666 are confirmed by a review, 114 changed after their
-review and 907 are unreviewed.
+| Command | Does |
+| --- | --- |
+| `./kg check` | enforces the graph's rules and counts confirmed and unreviewed claims |
+| `./kg link N` | prints where the sources of node N can be read |
+| `./kg release` | takes out every review that no longer confirms its claim's present wording |
 
 ## Layout
 
@@ -132,6 +104,5 @@ review and 907 are unreviewed.
 | `ground/` | programs that witness the floor, with their expected answers |
 | `tools/` | the graph checker `kg`, the encoding's reference reader `enc`, the observer `fb` |
 | `graph/` | the claims |
-| `study/` | the full reports of the study rounds of 2026-11-24 |
-| `sources/notes/` | working notes of the old body's sessions that claims cite |
-| `AGENTS.md` | where a new session starts |
+| `study/` | the long reports the evidence in hubs 3 and 4 is drawn from, dated 2026-11-24 |
+| `sources/notes/` | working notes about the earlier kernel that claims cite |

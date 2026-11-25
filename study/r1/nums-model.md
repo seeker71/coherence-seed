@@ -19,7 +19,7 @@ Paths are relative to `NUMS.Go/` unless absolute. `file:line` refers to HEAD.
 
 ## 1. One-paragraph orientation
 
-`http/` is a Go program (module `[org]/http`, `http/go.mod:1`) that parses Go source with tree-sitter and
+`http/` is a Go program (module `<prefix>/http`, `http/go.mod:1`) that parses Go source with tree-sitter and
 re-describes every syntax node in a language-neutral vocabulary whose three roots are **Blueprint** (types, structure),
 **Recipe** (behaviour: functions, statements, expressions, operators) and **Cell** (storage: globals, locals, parameters,
 members). The neutral vocabulary is a YAML tree of 237 labels (`http/config/labels.yaml`); a second YAML file per
@@ -575,8 +575,8 @@ Toolchain: `go version go1.27.2 darwin/arm64`. All commands ran in scratch copie
 
 | what | command | result |
 |---|---|---|
-| any module, workspace mode | `go build ./...` in `http/` | `go: cannot load module ../../[org]-go-tree-sitter listed in go.work file: ... no such file or directory` (`go.work:8`) |
-| `nums/` | `GOWORK=off go build ./...` | every tree-sitter import fails: `replacement directory ../../[org]-go-tree-sitter does not exist` (`nums/go.mod:5`) |
+| any module, workspace mode | `go build ./...` in `http/` | `go: cannot load module ../../<tree-sitter-fork> listed in go.work file: ... no such file or directory` (`go.work:8`) |
+| `nums/` | `GOWORK=off go build ./...` | every tree-sitter import fails: `replacement directory ../../<tree-sitter-fork> does not exist` (`nums/go.mod:5`) |
 | `http/model` | `GOWORK=off go build ./model/` | (a) `../nums/parser.go:24:2: cannot find module providing package github.com/smacker/go-tree-sitter/verilog`; (b) `go-echarts` not in the local module cache |
 | `http/` (server + tests) | `GOWORK=off go build ./...` | the two above, plus `gin`, `gin-contrib/cors` not in the local module cache |
 | `web-api/` | `GOWORK=off go build ./...` | `gin` not in the local module cache |
@@ -624,7 +624,7 @@ blueprint (`:638-643`); use counts on identifiers (`:776-799`); exact HTML spans
 sentence-histogram cardinalities (`:1000-1002`, `:1027-1029`). `Test_Query_Function` and `Test_API_Import` assert
 nothing.
 
-Caveats on "pass": `[ORG]_ASSERT_` and `DEBUGBREAK_` only **log** (`nums/debugging.go`), so internal invariant failures
+Caveats on "pass": `<PREFIX>_ASSERT_` and `DEBUGBREAK_` only **log** (`nums/debugging.go`), so internal invariant failures
 do not fail tests; passing runs still printed soft `ASSERT` lines (e.g. 25 in `TestGo_Labels_Import`, 3,613 in
 `Test_Query_File_api` together with 477 "Unhandled BP" and 37 "Unresolved" lines while reading the Go 1.27 standard
 library). `Test_Query_File_api` parsed the scratch `api.go`, which carries the added `//go:build ignore` line.

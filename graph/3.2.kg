@@ -17,7 +17,7 @@ by: r1/nums-model
 n: 3.2.1.1
 name: analysis-not-execution
 kind: observation
-is: NUMS.Go's http/ module (Go module [org]/http) parses Go source with tree-sitter and re-describes each syntax node in a vocabulary rooted at Blueprint (types), Recipe (behaviour) and Cell (storage). http/model holds no interpreter and no code emitter: the module analyses code and does not execute, emit or translate any.
+is: NUMS.Go's http/ module (Go module <prefix>/http) parses Go source with tree-sitter and re-describes each syntax node in a vocabulary rooted at Blueprint (types), Recipe (behaviour) and Cell (storage). http/model holds no interpreter and no code emitter: the module analyses code and does not execute, emit or translate any.
 status: observed
 src: 2.5.1#1 2.5.24#1
 limit: The first-generation nums/ module has emit*.go files; they were outside the study.
@@ -217,7 +217,7 @@ by: r1/nums-model
 n: 3.2.4.1
 name: does-not-build-as-committed
 kind: observation
-is: With Go 1.27.2 and no network, no module of NUMS.Go builds as committed. go.work line 8 uses ../[org]-go-tree-sitter and nums/go.mod line 5 replaces the tree-sitter binding with ../../[org]-go-tree-sitter; that directory is absent. nums/parser.go line 24 imports a verilog grammar the pinned upstream binding lacks. No committed test can run.
+is: With Go 1.27.2 and no network, no module of NUMS.Go builds as committed. go.work line 8 uses ../<tree-sitter-fork> and nums/go.mod line 5 replaces the tree-sitter binding with ../../<tree-sitter-fork>; that directory is absent. nums/parser.go line 24 imports a verilog grammar the pinned upstream binding lacks. No committed test can run.
 status: observed
 src: 2.5.1#9.1 2.5.25#8 2.5.26#5 2.5.27#24
 limit: One machine. gin, gin-contrib/cors, go-echarts and testify v1.8.1 were missing from the local module cache and were not fetched. The critic confirmed the two file lines and the absent directory without re-running the build.
@@ -237,7 +237,7 @@ by: r1/nums-model
 n: 3.2.4.3
 name: asserts-only-log
 kind: observation
-is: nums/debugging.go defines [ORG]_ASSERT_ and DEBUGBREAK_ as functions that only write a log line, so a broken internal invariant fails no test. Passing runs printed ASSERT log lines: 25 in TestGo_Labels_Import, and 3,613 in Test_Query_File_api together with 477 'Unhandled BP' and 37 'Unresolved' lines while reading the Go 1.27 standard library.
+is: nums/debugging.go defines <PREFIX>_ASSERT_ and DEBUGBREAK_ as functions that only write a log line, so a broken internal invariant fails no test. Passing runs printed ASSERT log lines: 25 in TestGo_Labels_Import, and 3,613 in Test_Query_File_api together with 477 'Unhandled BP' and 37 'Unresolved' lines while reading the Go 1.27 standard library.
 status: observed
 src: 2.5.28#5-18 2.5.1#9.2
 at: 2026-11-24

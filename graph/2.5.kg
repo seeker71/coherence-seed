@@ -217,7 +217,7 @@ at: 2026-11-24
 n: 2.5.24
 name: http-go.mod
 kind: source
-is: The module file of the http/ module; line 1 names it [org]/http.
+is: The module file of the http/ module; line 1 names it <prefix>/http.
 path: NUMS.Go/http/go.mod
 rev: 9e6bbb4
 got: 2026-11-24
@@ -226,7 +226,7 @@ at: 2026-11-24
 n: 2.5.25
 name: go.work
 kind: source
-is: The workspace file, 9 lines; line 8 uses a sibling directory ../[org]-go-tree-sitter.
+is: The workspace file, 9 lines; line 8 uses a sibling directory ../<tree-sitter-fork>.
 path: NUMS.Go/go.work
 rev: 9e6bbb4
 got: 2026-11-24
@@ -253,7 +253,7 @@ at: 2026-11-24
 n: 2.5.28
 name: debugging.go
 kind: source
-is: The assertion helpers, 18 lines: [ORG]_ASSERT_ and DEBUGBREAK_ write a log line, [ORG]_Unhandled panics.
+is: The assertion helpers, 18 lines: <PREFIX>_ASSERT_ and DEBUGBREAK_ write a log line, <PREFIX>_Unhandled panics.
 path: NUMS.Go/nums/debugging.go
 rev: 9e6bbb4
 got: 2026-11-24

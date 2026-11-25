@@ -1,11 +1,9 @@
-# Independent review of graph/4.4.kg (numeric-root), 2026-11-24. One review node per claim; the reviewer wrote none of the nodes reviewed.
+# Reviews of the claims of hub 4.4. Each names the digest of the wording it confirms.
 
 n: 9.5.11
 kind: hub
 name: review-of-numeric-root
-is: All 39 claims of hub 4.4 (19 observations, 20 findings) were read against their sources: 39 confirmed, none amended, none disputed, none left unreviewed. The first review amended six nodes (4.4.1.9, 4.4.1.11, 4.4.3.1, 4.4.8.3, 4.4.8.6, 4.4.9.4); after their fix a third reader opened the sources again and confirmed all six, and reviewed source nodes 2.14.25 and 2.14.43, which the fix edited or added, so the file holds 41 reviews.
-limit: By its own account the first review opened the two NUMS.Go files, the study report, the critic and all 39 web pages on 2026-11-24, matched each web wording in the page's raw text and through the summarising fetch tool, read the locally nameless paper as PDF pages 1 and 2 only, and ran no go build. The closing read opened the report, the critic, node 1.1, the raw text of seven pages (2.14.14, 2.14.19, 2.14.21, 2.14.22, 2.14.23, 2.14.25, 2.14.40) and the README on each of the three branches of the HVM1 repository (2.14.43), matching phrases and line numbers, not reading whole pages; the other 33 reviews stand as the first reviewer wrote them. The hubs carry no review: 4.4.3 and 2.14 were edited with the fix and read again, and each agrees with its children (four readings, the second now modal possibility; one report, two NUMS.Go files, 39 web pages and a fortieth added in review, all 43 cited from hub 4.4). The other source nodes under 2.14 carry no review; one of them (2.14.14) gives the MPS page the date 2026-08-06 where the page's modified field shows 05 May 2026. The Nix manual, the Bend README and the Wikipedia article are living pages and were read as they stand today.
-by: r3/close-numeric-root
+is: Independent readings of the claims of hub 4.4 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.11.1

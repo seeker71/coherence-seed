@@ -1,12 +1,10 @@
-# Review of graph/4.2.kg (self-compiling systems) by r3/review-self-compiling-systems. Web pages were re-read through a summarising fetch tool, so a web confirmation here is itself one relay step from the bytes.
+# Reviews of the claims of hub 4.2. Each names the digest of the wording it confirms.
 
 n: 9.5.9
 name: review-of-self-compiling-systems
 kind: hub
-is: 39 claims of 4.2 were read against their sources: 39 confirmed, 0 hold only as amended, 0 disputed, 0 left unreviewed. The first review re-fetched all 41 web sources (the STEPS PDF as page images, the PEP 836 thread only at its first page and post 75), opened both local files at their lines, re-ran the sysctl and version commands, and amended eight nodes (4.2.1.2, 4.2.1.7, 4.2.2.3, 4.2.3.2, 4.2.8.2, 4.2.8.4, 4.2.9.2, 4.2.9.3); after their fix a third reader opened the sources again and confirmed all eight as they now stand.
-limit: The hubs carry no review; hubs 4.2 and 4.2.2 were edited with the fix and read again, and both hold. The third reader fetched the pages of the eight nodes as bytes, not through a summarising tool, and read printed pages 4 to 6 of the STEPS PDF as page images. Two of the first review's wordings were not taken and the nodes stand without them: PEP 744 does name "object file parsing" among the LLVM utilities its build needs, and 4.2.8.4 states the two baseline-tier figures without calling the evidence mixed. The 3.15 page lists a sixth upgrade, GDB and backtrace unwinding support, which 4.2.1.7 leaves out. cranelift.dev does not use the word acyclic; that the production e-graph is the acyclic one rests on the accepted RFC.
+is: Independent readings of the claims of hub 4.2 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
-by: r3/review-self-compiling-systems
 
 n: 9.5.9.1
 kind: review

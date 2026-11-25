@@ -83,14 +83,14 @@ in it was complete when its count was read.
   0.72 to 0.75 s in five. The 1 ms recording held 481 frames.
 - A recording of 117 frames was replayed. Its last frame holds the answer 2178309 and names the
   `add` node of the recipe as its writer.
-- The same program on the floor before this change, with its registers in C locals and its tables
-  on a private heap, took 0.56 s in two of three runs.
+- A build of the same walker with its registers in C locals and its tables on a private heap ran
+  the same program in 0.56 s in two of three runs.
 
 ## Limits
 
 - **The layout has a cost of its own.** Keeping the walker's registers in memory and stamping a
-  writer on each record made this run about a quarter slower than the earlier floor (0.71 s
-  against 0.56 s). Reading costs the writer no instruction, but a reader that copies a page pulls
+  writer on each record costs this run about a quarter of its speed (0.71 s against 0.56 s with
+  registers in C locals and private tables). Reading costs the writer no instruction, but a reader that copies a page pulls
   its cache lines away from the writer; at 1 ms that was measured as up to about 4%.
 - **Machine registers are not memory.** A value held only in a register of compiled code is seen
   once it is stored. The walker keeps its registers in the region for this reason.

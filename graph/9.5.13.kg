@@ -1,10 +1,9 @@
-# Independent review of graph/3.8.kg (the round-two study of the folder nums-go-2023). One review node per claim, each naming the digest it read. Every cited local file was opened at the cited lines; the miniature was copied to a scratch directory and run again under Python 3.15.0 with the reviewer's own probe; git read commands were run in Coherence-Network, NUMS.Go, Living-Codex-CSharp, one further checkout and the old body. NUMS.Go was not built again: its run is read from the study's three stored outputs. The old runtime was not run. No web request was made (the file has no relayed claim).
+# Reviews of the claims of hub 3.8. Each names the digest of the wording it confirms.
 
 n: 9.5.13
 kind: hub
 name: review-of-nums-study-2026
-is: All 39 claims of 3.8.kg (25 observations, 14 findings) were read against their sources: 32 confirmed, 7 amended (3.8.1.6, 3.8.2.5, 3.8.3.3, 3.8.8.4, 3.8.8.6, 3.8.9.1, 3.8.9.4), none disputed, none left unreviewed. The amendments: the miniature prints 14 assertions, not 15; the quoted Living Codex lines are of 2025-10-07 at lines 572-575, not of 2025-09-12; the body re-read the kind-to-state mapping as a resting tendency and did not withdraw it; three statements claim more than their premises or contradict sibling nodes.
-limit: Hubs and source nodes are outside the review, and three of them repeat an amended fact: hubs 3.8 and 3.8.2 and source 2.16.7 say 15 assertions; source 2.16.21 gives rev 6ea184a, date 2025-09-12 and lines 571-574 for a passage that is at lines 572-575 of the 869-line head and entered the file on 2025-10-07; source 2.16.1 says 463 lines where wc -l counts 462.
+is: Independent readings of the claims of hub 3.8 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.13.1
@@ -52,16 +51,6 @@ limit: OBJECT_MODEL_BML_NUMS.md lines 8-9, 15, 94-96, 100-102 and 105 read as st
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
-n: 9.5.13.6
-kind: review
-re: 3.8.1.6
-saw: 2bf2f3ae
-ack: node
-is: The hypothesis holds for one of the two departures it names. The node should say: the four-word id probably reached the kernel through the folder and its miniature; of their departures from NUMS.Go only the type taken from the category is found in the old runtime, whose composites carry package 0 and the category's level.
-why: Line 59 of the axioms file carries the four words and no field meaning. The old runtime builds a composite id as fk_nid_make(0, the category's level, the category's type, a running index) (runtime/fkwu-uni.c lines 16495 and 16974; node 3.4.2.3). Type from the category agrees with mini-nums (core.py line 183) against NUMS.Go's 0; package 0 for composites is not 'package 1 everywhere'; the category's level is neither NUMS.Go's nor mini-nums's tree height.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
 n: 9.5.13.7
 kind: review
 re: 3.8.2.1
@@ -95,16 +84,6 @@ re: 3.8.2.4
 saw: 62bc0cf9
 ack: 1
 limit: Reproduced on a scratch copy: 49 module-level classes and functions defined in core.py (41), calc.py (7) and jsonschema.py (1), methods not counted; the one name matching eval, exec, run, interp, value, step, apply or call is RID_call. 'let x = 2 + 3 * 4' gave constructor 1.6.3.1 and the table {'2': 1, '3': 2, '4': 3}; 'let z = 1 / 0' returned a cell.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
-n: 9.5.13.11
-kind: review
-re: 3.8.2.5
-saw: 996b94b9
-ack: node
-is: The run prints 14 assertions, not 15: test_mini.py has 14 assert_eq calls (lines 36, 40, 65, 75-79, 102, 114, 125, 129, 152, 154), 2 + 1 + 5 + 1 + 1 + 2 + 2 over the seven tests. Only test 7 asserts counts alone (lines 152 and 154); test 6 asserts that the constructor id is not None (line 125) and one count, recipes_total >= 3 (line 129). The rest of the node holds.
-why: A rerun on a scratch copy under Python 3.15.0 printed 14 check lines. 15 is the count of lines containing 'assert_eq' with the def on line 19, and also the count of check marks with the closing 'ALL TESTS PASSED' line. The rerun confirmed exit 1 with ModuleNotFoundError for 'core' under -I, all 7 tests passing with the directory on the path, and pi * two stored once with count 2.
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
@@ -149,16 +128,6 @@ re: 3.8.3.2
 saw: 8661b2b7
 ack: 1
 limit: grep -rniw over the 53 .go, .txt, .md and .yaml files of NUMS.Go returned nothing; the axioms file has 'water' as a word on lines 58, 60 and 130 only; git show 02dd37592^:CLAUDE.md (229 lines) has no whole-word ice, water, gas, phase, frozen or melt.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
-n: 9.5.13.17
-kind: review
-re: 3.8.3.3
-saw: f0f0737f
-ack: node
-is: The meaning and the 2026-03-23 commit hold; the date and locator of the quoted specification do not. The quoted wording (SQLite/PostgreSQL, materialized views, derivable) is lines 572-575 of LIVING_CODEX_SPECIFICATION.md at head 758dcb5 and entered the file with commit f1c4647 of 2025-10-07. The 2025-09 text of the same meaning is FRACTAL_UNFOLDING_SPEC.md line 24 in the first commit 5fc24ba of 2025-09-09: 'Ice = essential persisted facts (atoms, deltas). Water = materialized caches/prototypes. Gas = derivable/transient.'
-why: The file at commit 6ea184a of 2025-09-12 is 315 lines and has no such passage; its line 16 reads 'Keep Ice Tiny: Persist only atoms, deltas, essential indices'. git blame on lines 572-575 of the 869-line head gives all four to f1c4647, 2025-10-07. Node 3.14.1.1 cites the same first-commit line.
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
@@ -225,15 +194,6 @@ limit: recipe.go 497-502, blueprint.go 73, 93 and 172-184, emit_module.go 35 and
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
-n: 9.5.13.25
-kind: review
-re: 3.8.4.6
-saw: 560d1fc7
-ack: 1
-limit: Lines 224-272 of nums_db.go are 49 lines with CRLF endings, 48 of them comments and one empty; commit b508f08 is dated 2023-02-08 with that subject; both notes then cited, in a checkout no longer cited here, said 'Maintained: No.' The reviewer's search found no C or C++ file under the source directory holding RecipeNodeID, BlueprintNodeID, TreeLevelDB, NamedCell_t or Make_SelfID, and no tree-sitter directory to depth 6 apart from topic data folders; the same places stayed unopened.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
 n: 9.5.13.26
 kind: review
 re: 3.8.8.1
@@ -258,30 +218,11 @@ ack: 1
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
-n: 9.5.13.29
-kind: review
-re: 3.8.8.4
-saw: e4ed9075
-ack: node
-is: The lesson follows; the count of weak tests is stated too strongly. Of the seven passing tests one compares a constant with itself (test 4) and one asserts only counts (test 7, test_mini.py lines 152 and 154); test 6 asserts that a constructor id is not None (line 125) and one count (line 129). The node should say: one compares a constant with itself, one asserts only counts and one asserts a count and that an id exists.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
 n: 9.5.13.30
 kind: review
 re: 3.8.8.5
 saw: 696e7d37
 ack: 1
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
-n: 9.5.13.31
-kind: review
-re: 3.8.8.6
-saw: c51116d2
-ack: node
-is: The persistence meaning can be weighed as a candidate; that it is the only listed definition naming an operational property is not what the studies show. The node should say: one of at least two listed definitions that name an operational property, the other being the runtime's three homes of the node population (nodes 3.4.3.1 and 3.14.2.8).
-why: The first-round form-language report lists as definition A the home of the node population, 'the only definition inside the runtime': ice the host-wide shared field, water the per-process store, gas the private heap; it calls it 'where a node physically lives and who can see it' (study/r1/form-language.md lines 132 and 144). Premise 3.8.3.3 is amended: the 2025-09 wording is FRACTAL_UNFOLDING_SPEC.md line 24 of 2025-09-09, and the SQLite/PostgreSQL wording is of 2025-10-07.
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
@@ -291,15 +232,6 @@ re: 3.8.8.7
 saw: ddbbbe37
 ack: 1
 limit: grep over the folder finds neither Cell_t (apart from NamedCell_t) nor reflect.go.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
-n: 9.5.13.33
-kind: review
-re: 3.8.9.1
-saw: 1d3d1983
-ack: node
-is: The recommendation follows; 'withdrawn by the body' does not. Commit 93af83e75 of 2026-06-08 keeps the mapping as a resting tendency: 'The body's "Blueprint=ice / Recipe=water / NamedCell=gas" names each kind's RESTING tendency — the diagonal of a 3x3 grid' (commit message; the same in docs/coherence-substrate/INDEX.md line 134), and premise 3.8.3.4 itself records living-equation.fk lines 7-13 still carrying it. The node should say: re-read by the body on 2026-06-08 as each kind's resting tendency and no longer an identity, and still written as a mapping in at least one old-body file.
 by: r3/review-nums-study-2026
 at: 2026-11-24
 
@@ -318,16 +250,6 @@ re: 3.8.9.3
 saw: 6607817a
 ack: 1
 limit: The NUMS.Go side is nums_db.go line 67, inst = NodeInstance(len(db.Entries) + 1), read by the reviewer; the three stored runs differ only in map-dump line order, as the limit says.
-by: r3/review-nums-study-2026
-at: 2026-11-24
-
-n: 9.5.13.36
-kind: review
-re: 3.8.9.4
-saw: f2c38984
-ack: node
-is: The first two sentences follow from the premises. The last one holds only for NUMS.Go and the folder nums-go-2023; the node should say: nothing in NUMS.Go or in the folder puts a second programming language or any natural language through its store. The words in quotation marks are a paraphrase of README.md line 127.
-why: The old body's nl-translate.fk (70 lines) sends English and Indonesian through one interned node: norm-en and norm-id both build intern_node(bp("property"), ...) at lines 58-59 (node 3.10.1.3), and hub 3.11 records host-language rule files and a probe in which three surfaces gave one node. README.md line 127 reads 'Cross-language semantic equivalence is free. A Python class and a Go struct with the same field-shapes hash to the same Blueprint ID.'
 by: r3/review-nums-study-2026
 at: 2026-11-24
 

@@ -1,9 +1,9 @@
-# Independent review of graph/3.13.kg (earlier restarts and the greenfield carrier). One review node per claim, each naming the digest it read. Git facts were read with read-only git commands in the old body's repository; the carrier was read whole and compiled again in a scratch directory; the old runtime was not run.
+# Reviews of the claims of hub 3.13. Each names the digest of the wording it confirms.
 
 n: 9.5.18
 kind: hub
 name: review-of-earlier-restarts-and-carrier
-is: All 39 claims of 3.13.kg (20 observations, 19 findings; none relayed) were read against their sources: 30 confirmed, 9 amended (3.13.1.3, 3.13.1.8, 3.13.1.9, 3.13.2.8, 3.13.2.11, 3.13.3.2, 3.13.9.1, 3.13.9.2, 3.13.9.3), none disputed, none left unreviewed. The carrier's witness and the study's limits probe were compiled and run again: the 31 checks reproduce, the 3,947-offer limit does not (4,019 to 4,034 in three runs).
+is: Independent readings of the claims of hub 3.13 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.18.1
@@ -21,15 +21,6 @@ re: 3.13.1.2
 saw: 986179f8
 ack: 1
 limit: wc -l and grep -c 'register_operation("' over git show <commit>:runtime/fkwu-uni.c give 1,574 and 24 (b21a77483), 3,875 and 79 (b6f6f1e3a), 7,222 and 186 (2673d5392), 10,139 and 254 (f2399070c), 10,302 and 254 (803ce20d8); the parent of b21a77483 holds 32,016 lines. Commit times are 2026-11-06 10:05:22 and 2026-11-08 18:01:44 +0800, 55 h 56 min apart. The six frame kinds are at lines 237-243 of the first seed.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.3
-kind: review
-re: 3.13.1.3
-saw: f9c9045f
-ack: node
-is: The receipt facts stand (rewrite-floor receipt at 2673d5392, lines 31, 54-55, 255 and 261; integration receipt at 803ce20d8, lines 131-132). The count does not: runtime/fkwu-uni.c at 803ce20d8 defines 32 parse_ functions, 24 of them named parse_bml_. A grep for lines beginning 'static' that hold 'parse_' and '(' returns 37 because five are forward declarations (lines 1554, 8053, 8054, 8194, 8756). The node should say 32 parse_ functions.
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 
@@ -66,24 +57,6 @@ re: 3.13.1.7
 saw: 70dc963f
 ack: 1
 limit: git show --stat d30dcd880: 2026-11-06 18:04:24 +0800, 7 h 59 min after b21a77483; four files and 228 lines, of which observe/candidate-floor-run.bml is 13. The quoted sentence opens the message body.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.8
-kind: review
-re: 3.13.1.8
-saw: 3e0880fc
-ack: node
-is: The rewrite's values were not boxed. Its Value is a struct passed and returned by value: ten fields at b21a77483 (runtime/fkwu-uni.c:196-207) and eighteen at 803ce20d8 (lines 374-395); node 3.13.9.3 calls it a wide struct. The node should say 'a frame interpreter over values passed as wide structs'. The comparison with a tagged-word walker rests on the old seed (runtime/fkwu-uni.c:1003 at b8ff978c9: 'Ints ride unboxed (tagged words)'), which none of the four premises states.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.9
-kind: review
-re: 3.13.1.9
-saw: 977cbbde
-ack: node
-is: No cause is shown in both restarts: five belong to the C rewrite and one (no image joining carrier and body) to the carrier, so 'are named across' fits and 'recur across' does not. The speed cause is not shown as worded. The sources show that the first recorded comparison with main is in the last commit (803ce20d8, day three) and that neither receipt mentions speed; the note of 2026-11-08 (line 16) records that the owner asked for no speed regression and gives no date for the asking.
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 
@@ -150,15 +123,6 @@ limit: The payload layout is in make_leaf (membrane-boot.c:400-411), which is no
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 
-n: 9.5.18.17
-kind: review
-re: 3.13.2.8
-saw: 1794c452
-ack: node
-is: The witness's example image holds four cells, not three: a leaf, the text 'add', the export naming both, and the channel 'boot' naming the export (membrane-witness.c:138-141). By the canonical layout (membrane-boot.c:224-243) they are 21, 15, 56 and 76 bytes, and 8 + 8 + 76 + 8 + 76 = 176, which a rerun on 2026-11-24 printed as image_bytes=176. The rest of the node stands (freeze 1068-1090, thaw 1105-1124).
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
 n: 9.5.18.18
 kind: review
 re: 3.13.2.9
@@ -177,15 +141,6 @@ limit: Decoded by hand from the bytes at membrane-witness.c:110: 01 fe is add es
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 
-n: 9.5.18.20
-kind: review
-re: 3.13.2.11
-saw: 3a5cb015
-ack: node
-is: 3,947 is one run's reading, not a constant. Three reruns of the study's limits-probe.c against the unmodified membrane-boot.c on 2026-11-24 gave 4,029, 4,034 and 4,019 offers before the first nothing, each with 8,191 live cells, 4,096 frame rows and no slot reused. The count moves because frame rows with equal fields are one cell and the duration field varies. The node should say about 4,000 offers. The doubling (2,621,420 at level 16, level 17 refused) and the 1,048,577-byte read as nothing reproduced exactly.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
 n: 9.5.18.21
 kind: review
 re: 3.13.2.12
@@ -201,15 +156,6 @@ re: 3.13.3.1
 saw: a71cbd31
 ack: 1
 limit: host-kernel.form:81-82 and :144; kernel-self-composition.form:101 and :103; boot.fk:1-3. A grep of both spec files for image, seed and first finds 'a .fkb image loads' (kernel-self-composition.form:96) and nothing on where that image comes from.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.23
-kind: review
-re: 3.13.3.2
-saw: 21a0ad68
-ack: node
-is: 'Both restarts were first measured against them' holds for the rewrite only: its receipt lists all three answers (rewrite-floor receipt at 2673d5392, lines 21-23). The carrier's gf_produce runs bootstrap/ground.fk alone, and on two builds of the old seed, the cc output and ./fkwu (membrane-witness.c:461-473); the carrier itself answers none of the three files. The file counts, the three answers (BOOTSTRAP.md:67-70) and the section title (BOOTSTRAP.md:84) are as stated.
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 
@@ -291,33 +237,6 @@ re: 3.13.8.7
 saw: df1996cf
 ack: 1
 limit: Prebuilt note lines 11-12 and version-store note lines 16-17, both dated 2026-11-09 in their names. The version-store note at line 15 gives the kernel store's digest as 'FNV of the 3 seed files + flags', while the prebuilt note says the bodies are identical across optimisation flags; the finding follows the prebuilt note.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.33
-kind: review
-re: 3.13.9.1
-saw: dc56057a
-ack: node
-is: 'Was accepted by running the existing body' reads as if the rewrite was accepted. It was not: at its last commit 11 of 19 gate rows passed (803ce20d8) and its C commits are not ancestors of main. The node should say the rewrite was judged by whether it ran the existing body. The growth figures are as stated.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.34
-kind: review
-re: 3.13.9.2
-saw: abe067a5
-ack: node
-is: The last rewrite commit defines 32 parse_ functions, 24 of them parse_bml_; 37 counts five forward declarations (review 9.5.18.3). 'On its first day' is shown by a commit the premise does not name: b6f6f1e3a of 2026-11-06 12:00, two hours after the first, already holds parse_bml_ functions, where b21a77483 holds none. The quoted debt is at lines 131-132 of the integration receipt at 803ce20d8.
-by: r3/review-earlier-restarts-and-carrier
-at: 2026-11-24
-
-n: 9.5.18.35
-kind: review
-re: 3.13.9.3
-saw: cd666ff8
-ack: node
-is: Both costs are recorded by the commits that removed them, and both precede the 40-fold reading. 757ae59ca (2026-11-08 17:23) rotated the 58 MB journal; its child 803ce20d8 (18:01) reads the 552-byte frame in place and reports the remaining 40-fold gap in the same message. The limit should say the gap was measured after both repairs, so neither the frame copies nor the journal explains it; the wide Value struct was still there (18 fields at 803ce20d8, lines 374-395).
 by: r3/review-earlier-restarts-and-carrier
 at: 2026-11-24
 

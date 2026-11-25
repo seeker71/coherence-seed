@@ -3,7 +3,7 @@
 n: 0
 name: coherence-seed
 kind: hub
-is: A restart of the coherence-kernel from its five axioms: one numeric space of immutable nodes, one grammar over it, and a small C bootstrap that the system replaces with machine code it compiles for itself. This graph holds what is known, what is decided and what is open, each claim with its source, its date and how it is known.
+is: Built from five axioms: one numeric space of immutable nodes, one grammar over it, and a small C bootstrap that the system replaces with machine code it compiles for itself. This graph holds what is known, what is decided and what is open, each claim with its source, its date and how it is known.
 at: 2026-11-24
 
 n: 1
@@ -55,7 +55,7 @@ is: How this graph is written, read, checked and reviewed: one block per claim, 
 at: 2026-11-24
 
 n: 9
-name: rounds
+name: reviews
 kind: hub
-is: The study, design and review rounds that produced this graph: who read what, what each round could not reach, and the reviews of individual nodes.
-at: 2026-11-24
+is: Independent readings of single claims against their sources. A review names the digest of the wording it confirms; one that no longer matches its claim is released.
+at: 2026-11-25

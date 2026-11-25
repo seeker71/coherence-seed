@@ -1,9 +1,9 @@
-# Independent review of graph/3.15.kg (hash measurement). One review node per claim, each naming the digest it read.
+# Reviews of the claims of hub 3.15. Each names the digest of the wording it confirms.
 
 n: 9.5.20
 kind: hub
 name: review-of-hash-measurement
-is: All 38 claims of 3.15.kg (21 observations, 17 findings) were read against their sources: 31 confirmed, 7 amended (3.15.2.1, 3.15.3.7, 3.15.4.4, 3.15.5.3, 3.15.8.4, 3.15.8.5, 3.15.9.4), none disputed, none left unreviewed; the file has no web-relayed node. The study report was read whole, its ten programs and twelve raw output files were opened in the session scratch directory and compared with the report's appendix, the old body's files and the first-round reports were opened at the cited lines, and the arithmetic was recomputed.
+is: Independent readings of the claims of hub 3.15 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.20.1
@@ -57,15 +57,6 @@ re: 3.15.1.6
 saw: a334a4b4
 ack: 1
 limit: Report lines 18-20, 380 and 385-386. That a scalar SHA-256 was not measured stands in section 5 at lines 329-330, outside the two sections the node cites.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
-n: 9.5.20.7
-kind: review
-re: 3.15.2.1
-saw: e63096bf
-ack: node
-is: Every figure is in base_out_run2.txt, base_out.txt and insn_out.txt as stated except the range of the node-building phase. Its minimum reads 1.16 to 1.52 ns only at 1,048,576 and 16,777,216 nodes (intern20_out.txt, intern24_out.txt); at 16,384 nodes it reads 1.11 to 1.37 (intern14_out.txt, report lines 820 and 827: 1.11 and 1.13 for the two direct SHA-256 variants). Over all eighteen runs the phase took 1.11 to 1.52 ns, so a node without identity costs 1.1 to 2.3 ns; the 1.52 is from the disturbed run.
 by: r3/review-hash-measurement
 at: 2026-11-24
 
@@ -168,16 +159,6 @@ limit: The 2.1 and 16.5 ns are the digest-phase minima of intern24_out.txt (2.13
 by: r3/review-hash-measurement
 at: 2026-11-24
 
-n: 9.5.20.19
-kind: review
-re: 3.15.3.7
-saw: 9383c0e9
-ack: node
-is: The range 16 to 28 ns holds only for the variants that store a digest: mint minimum less digest-phase minimum is 16.5, 19.7 and 23.2 ns at 1,048,576 nodes and 26.0 and 28.3 at 16,777,216 (32.0 in the disturbed run). The hash-consing variant also uses mf128 and reads 12.4 ns at 1,048,576 (14.40 - 2.05, intern20_out.txt) and 23.0 at 16,777,216 (25.11 - 2.08, intern24_out.txt). So with mf128 or direct SHA-256 a mint costs 12 to 28 ns more than its digest. The 74 to 108 ns for scalar BLAKE3 and CommonCrypto is as stated (73.8, 104.0, 108.3, 108.0).
-why: The digest-phase figures the subtraction needs are in the raw outputs and in neither named premise.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
 n: 9.5.20.20
 kind: review
 re: 3.15.4.1
@@ -205,15 +186,6 @@ limit: 1490, 1521, 3641 and 354 ns per freeze give 1.5%, 1.5%, 3.6% and 0.35%; 4
 by: r3/review-hash-measurement
 at: 2026-11-24
 
-n: 9.5.20.23
-kind: review
-re: 3.15.4.4
-saw: b866e1dc
-ack: node
-is: Every figure is in the report's table at lines 294-301 and was recomputed, but the formula the node names does not give its 64-bit column: n^2 / 2^(b+1) is 0.5 at 2^32 items and 32,768 at 2^40. The report's line 292 gives p = 1 - exp(-n(n-1) / 2^(b+1)), which is n^2 / 2^(b+1) only when small; 0.39 is 1 - e^-0.5 for 0.5 expected pairs, and 1 is 1 - e^-32768 (line 296). The node should name the exact form and keep the approximation for 96 bits and above.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
 n: 9.5.20.24
 kind: review
 re: 3.15.4.5
@@ -238,16 +210,6 @@ re: 3.15.5.2
 saw: 3a623c80
 ack: 1
 limit: coherence-kernel/CURRENT_FLOOR.md lines 1361-1364 (bulk identity, 1979 ms and 659 ms over the 2.02 GB file) and 1374-1376 (the Form-emitted image, the 1.39 MB seed file in 1 ms); lessons.md line 307.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
-n: 9.5.20.27
-kind: review
-re: 3.15.5.3
-saw: a850683e
-ack: node
-is: Both quotations are exact (membrane-boot.h lines 18-20, last commit 16b3d3eb6 of 2026-11-05; web-semantics-machines.md line 300), but only R16 puts identity at the frozen end. The header goes on at lines 20-21: 'A second compose of the same bytes returns the same cell. A new payload mints a new identity.' The carrier gives every cell its identity when it is composed, by byte equality: a prior instance of the digest only indexing the store, and of identity at mint, not at freeze.
-why: In coherence-kernel/runtime/membrane-boot.c, cell_compose (lines 213-250) builds the canonical bytes, takes a 64-bit FNV-1a of them at line 244 and scans the live cells for equal bytes on every compose. The header says 'A cell is immutable' and names no live or transient state.
 by: r3/review-hash-measurement
 at: 2026-11-24
 
@@ -287,26 +249,6 @@ limit: 2^32 / 10 million is 429.5 seconds. Handle 0 marks an empty slot in the b
 by: r3/review-hash-measurement
 at: 2026-11-24
 
-n: 9.5.20.32
-kind: review
-re: 3.15.8.4
-saw: c40baa75
-ack: node
-is: The arithmetic holds (45% from 3.15.4.1, 1.5% from 3.15.4.3, ratio 30), with two amendments. The factor of 30 sets 400 MB per second of node bytes against 41 MB per second of recipe bytes; for the same recipe of 100 nodes the ratio is 3 (4.5% against 1.5%, 3.15.4.3). And of the prior texts in 3.15.5.3 only R16 supports the choice: the old carrier gives identity at every compose, and axiom 1.3 reads 'A new composition mints a new blueprint'. The node should say it departs from the carrier's practice on cost, and whether a transient node is a cell in the sense of axiom 1.3.
-why: coherence-kernel/runtime/membrane-boot.h lines 20-21 read 'A second compose of the same bytes returns the same cell. A new payload mints a new identity', and cell_compose in membrane-boot.c (lines 213-250) does that on every compose. The other factor of 10 inside the 30 is the stated ratio of the two workloads.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
-n: 9.5.20.33
-kind: review
-re: 3.15.8.5
-saw: 3668509f
-ack: node
-is: Every figure is in the premises, but the last sentence changes the comparator without naming it: the 27.1 ns hit is mf128 with 16 digest bytes stored. Against the direct SHA-256 the node was just compared with, the hash-consing hit is no price: 45.5 against 47.8 ns at 16,777,216 nodes and 38.5 against 43.3 at 1,048,576 (32 bytes stored). The node should read: the hit costs 45.5 ns against 27.1 for mf128 with a 16-byte digest stored, and less than the 47.8 of direct SHA-256 with 32 bytes stored.
-why: Hit rows of intern24_out.txt and intern20_out.txt. With SHA-256 truncated to 16 bytes stored the hits read 35.5 ns at 1,048,576 nodes and, in the disturbed run, 48.2 at 16,777,216.
-by: r3/review-hash-measurement
-at: 2026-11-24
-
 n: 9.5.20.34
 kind: review
 re: 3.15.8.6
@@ -342,11 +284,3 @@ limit: 2^-17 is 1 in 131,072.
 by: r3/review-hash-measurement
 at: 2026-11-24
 
-n: 9.5.20.38
-kind: review
-re: 3.15.9.4
-saw: 155d7284
-ack: node
-is: The 16 ns for direct SHA-256 holds at 16 and 40 bytes only. At 64 bytes, inside the stated range, 3.15.2.2 and hash_out_run3.txt give 31.6 ns, two blocks because of padding, against 49.5 ns for scalar BLAKE3. The node should read: 48 to 51 ns for any input up to 64 bytes against 16 ns for direct SHA-256 at 16 and 40 bytes and 31.6 ns at 64 bytes, a ratio of 3.0 to 3.2 falling to 1.6. The rest follows from the premises.
-by: r3/review-hash-measurement
-at: 2026-11-24

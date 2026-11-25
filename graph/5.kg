@@ -101,7 +101,7 @@ is: Names are rows in a table keyed by node and lens, zero or more per node, and
 status: inferred
 from: 3.1.3.2 3.1.8.3 4.4.8.2 4.4.1.5 1.7.18 1.7.2
 conf: high
-why: Run twice in the study rounds: renaming every identifier in a file left NUMS.Go's node databases identical.
+why: Run twice: renaming every identifier in a file left NUMS.Go's node databases identical.
 limit: Every system read that swaps labels across human languages stops at user-chosen names and at strings inside data.
 at: 2026-11-24
 
@@ -160,7 +160,7 @@ is: A lens is data: rule rows of name, pattern and template, an operator table, 
 status: inferred
 from: 3.11.4.2 3.11.4.3 3.11.4.4 3.11.4.5 3.11.4.7 3.11.8.1 3.2.8.2 3.2.8.3 3.5.8.7 3.4.8.6 3.1.4.3
 conf: mid
-why: A 360-line probe in the gap round read one typed method from Go, Java and Python text to the same node and printed it back through each lens.
+why: A 360-line probe read one typed method from Go, Java and Python text to the same node and printed it back through each lens.
 limit: The probe covers about 15 constructs and keeps names inside nodes; nothing measures the cost for a whole language.
 at: 2026-11-24
 
@@ -245,7 +245,7 @@ is: Fail is not a value. The owner's word of 2026-11-24: 'fail means backtrack, 
 status: given
 by: owner
 see: 3.5.2.2 3.5.2.4 3.5.2.6 5.4.7 5.4.8 5.4.9
-why: This is the 2000 machine's reading, where failure is a mode of the machine and undo is what the machine does in it. The 2026 dialect that reduced fail to the value nothing is not carried.
+why: This is the 2000 machine's reading, where failure is a mode of the machine and undo is what the machine does in it.
 at: 2026-11-24
 
 n: 5.4.3
@@ -382,7 +382,7 @@ is: An activation carries one reference: the cell the message was sent to, and t
 status: inferred
 from: 5.5.4 5.5.1 3.12.1.3 3.12.8.2 3.12.4.2 3.12.4.5 3.12.1.6 3.12.9.4 3.5.8.5
 conf: mid
-limit: The 2000 machine let self and this be different objects; its instructions for that appear in no run log, and the 2026 fixtures for it were deleted on 2026-09-29. That design is not carried.
+limit: The 2000 machine let self and this be different objects; its instructions for that appear in no run log, and the 2026 fixtures for it were deleted on 2026-09-29. This design does not include it.
 open: 6.2.4
 at: 2026-11-24
 
@@ -447,7 +447,7 @@ is: A node's state is separate from whether it is a blueprint, a recipe or a cel
 status: inferred
 from: 3.14.3.3 3.14.3.2 3.8.3.4 3.8.3.5
 conf: high
-why: The owner's quoted correction of 2026-06-08: blueprints exist in water and gas as well, and recipes in all three states. The mapping blueprint = ice, recipe = water, cell = gas was written by an assistant on 2026-05-08.
+why: The owner's words of 2026-06-08: blueprints exist in water and gas as well, and recipes in all three states.
 at: 2026-11-24
 
 n: 5.6.2
@@ -569,7 +569,6 @@ is: The owner's definition of 2026-11-25: 'all memory of all object, all nodes, 
 status: given
 by: owner
 see: 5.7.7 5.7.8 5.8.6 5.14.10 5.14.11
-why: In the old body the word named an event channel fed by calls such as fb_record, so observing cost the observed code a call.
 at: 2026-11-25
 
 n: 5.7.7
@@ -589,7 +588,7 @@ status: inferred
 from: 5.7.6 5.7.7 5.7.3
 src: 2.30.9
 conf: mid
-limit: The owner asked for the repository to be made consistent with his definition after reading this; he has not acknowledged the five rules word for word. Values held only in machine registers are seen once stored. Executable pages and the C library's own memory lie outside the region (5.14.12).
+limit: The owner has not acknowledged the five rules word for word. Values held only in machine registers are seen once stored. Executable pages and the C library's own memory lie outside the region (5.14.12).
 at: 2026-11-25
 
 n: 5.8
@@ -876,7 +875,7 @@ is: A test is accepted after a planted fault has turned it red. A test of equiva
 status: inferred
 from: 3.8.2.6 3.11.3.1 3.10.2.1 3.13.2.10 3.4.4.6 3.3.9.2
 conf: high
-why: Found in the study rounds: a headline equivalence test that compares a constant with itself; a surviving check titled as comparing programs that compares the integers 10 and 3; a green witness whose branch check gives both arms the same port.
+why: Found in the old body: a headline equivalence test that compares a constant with itself; a surviving check titled as comparing programs that compares the integers 10 and 3; a green witness whose branch check gives both arms the same port.
 at: 2026-11-24
 
 n: 5.11.2

@@ -130,11 +130,11 @@ a 400-line working ancestor that the round did not open.
 
 `ls ~/source` (observed) shows `coherence-kernel-rewrite`, `coherence-kernel-walk`,
 `coherence-kernel-raw-loader`, `coherence-kernel-codex-floor`, `ck-pre`, `ck-turn`, `coherence-seed` (an additional
-working directory of this very session), `Living-Codex-CSharp`, `ds4`, `[org]`, `[org]-evidence`. `lessons`
+working directory of this very session), `Living-Codex-CSharp`, `ds4`, `<product checkout>`, `<product checkout>-evidence`. `lessons`
 cites one memory note saying a rewritten evaluator was about 40 times slower. No report opened the rewrite itself to
-learn why a previous restart did not carry. `[org]` is a different product tree (top level: `Mentor.*`,
+learn why a previous restart did not carry. `<product checkout>` is a different product tree (top level: `Mentor.*`,
 `MP-CodeCheckBin-*`; last commit 2026-04-25; I listed the top level only); the tree-sitter fork
-`[org]-go-tree-sitter` is absent (observed), and no C++ NUMS was found by anyone.
+`<tree-sitter-fork>` is absent (observed), and no C++ NUMS was found by anyone.
 
 ### G8. Ice / water / gas: inventoried, not resolved (thin)
 
@@ -243,8 +243,8 @@ Verdicts: **confirmed**, **wrong** (with correction), **stale** (true of the cit
 | N1 | nums-core 2.1 | ID is `Package.Level.Type.Instance`, uint16 / uint16 / uint16 / uint32; `DefaultPackage` is 1 | `N/nums/nums_nodes.go:11-24,55-57` | confirmed |
 | N2 | nums-core 3 | A minted id is `len(Entries)+1` per level with package 1: an arrival-order ordinal, not a hash; `Update_Entry` overwrites in place | `N/nums/nums_db.go:55-85` | confirmed |
 | N3 | nums-core 2.2 | For a composite, level is one more than the largest child or category level | `N/nums/nums_nodes.go:814-830`; my run shows level-6 bodies over level-5 and level-3 children | confirmed |
-| N4 | nums-core 7.1; nums-model 9.1 | Does not build as checked in: `replace ... => ../../[org]-go-tree-sitter` in `go.mod`, `use ../[org]-go-tree-sitter` in `go.work`, directory absent | `N/nums/go.mod:5`, `N/go.work:8`, `ls ~/source` | confirmed (I did not re-run `go build`) |
-| N5 | nums-core 7.3; nums-model 9.2 | `[ORG]_ASSERT_` and `DEBUGBREAK_` only log | `N/nums/debugging.go:5-18` | confirmed |
+| N4 | nums-core 7.1; nums-model 9.1 | Does not build as checked in: `replace ... => ../../<tree-sitter-fork>` in `go.mod`, `use ../<tree-sitter-fork>` in `go.work`, directory absent | `N/nums/go.mod:5`, `N/go.work:8`, `ls ~/source` | confirmed (I did not re-run `go build`) |
+| N5 | nums-core 7.3; nums-model 9.2 | `<PREFIX>_ASSERT_` and `DEBUGBREAK_` only log | `N/nums/debugging.go:5-18` | confirmed |
 | N6 | nums-core 6.4 | Renaming every identifier leaves the node databases identical; numbering varies run to run | re-ran `S/numscopy/tracebin` six times each on `tiny/tiny.go` and `tiny/renamed.go`, hashing the two database sections: tiny 6 of 6 one digest; renamed 4 of 6 that same digest, 2 of 6 a second | confirmed, both halves |
 | N7 | nums-core 0, 8 | "There is no value, no instance, no state"; cell "is not" represented | `N/nums/recipe.go:497-502` `NamedCell_t`, used in `blueprint.go` | **wrong as stated**: a cell is represented as a declared named slot; there is no run-time instance (G2) |
 | N8 | nums-core 5.1 vs web-numeric-root 0 | Thirteen languages enumerated (nums-core); "twelve language ids" (web-numeric-root) | `N/nums/parser.go:31-47` has 13 (with Verilog); `N/http/model/language.go:15-43` switches over 12 | both confirmed for the file each cites; no contradiction |

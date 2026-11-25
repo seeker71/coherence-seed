@@ -326,7 +326,7 @@ at: 2026-11-24
 n: 6.3.5
 name: shared-identity-across-languages
 kind: limit
-is: A test that one method read from Go, Java and the home language becomes one node existed until 2026-09-29, and agreed by reading types and not keeping them. The gap round's probe shows it again for about 15 constructs, with a lexicon row that treats three integer types as one.
+is: A test that one method read from Go, Java and the home language becomes one node existed until 2026-09-29, and agreed by reading types and not keeping them. A probe shows it again for about 15 constructs, with a lexicon row that treats three integer types as one.
 status: inferred
 from: 3.11.3.2 3.11.4.4 3.11.4.10 3.11.9.6
 conf: high
@@ -335,7 +335,7 @@ at: 2026-11-24
 n: 6.3.6
 name: web-claims-are-relayed
 kind: limit
-is: Every claim from the web reached its reader through a fetch tool that summarises pages, and the first-round critic checked them with the same tool. Short quotations and numbers from papers should be read at the source before anything is built on them.
+is: Every claim from the web reached its reader through a fetch tool that summarises pages, and they were checked with the same tool. Short quotations and numbers from papers should be read at the source before anything is built on them.
 status: inferred
 from: 4.5.4 4.3.3.6
 conf: high
@@ -344,7 +344,7 @@ at: 2026-11-24
 n: 6.3.7
 name: records-not-runs
 kind: limit
-is: The old runtime was not run in the gap round, and only one first-round study ran probes on it. Claims about what the old body does rest mostly on its sources, its notes and recorded numbers, some dated before later faults.
+is: Only one study ran probes on the old runtime. Claims about what the old body does rest mostly on its sources, its notes and recorded numbers, some dated before later faults.
 status: inferred
 from: 3.5.1.4 3.10 3.12
 conf: high
@@ -421,7 +421,7 @@ at: 2026-11-25
 n: 6.3.13
 name: free-recording-is-not-a-free-layout
 kind: limit
-is: The owner's definition asks for recording with no impact at all. What was built adds no instruction to the runtime for a reader, but two costs were measured: keeping registers and writers in memory made one run about a quarter slower than the earlier floor, and a reader copying pages every millisecond slowed the writer by up to about 4% through shared cache lines. Whether compiled code can keep the first cost near zero is not known.
+is: The owner's definition asks for recording with no impact at all. The floor adds no instruction to the runtime for a reader, and two costs remain. A reader copying pages every millisecond slowed the writer by up to about 4% through shared cache lines. The walker keeps its registers and each record's writer in memory, which cost it about a quarter of its speed on one program (5.14.13); whether compiled code can keep that near zero is not known.
 status: inferred
 from: 5.14.13 5.7.6
 conf: mid

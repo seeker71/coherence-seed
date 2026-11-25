@@ -288,12 +288,38 @@ static void check_place(const Node *x) {
   else if (strcmp(x->n, "0") && !find("0", 1)) err(x, "root node 0 is missing", NULL);
 }
 
+/* ---- release ------------------------------------------------------------------
+ * The graph holds only what is. A review that does not confirm the present wording
+ * of its claim describes something that is no longer there, so it is taken out of
+ * its file; git keeps it. */
+static char gone[MAXN];
+static int release_file(const char *path) {
+  FILE *fp = fopen(path, "rb"); if (!fp) return 0;
+  fseek(fp, 0, SEEK_END); long size = ftell(fp); fseek(fp, 0, SEEK_SET);
+  char *text = malloc((size_t)size + 2), *out = malloc((size_t)size + 2);
+  size_t got = fread(text, 1, (size_t)size, fp), on = 0; fclose(fp); text[got] = 0;
+  char *bs = text; int skip = 0, dropped = 0;
+  for (char *l = text; ; ) {                             /* a block is its lines and the blank line that closes it */
+    char *nl = strchr(l, '\n'); size_t len = nl ? (size_t)(nl - l) : strlen(l);
+    if (!len) {
+      char *be = nl ? nl + 1 : l;
+      if (skip) dropped++; else { memcpy(out + on, bs, (size_t)(be - bs)); on += (size_t)(be - bs); }
+      bs = be; skip = 0; if (!nl) break; l = be; continue;
+    }
+    if (len > 3 && !memcmp(l, "n: ", 3)) { Node *x = find(l + 3, len - 3); if (x && gone[x - nodes]) skip = 1; }
+    l = nl ? nl + 1 : l + len;
+  }
+  if (dropped) { fp = fopen(path, "wb"); if (!fp || fwrite(out, 1, on, fp) != on || fclose(fp)) { fprintf(stderr, "%s: cannot write\n", path); exit(2); } }
+  return dropped;
+}
+
 int main(int argc, char **argv) {
   const char *cmd = argc > 1 ? argv[1] : "check", *want = NULL;
   if (!strcmp(cmd, "link") && argc > 2) { want = argv[2]; argv++; argc--; }
   const char *dir = argc > 2 ? argv[2] : "graph"; gdir = dir;
-  if (!one_of(cmd, "check|index|brief|disputed|link") || (!strcmp(cmd, "link") && !want)) {
-    fprintf(stderr, "usage: kg check|index|brief|disputed [graph-dir]\n       kg link N [graph-dir]   where the sources of node N can be read\n"); return 2; }
+  if (!one_of(cmd, "check|index|brief|disputed|link|release") || (!strcmp(cmd, "link") && !want)) {
+    fprintf(stderr, "usage: kg check|index|brief|disputed [graph-dir]\n       kg link N [graph-dir]   where the sources of node N can be read\n"
+                    "       kg release [graph-dir]  take out every review that does not confirm its claim's present wording\n"); return 2; }
   DIR *d = opendir(dir); if (!d) { fprintf(stderr, "%s: no such directory\n", dir); return 2; }
   int files = 0; struct dirent *de;
   while ((de = readdir(d))) {
@@ -335,6 +361,18 @@ int main(int argc, char **argv) {
     const char *re = get(r, "re"); Node *t = re ? find(re, strcspn(re, " #")) : NULL; if (!t) continue;
     const char *a = get(r, "at"), *b = t->review ? get(t->review, "at") : NULL;
     if (!t->review || (a && b && strcmp(a, b) >= 0)) t->review = r;
+  }
+  if (!strcmp(cmd, "release")) {
+    int out = 0; const char *last = NULL;
+    for (int i = 0; i < nn; i++) {
+      Node *r = byaddr[i]; if (strcmp(r->kind, "review")) continue;
+      const char *re = get(r, "re"), *saw = get(r, "saw"), *ack = get(r, "ack");
+      Node *t = re ? find(re, strcspn(re, " #")) : NULL;
+      if (!t || !saw || strcmp(saw, t->hex) || !ack || strcmp(ack, "1")) gone[r - nodes] = 1;
+    }
+    for (int i = 0; i < nn; i++) if (gone[i] && nodes[i].file != last) { last = nodes[i].file; out += release_file(last); }
+    printf("kg: released %d reviews that no longer confirm their claim\n", out);
+    return 0;
   }
   for (int i = 0; i < nn; i++) {
     Node *x = byaddr[i]; if (!strcmp(x->kind, "review") || !strcmp(x->kind, "hub")) continue;

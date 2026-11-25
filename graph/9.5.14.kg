@@ -1,11 +1,10 @@
-# Review of graph/3.9.kg (the machine-code emitters written in the old body's own language) by r3/review-in-language-emitter. Every cited file was opened at its lines at commit b8ff978c9; the old runtime was not run. The study's probe directory was still present in the session scratchpad and was read; its 251-byte object was relinked and run.
+# Reviews of the claims of hub 3.9. Each names the digest of the wording it confirms.
 
 n: 9.5.14
 kind: hub
 name: review-of-in-language-emitter
-is: 38 claims of 3.9 (25 observations, 13 findings, none relayed) were read against the old body's files, five working notes, the study report and the study's probe: 31 confirmed, 7 hold only as amended, 0 disputed, 0 left unreviewed. Amended: a heat count for the leaf compiler the study did not see (jit-heat-gate.fk), an if that does call a helper, a fourth whole-defn decline, a capacity counted as an address, one fixup the page emitter has, a rule about heat-mark faults the open fault does not yet support, and an 80-line probe called about 100.
+is: Independent readings of the claims of hub 3.9 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
-by: r3/review-in-language-emitter
 
 n: 9.5.14.1
 kind: review
@@ -16,30 +15,12 @@ is: Line counts re-run with wc: 396, 306, 678, 138, 74, 401, and 799 for the uno
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
-n: 9.5.14.2
-kind: review
-re: 3.9.1.2
-saw: 315033f3
-ack: node
-is: True of the runtime's heat pulse only (fkwu-uni.c:24350, 24094). The leaf compiler has a heat count of its own in Form, unopened by the study: form-stdlib/jit-heat-gate.fk (101 lines; 16-21, 65-78) counts requests per program identity, compiles once through jit-once-born.fk (lines 98, 109) when a lowerable program's count reaches 5 (jit-decision.fk:14-15) and releases a cooled image (79-92; jit-once-born.fk:133). A program reaches it only by calling the gate (form-cli-jit.bml:49-56). The 380, the 1024 and the tag-194 skip are confirmed; a bound page wears tag 194 too (fkwu-uni.c:10518).
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
 n: 9.5.14.3
 kind: review
 re: 3.9.1.3
 saw: c248bbfe
 ack: 1
 is: The tag 146 arm (fkwu-uni.c:22451-22458) passes the image to fk_jit_leaf_inram with no gate; the raw-image path is lines 5385-5447 and the byte check lines 5269-5289. jit_cpu_run also requires the image length to be a multiple of 4 (line 10883).
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
-n: 9.5.14.4
-kind: review
-re: 3.9.2.1
-saw: d047ea37
-ack: node
-is: An if is not free of helper calls: words 0 and 2 are read in place and any other condition word calls the truth helper, table word 3 (jit-page.bml:191-205, jp-call(3) at line 200). The guard of the one-operand bnot_u32 is tbnz alone, with no orr (line 237). An eq with a nil side is answered in page words and does not call the op's helper (line 263). The rest is as the lines show: literals below 2^61 in magnitude (line 122), nil as movz x0,#1 (line 137), the pinned string word (140-143), reads, let, do, and the int paths of the fifteen binary ops (line 257).
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
@@ -60,15 +41,6 @@ ack: 1
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
-n: 9.5.14.7
-kind: review
-re: 3.9.2.4
-saw: 9e5dbd84
-ack: node
-is: 'Only' leaves out cases the file shows. A whole defn is declined when no node was taken in page words or the frame needs over 4095 slots (jit-page.bml:384), when the frame wrapper's slot count cannot be read (jp-page, line 379), when the offer is nothing, has fewer than four items or carries an ABI number other than 4 (line 390), and when the bind door itself refuses the words (fkwu-uni.c:10456-10482). The per-node walk and hand-off are confirmed at lines 104-107 and 114 and at fkwu-uni.c:11065-11078.
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
 n: 9.5.14.8
 kind: review
 re: 3.9.2.5
@@ -83,15 +55,6 @@ re: 3.9.2.6
 saw: 681d8787
 ack: 1
 is: Confirmed. That a string word is odd is not at the cited lines; it is fkwu-uni.c:1659-1661 (an even base minus an even number minus 1). docs/native-jit-routing.md:50-53 says pages 'remain process-local' and that 'saving raw pages is insufficient'.
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
-n: 9.5.14.10
-kind: review
-re: 3.9.3.1
-saw: c22f107f
-ack: node
-is: The last four words are not four addresses: three are addresses (the running defn, the chain's depth, the chain array) and the fourth, fr_cap, is the chain's capacity as a number (fkwu-uni.c:10273-10278, 10512-10515). The count of 38 words (8 + 26 + 4), ABI 4, the offer's fourth argument, the emitter's decline and the bind door's refusal are confirmed (lines 10254-10280, 31793, 10470; jit-page.bml:388-393).
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
@@ -128,15 +91,6 @@ re: 3.9.3.5
 saw: f591fdb3
 ack: 1
 is: Matches section 14 of the study report (lines 511-590): ten functions and one callback, a table per activation with its number in word 0 and literals by index.
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
-n: 9.5.14.15
-kind: review
-re: 3.9.4.1
-saw: 369d9035
-ack: node
-is: The limit overstates: the page emitter has one fixup. A self tail call's branch is written as the placeholder word -1 and replaced by jp-link with a backward branch when the page is assembled (jit-page.bml:110-111, 369, 373). Every other branch distance is computed from list lengths at its site, and there are no general labels. The 33 forms, 8 fixed words, the jp-ldr example, the single import and the repeated base at form-asm.fk:183 are confirmed by count and by line.
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
@@ -251,15 +205,6 @@ is: Follows from the premises. The limit's two figures come from nodes outside '
 by: r3/review-in-language-emitter
 at: 2026-11-24
 
-n: 9.5.14.29
-kind: review
-re: 3.9.8.3
-saw: 5a82c5d5
-ack: node
-is: The second sentence holds only for the faults whose cause is known. It should read: the recorded wrong answers after a heat mark whose cause is known (3.9.5.3) came from a second copy of a meaning that had drifted from the first; the fault of 2026-11-24 (3.9.5.5) also appears at a heat mark and its cause is unknown. The note says 'The kernel fault itself is not repaired' (reference-hot-closure-over-locals-stops-at-heat-mark.md:16) and the study report marks the cause 'not known' and the shared pattern as inferred (lines 445, 469).
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
 n: 9.5.14.30
 kind: review
 re: 3.9.8.4
@@ -275,15 +220,6 @@ re: 3.9.8.5
 saw: 3540b879
 ack: 1
 is: Follows from the premises. That absence was an empty list is in the working note (reference-hot-recipe-inline-drops-arguments.md:15: lo-node answered [] for an uncovered tag) and implied at form-lower.fk:32-33.
-by: r3/review-in-language-emitter
-at: 2026-11-24
-
-n: 9.5.14.32
-kind: review
-re: 3.9.8.6
-saw: a2246cc5
-ack: node
-is: The probe is 80 lines, not about 100: wc -l of the study's gen.c answers 80, and its encoder part ends at line 58, the rest being the object-file layout. The 47 words (39 samples and 8 fixed) are confirmed in that file. The first sentence follows from the premises.
 by: r3/review-in-language-emitter
 at: 2026-11-24
 

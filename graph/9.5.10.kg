@@ -1,10 +1,9 @@
-# Independent review of graph/4.3.kg (knowledge representation). One review node per claim, each naming the digest it read.
+# Reviews of the claims of hub 4.3. Each names the digest of the wording it confirms.
 
 n: 9.5.10
 kind: hub
 name: review-of-knowledge-representation
-is: All 40 claims of 4.3.kg (21 observations, 19 findings) were read against their sources: 40 confirmed, none amended, none disputed, none left unreviewed. The first review amended seven nodes (4.3.1.2, 4.3.1.9, 4.3.2.1, 4.3.3.5, 4.3.8.6, 4.3.9.2, 4.3.9.7); after their fix a third reader opened the sources again and confirmed all seven, and reviewed source node 2.13.20, which the fix also edited, so the file holds 41 reviews.
-limit: The first review fetched all 35 web pages again on 2026-11-24, most through a summarising fetch, two papers as page images and one table in raw text, opened the local files at the cited lines and recomputed the byte and hash probe. The closing read opened the report and the raw text of thirteen pages (2.13.5, 2.13.6, 2.13.16, 2.13.20, 2.13.21, 2.13.26, 2.13.29, 2.13.30, 2.13.32 to 2.13.36), matching phrases and figures, not reading whole pages; the other 33 reviews stand as the first reviewer wrote them. Two of the first review's proposed wordings (for 4.3.8.6 and 4.3.9.2) were not taken by the fix, and the sources bear the fix out. The hubs and the other source nodes carry no review. The TOON README is a living page and was read as it stands today.
+is: Independent readings of the claims of hub 4.3 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.10.1

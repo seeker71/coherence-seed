@@ -36,7 +36,7 @@ So the accurate reading is: **the idea is demonstrated; the implementation is a 
 | Go package import was marked non-functional by its author | commit `e2984e2` 2023-02-09 "adding import for Go (non-functional)"; stub at `nums/parser.go:505-525` | observed |
 | `nums/` holds 7,045 lines of Go in 16 files; `go.go` is 1,502 of them, of which lines 1209-1423 are a table of grammar symbol numbers | `wc -l nums/*` | observed |
 | No tests in `nums/` | no `_test.go` file present | observed |
-| `http/` and `web-api/` do not import `[org]/nums` | grep over those trees returned nothing | observed |
+| `http/` and `web-api/` do not import `<prefix>/nums` | grep over those trees returned nothing | observed |
 
 The `http/` tree was outside the assigned scope. I looked only far enough to say what it is: a tree-sitter-symbol-to-label mapping driven by YAML (`http/config/Go.yaml`, 282 lines; `http/config/labels.yaml`, 298 lines), with its own model. It is the direction the author was moving after `nums/` stopped changing. (observed existence; contents not studied)
 
@@ -365,13 +365,13 @@ Run inside `NUMS.Go/nums`:
 
 | Command | Result |
 |---|---|
-| `GOWORK=off GOFLAGS=-mod=readonly go build ./...` | exit 1. Fourteen lines of the form `parser.go:12:2: github.com/smacker/go-tree-sitter@v0.0.0-20230113054119-af7e2ef5fed6: replacement directory ../../[org]-go-tree-sitter does not exist` |
+| `GOWORK=off GOFLAGS=-mod=readonly go build ./...` | exit 1. Fourteen lines of the form `parser.go:12:2: github.com/smacker/go-tree-sitter@v0.0.0-20230113054119-af7e2ef5fed6: replacement directory ../../<tree-sitter-fork> does not exist` |
 | `GOWORK=off GOFLAGS=-mod=readonly go vet ./...` | exit 1, the same fourteen lines |
-| `go build ./...` (workspace on) | exit 1. `go: cannot load module ../../[org]-go-tree-sitter listed in go.work file: open ../../[org]-go-tree-sitter/go.mod: no such file or directory` |
+| `go build ./...` (workspace on) | exit 1. `go: cannot load module ../../<tree-sitter-fork> listed in go.work file: open ../../<tree-sitter-fork>/go.mod: no such file or directory` |
 
 Run inside `NUMS.Go/test` with `GOWORK=off GOPROXY=off GOFLAGS=-mod=readonly go build -o <scratch> .`: exit 1, `../nums/parser.go:24:2: cannot find module providing package github.com/smacker/go-tree-sitter/verilog`.
 
-So `GOWORK=off` does not help, because the missing sibling is referenced twice: in `go.work:8` and in `nums/go.mod:5` (`replace github.com/smacker/go-tree-sitter => ../../[org]-go-tree-sitter`). The sibling is a private fork of the binding that added a Verilog grammar (commit `39e4b49`, 2023-02-27, "adding verilog from fork"). The upstream module at the pinned version has no `verilog` directory (observed in the module cache listing). `ls ~/source` shows no `[org]-go-tree-sitter` directory. (all observed)
+So `GOWORK=off` does not help, because the missing sibling is referenced twice: in `go.work:8` and in `nums/go.mod:5` (`replace github.com/smacker/go-tree-sitter => ../../<tree-sitter-fork>`). The sibling is a private fork of the binding that added a Verilog grammar (commit `39e4b49`, 2023-02-27, "adding verilog from fork"). The upstream module at the pinned version has no `verilog` directory (observed in the module cache listing). `ls ~/source` shows no `<tree-sitter-fork>` directory. (all observed)
 
 `git status --short` afterwards: only the two pre-existing untracked `.DS_Store` files. (observed)
 
@@ -402,7 +402,7 @@ Then, with `GOWORK=off GOPROXY=off GOFLAGS=-mod=mod` (offline; the pinned upstre
 
 (observed; line numbers are those of the original files, `go.go` being unchanged in the copy)
 
-Two things make the crashes unsurprising. `[ORG]_ASSERT_` only logs and continues (`debugging.go:5-10`), and `DEBUGBREAK_` only logs (`:16-18`), so every failed precondition runs on into whatever comes next. And the author's own driver, `test/test.go`, is the eleven-line program that hits the panic.
+Two things make the crashes unsurprising. `<PREFIX>_ASSERT_` only logs and continues (`debugging.go:5-10`), and `DEBUGBREAK_` only logs (`:16-18`), so every failed precondition runs on into whatever comes next. And the author's own driver, `test/test.go`, is the eleven-line program that hits the panic.
 
 ### 7.4 What the probes show, feature by feature
 

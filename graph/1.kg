@@ -319,5 +319,5 @@ kind: observation
 is: The acknowledged axioms file is carried byte for byte at axioms/core-axioms.form (SHA-256 begins d3dd49c9a4d2d9bb). Its status line reads acknowledged 2026-11-08; its last commit in the old body is 7b0ff6bed of 2026-11-19. It is written in the old body's own notation and cites paths of that body.
 status: observed
 src: 2.1.1#1-27 2.30.2
-limit: It names form/form-stdlib/offer-ack-core.fk as a home of the running proof, and the old body has that file only under control/. The first-round critic confirmed this with git ls-files.
+limit: It names form/form-stdlib/offer-ack-core.fk as a home of the running proof, and the old body has that file only under control/. git ls-files shows the same.
 at: 2026-11-24

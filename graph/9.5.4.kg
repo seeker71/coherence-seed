@@ -1,12 +1,10 @@
-# Review of graph/3.4.kg (the form-language study of round 1). Every cited file was opened at the cited lines in the old body at commit b8ff978c9; the old runtime was not run, so probe results are confirmed against the study report's probe log and, where one exists, against the seed source.
+# Reviews of the claims of hub 3.4. Each names the digest of the wording it confirms.
 
 n: 9.5.4
 kind: hub
 name: review-of-form-language
-is: All 39 claim nodes of graph/3.4.kg were read against their sources (27 observations, 12 findings): 39 confirmed, 0 hold only as amended, 0 disputed, 0 left unreviewed. Nine of the 39 were amended in the hub file and read again by a second reader at their present digests. The file holds no relayed web node. Ten observations rest partly on probes of the old runtime, which this review did not re-run; they are confirmed against the report's probe log and the seed's own lines.
-limit: The hubs 3.4, 3.4.1, 3.4.2, 3.4.3, 3.4.4, 3.4.8 and 3.4.9 are outside the scope and carry no review; the checker counts no hub as a claim. The summaries of hubs 3.4, 3.4.8 and 3.4.9 agree with their children: none calls the state words unrelated (3.4 says eight uses with no single definition), and 3.4.8 names three standing contracts and one target. Hub 3.4.4 says attempt is the one recover point while its child 3.4.4.3 records the cell call as a second (docs/in-process-cells.md line 62); the summary should say attempt is the one recover form of the language and the cell call a second recover point at its boundary. The graph directory is untracked in git, so which hub once held the word unrelated could not be read from history.
+is: Independent readings of the claims of hub 3.4 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
-by: r3/review-form-language
 
 n: 9.5.4.1
 kind: review

@@ -1,9 +1,9 @@
-# Independent review of graph/3.14.kg (origin and definitions of ice, water and gas). Every cited primary file and commit was opened by the reviewer on 2026-11-24.
+# Reviews of the claims of hub 3.14. Each names the digest of the wording it confirms.
 
 n: 9.5.19
 kind: hub
 name: review-of-ice-water-gas-origin
-is: Read all 39 claims of 3.14 (21 observations, 18 findings) against their primary files and commits: 30 confirmed, 9 hold only as amended, 0 disputed, 0 left unreviewed; the file has no relayed web node. The amendments: the axioms file does contain the word water; the 2026-06-14 commit that says "The misunderstanding" carries an assistant trailer; the oldest line does not mention compiled code (the answer gas is three days younger); the 2025 node id is an assigned name, not a content identity; the application's lifecycle words are applied to its nodes.
+is: Independent readings of the claims of hub 3.14 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.19.1
@@ -51,32 +51,12 @@ is: Phase.cs:7-13 reads as stated at 5fc24ba and unchanged at the head. The id t
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
-n: 9.5.19.6
-kind: review
-re: 3.14.2.1
-saw: 53a3cf9b
-ack: node
-is: The two searches return what the node says. But "none of the three words" is true only of the three searched (ice, gas, plasma): the file of the five axioms, core-axioms.form, has the word water at lines 58, 60 and 130, as the name of a substrate and never as a state. The node should say: the axioms file has neither ice nor gas nor plasma, and has water three times as a substrate name.
-why: Line 58 is axiom 2's "water-based (metabolic, emotional, biological)"; lines 60 and 130 list substrates. NUMS.Go has no "water" either. The only hit in the axioms directory for ice, gas and plasma is host-kernel.form:211. The locator 2.22.1#1 is the report's title; the report makes the claim at lines 51-52 and 136-137.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
 n: 9.5.19.7
 kind: review
 re: 3.14.2.2
 saw: 6b80d5c2
 ack: 1
 is: README.md:21-25 and :40-49 read as quoted; git blame gives those lines to 02dd37592 (2026-05-08 18:45 -0600), whose message says "Establishes the ice/water/gas trinity (Blueprint/Recipe/NamedCell)" and carries Co-Authored-By trailers of an assistant.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
-n: 9.5.19.8
-kind: review
-re: 3.14.2.3
-saw: cb40bae8
-ack: node
-is: Two amendments. breath_service.py:26 and :32 return ice only when actual_value > 0 and implementation_summary is non-empty; the node gives one of the two conditions. And graph.py:124 calls the enum the "Ice/Water/Gas lifecycle state for nodes (Spec 169)", and the application's universal Node model has a phase column that defaults to "water" (graph.py:227-229): the words are applied to every node of the application's graph, with the stage of an idea as their meaning.
-why: graph.py:123-127 and the legacy enum at :130-134 read as stated, and the sibling spec names its six transitions at FRAMEWORK-architecture-spec.md:56-72.
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
@@ -134,16 +114,6 @@ is: membrane-boot.h:46-48 reads as quoted and :158-159 declare freeze and thaw; 
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
-n: 9.5.19.15
-kind: review
-re: 3.14.2.10
-saw: d817e88b
-ack: node
-is: The statement holds at every cited line. The limit is wrong on one point: the study cites files, not commit messages alone, for two of the four further uses: ingestion depth from lc-form-perceptron.md and structural-composition.md (report line 116) and the policy value from a commit message and reception-consent-policy.form:89-90 (report line 119). Only the memory horizon and the translation face rest on commit messages alone (report lines 123 and 131).
-why: Read: plasma (source-resonance-stream.fk:10-15, substrate-phase.fk:33-42; the file first appears in a25a7cbf2 of 2026-08-14, which has no trailer and whose message does not mention plasma), queue fill (resident-async-ingress.fk:70-73), the literals (form-lift.fk:91-93), the classifier (form-glass-live.bml:497-499) and the lexicon column (nl-translate.fk:29-35). channel-flow.fk:53-56 and :118 put a phase label on each of seven protocol layers (physical gas, data-link ice for a content-addressed frame); that file does not measure a queue's fill.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
 n: 9.5.19.16
 kind: review
 re: 3.14.3.1
@@ -159,16 +129,6 @@ re: 3.14.3.2
 saw: cc3d20d9
 ack: 1
 is: The messages of 241b3e3e4 (14:22:47), a3929fff8 (14:43:30), 93af83e75 (15:03:32) and 274c61a1c (15:24:49 +0800, 2026-06-08) read as quoted and span 62 minutes. All four carry an assistant trailer beside the owner's.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
-n: 9.5.19.18
-kind: review
-re: 3.14.3.3
-saw: 5a328b24
-ack: node
-is: The quotation stands word for word in the message of 93af83e75. Amendment: 04e49aff2 (2026-06-14, author field the owner's git name) carries the trailer "Co-Authored-By: Claude Opus 4.8 (1M context)" and speaks in the assistant's first person ("CLAUDE.md (the trinity section I read from)"). By the study's own definitions (report lines 28 and 33) it is an assistant commit made under the owner's identity, not a statement written by the owner.
-why: The message of 04e49aff2 opens "The misunderstanding: the shorthand" for the binding, treated "as if node KIND and thermodynamic STATE were one axis". The owner's attested words on this point are the one quotation of 2026-06-08.
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
@@ -199,16 +159,6 @@ is: Each of the six points follows from the premises named. One premise cuts aga
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
-n: 9.5.19.22
-kind: review
-re: 3.14.3.7
-saw: 7bcab4a8
-ack: node
-is: Two amendments. "Every long definition after 2025 is assistant text" should read "assistant text or unattested": the study's table marks plasma, the lifecycle classifier, the compiled-image census and the carrier as unattested (report lines 92, 95, 96, 99). In the limit, the study's table lists nine rows dated 2026-05-27 to 2026-09-08 (O2 to O10, report lines 153-161), eight without the memory note O10, against seven in its summary (line 59).
-why: Commits a25a7cbf2 and 16b3d3eb6 carry no trailer, which the node's own limit says cannot tell a person from an agent. Confirmed by count: 1,634 old-body commits have the owner's git name as author and no Co-Authored-By trailer. The Living Codex has 222 commits, 221 under the owner's full name and one under a second author name, none with a trailer; that is where the report's 221 and 222 both come from.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
 n: 9.5.19.23
 kind: review
 re: 3.14.4.1
@@ -224,16 +174,6 @@ re: 3.14.4.2
 saw: 5aea4751
 ack: 1
 is: living-equation.fk:7-13, README.md:23-25 and INDEX.md:319-321 each bind the kinds to the states. INDEX.md also holds the corrected model at line 134, in its entry for substrate-thermodynamics.form; the table at 319-321 was left as it was. The header of living-equation.fk has no word on a resting tendency or on two axes.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
-n: 9.5.19.25
-kind: review
-re: 3.14.4.3
-saw: 94a99fdc
-ack: node
-is: Amend the first sentence. The oldest definition, line 24 of the spec of 2025-09-09, does not mention compiled code; line 3 of the same spec puts "generated prototypes, cached content" in water. The answer comes from commit 721e2c7, three days later: the spec is ice, generated code is water, the compiled DLL is gas. So: the second definition, of 2025-09-12, answers gas for the compiled binary and water for generated source.
-why: SpecDrivenArchitecture.cs:14-16 and the message of 721e2c7 ("Code and DLLs are just cached artifacts"). The rest follows from the premises, and critic.md:318-323 is contradiction C4 as cited.
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
@@ -261,15 +201,6 @@ re: 3.14.8.2
 saw: 98da8e63
 ack: 1
 is: Matches the report's table at lines 239-241, shortened: the report commits water to "its holder and those the holder serves" and lets the holder's siblings read it.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
-n: 9.5.19.29
-kind: review
-re: 3.14.8.3
-saw: 5e996e26
-ack: node
-is: The sentence is the report's invariant 1 word for word (line 245). The report's own table, six lines above, gives gas "Mutation: free; nobody observes it" (line 239), so "only water is mutable" holds only among nodes that someone other than their maker can read. As amended: among nodes with a reader other than their maker, only water is mutable, and only by its holder; ice is never written after birth; gas may change freely because no one else reads it. Premise 3.14.8.2 does not say whether gas is mutable.
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
@@ -336,16 +267,6 @@ is: The round-one tier mapping is at web-jit-and-performance.md:373-388, marked 
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
-n: 9.5.19.37
-kind: review
-re: 3.14.9.3
-saw: 4a1df56f
-ack: node
-is: Two amendments. The queue projection (resident-async-ingress.fk:73) returns st-gas, st-water and st-ice, the same values 0, 1 and 2 as the node states; the codes that differ (gas 1, water 2, ice 3) are at channel-flow.fk:90, which codes phase labels on seven protocol layers and not the fill of a queue. And the application does apply its lifecycle words to nodes: graph.py:124 says "lifecycle state for nodes" and its node table has a phase column (graph.py:227-229).
-why: What stands: both measure something else (how far an idea is built; how full a queue is), and the lifecycle runs gas, ice, water, with ice meaning "not yet implemented" (graph.py:126).
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24
-
 n: 9.5.19.38
 kind: review
 re: 3.14.9.4
@@ -355,12 +276,3 @@ is: source-resonance-stream.fk and the plasma values of substrate-phase.fk first
 by: r3/review-ice-water-gas-origin
 at: 2026-11-24
 
-n: 9.5.19.39
-kind: review
-re: 3.14.9.5
-saw: 8f91034f
-ack: node
-is: Amendment: in the 2025 code the id is an assigned string (Abstractions.cs:8 at 5fc24ba, "string Id") and the content hash is a separate field (ContentRef.CacheKey, Abstractions.cs:27). That id is a name in the sense of axiom 3, so the 2025 melt already keeps continuity on a name while the content changes, which is where the proposal puts it. What the proposal drops is the mutation in place that leaves no ice behind, not a conflict with content addressing.
-why: The comment is at Phase.cs:7 as the premise says. An example of an id is "codex.meta/state/ice" (MetaNodeSystem.cs:19 at the head); CacheKey is filled at Runtime.cs:57 and :64 at 5fc24ba. The 2025 code never asked a content identity to survive an edit.
-by: r3/review-ice-water-gas-origin
-at: 2026-11-24

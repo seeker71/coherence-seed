@@ -1,10 +1,9 @@
-# Independent review of graph/3.3.kg (ground documents). One review node per claim, each naming the digest it read.
+# Reviews of the claims of hub 3.3. Each names the digest of the wording it confirms.
 
 n: 9.5.3
 kind: hub
 name: review-of-ground-documents
-is: All 39 claims of 3.3.kg (20 observations, 19 findings) were read against their sources: 38 confirmed, 1 holds only as amended (3.3.4.7), none disputed, none left unreviewed. The first review amended four nodes (3.3.1.2, 3.3.4.7, 3.3.8.2, 3.3.9.3); after their fix a third reader opened the sources again and confirmed three. The file has no relayed web claim; every primary file was opened at the cited lines, and the earlier axiom text and the pinned seed counts were re-read with git show.
-limit: The hubs carry no review. Hub 3.3.4 was edited with the fix and read again: 'grew by a third' holds (34,149 over 25,483 lines), and its last sentence repeats 'The study read three definitions', the wording review 9.5.3.20 amends. The old runtime was not run.
+is: Independent readings of the claims of hub 3.3 against their sources. Each review names the digest of the wording it confirms.
 at: 2026-11-24
 
 n: 9.5.3.1
@@ -166,17 +165,6 @@ re: 3.3.4.6
 saw: 951bd2b0
 ack: 1
 by: r3/review-ground-documents
-at: 2026-11-24
-
-n: 9.5.3.20
-kind: review
-re: 3.3.4.7
-saw: 9760f326
-ack: node
-is: Every cited line reads as the node says and the first review's three amendments are in it. One sentence is still off: 'This study read three definitions'. The study report read one of the three, substrate-phase.fk; the runtime's three homes and living-equation.fk come from the form-language and runtime-jit reports. The node holds with 'Three definitions were read' and a limit saying which report read which, as node 3.3.4.8 does for its own lines.
-why: The study's reading list names substrate-phase.fk and neither the runtime nor living-equation.fk (study/r1/axioms-north-star.md:14-37), and its T16 says the definition lives in substrate-phase.fk (lines 597-605). The critic's spot-checks R4 and A8 give the other two to form-language and runtime-jit (study/r1/critic.md:215,225).
-limit: On gas and nothing: substrate-phase.fk:18 glosses gas as 'diffuse — potential, barely instantiated', the old line 55 says the unreferenced 'returns to potential', and axiom 1 now calls nothing the shared potential field to which the unreferenced return (core-axioms.form:48). The word potential is the only bridge; no file read states the relation, so the node's sentence stands. At 9d7790856 itself the file already has no ice and no gas.
-by: r3/close-ground-documents
 at: 2026-11-24
 
 n: 9.5.3.21

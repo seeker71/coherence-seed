@@ -218,7 +218,7 @@ at: 2026-11-24
 n: 2.4.24
 name: http-playground.go
 kind: source
-is: A 161-line Go file of the http/ tree that imports [org]/nums at line 14 and holds test_nums at lines 60-62, the one call from http/ into the nums parser; no code calls test_nums.
+is: A 161-line Go file of the http/ tree that imports <prefix>/nums at line 14 and holds test_nums at lines 60-62, the one call from http/ into the nums parser; no code calls test_nums.
 path: NUMS.Go/http/playground.go
 rev: 9e6bbb4
 got: 2026-11-24
@@ -227,7 +227,7 @@ at: 2026-11-24
 n: 2.4.25
 name: http-go.mod
 kind: source
-is: The module file of the http/ tree, 44 lines: Go 1.20, a replace line that points [org]/nums at ../nums (line 5) and a require line for it (line 13).
+is: The module file of the http/ tree, 44 lines: Go 1.20, a replace line that points <prefix>/nums at ../nums (line 5) and a require line for it (line 13).
 path: NUMS.Go/http/go.mod
 rev: 9e6bbb4
 got: 2026-11-24
