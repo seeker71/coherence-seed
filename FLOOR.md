@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,0101 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,101 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 58 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs from inside the program or from outside it, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
