@@ -41,12 +41,13 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   recursion deeper than the machine stack, the answer, the reason and the fault were the
   walker's own in seventeen trials by hand.
 - **The lens reads its own definition.** It shows its stored node, through its own rows and with
-  its own names, as 741 lines and reads them back to the file it is stored as, byte for byte, and
+  its own names, as 675 lines and reads them back to the file it is stored as, byte for byte, and
   does the same for each of the 72 files of nodes here in 0.4 s. Its rows and their matcher were
   written in it. Text it cannot read is a fault that names what and where.
 - **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
-  numbers in the node and names on a second line of its file. The lens's 85 definitions were
-  given names with no byte of the node changing. A `let` keeps the arguments it stands among, so
+  numbers in the node and names on a second line of its file. The definitions of the lens, the
+  objects, the region, the header, the ice and the watcher were given names with no byte of a
+  node changing. A `let` keeps the arguments it stands among, so
   a number means one thing through all of a recipe; a program in form rewrote the old lets of 26
   stored files, and every ground program ended as before.
 - **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
@@ -81,8 +82,8 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   walker, so it compiles no call of another recipe, no backtracking and nothing that builds a
   node.
 - **The home lens.** The first lens's shapes are brackets only: nothing is written infix, and a
-  recipe inside another sees none of the outer names. Outside the lens itself, the stored
-  programs' arguments are still numbers: they were composed before names existed.
+  recipe inside another sees none of the outer names. The emitter and most ground programs still
+  show their arguments as numbers: they were composed before names existed.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 72
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (659 lines of C under `tools/`), the Makefile's 65 lines, ten pages, the claim
