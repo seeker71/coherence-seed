@@ -1,18 +1,14 @@
-# What the object-model witness study (study/r2/gap-object-model-witness.md) found. Sources are under 2.20; the 2000 thesis text is 2.3.1. Files of the 2000 archive lie outside every repository and are cited through the report, 2.20.1.
-
 n: 3.12
 name: object-model-witness
 kind: hub
 is: Gap G6, answered by reading alone. 2000: the reference pair (interface id, object id, native flag) is built and six run logs count casts and interface forwards; the delegated calls that let self and the structural base be different objects are compiled (64 stubs) with zero logged runs. 2026: a second class base is flattened into one record; its fixture stood under a pinned Verdict 119 on 2026-09-15 and was cut 2026-09-29; casts are absent. Separate base objects with self kept have no record of running in either era. Templates by substitution ran in both.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1
 name: model-2000
 kind: hub
 is: What the 2000 object model specifies and what its machine and compiler source implement: a reference of two 32-bit table indices with a native flag; a frame carrying a behavioural base (self) and a structural base (this); each additional class parent as a hidden delegated field with forwarding stubs; a cast that rewrites only the interface index. Shared inheritance as an attribute, tagging and detached interfaces are specified and not implemented. Undo rebuilds self instead of saving it.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.1
 name: reference-spec-2000
@@ -21,17 +17,15 @@ is: The 2000 object model prescribes one data type, the reference: an object ide
 status: observed
 src: 2.20.2#486 2.20.2#490-495 2.20.3#93
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.2
 name: reference-and-cast-built-2000
 kind: observation
 is: The 2000 machine source makes a reference two unsigned 32-bit indices, interface then object, into one table, native flag 0x80000000 on the interface word; an interface is an object in that table. A cast matches 128-bit GUIDs along the instantiator's interface list and rewrites only the interface index; nothing adds an interface at cast time.
 status: observed
-src: 2.20.1#93-108 2.20.1#222-226 2.20.2#649-651
-limit: The machine source lies in a 2000 archive on local disk outside the repositories. The study read it there and the encoding pass reread the reference struct, the flag and the cast routine. Not run.
+src: 2.20.2#649-651
+limit: The machine source lies in a 2000 archive on local disk outside the repositories. Not run.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.3
 name: two-base-rule-spec
@@ -40,27 +34,22 @@ is: The 2000 object model gives every method two base references: the behavioura
 status: observed
 src: 2.20.2#642-644 2.20.2#711-713 2.20.2#719-738 2.20.3#103
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.4
 name: frame-forms-2000
-kind: observation
+kind: finding
 is: Every 2000 machine frame holds refSelf, refThis and refMethod, and fields are read through refThis. A send sets both to the target and a self call resets refThis to self; a super call keeps self and changes only the interface half of refThis; only the delegated call CALLD and the forwarding stub FDC move refThis to another object, keeping self.
-status: observed
-src: 2.20.1#136-160
-limit: The machine source lies in a 2000 archive on local disk outside the repositories. The study read it there, the encoding pass reread the frame struct and the CALLD handlers, and the correction pass reread the frame struct and the super, CALLD and FDC handlers (BMCPU/CPU/instructions.hpp:100-162, 1169-1285, 1317-1392). Not run.
+status: assumed
+limit: The machine source lies in a 2000 archive on local disk outside the repositories. Not run.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.5
 name: undo-rebuilds-self-2000
-kind: observation
+kind: finding
 is: On return the 2000 machine pushes a frame onto the backtrack stack from refThis onward, leaving refSelf out. Re-entry under backtracking pops the frame and sets self to the structural base unless the calling instruction was a delegated call: the flag is false for CALL and true for CALLD. The forwarding instruction FDC refuses both redo and undo.
-status: observed
-src: 2.20.1#166-173
-limit: The machine source lies in a 2000 archive on local disk outside the repositories. The encoding pass reread the push and the restore routine there; the redo flags and the FDC refusal were read by the study only. Not run.
+status: assumed
+limit: The machine source lies in a 2000 archive on local disk outside the repositories. Not run.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.6
 name: two-base-rule-and-undo-not-jointly-sound
@@ -69,9 +58,8 @@ is: In the 2000 machine source the two-base rule and undo do not compose. Re-ent
 status: inferred
 conf: low
 from: 3.12.1.4 3.12.1.5
-limit: Inferred from about thirty lines of source. Not run, and no log shows the path taken; the study says it could be wrong about what the stack slot holds.
+limit: Inferred from about thirty lines of source. Not run, and no log shows the path taken; the reading says it could be wrong about what the stack slot holds.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.7
 name: inheritance-kinds-specified-2000
@@ -80,24 +68,20 @@ is: The 2000 texts allow one structural parent; each additional class parent gen
 status: observed
 src: 2.3.1#234 2.3.1#656-657 2.3.1#722-723 2.20.2#744-749 2.20.2#752-775 2.20.2#787-791
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.1.8
 name: compiler-2000-delegation-mechanism
-kind: observation
+kind: finding
 is: The 2000 compiler makes each extra class parent a hidden delegate field filled from a constructor parameter, with a stub (fdc field; fcx method) per delegated method not overridden; common objects use the same field. A super-class clause carries a property list, of which the class code reads only class; none spells delegate or shared inheritance.
-status: observed
-src: 2.20.1#201-218
-limit: The report's line 219 says the super-class rule carries no property list; the archive grammar shows one (Java/jbml/JBML.BMF:42, 44, 157). A super class marked class moves to the common object's parents (Components/Class.java:177-184); delegate is a member property and shared an array property (JBML.BMF:149, 137), and no super-class loop of Class.java reads either (177-184, 196-200, 346-356, 495-521, 561-572); other compiler files were not searched for reads of a super class's properties. The compiler source lies in a 2000 archive on local disk outside the repositories; the correction pass reread these lines, the delegated-field maker and the stub maker there. Not run.
+status: assumed
+limit: A super class marked class moves to the common object's parents (Components/Class.java:177-184); delegate is a member property and shared an array property (JBML.BMF:149, 137), and no super-class loop of Class.java reads either (177-184, 196-200, 346-356, 495-521, 561-572); other compiler files were not searched for reads of a super class's properties. The compiler source lies in a 2000 archive on local disk outside the repositories; the correction pass reread these lines, the delegated-field maker and the stub maker there. Not run.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.2
 name: body-2026
 kind: hub
 is: What the 2026 thesis-lane compiler does with classes: one Form record holds a class id and every field of the whole depth-first base chain; one receiver stands for self, the structural base and super; dispatch reads the class id through an if-chain. A second class base is therefore flattened, with no separate base object. A field marked delegate re-sends the call to the field's value, which makes the delegate the receiver. A cast is parsed and never performed.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.2.1
 name: one-record-holds-whole-chain
@@ -106,7 +90,6 @@ is: In the 2026 thesis compiler the first super is the structural base and later
 status: observed
 src: 2.20.4#219-220 2.20.4#3339-3371 2.20.4#4254-4257 2.20.5#639-645
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.2.2
 name: one-receiver-class-id-dispatch
@@ -115,16 +98,6 @@ is: A 2026 class member is one function over a packed list whose head is the rec
 status: observed
 src: 2.20.5#598-610 2.20.5#633 2.20.5#683-685 2.20.4#4279-4291
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.2.3
-name: delegate-field-resend-and-no-cast
-kind: observation
-is: For a 2026 field marked delegate, a call its class does not answer is lowered on the field's value. A cast is parsed and never performed: the word stands on 13 lines of the grammar file and none of the lowering file. Three definitions modelling a self class and a structural class stand in the grammar file; no other file of the head tree names them.
-status: observed
-src: 2.20.4#3634-3647 2.20.4#3679-3683 2.20.5#632 2.20.4#1057 2.20.4#353-356 2.20.4#648-668
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.2.4
 name: second-class-base-is-flattening
@@ -135,35 +108,21 @@ conf: high
 from: 3.12.2.1 3.12.2.2
 see: 2.20.16#234
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.2.5
-name: delegate-field-loses-self
-kind: finding
-is: For a field marked delegate the 2026 lowering makes the delegate object the head of the packed list, so inside the delegate's method both bases are the delegate; a delegate method that calls a method the outer class overrides runs the delegate's own. The 2000 rule, keep self and move only the structural base, is not preserved.
-status: inferred
-conf: mid
-from: 3.12.2.2 3.12.2.3 3.12.1.3
-limit: Behaviour inferred from source. No fixture in the head tree or the tree before the cut of 2026-09-29 tests it: the two fixtures that existed for the path forward a method returning a constant (answer 10).
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.3
 name: templates
 kind: hub
 is: Templates in both eras are specialisation by substitution, and both have a record of running: 2000 instance class files named Name[args] are compiled and named in load logs; the 2026 fixture bml-class-templates.bml (answer 133) is under the pinned Verdict 26. Parameter bounds were syntax in 2000, and the 2026 grammar keeps parameter names only; neither era checks them. The 2026 maintenance dialect reads generic class headers and erases the type parameter.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.3.1
 name: templates-2000-by-substitution
 kind: observation
 is: 2000 templates cover classes and interfaces only; a parameter is a type bounded by an interface with an optional default, a constant, or an unbounded interface name. The 2000 compiler instantiates by substitution and names the instance Name[arg,...]; instance files such as Array[BML.lang.String].bmc (2000-04-27) exist and load logs name them.
 status: observed
-src: 2.3.1#234 2.3.1#755-757 2.20.1#298-305 2.20.1#345
-limit: Compiler source, class files and load logs lie in a 2000 archive on local disk outside the repositories. The encoding pass confirmed the instance file and its date there. A loaded class file is a record of a compile and a load; nothing was run.
+src: 2.3.1#234 2.3.1#755-757
+limit: Compiler source, class files and load logs lie in a 2000 archive on local disk outside the repositories. A loaded class file is a record of a compile and a load; nothing was run.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.3.2
 name: templates-2026-by-substitution
@@ -172,93 +131,63 @@ is: In the 2026 thesis lane every Name<args> a unit names instantiates the templ
 status: observed
 src: 2.20.4#4095-4110 2.20.12#6 2.20.6#4-10
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.3.3
 name: template-bounds-never-enforced
 kind: observation
 is: Template parameter bounds are enforced in neither era. The 2000 compiler stores the bound and resolves an argument to itself or the default without consulting it, at a line marked 'TODO: get type from template'. The 2026 grammar keeps template parameter names only, skipping the one word Object, and instantiation checks the arguments only by count.
 status: observed
-src: 2.20.1#294-297 2.20.4#1425-1427 2.20.4#4096 2.20.4#4155-4160
-limit: The study did not read every caller of the 2000 resolution routine, so that bounds were syntax only in 2000 is an inference. The 2000 compiler source lies in an archive on local disk outside the repositories. The 2026 support-list row template-kind-constraints is about which kinds of definition a template may wrap (2.20.7#32-33, 2.20.4#543), not about bounds.
+src: 2.20.4#1425-1427 2.20.4#4096 2.20.4#4155-4160
+limit: The reading did not read every caller of the 2000 resolution routine, so that bounds were syntax only in 2000 is an inference. The 2000 compiler source lies in an archive on local disk outside the repositories. The 2026 support-list row template-kind-constraints is about which kinds of definition a template may wrap (2.20.7#32-33, 2.20.4#543), not about bounds.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4
 name: records
 kind: hub
 is: Records of execution, none re-run. Six 2000 instruction-count logs show casts and interface-forwarded calls executed and no delegated call; 64 delegation stubs sit in five compiled 2000 class files; the one 2000 test with two class parents has no compiled output. In 2026 a pinned Verdict 119 of 2026-09-15 covered a delegation fixture that the cut of 2026-09-29 deleted; at the head commit a pinned Verdict 26 covers single inheritance, interface dispatch and templates, and a support list still names the deleted features.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.1
 name: logs-2000-pair-executed
-kind: observation
+kind: finding
 is: Six instruction-count logs of the 2000 machine each show interface casts executed 426 to 1,909 times per run, interface-forwarded calls 92 to 2,322, self calls 610 to 2,814 and super calls 44 to 281. A cast cost 0.095 to 0.303 ms per execution and a plain call 0.018 to 0.026 ms; casts took 4.1 to 20.3 percent of instruction time.
-status: observed
-src: 2.20.1#334 2.20.1#492-497
-limit: The log containers are dated 2024-09-19 and their content carries no date; that they are runs of 2000 is inferred from the format, the instruction names and neighbouring build artefacts. The logs lie in an archive on local disk outside the repositories; the encoding pass reread all six there. One machine.
+status: assumed
+limit: The log containers are dated 2024-09-19 and their content carries no date; that they are runs of 2000 is inferred from the format, the instruction names and neighbouring build artefacts. One machine.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.2
 name: logs-2000-no-delegated-call
-kind: observation
+kind: finding
 is: None of the six 2000 instruction-count logs has a row for the delegated call CALLD or the delegated forward FDC, and the logger skips a timer of the requested group only when its count is 0. The two instructions that make self and the structural base name different objects therefore have zero recorded executions.
-status: observed
-src: 2.20.1#335
-limit: The absence of rows and the logger's skip rule are observed; zero executions is inferred from the two, every instruction timer being in group 0. A super call also makes the two references differ, in the interface half only, and has 44 to 281 recorded executions per log. The encoding pass and the correction pass reread the six logs and the skip lines (BMCPU/CPU/performance.cpp:22-23, instruction.hpp:165) in the archive on local disk outside the repositories.
+status: assumed
+limit: The absence of rows and the logger's skip rule are observed; zero executions is inferred from the two, every instruction timer being in group 0. A super call also makes the two references differ, in the interface half only, and has 44 to 281 recorded executions per log.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.3
 name: delegation-compiled-not-executed-2000
-kind: observation
+kind: finding
 is: A hex scan of 202 compiled 2000 class files finds 64 delegated-forward stub pairs in five files dated 2000-04-27 and 2000-05-01, none of whose classes declares a second class parent, and 250 interface stub pairs in 33 files. The one 2000 test with two class parents, ClassTest.bml, has no compiled class file and no load line in five load logs.
-status: observed
-src: 2.20.1#336-338 2.20.1#569-577
-limit: The scan matches a byte pattern and did not parse the class-file format; that the 64 stubs come from common-object delegation is inferred. The encoding pass re-ran the pattern on three of the five files (8, 16 and 16 matches) and confirmed the missing class files in the archive on local disk outside the repositories.
+status: assumed
+limit: The scan matches a byte pattern and did not parse the class-file format; that the 64 stubs come from common-object delegation is inferred.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.4
 name: verdict-119-covered-delegation
 kind: observation
 is: At commit 1044906a5 of 2026-09-15 the head of the fixture band reads Verdict 119 and exactly 119 of 139 bml fixtures declare an answer. One of them, bml-class-delegation.bml, declares 47 for class E : A, D, where a method of the delegation base D reads a field of D and calls Who, which E overrides: a delegated method reaching an override.
 status: observed
-src: 2.20.14 2.20.18 2.20.16#237 2.20.1#339
-limit: A verdict pinned in a file head is a record of a run, not a run; the study re-ran nothing. The study read the commit through git history; the encoding pass did not repeat the history commands.
+src: 2.20.14 2.20.18 2.20.16#237
+limit: A verdict pinned in a file head is a record of a run, not a run; the reading re-ran nothing.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.5
 name: cut-removed-delegation-witnesses
 kind: observation
 is: Commit 115fea55e of 2026-09-29, whose subject line reads '14,729 files to 1,628' (its trees hold 14,693 and 1,663 files), deleted bml-class-delegation.bml, four other delegation fixtures, 36 other class fixtures and two proof bands. Just before the cut 173 bml fixtures existed and 152 declared an answer while the band head still read Verdict 119.
 status: observed
-src: 2.20.15 2.20.1#340-341
-limit: The cut's message gives a file count and no reason per file, so whether the delegation fixtures failed is unknown. The study read the commit through git history; the correction pass repeated the counts with read-only git (ls-tree -r, diff --name-status and grep at 115fea55e and its parent): 13,031 paths deleted, 41 of them fixtures named bml-class-*, five with 'deleg' in the name.
+src: 2.20.15
+limit: The cut's message gives a file count and no reason per file, so whether the delegation fixtures failed is unknown. The reading read the commit through git history; the correction pass repeated the counts with read-only git (ls-tree -r, diff --name-status and grep at 115fea55e and its parent): 13,031 paths deleted, 41 of them fixtures named bml-class-*, five with 'deleg' in the name.
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.4.6
-name: head-verdict-26
-kind: observation
-is: At the head commit the fixture band head reads Verdict 26 and the tree holds 28 bml fixtures, 26 declaring an answer, among them single inheritance with calls through super (63), interface dispatch (21), templates (133) and construction (84). No fixture exercises delegation, and the verdict file of 98 lines has no row for the fixture band.
-status: observed
-src: 2.20.9#11-12 2.20.13#6 2.20.12#6 2.20.8 2.20.1#342
-limit: The head line dates from 2026-10-03 and the compiler file last changed on 2026-11-19; the fixture door was not run, so whether the tree still answers 26 of 26 is unknown.
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.4.7
-name: support-list-names-absent-witnesses
-kind: observation
-is: The 2026 support list names multiple-class-bases, delegate-field-slots and delegate-field-visibility as supported and says the verdict file registers class-dispatch, class-model and inheritance proofs. The verdict file holds only the class-model row; that 248-line band builds a class model by hand, constructs no object and calls no method.
-status: observed
-src: 2.20.7#22 2.20.7#29 2.20.8#28 2.20.10#9-248 2.20.1#378-382
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.4.8
 name: separate-base-objects-never-recorded-running
@@ -267,16 +196,13 @@ is: Each era has one partial record: the reference pair and its casts in 2000; m
 status: inferred
 conf: high
 from: 3.12.4.1 3.12.4.2 3.12.4.3 3.12.4.4 3.12.4.5 3.12.2.4 3.12.1.7
-see: 2.20.17#112-127 2.20.17#325-328
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.5
 name: formulation
 kind: hub
-is: The study's restatement of the object model as cells, offered as a formulation and not a decision: six kinds of node (structure blueprint, interface blueprint, recipe, view, maker, cell); multiple inheritance, sharing, tagging and detached interfaces as uses of delegate slots and a view memo; and one unresolved point, that the cell half of a reference cannot be a content hash of mutable state.
+is: The reading's restatement of the object model as cells, offered as a formulation and not a decision: six kinds of node (structure blueprint, interface blueprint, recipe, view, maker, cell); multiple inheritance, sharing, tagging and detached interfaces as uses of delegate slots and a view memo; and one unresolved point, that the cell half of a reference cannot be a content hash of mutable state.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.5.1
 name: six-node-kinds
@@ -286,7 +212,6 @@ status: inferred
 conf: mid
 from: 3.12.1.1 3.12.1.2 1.2 1.4
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.5.2
 name: features-as-delegate-slots
@@ -296,7 +221,6 @@ status: inferred
 conf: mid
 from: 3.12.1.7 3.12.1.8 3.12.1.2 3.12.5.1
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.5.3
 name: cell-id-cannot-be-content-hash
@@ -306,14 +230,12 @@ status: inferred
 conf: mid
 from: 1.3 3.12.1.1 3.12.1.2
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8
 name: keep
 kind: hub
 is: Seven things to carry forward: the reference as two ids (cell, view) with an immediate mode; an activation carrying self and a structural base under six dispatch rules, with slots reachable only through the structural base; views as memoised facts, with super and casts as operations on the view half; the maker as an ordinary cell; flattening as an optimisation with a stated side condition; templates as recipes from blueprints to blueprints; and the fixture door with the 2000 sources as a conformance corpus.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8.1
 name: keep-reference-as-cell-and-view
@@ -324,7 +246,6 @@ conf: high
 from: 3.12.1.1 3.12.1.2 3.12.4.1
 see: 2.20.2#493 2.20.2#701
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8.2
 name: keep-two-bases-and-six-dispatch-rules
@@ -335,7 +256,6 @@ conf: mid
 from: 3.12.1.3 3.12.1.4 3.12.1.2
 limit: The delegation rule, self kept while the structural base moves to a separate object, has no record of executing in either era.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8.3
 name: keep-views-memoised
@@ -345,20 +265,8 @@ status: inferred
 conf: mid
 from: 3.12.1.2 3.12.1.4 3.12.4.1
 see: 2.20.2#821
-limit: The memoised view is untested, and so is the 2000 thesis's own remedy for cast cost, a search tree or a sparse table. The cost ratios were computed by the study from the logged per-execution times.
+limit: The memoised view is untested, and so is the 2000 thesis's own remedy for cast cost, a search tree or a sparse table. The cost ratios were computed by the reading from the logged per-execution times.
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.8.4
-name: keep-maker-as-ordinary-cell
-kind: finding
-is: Keep the maker, the 2000 instantiator, as an ordinary cell: every instance is created by one and keeps a reference to it, and the maker is where the list of supported interfaces, the common state and the choice between singleton, unique and many instances live.
-status: inferred
-conf: mid
-from: 3.12.1.2 3.12.5.1
-see: 2.20.2#569-577 2.20.2#778-784
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8.5
 name: keep-flattening-as-optimisation
@@ -367,9 +275,8 @@ is: Keep flattening as an optimisation of private delegation under a stated side
 status: inferred
 conf: low
 from: 3.12.2.4 3.12.5.2
-limit: The equivalence is the study's inference. It needs a statement of when a delegate never escapes and a check that fails closed.
+limit: The equivalence is the reading's inference. It needs a statement of when a delegate never escapes and a check that fails closed.
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.8.6
 name: keep-templates-as-recipes
@@ -379,56 +286,12 @@ status: inferred
 conf: mid
 from: 3.12.3.1 3.12.3.2 3.12.3.3
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.8.7
-name: keep-fixture-door-and-2000-corpus
-kind: finding
-is: Keep the fixture door's shape, in which every source declares its own answer in its head and one cell counts how many agree; that shape is what let the Verdict 119 record be dated. Keep the 2000 test and library sources as a conformance corpus for the object model.
-status: inferred
-conf: mid
-from: 3.12.4.4 3.12.4.6
-see: 2.20.11#1-13
-limit: The study counts 243 .bml files for the corpus; the encoding pass found 243 in the whole 2000 archive and 125 under its src directory. The archive lies on local disk outside the repositories.
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.9
 name: drop
 kind: hub
-is: Four things to let go: the claim that multiple inheritance and the reference pair are proven working; a class id stored inside the record with an if-chain per signature as the dispatch form; a pinned count or a support list as a standing witness; and self reconstructed on undo instead of saved. The study's list also lets go bounds as unchecked syntax, three meanings of class and of template across three readers, and forwarding stubs stored as two-instruction methods per class.
+is: Four things to let go: the claim that multiple inheritance and the reference pair are proven working; a class id stored inside the record with an if-chain per signature as the dispatch form; a pinned count or a support list as a standing witness; and self reconstructed on undo instead of saved. The reading's list also lets go bounds as unchecked syntax, three meanings of class and of template across three readers, and forwarding stubs stored as two-instruction methods per class.
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.9.1
-name: drop-claim-proven-working
-kind: finding
-is: Drop the claim that multiple inheritance and the reference pair are proven working. A per-feature matrix replaces the claim: the pair and its casts have 2000 run logs; flattened multiple bases have a 2026 pinned verdict in history only; separate base objects, shared inheritance, tagging and detached interfaces have no record of executing.
-status: inferred
-conf: high
-from: 3.12.4.8
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.9.2
-name: drop-class-id-inside-record
-kind: finding
-is: Drop a class id stored inside the record plus an if-chain per signature as the dispatch form. It is the embedded-table-pointer design the reference pair exists to avoid, and it ties a cell's content to its class.
-status: inferred
-conf: mid
-from: 3.12.2.2 3.12.1.1
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 3.12.9.3
-name: drop-pinned-count-as-standing-witness
-kind: finding
-is: Drop a pinned count as a standing witness. The pin stayed at Verdict 119 while the fixtures declaring an answer grew to 152, and after the delegation fixtures left the tree a support list kept naming their features as supported.
-status: inferred
-conf: high
-from: 3.12.4.5 3.12.4.7
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 3.12.9.4
 name: drop-self-reconstructed-on-undo
@@ -437,6 +300,5 @@ is: Drop rebuilding self on re-entry instead of saving it. The 2000 machine left
 status: inferred
 conf: mid
 from: 3.12.1.5 3.12.1.6
-see: 2.20.1#469 2.20.1#528
 at: 2026-11-24
-by: r2/gap-object-model-witness
+

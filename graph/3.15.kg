@@ -1,212 +1,122 @@
-# What the hash-measurement study found (study/r2/gap-hash-measurement.md). Figures are minimum ns on one shared Apple M4 Max, 2026-11-24, unless a node says otherwise.
-
 n: 3.15
 name: hash-measurement
 kind: hub
-is: On one Apple M4 Max a 40-byte node costs 1.2 to 2.3 ns to allocate without identity. A 40-byte digest costs 16 ns with the CPU's SHA-256 instructions called directly, 97 ns through CommonCrypto, 51 ns in scalar BLAKE3, 2.75 ns with a non-cryptographic multiply-fold hash. Minting into a digest-keyed store of 16.8 million nodes costs 25 to 45 ns and 56 to 120 bytes per node, most of it the store. The study recommends direct SHA-256 at 256 bits computed at freeze, 32-bit handles, and no identity for transient nodes. Nodes were synthetic.
+is: On one Apple M4 Max a 40-byte node costs 1.2 to 2.3 ns to allocate without identity. A 40-byte digest costs 16 ns with the CPU's SHA-256 instructions called directly, 97 ns through CommonCrypto, 51 ns in scalar BLAKE3, 2.75 ns with a non-cryptographic multiply-fold hash. Minting into a digest-keyed store of 16.8 million nodes costs 25 to 45 ns and 56 to 120 bytes per node, most of it the store. The reading recommends direct SHA-256 at 256 bits computed at freeze, 32-bit handles, and no identity for transient nodes. Nodes were synthetic.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.1
 name: setup
 kind: hub
-is: The study answers the first-round gap that no measurement stood behind the design's cost claims, for hashing and a digest-keyed store. Ten files of 866 lines were run on one shared Apple M4 Max on 2026-11-24 after the three digest functions passed correctness checks. Nodes were synthetic 40-byte records; no real unit of the old body was hashed.
+is: Ten files of 866 lines were run on one shared Apple M4 Max on 2026-11-24 after the three digest functions passed correctness checks. Nodes were synthetic 40-byte records; no real unit of the old body was hashed.
 at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.1.1
-name: gap-closed
-kind: observation
-is: The first-round critic's gap G9 says no measurement stands behind the new design's cost claims and names hashing cost per node for any candidate hash and width as unmeasured; its item N2 on the node id's shape asks for one measurement. The first-round semantics report calls its BLAKE3-class tree hash an assumption until measured (R18).
-status: observed
-src: 2.23.2#147-154 2.23.2#413-415 2.23.2#436-439 2.23.6#302
-limit: The critic's shortest path asks to time one hash candidate over the nodes of one real unit; the study supplies that act only in synthetic form.
-at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.1.2
 name: machine
-kind: observation
+kind: finding
 is: The measuring machine is an Apple M4 Max (model Mac16,5) with 12 performance and 4 efficiency cores, 128 GiB of memory, 16,384-byte pages and 128-byte cache lines; the CPU reports FEAT_SHA256, FEAT_SHA512, FEAT_SHA3 and FEAT_AES. It ran macOS 26.3.1 and Apple clang 17.0.0; every program was built with cc -O2 -Wall.
-status: observed
-src: 2.23.1#0
-limit: One machine. Chip, memory, page size, cache line, core counts, FEAT_SHA256, OS and compiler versions were re-read with sysctl, sw_vers and cc while encoding; the other feature flags were not.
+status: assumed
+limit: One machine.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.1.3
 name: runs
-kind: observation
-is: The study wrote ten files of 866 lines (digest functions, checks, benchmarks) and ran them on 2026-11-24 from 18:59 to 19:07 while other agents used the machine: load average 3.3 to 5.1. Each figure is the minimum of 5 or 9 repetitions on one thread. The first of three hash runs was up to 2.6 times slower than the third in single rows.
-status: observed
-src: 2.23.1#0 2.23.1#1 2.23.1#3.2 2.23.1#appendix
-limit: The files and raw outputs sit in a session scratch directory outside every repository; the report's appendix reproduces the outputs. Rows whose clock probe reads 0.28 to 0.35 ns per add are pessimistic by up to 40%. The study could not say which core kind or clock the slow first run had.
+kind: finding
+is: The reading wrote ten files of 866 lines (digest functions, checks, benchmarks) and ran them on 2026-11-24 from 18:59 to 19:07 while other agents used the machine: load average 3.3 to 5.1. Each figure is the minimum of 5 or 9 repetitions on one thread. The first of three hash runs was up to 2.6 times slower than the third in single rows.
+status: assumed
+limit: Rows whose clock probe reads 0.28 to 0.35 ns per add are pessimistic by up to 40%. The reading could not say which core kind or clock the slow first run had.
 at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.1.4
-name: functions-verified
-kind: observation
-is: Before timing, the study's SHA-256 on the ARMv8 instructions equalled CommonCrypto's CC_SHA256 for every length from 0 to 4200 bytes of random input, and its scalar BLAKE3 gave the same 19 digests as the JavaScript package @noble/hashes 1.8.0, at lengths from 0 to 8192 bytes including multi-chunk tree cases.
-status: observed
-src: 2.23.1#2.1 2.23.1#2.3 2.23.7
-limit: The official BLAKE3 empty-input vector was written into the check from memory. BLAKE3 was measured as scalar C only; no SIMD implementation was on the disk and nothing was downloaded.
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.1.5
-name: mf128
-kind: observation
-is: mf128, written for the study, is a non-cryptographic 128-bit hash: two 64-bit lanes, each 16 input bytes XORed in and followed by two full 64x64 multiplies whose high halves cross lanes, then three finishing rounds. Avalanche over 40,960 bit pairs was 0.4900 to 0.5098; 4,194,304 counter nodes gave zero collisions in the first 64-bit word.
-status: observed
-src: 2.23.1#2.2
-limit: An adversary can construct collisions and the all-zero state is a fixed point of the round. No SMHasher-class battery was run. The study offers mf128 as the price of a multiply-fold hash, not as a function to ship.
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.1.6
-name: not-measured
-kind: observation
-is: The study timed no hash over the nodes of a real unit of the old body, because that needs a run of the old runtime. All nodes were distinct synthetic 40-byte records hashed as flat bytes. The intern table never deleted or grew. One thread was used; a store shared between processes, a SIMD BLAKE3 and a scalar SHA-256 were not measured.
-status: observed
-src: 2.23.1#0 2.23.1#6
-at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2
 name: digest-cost
 kind: hub
 is: Minimum ns per 40-byte digest, overlapped: multiply-fold hash 2.75, SHA-256 on the CPU's instructions 16.0, scalar BLAKE3 51.3, CommonCrypto's one-shot call 97.2; allocating the node itself costs 1.2 to 2.3 ns. As a latency direct SHA-256 costs 28 to 36 ns. Per byte, direct SHA-256 costs about the same at 40 bytes as at 4096 (2.83 GB/s).
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2.1
 name: yardsticks
-kind: observation
+kind: finding
 is: One dependent 64-bit add took 0.222 ns, a function call and return 0.696 ns and a low 64-bit multiply 0.759 ns. Bump allocation plus a 40-byte copy took 1.893 ns inside the first-level cache and 2.284 ns streaming over 640 MiB; the intern benchmark's node-building phase took 1.11 to 1.52 ns over eighteen runs. A node without identity costs 1.1 to 2.3 ns.
-status: observed
-src: 2.23.1#3.1 2.23.1#appendix
+status: assumed
 limit: Minimum of 9 repetitions (5 for the node-building phase). An earlier run read 0.250 ns for the add and 1.708 ns for the in-cache allocation.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2.2
 name: sha256-direct-cost
-kind: observation
+kind: finding
 is: SHA-256 on the ARMv8 instructions, called directly, took a minimum of 16.4, 16.0, 31.6, 94.8 and 1445 ns for 16, 40, 64, 256 and 4096 bytes with digests overlapping, and 35.9, 32.2, 55.4, 121.5 and 1457 ns when each digest feeds the next input's address. That is 0.40 ns per byte at 40 bytes and 0.353 ns per byte at 4096 (2.83 GB/s).
-status: observed
-src: 2.23.1#3.2 2.23.1#appendix
+status: assumed
 limit: One shared machine, third of three runs. With the length fixed at 40 at compile time the figures are 15.0 and 28.2 ns. An input of 64 bytes is two blocks because of padding.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2.3
 name: library-call-cost
-kind: observation
+kind: finding
 is: CommonCrypto's one-shot CC_SHA256 took a minimum of 145.5 ns for 16 bytes, 97.2 for 40 and 1309 for 4096: 6 to 9 times the same instructions called directly at 16 to 40 bytes, a fixed cost near 80 to 130 ns per call. OpenSSL 3.5.9 through its EVP interface gave 183 ns per 40-byte digest and 1.67 GB/s at 4096 bytes.
-status: observed
-src: 2.23.1#3.2 2.23.1#appendix
-limit: The OpenSSL reading was taken once, in the disturbed window of the first run. CC_SHA256 was slower for 16 bytes than for 40 in all three runs; the study has no explanation.
+status: assumed
+limit: The OpenSSL reading was taken once, in the disturbed window of the first run. CC_SHA256 was slower for 16 bytes than for 40 in all three runs; the reading has no explanation.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2.4
 name: blake3-scalar-cost
-kind: observation
+kind: finding
 is: Scalar BLAKE3 took a minimum of 48.6, 51.3 and 49.5 ns for 16, 40 and 64 bytes (one compression each), 206.2 ns for 256 bytes and 3485 ns for 4096 (1.18 GB/s): 3.2 times the direct SHA-256 at 40 bytes and 2.4 times at 4096.
-status: observed
-src: 2.23.1#3.2 2.23.1#appendix
+status: assumed
 limit: Scalar C written in the session. A production BLAKE3 hashes the four chunks of 4096 bytes in parallel lanes, so the 4096-byte figure is an upper bound by an unmeasured factor; for inputs up to 64 bytes SIMD across chunks cannot help.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.2.5
 name: mf128-cost
-kind: observation
+kind: finding
 is: The multiply-fold hash mf128 took a minimum of 1.55, 2.75, 3.44, 14.1 and 326 ns for 16, 40, 64, 256 and 4096 bytes with digests overlapping (12.6 GB/s at 4096) and 8.52 ns at 40 bytes as a latency: 5.8 times cheaper than direct SHA-256 at 40 bytes overlapped and 3.2 to 3.8 times cheaper as a latency.
-status: observed
-src: 2.23.1#3.2 2.23.1#appendix
+status: assumed
 limit: mf128 has no collision resistance, so the comparison is of price only.
 at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.2.6
-name: granularity-changes-count-not-rate
-kind: finding
-is: Direct SHA-256 costs about the same per byte whether the bytes arrive as 40-byte nodes (0.40 ns) or as one 4096-byte block (0.353 ns). Hashing small nodes instead of large encodings therefore does not change the hashing work per byte; it changes how many bytes are hashed at all and how many store probes happen.
-status: inferred
-conf: high
-from: 3.15.2.2
-at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3
 name: store-cost
 kind: hub
 is: A digest-keyed open-addressing table at load 0.5 held up to 16.8 million distinct 40-byte nodes. A mint there cost 25.1 ns (hash-consing) to 44.8 ns (direct SHA-256), 156 to 212 ns with the two slow digests, and 56 to 120 bytes per node. With a cheap digest the store is most of the cost; a digest of 50 ns or more stops memory misses overlapping.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.1
 name: table-design
-kind: observation
-is: The study's intern benchmark uses open addressing with linear probing and 2N slots (load 0.5). The first 64 digest bits pick the slot, a hit requires the whole stored digest to be equal, and the handle is a 32-bit arena index plus 1. A hash-consing variant stores an 8-byte slot (4-byte handle, 4-byte tag) and decides equality on the 40 node bytes.
-status: observed
-src: 2.23.1#3.3
+kind: finding
+is: The reading's intern benchmark uses open addressing with linear probing and 2N slots (load 0.5). The first 64 digest bits pick the slot, a hit requires the whole stored digest to be equal, and the handle is a 32-bit arena index plus 1. A hash-consing variant stores an 8-byte slot (4-byte handle, 4-byte tag) and decides equality on the 40 node bytes.
+status: assumed
 limit: The table never deletes and never grows; reclamation and resizing costs were not measured.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.2
 name: mint-cost
-kind: observation
+kind: finding
 is: Minimum ns to mint one new 40-byte node (build, digest, probe, copy, store) into a store of 1,048,576 / 16,777,216 nodes: hash-consing with mf128 14.4 / 25.1; mf128 with 16 digest bytes stored 18.5 / 28.1; direct SHA-256 with 32 bytes stored 39.6 / 44.8; scalar BLAKE3 121.0 / 156.1; CommonCrypto SHA-256 211.4 / 212.1.
-status: observed
-src: 2.23.1#3.3 2.23.1#appendix
+status: assumed
 limit: Minimum of 5 repetitions on prefaulted memory. Direct SHA-256 with 16 bytes stored read 35.4 / 50.9, the second in a disturbed run (clock probe 0.349 ns per add at its start).
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.3
 name: hit-cost
-kind: observation
+kind: finding
 is: Minimum ns to find a 40-byte node already present, visited in permuted order, at 1,048,576 / 16,777,216 nodes: mf128 with 16 digest bytes stored 19.6 / 27.1; direct SHA-256 with 32 bytes stored 43.3 / 47.8; hash-consing without a stored digest 38.5 / 45.5; scalar BLAKE3 125.9 / 160.4; CommonCrypto SHA-256 224.9 / 224.7.
-status: observed
-src: 2.23.1#3.3 2.23.1#appendix
-limit: The study infers, without a separate test, that the hash-consing hit costs more because it reads the arena record as well as the slot: two memory misses.
+status: assumed
+limit: The reading infers, without a separate test, that the hash-consing hit costs more because it reads the arena record as well as the slot: two memory misses.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.4
 name: memory-and-width
-kind: observation
+kind: finding
 is: Resident memory per interned 40-byte node equalled the layout arithmetic (record plus two slots): 56.0 bytes with an 8-byte slot, 88.0 with 16 digest bytes stored, 120.1 with 32 (36% more than 88). Storing 32 digest bytes instead of 16 raised the insert probe from 7.8 to 11.1 ns at 1,048,576 nodes and from 13.5 to 15.2 ns at 16,777,216.
-status: observed
-src: 2.23.1#3.3 2.23.1#appendix
+status: assumed
 limit: The 13.5 ns figure comes from the disturbed run. Memory is the growth of phys_footprint across one mint into fresh mappings.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.5
 name: control-in-cache
-kind: observation
-is: With 16,384 nodes (table 0.2 to 1.2 MiB, inside the cache) the minimum mint was 5.7 ns for hash-consing, 10.1 for mf128 with 16 bytes stored, 21.8 and 21.1 for direct SHA-256 with 16 and 32 bytes stored, 59.4 for scalar BLAKE3 and 116.6 for CommonCrypto: each variant's digest plus 3.6 to 12.3 ns.
-status: observed
-src: 2.23.1#3.3 2.23.1#appendix
-limit: Repetitions got faster one after another (12.8, 12.1, 11.1, 10.6, 10.1 for mf128), which the study reads as the branch predictor learning a short fixed sequence, so these minima are optimistic.
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.3.6
-name: store-dominates
 kind: finding
-is: Once the digest is cheap, most of the cost of an identity is the store. In a store of 16.8 million nodes the mf128 digest is 2.1 ns of a 28.1 ns mint and the direct SHA-256 digest is 16.5 ns of a 44.8 ns mint; the remainder is probing, copying and storing.
-status: inferred
-conf: high
-from: 3.15.3.2 3.15.2.1
-limit: The split is by subtraction of separately timed phases.
+is: With 16,384 nodes (table 0.2 to 1.2 MiB, inside the cache) the minimum mint was 5.7 ns for hash-consing, 10.1 for mf128 with 16 bytes stored, 21.8 and 21.1 for direct SHA-256 with 16 and 32 bytes stored, 59.4 for scalar BLAKE3 and 116.6 for CommonCrypto: each variant's digest plus 3.6 to 12.3 ns.
+status: assumed
+limit: Repetitions got faster one after another (12.8, 12.1, 11.1, 10.6, 10.1 for mf128), which the reading reads as the branch predictor learning a short fixed sequence, so these minima are optimistic.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.3.7
 name: slow-digest-unoverlaps-misses
@@ -217,14 +127,12 @@ conf: mid
 from: 3.15.3.2 3.15.3.5
 limit: Inferred from three table sizes; not confirmed with a prefetching variant. One disturbed run read 32 ns for direct SHA-256.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4
 name: kernel-cost
 kind: hub
 is: Computed from the measurements: at 10 million nodes per second an identity per node takes 28% to 45% of one core and fills 128 GiB in 115 to 156 seconds; 10,000 frozen 4096-byte recipes per second take 1.5% of a core. 128 bits are safe against accident up to 2^40 items, 64 bits are not; a chosen-input collision at 128 bits takes 2^64 work.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4.1
 name: identity-cost-at-node-rate
@@ -235,7 +143,6 @@ conf: high
 from: 3.15.2.1 3.15.3.2
 limit: One thread on one shared machine, synthetic nodes. Hash-consing without a stored digest costs 25.1 ns, 25% of a core. The rate of 10 million nodes per second is a stated workload, not a measured one.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4.2
 name: node-rate-memory
@@ -245,7 +152,6 @@ status: inferred
 conf: high
 from: 3.15.3.4 3.15.1.2
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4.3
 name: freeze-rate-cost
@@ -256,17 +162,13 @@ conf: mid
 from: 3.15.2.2 3.15.2.3 3.15.2.4 3.15.2.5 3.15.3.2
 limit: The 4096-byte size of a frozen recipe (about 100 nodes) is assumed. A node that names four children by 32-byte digest is 136 bytes, three SHA-256 blocks, about 50 ns overlapped, which the 100-node figure does not include.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4.4
 name: birthday-table
-kind: observation
+kind: finding
 is: By the birthday bound p = 1 - exp(-n(n-1) / 2^(b+1)), which is close to n^2 / 2^(b+1) when small, the chance of at least one accidental collision among 2^32 / 2^40 items is 0.39 / 1 for a 64-bit digest, 1.2e-10 / 7.6e-6 for 96 bits, 2.7e-20 / 1.8e-15 for 128 bits, 6.3e-30 / 4.1e-25 for 160 bits and 2^-193 / 2^-177 for 256 bits.
-status: observed
-src: 2.23.1#4.3
-limit: Arithmetic, recomputed while encoding; it holds only for a digest that behaves like a random function and says nothing about chosen inputs.
+status: assumed
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.4.5
 name: adversary-bound
@@ -275,62 +177,45 @@ is: Against a party who chooses inputs, the number of stored items does not matt
 status: inferred
 conf: mid
 from: 3.15.2.2 3.15.4.4
-limit: That 9,400 core-years is within reach of a funded attacker is the study's judgement, not a measurement.
+limit: That 9,400 core-years is within reach of a funded attacker is the reading's judgement, not a measurement.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.5
 name: prior-record
 kind: hub
 is: What the old body and the first round already hold on digests: a 64-bit FNV-1a in the old runtime; a Form-emitted image on the CPU's SHA-256 instructions recorded at 3.1 GB/s; a carrier header of 2026-11-05 saying a digest only indexes the store and equality is the bytes; a node word with a 32-bit instance field; a live field of 21.7 million nodes.
 at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.5.1
-name: old-fnv-keys
-kind: observation
-is: The old runtime declares fk_bytes_fnv1a at line 494 and defines it at line 26583 with the 64-bit FNV-1a offset basis 14695981039346656037 and prime 1099511628211, returning one 64-bit word. The first-round runtime report states that the keys of the old body's compiled images are 64-bit FNV-1a, not a cryptographic hash.
-status: observed
-src: 2.1.7#494 2.1.7#26583-26585 2.23.4#338
-limit: Which keys use the function is taken from the first-round report and was not re-read; the study itself cites only the declaration at line 494.
-at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.5.2
 name: old-sha-lane
 kind: observation
 is: The old body's record of what stands says bulk identity stays SHA-256 because the chip has it in hardware: a Form-emitted image using the CPU's SHA-256 instructions hashes the 1.39 MB seed file in 1 ms and reads a 2.02 GB file in 659 ms (3.1 GB/s), against 1.0 GB/s for the body's own fingerprint lane.
 status: observed
-src: 2.1.6#1361-1379 2.23.3#307
-limit: Timings as recorded in the old body. The study did not re-run them and quoted the 1.39 MB figure through the first-round lessons report; the record was opened at the cited lines while encoding.
+src: 2.1.6#1361-1379
+limit: Timings as recorded in the old body.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.5.3
 name: identity-at-frozen-end-prior
 kind: observation
-is: Two earlier texts speak to when identity is computed, without a measurement; only one puts it at the frozen end. The first-round semantics report recommends identity computed only at the solid end (its R16). The carrier header of 2026-11-05 says a cell's identity is its canonical byte string, a digest of those bytes only indexes the store, and equality is the bytes; the carrier gives every cell that identity when it is composed, not at a freeze.
+is: Two earlier texts speak to when identity is computed, without a measurement; only one puts it at the frozen end. The carrier header of 2026-11-05 says a cell's identity is its canonical byte string, a digest of those bytes only indexes the store, and equality is the bytes; the carrier gives every cell that identity when it is composed, not at a freeze.
 status: observed
-src: 2.1.9#17-20 2.23.6#300
+src: 2.1.9#17-20
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.5.4
 name: node-word-and-field-size
 kind: observation
-is: The old node word gives the instance field 32 bits, beside 6 for package, 13 for level and 12 for type. The first-round language report ran its probes against a shared node field already holding 21.7 million nodes; 2^32 is 198 times that count.
+is: The old node word gives the instance field 32 bits, beside 6 for package, 13 for level and 12 for type.
 status: observed
-src: 2.1.11#6-9 2.23.5#354
-limit: The 21.7 million figure is relayed from the first-round report. The study did not open the node-word header and relied on the critic's check; the header was read at lines 6 to 9 while encoding.
+src: 2.1.11#6-9
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8
 name: keep
 kind: hub
 is: Carried forward, most with a flip condition: direct SHA-256 on the CPU's instructions for stored identity, a cheap hash only for the in-process index; 256 bits stored per frozen thing; a 32-bit index as the handle; identity at freeze or at a boundary; hash-consing if node granularity is needed; a digest on a probing path kept under about 20 ns.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8.1
 name: direct-sha256-and-cheap-index-hash
@@ -342,7 +227,6 @@ from: 3.15.2.2 3.15.2.3 3.15.2.4 3.15.2.5 3.15.5.2
 flip: To BLAKE3 if a target without SHA-256 instructions must be first-class, if megabyte leaves dominate and a SIMD or multi-threaded BLAKE3 is admitted into the body, or if verified streaming of part of a large leaf is required. Not on node-size speed.
 limit: Scalar SHA-256 and parallel BLAKE3 were not measured; that scalar SHA-256 is slower than scalar BLAKE3 is assumed.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8.2
 name: store-256-bits-per-frozen-thing
@@ -351,9 +235,8 @@ is: Store 256 digest bits once per frozen thing, and nothing or 128 bits per in-
 status: inferred
 conf: mid
 from: 3.15.3.4 3.15.4.4 3.15.4.5
-flip: To 128 bits stored if identities never cross a trust boundary (one owner, one machine) and the store is memory-bound. To more than 256 bits never, on the study's evidence.
+flip: To 128 bits stored if identities never cross a trust boundary (one owner, one machine) and the store is memory-bound. To more than 256 bits never, on the reading's evidence.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8.3
 name: handle-is-32-bit-index
@@ -364,7 +247,6 @@ conf: mid
 from: 3.15.3.1 3.15.3.4 3.15.5.4
 flip: To a 40-bit or 48-bit handle inside a 64-bit word if transient nodes draw handles from the same space (at 10 million per second 2^32 handles are gone in 429 seconds) or if the frozen store is expected to pass about 2^31 nodes.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8.4
 name: identity-at-freeze-not-mint
@@ -374,9 +256,8 @@ status: inferred
 conf: mid
 from: 3.15.4.1 3.15.4.2 3.15.4.3 3.15.5.3 1.3
 flip: To node granularity if the new kernel's measured mint rate for nodes that outlive one movement is at or below about 1 million per second (2.8% to 4.5% of a core), if structural sharing is shown to save more than a hit of 20 to 48 ns costs, or if constant-time equality of live values is required everywhere.
-limit: The two rates and the 4096-byte recipe are stated workloads, not measurements of a kernel. The axioms do not state when identity is computed; the choice is the study's inference. Axiom 1.3 reads 'A new composition mints a new blueprint', and whether a transient node is a cell in that sense is not settled. Of the prior texts in 3.15.5.3 only R16 supports the choice.
+limit: The two rates and the 4096-byte recipe are stated workloads, not measurements of a kernel. The axioms do not state when identity is computed; the choice is the reading's inference. Axiom 1.3 reads 'A new composition mints a new blueprint', and whether a transient node is a cell in that sense is not settled. Of the prior texts in 3.15.5.3 only R16 supports the choice.
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
 n: 3.15.8.5
 name: hash-consing-if-node-granularity
@@ -386,63 +267,4 @@ status: inferred
 conf: mid
 from: 3.15.3.2 3.15.3.3 3.15.3.4
 at: 2026-11-24
-by: r2/gap-hash-measurement
 
-n: 3.15.8.6
-name: digest-under-20ns-on-probe-path
-kind: finding
-is: If a cryptographic digest sits on a path that also probes a large table, keep the digest under about 20 ns or batch the probes: with a digest of 50 to 100 ns, the cost of a mint beyond its digest rose from 16 to 28 ns to 74 to 108 ns.
-status: inferred
-conf: mid
-from: 3.15.3.7
-limit: Rests on an inference about overlapping memory misses that was not confirmed with a prefetching variant.
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.9
-name: drop
-kind: hub
-is: What the study lets go: library one-shot calls for small digests (97 to 183 ns per 40 bytes); a cryptographic digest per minted node; 64-bit and 96-bit digests as identity; and choosing BLAKE3 for speed at node size, where one scalar compression costs 48 to 51 ns against 16 ns for direct SHA-256.
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.9.1
-name: no-library-call-for-small-digests
-kind: finding
-is: Do not route small digests through CommonCrypto's one-shot call or OpenSSL's EVP interface: they cost 97 to 183 ns per 40-byte digest against 16 ns for the same SHA-256 instructions called directly, and in a store of 16.8 million nodes a mint through CommonCrypto costs 212 ns against 44.8 ns.
-status: inferred
-conf: high
-from: 3.15.2.2 3.15.2.3 3.15.3.2
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.9.2
-name: no-digest-per-minted-node
-kind: finding
-is: Do not give every minted node a cryptographic identity. At 10 million nodes per second direct SHA-256, the cheapest cryptographic digest measured, takes 45% of one core and 80 bytes of table per node beside the 40-byte record; 128 GiB then fills in 115 seconds, so nodes minted at that rate cannot all be kept in any case.
-status: inferred
-conf: mid
-from: 3.15.4.1 3.15.4.2
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.9.3
-name: no-64-or-96-bit-identity
-kind: finding
-is: Do not use a 64-bit or 96-bit digest as an identity. 64 bits gives a 0.39 chance of an accidental collision among 2^32 items and certainty at 2^40; 96 bits gives 1 in 131,072 at 2^40. A 64-bit value is fit only to pick a slot with a full comparison behind it. A 64-bit FNV-1a key, as the old runtime computes, falls under this rule.
-status: inferred
-conf: high
-from: 3.15.4.4 3.15.5.1
-at: 2026-11-24
-by: r2/gap-hash-measurement
-
-n: 3.15.9.4
-name: blake3-not-for-node-size-speed
-kind: finding
-is: Do not choose BLAKE3 for speed at node size. One scalar BLAKE3 compression measured 48 to 51 ns for any input up to 64 bytes against 16 ns for direct SHA-256 at 16 and 40 bytes and 31.6 ns at 64 bytes, a ratio of 3.0 to 3.2 falling to 1.6, and SIMD across chunks cannot help a single compression. The first round's BLAKE3-class tree hash keeps a case only for large leaves hashed in parallel or verified in part.
-status: inferred
-conf: mid
-from: 3.15.2.4 3.15.2.2 3.15.1.1
-limit: No SIMD or official BLAKE3 was measured; the measured ratio of 2.4 at 4096 bytes is an upper bound.
-at: 2026-11-24
-by: r2/gap-hash-measurement

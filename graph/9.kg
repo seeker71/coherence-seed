@@ -1,7 +1,0 @@
-# Reviews: independent readings of single claims against their sources.
-
-n: 9.5
-name: independent-readings
-kind: hub
-is: Each child hub holds the reviews of one file of claims. A review names the claim it read, the digest of the wording it confirms and the day it was read.
-at: 2026-11-25

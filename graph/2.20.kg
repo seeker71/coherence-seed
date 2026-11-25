@@ -1,21 +1,8 @@
-# Sources of the object-model witness study (study/r2/gap-object-model-witness.md). The 2000 thesis text is 2.3.1; the axioms file is 2.1.1. Files of the 2000 archive lie outside every repository and are cited through the report, 2.20.1.
-
 n: 2.20
 name: object-model-witness-sources
 kind: hub
-is: The files the object-model witness study cites: its own report, two companion texts on the 2000 object model, the 2026 thesis-lane grammar and lowering, the class surface, the support list, the verdict file, the fixture band with two fixtures and its door, the class-model proof band, three commits and one deleted receipt read from git history, and the first-round critique.
+is: Sources the design and its evidence cite: object-model-witness-sources.
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.1
-name: gap-object-model-witness.md
-kind: source
-is: The study report closing gap G6 of the first-round critique, 577 lines: the reference pair, the two-base rule, delegation, casts and templates as specified in 2000, as built in 2000 and in 2026, with twelve records of execution. It cites machine and compiler source, class files and run logs of a 2000 archive on local disk outside every repository.
-path: coherence-seed/study/r2/gap-object-model-witness.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.2
 name: sgb-bml-objects.txt
@@ -25,7 +12,6 @@ path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/sg
 date: 2000
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.3
 name: sgb-thesis-another-object-model.txt
@@ -34,7 +20,6 @@ is: An earlier proposal text by the second author on the object model, 147 lines
 path: Coherence-Network/docs/field/urs/artifacts/master-thesis-2000/companion/sgb-thesis-another-object-model.txt
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.4
 name: grammars-bml.fk
@@ -45,7 +30,6 @@ rev: b8ff978c9
 date: 2026-11-19
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.5
 name: bml-form-lower.bml
@@ -56,7 +40,6 @@ rev: b8ff978c9
 date: 2026-10-11
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.6
 name: core-class-surface.bml
@@ -67,60 +50,6 @@ rev: b8ff978c9
 date: 2026-10-09
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.7
-name: bml-native-north-star.form
-kind: source
-is: The 2026 support list of the native BML compiler, 41 lines: supported and unsupported features, the registered witnesses, the next code points.
-path: coherence-kernel/grammars/bml-native-north-star.form
-rev: b8ff978c9
-date: 2026-11-04
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.8
-name: band-verdicts.txt
-kind: source
-is: The old body's file of pinned band verdicts, 98 lines, one row per band.
-path: coherence-kernel/form/band-verdicts.txt
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.9
-name: bml-native-fixtures.fk
-kind: source
-is: The band over the native BML fixtures at the head commit; its head pins the count of fixtures that answer what they declare.
-path: coherence-kernel/form/form-stdlib/tests/bml-native-fixtures.fk
-rev: b8ff978c9
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.10
-name: bml-full-class-model-proof.fk
-kind: source
-is: A 248-line band that builds class-model components by hand and scores 31 bits over flag readers and lookups.
-path: coherence-kernel/form/form-stdlib/tests/bml-full-class-model-proof.fk
-rev: b8ff978c9
-date: 2026-11-17
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.11
-name: bml-native-fixtures.bml
-kind: source
-is: The fixture door of the native BML compiler, 93 lines: each fixture source declares its own answer in its head and one cell counts how many agree.
-path: coherence-kernel/form/form-stdlib/bml/bml-native-fixtures.bml
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.12
 name: bml-class-templates.bml
@@ -130,17 +59,6 @@ path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-class-templates.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.13
-name: bml-class-dispatch.bml
-kind: source
-is: An 18-line fixture for single inheritance with calls through this and super at the head commit; its head declares answer 63.
-path: coherence-kernel/form/form-stdlib/tests/fixtures/bml-class-dispatch.bml
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.14
 name: tree-at-1044906a5
@@ -151,7 +69,6 @@ rev: 1044906a5
 date: 2026-09-15
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.15
 name: cut-commit-115fea55e
@@ -162,7 +79,6 @@ rev: 115fea55e
 date: 2026-09-29
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.16
 name: receipt-the-receiver-gets-its-own-slot
@@ -173,17 +89,6 @@ rev: 115fea55e^
 date: 2026-09-15
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
-
-n: 2.20.17
-name: critic.md
-kind: source
-is: The completeness critique of the first study round, 471 lines; its gap G6 and contradiction C5 are what the object-model witness study answers.
-path: coherence-seed/study/r1/critic.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-object-model-witness
 
 n: 2.20.18
 name: commit-30cb80408
@@ -194,4 +99,4 @@ rev: 30cb80408
 date: 2026-09-15
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-object-model-witness
+

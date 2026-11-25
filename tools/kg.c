@@ -289,10 +289,30 @@ static void check_place(const Node *x) {
 }
 
 /* ---- release ------------------------------------------------------------------
- * The graph holds only what is. A review that does not confirm the present wording
- * of its claim describes something that is no longer there, so it is taken out of
- * its file; git keeps it. */
-static char gone[MAXN];
+ * The graph holds only what is needed. The ground, the design, what is open, the path
+ * and the graph's own rules (hubs 0, 1, 5, 6, 7, 8) are living. A source, a piece of
+ * evidence or a review stays only while something living refers to it, directly or
+ * through what it refers to; a review also has to confirm its claim's present wording.
+ * Everything else is taken out of its file, and a file left without nodes is removed. */
+#define LIVING "015678"
+static char gone[MAXN], keep[MAXN];
+static void mark(Node *x) {
+  if (keep[x - nodes]) return;
+  keep[x - nodes] = 1;
+  for (const char *d = x->n; (d = strchr(d, '.')); d++) { Node *p = find(x->n, (size_t)(d - x->n)); if (p) mark(p); }
+  const char *path = !strcmp(x->kind, "source") ? get(x, "path") : NULL;
+  if (path) { Node *r = root_of(path); if (r) mark(r); }
+  for (int i = 0; i < x->nf; i++) {
+    if (!one_of(x->f[i].k, "from|see|open|ans|src")) continue;
+    for (const char *p = x->f[i].v; *p; ) {
+      while (*p == ' ') p++;
+      const char *e = p; while (*e && *e != ' ') e++;
+      const char *h = memchr(p, '#', (size_t)(e - p)); Node *t = e > p ? find(p, (size_t)((h ? h : e) - p)) : NULL;
+      if (t) mark(t);
+      p = e;
+    }
+  }
+}
 static int release_file(const char *path) {
   FILE *fp = fopen(path, "rb"); if (!fp) return 0;
   fseek(fp, 0, SEEK_END); long size = ftell(fp); fseek(fp, 0, SEEK_SET);
@@ -309,7 +329,9 @@ static int release_file(const char *path) {
     if (len > 3 && !memcmp(l, "n: ", 3)) { Node *x = find(l + 3, len - 3); if (x && gone[x - nodes]) skip = 1; }
     l = nl ? nl + 1 : l + len;
   }
-  if (dropped) { fp = fopen(path, "wb"); if (!fp || fwrite(out, 1, on, fp) != on || fclose(fp)) { fprintf(stderr, "%s: cannot write\n", path); exit(2); } }
+  out[on] = 0;
+  if (dropped && !strstr(out, "\nn: ") && (on < 3 || memcmp(out, "n: ", 3))) remove(path);   /* no node is left in it */
+  else if (dropped) { fp = fopen(path, "wb"); if (!fp || fwrite(out, 1, on, fp) != on || fclose(fp)) { fprintf(stderr, "%s: cannot write\n", path); exit(2); } }
   return dropped;
 }
 
@@ -319,7 +341,7 @@ int main(int argc, char **argv) {
   const char *dir = argc > 2 ? argv[2] : "graph"; gdir = dir;
   if (!one_of(cmd, "check|index|brief|disputed|link|release") || (!strcmp(cmd, "link") && !want)) {
     fprintf(stderr, "usage: kg check|index|brief|disputed [graph-dir]\n       kg link N [graph-dir]   where the sources of node N can be read\n"
-                    "       kg release [graph-dir]  take out every review that does not confirm its claim's present wording\n"); return 2; }
+                    "       kg release [graph-dir]  take out what nothing living refers to, and reviews that no longer confirm\n"); return 2; }
   DIR *d = opendir(dir); if (!d) { fprintf(stderr, "%s: no such directory\n", dir); return 2; }
   int files = 0; struct dirent *de;
   while ((de = readdir(d))) {
@@ -364,14 +386,19 @@ int main(int argc, char **argv) {
   }
   if (!strcmp(cmd, "release")) {
     int out = 0; const char *last = NULL;
-    for (int i = 0; i < nn; i++) {
+    for (int i = 0; i < nn; i++) {                       /* the living hubs, and the top hub of every other */
+      Node *x = byaddr[i]; size_t top = strcspn(x->n, ".");
+      if (!x->n[top] || (top == 1 && strchr(LIVING, x->n[0]))) mark(x);
+    }
+    for (int i = 0; i < nn; i++) {                       /* a review stays while its claim does and it still confirms it */
       Node *r = byaddr[i]; if (strcmp(r->kind, "review")) continue;
       const char *re = get(r, "re"), *saw = get(r, "saw"), *ack = get(r, "ack");
       Node *t = re ? find(re, strcspn(re, " #")) : NULL;
-      if (!t || !saw || strcmp(saw, t->hex) || !ack || strcmp(ack, "1")) gone[r - nodes] = 1;
+      if (t && keep[t - nodes] && saw && !strcmp(saw, t->hex) && ack && !strcmp(ack, "1")) mark(r);
     }
+    for (int i = 0; i < nn; i++) if (!keep[byaddr[i] - nodes]) gone[byaddr[i] - nodes] = 1;
     for (int i = 0; i < nn; i++) if (gone[i] && nodes[i].file != last) { last = nodes[i].file; out += release_file(last); }
-    printf("kg: released %d reviews that no longer confirm their claim\n", out);
+    printf("kg: released %d nodes that nothing living refers to or that no longer confirm their claim\n", out);
     return 0;
   }
   for (int i = 0; i < nn; i++) {

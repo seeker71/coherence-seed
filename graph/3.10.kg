@@ -1,18 +1,14 @@
-# What the study of the old body's natural-language lane found (study/r2/gap-natural-language-lane.md). The study ran no program: every verdict number below is a number recorded in a file.
-
 n: 3.10
 name: natural-language-lane
 kind: hub
 is: The old body's natural-language translator is 70 lines: two languages (English, Indonesian), one sentence construction, two one-word slots, 52 lexicon rows, ASCII only. The pivot is a content-interned node: its category is a numeric coordinate, its two children are strings holding arrival-order labels. The test of the north star's example was deleted on 2026-09-29; one band over five invented words stands. Seven neutral-id schemes exist, none joined to the translator. A 10,000-row label table is 57.0% machine translation, 0 rows reviewed.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1
 name: translator
 kind: hub
 is: nl-translate.fk holds two grammars as data, a 52-row lexicon with first-match lookup, a pivot node of category 1.2.99.33 over two label strings, and one hand-written decoder per language. Text handling is ASCII only. A lexicon miss passes the surface word into the pivot and a parse failure is the string PARSE-FAIL; neither is a fault. The fragment is one copular construction, two languages, 50 words per language, and the node's identity sits on the spelling of its labels.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.1
 name: grammar-and-decoder
@@ -21,16 +17,14 @@ is: In nl-translate.fk each of the two languages has a grammar value of two rule
 status: observed
 src: 2.18.2#22-23 2.18.2#61-62 2.18.2#67-68 2.18.7#1109-1131
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.2
 name: lexicon-rows
 kind: observation
 is: The translator's lexicon is 52 rows of (symbol, phase, English, Indonesian): 7 seed rows n0..n6, 40 corpus rows c0..c39 and 5 minted rows m1257..m1261, giving 50 distinct words per language. Lookup scans for the first row whose column equals the word, so home (rows c16, c21, c23) always answers c16. Seven rows are spelled the same in both columns.
 status: observed
-src: 2.18.2#35 2.18.2#41-46 2.18.3#15-17 2.18.1#4
+src: 2.18.2#35 2.18.2#41-46 2.18.3#15-17
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.3
 name: pivot-node
@@ -39,16 +33,6 @@ is: The translator's pivot is intern_node(bp("property"), [string, string]): a c
 status: observed
 src: 2.18.2#58-59 2.18.9#943 2.18.8#93-108 2.1.10#37
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.1.4
-name: ascii-floor
-kind: observation
-is: The translator's text handling is ASCII only: str-normalize lowercases A to Z through a 26-letter map and drops six punctuation marks, and both grammars capture slots with the class alpha, which is ASCII letters and underscore. A class letter that also accepts any byte of 128 or more is defined in bmf-core.fk; no grammar at head uses that class.
-status: observed
-src: 2.18.10#12-28 2.18.8#330-333 2.18.8#352-359 2.18.2#22-23
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.5
 name: failure-arms
@@ -56,19 +40,8 @@ kind: observation
 is: On a lexicon miss the translator's lookup returns the surface word unchanged, and that word becomes a child of the pivot. On a parse failure g-parse returns the string leaf PARSE-FAIL as a value. The translator calls g-parse, the prefix matcher, and not g-parse-full, the whole-source parser. None of the three cases raises a fault.
 status: observed
 src: 2.18.2#43-45 2.18.2#58 2.18.2#67-68 2.18.7#3-5 2.18.7#1094-1107
-limit: The study ran no sentence through the translator: what tr-en-id answers for a sentence outside the template, or for one with trailing words, was not observed.
+limit: The reading ran no sentence through the translator: what tr-en-id answers for a sentence outside the template, or for one with trailing words, was not observed.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.1.6
-name: corpus-rows-and-coverage
-kind: observation
-is: The translator's 40 corpus rows are single-word ASCII strings found at the same key in two interface message files, en.json and id.json, which exist only in the parent repository; the runner that would regenerate the rows is recorded as not built. The homecoming corpus holds 1,070 rows (ids 601 to 1683); 5 of their words have a lexicon row.
-status: observed
-src: 2.18.4#18-19 2.18.4#33-56 2.3#web/messages 2.18.11 2.18.3#15-17 2.18.5#7-14 2.18.1#4
-limit: The 5-of-1,070 figure (0.47%) is the study's static join of two files, not a run of the coverage lens.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.7
 name: label-is-the-identity
@@ -78,7 +51,6 @@ status: inferred
 conf: high
 from: 3.10.1.2 3.10.1.3 3.10.1.5
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.1.8
 name: fragment
@@ -90,14 +62,12 @@ from: 3.10.1.1 3.10.1.2
 src: 2.18.33#9-13 2.18.33#110-135 2.18.28#317-323 2.18.21#4
 limit: The claim covers the translator only. Elsewhere at head a sample grammar parses "negate 12" and "twice 5 plus 3" into arithmetic recipes, the dictionary of meaning recipes selects among a word's mappings by context, and the phrase lenses hold an enquiry as a fixed phrase; none of the three imports the translator.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2
 name: witness
 kind: hub
 is: The north star says two example sentences intern to one node. The test of that pair was deleted on 2026-09-29 by the commit that last edited the north-star line. At head one band of sixteen bits calls the translator, on five invented words; its recorded verdict 65535 is dated 2026-09-28 and was not re-run. Thirteen further languages and nearly every band of the lane left in the same cut. The claim that a numeric space is the root of natural languages rests on one sentence shape, two languages and a hand-made table.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2.1
 name: north-star-example-lost-its-test
@@ -106,17 +76,6 @@ is: NORTH_STAR.md lines 110-113 say each natural language enters as grammar data
 status: observed
 src: 2.1.2#110-113 2.18.12#20-22 2.1#115fea55e
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.2.2
-name: removed-in-the-cut
-kind: observation
-is: Commit 115fea55e of 2026-09-29, whose subject line reads 14,729 files to 1,628, removed nl-tongues.fk (207 lines: thirteen more languages for the same one construction, seven meanings each), the translation engine, invariant, learning and quality files, pivot-mint.fk, and the bands of the translator, the core lexicon and the label table.
-status: observed
-src: 2.1#115fea55e 2.18.13#44-99 2.18.13#140-156 2.18.13#180-205 2.18.14#16-23 2.1#824e7a0c7
-limit: git ls-tree -r counts 14,693 paths at the parent f2d317f5d and 1,663 at 115fea55e, with 13,031 deleted. The header of nl-tongues.fk (line 8) still says eleven; Sanskrit (line 95) and Persian (lines 80 and 152) were added after it. A receipt of 2026-08-04 still describes nl-wisdom-row.fk and its band as landed; commit 824e7a0c7 removed both on 2026-11-10.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2.3
 name: standing-band
@@ -124,18 +83,16 @@ kind: observation
 is: pivot-coverage-band.fk is the only band at head that calls the translator. Four of its sixteen bits use a sentence: "the afterwall is keloid" and "pascatembok adalah keloid" intern to one node, that node's first child is the string m1259, and two sentences over the five minted words translate, one each way. CURRENT_FLOOR.md records verdict 65535.
 status: observed
 src: 2.18.6#14-31 2.18.6#73-79 2.1.6#598
-limit: In the one node equality the second slot, keloid, has one spelling in both languages. The study did not run the band. The floor line that records 65535 is dated 2026-09-28, before the cut of 2026-09-29 and before the band file's present commit of 2026-10-01.
+limit: In the one node equality the second slot, keloid, has one spelling in both languages. The reading did not run the band. The floor line that records 65535 is dated 2026-09-28, before the cut of 2026-09-29 and before the band file's present commit of 2026-10-01.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2.4
 name: claims-without-a-test
 kind: observation
 is: At head no test covers the translator's seven seed words, its 40 corpus rows, normalisation of noisy input or the phase tags; the bits that did were in the deleted nl-translate-band.fk (fifteen bits, header 32767 across Go, Rust, TS and fkwu). The translator's header still says "proven on fkwu". nlt-phase occurs only at its definition.
 status: observed
-src: 2.18.12#1-11 2.18.2#2-3 2.18.2#27-28 2.18.2#55 2.18.1#5
+src: 2.18.12#1-11 2.18.2#2-3 2.18.2#27-28 2.18.2#55
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2.5
 name: demonstrated-at-head
@@ -144,9 +101,8 @@ is: A standing test file shows this much of the old natural-language lane: one s
 status: inferred
 conf: high
 from: 3.10.2.1 3.10.2.3 3.10.2.4
-limit: No band was run by the study; the standing band's verdict is a record of 2026-09-28.
+limit: No band was run by the reading; the standing band's verdict is a record of 2026-09-28.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.2.6
 name: root-claim-limit
@@ -156,80 +112,12 @@ status: inferred
 conf: high
 from: 3.10.1.7 3.10.1.8 3.10.2.5
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.3
 name: neighbours
 kind: hub
 is: Beside the translator stand six other schemes that each give a meaning an id by a different rule: 64 English words defined over themselves (104 with extensions), a 36-symbol codebook, four phrase meanings in 13 locales, a 10,000-row label table that is 57.0% machine translation with 0 rows reviewed, alias rows over decimal ids, and a dictionary of numeric meaning recipes with 28 English mappings. Only the dictionary derives a meaning's identity from content; one crossing cell relates three of the schemes, for three anchors.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.1
-name: core-lexicon
-kind: observation
-is: core-lexicon.fk holds 64 English words in 8 families of 8, each defined by a token list; cl-closed? checks that all 494 definition tokens are among the 64 or twelve glue words. Eight query lanes are index arithmetic on that grid (why: same index, one family down) and read no definition. cl-check folds 18 readings to 262143, with no caller at head.
-status: observed
-src: 2.18.15#92-123 2.18.15#148-160 2.18.15#261
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.2
-name: lexicon-extensions-and-failed-check
-kind: observation
-is: Two files extend the 64 core words with 4 derived words (name, done, give, hold) and 36 words in 11 domains, 104 in all; a domain word's declared depth is recomputed and compared. A comment in core-lexicon-domains.fk records that the first depth check could not fail: an unreachable marker of -1 was folded into a maximum that started at 0.
-status: observed
-src: 2.18.16#80-121 2.18.17#62-110
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.3
-name: meaning-codes
-kind: observation
-is: meaning-codes.bml lists 36 symbols; each has an English phrase, a node code (8 hex digits of SHA-256 of the symbol's spelling) and one code per language column of three row files (8, 20 and 1 rows), joined by the English phrase. mc-resolve-all returns every symbol with a code; the band pins one collision: a Persian word resolves to say and tell.
-status: observed
-src: 2.18.18#50 2.18.18#56-57 2.18.18#87-88 2.18.18#102-107 2.18.19#17-21 2.18.19#128 2.18.20 2.1.6#1070 2.18.1#7.2
-limit: The band header records 255 on fkwu and 195 on three other readers that no longer exist; the floor line is dated 2026-09-28 and the band was not run by the study.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.4
-name: phrase-lenses-13
-kind: observation
-is: nl-lenses-13.fk maps four numbered phrase meanings (presence, enquiry, affirmation, framing) across 13 locales by exact string equality; unknown text answers the empty string. The file's header says the cell is not learned language identification, morphological generation, general translation or fluency. Four rows are marked seed-pinned-unreviewed.
-status: observed
-src: 2.18.21#3-11 2.18.21#40 2.18.22#3-8 2.18.22#23 2.18.23#1-3
-limit: The band of 13 bits (header 8191) is not listed in CURRENT_FLOOR.md and was not run by the study.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.5
-name: label-table-shape
-kind: observation
-is: concept-nl-semantic-13-omw.tsv has 10,000 rows keyed by English frequency-list words; 2,521 rows (25.2%) have no WordNet synset key. Of the 120,000 non-English cells, provenance letters mark 68,370 (57.0%) as Google machine translation, 34,941 Wiktionary, 16,621 a dedicated wordnet and 68 CLDR. The review summary returns a constant 0 for reviewed.
-status: observed
-src: 2.18.25 2.18.26 2.18.24#7 2.18.24#42-52 2.18.24#87-91
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.6
-name: label-table-senses-and-use
-kind: observation
-is: The first rows of concept-nl-semantic-13-omw.tsv carry wrong senses: line 3 joins the word i to synset 14641397-n (iodine), line 6 joins a to 13658027-n (angstrom), line 8 joins it to 06134510-n (information technology). The cut of 2026-09-29 deleted the table's licence files and both of its bands. At head one cell reads one row, index 1400.
-status: observed
-src: 2.18.25#3 2.18.25#6 2.18.25#8 2.18.25#1402 2.18.27#4 2.1#115fea55e 2.18.29#61-71
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.7
-name: meaning-as-numeric-recipe
-kind: observation
-is: In core-frequency-lift-dictionary.fk a meaning is intern_node(meaning category, edges sorted by role) and an edge is intern_node(edge category, [role, value]); a repeated role answers nothing. Roles, axioms and gaps are nodes over one integer; the axioms are roots 1-5. Header: meanings hold numeric cells only; unresolved atoms are explicit gaps.
-status: observed
-src: 2.18.28#9-11 2.18.28#17-45 2.18.28#168-180 2.18.28#185-195
-limit: The study read lines 1-45, 160-195 and 250-339 of the file's 470.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.3.8
 name: surface-mapping-parse-render
@@ -237,55 +125,14 @@ kind: observation
 is: core-frequency-lift-dictionary.fk holds a surface as its own node (language, text). A mapping is (arriving surface, context, meaning, faithful surface, provenance); provenance has a claim state: 1 authored candidate, 2 surface relation attested, 3 participant-bound selection attested. Parse returns 0 to many mappings; render starts from a meaning.
 status: observed
 src: 2.18.28#256 2.18.28#260-263 2.18.28#302-305 2.18.28#319-333
-limit: The study read lines 1-45, 160-195 and 250-339 of the file's 470.
+limit: The reading read lines 1-45, 160-195 and 250-339 of the file's 470.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.9
-name: dictionary-fragment
-kind: observation
-is: core-frequency-lift-dictionary.fk holds 28 mappings, all with English surfaces, over 17 words (requirement 4; safety, control, enforcement 3 each; authority, compliance 2 each; eleven once); 27 are authored candidates and one, for authority, has attested provenance. The header records verdict 134217727 of 2026-08-13; no band named for it stands.
-status: observed
-src: 2.18.28#13 2.18.28#296-300 2.18.28#316 2.18.1#7.5 2.18.34#4-5 2.18.34#25 2.18.34#70 2.18.34#126 2.18.34#256 2.18.29#14
-limit: model/tests/form-neutral-language-world-model-band.fk (268 lines, header 65535 witnessed 2026-08-14) calls 32 of the dictionary's names, among them cfd-meaning, cfd-mapping, cfd-prov-claim and cfd-render-in, and calls neither cfd-mappings nor cfd-parse, so the 28 mappings themselves have no standing test. That band is not listed in CURRENT_FLOOR.md and was not run.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.10
-name: crossing-residue
-kind: observation
-is: core-frequency-lift-form-neutral-crossing.fk gives each projection residue bits: 1 mapped and unreviewed, 2 machine source, 4 lexical-kind shift, 8 binding mechanics, 16 enquiry or formality, 32 inherited pivot or authored alignment. An alignment (external anchor, candidate recipe, residue) is called an inspectable proposal, not identity equality.
-status: observed
-src: 2.18.29#16-22 2.18.29#44-46
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.3.11
-name: seven-id-rules
-kind: observation
-is: Seven schemes of the old body define a neutral id differently: a label string (n0, c0, m1257); family*1000+index; 8 hex digits of SHA-256 of a symbol's spelling; integers 1 to 4; a row index with an optional WordNet offset; four fields packed into one decimal; an interned composite of role edges. No file imports the translator with another scheme.
-status: observed
-src: 2.18.2#34-35 2.18.15#99-100 2.18.18#56-57 2.18.21#3-4 2.18.24#22 2.18.30#13 2.18.31#13 2.18.28#168-180 2.18.1#8
-limit: The absence of a joint import rests on the study's grep. Only the crossing cell relates the phrase rows, the label table and the dictionary, by hand, for three anchors.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.8
 name: keep
 kind: hub
 is: Eight things to carry forward: a sentence meaning as a composite with a numeric category and concept nodes as children; a language as data in both directions; a word as a lens entry with context and provenance; zero-to-many candidates from text and rendering from a chosen concept; a claim state on every attachment with reviewed starting at zero; recorded residue and explicit gap cells; definitions checked for closure and depth by checks shown able to fail; settledness as a state of the binding.
 at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.8.1
-name: sentence-as-composite
-kind: finding
-is: Keep the shape of the old pivot: a sentence meaning is a composite node whose category is a numeric blueprint and whose identity comes from its children. Change the content: the children are concept nodes, not label strings. The old translator has the shape (category 1.2.99.33, two children) and label strings as the children.
-status: inferred
-conf: high
-from: 3.10.1.3 3.10.1.7 1.3
-at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.8.2
 name: language-as-data-both-ways
@@ -295,7 +142,6 @@ status: inferred
 conf: high
 from: 3.10.1.1 3.10.1.8
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
 n: 3.10.8.3
 name: lexeme-is-a-lens-entry
@@ -305,137 +151,4 @@ status: inferred
 conf: high
 from: 3.10.3.8 3.10.1.2 1.7.2
 at: 2026-11-24
-by: r2/gap-natural-language-lane
 
-n: 3.10.8.4
-name: candidates-both-directions
-kind: finding
-is: Text to node answers zero, one or many candidates and says which; node to text starts from a chosen concept and a lens and may answer nothing. Both behaviours exist in the old body: the dictionary's parse and render, and the codebook's resolve-all, which lists collisions.
-status: inferred
-conf: high
-from: 3.10.3.8 3.10.3.3 1.1
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.8.5
-name: provenance-and-claim-state
-kind: finding
-is: Every attachment of a surface to a concept carries provenance and a claim state; reviewed attachments are counted from zero; a cell states what it is not. Sources in the old body: the dictionary's three claim states, the label table's provenance letter per cell and constant-zero reviewed count, and phrase rows marked seed-pinned-unreviewed.
-status: inferred
-conf: high
-from: 3.10.3.8 3.10.3.5 3.10.3.4
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.8.6
-name: residue-and-gaps
-kind: finding
-is: A crossing between an outside inventory and an inside concept keeps what the projection lost as recorded residue, and the alignment is a separate proposal node, never an equality. A semantic atom that has no grounding yet is an explicit gap cell, not an unmarked English word.
-status: inferred
-conf: high
-from: 3.10.3.10 3.10.3.7
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.8.7
-name: definition-checked-and-able-to-fail
-kind: finding
-is: A concept may carry a definition as a composition of other concepts, checked mechanically for closure and for depth, and each check is shown able to fail. In a numeric space the definition is a recipe over concept ids and the English token list of the old core lexicon is one lens of that recipe.
-status: inferred
-conf: mid
-from: 3.10.3.1 3.10.3.2
-limit: Whether a definition is part of a concept's identity or a claim about a nominal node is open; the study leaves the question to the design round.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.8.8
-name: binding-settledness
-kind: finding
-is: The settledness of a name binding is a state of the binding and not of the node: a lens row is gas when invented, water in use, ice when reviewed and referenced, and the node underneath does not change. The source is the phase column of the old translator's lexicon; no code at head reads that column to decide anything.
-status: inferred
-conf: mid
-from: 3.10.1.2 3.10.2.4
-src: 2.18.32#C4
-limit: Ice, water and gas carry several other meanings in the old body; the first-round critique lists four incompatible axes in its item C4.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9
-name: drop
-kind: hub
-is: Seven things to drop: label strings and arrival-order ordinals as ids; a lexicon with one column per language; a value in place of a fault on a lexicon miss or a parse failure; English as the unstated join key; machine-translated cells as lexicon content; ASCII-only handling of text; several id schemes for one idea together with statements of proof that no standing check bears on.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.1
-name: labels-and-ordinals-as-ids
-kind: finding
-is: Drop label strings as pivot children and arrival-order ordinals as symbols (n<i> written by hand, c<i> from a running counter, m<id> copied from a corpus row number). Identity then sits on a spelling, and a rename changes every node that contains the symbol.
-status: inferred
-conf: high
-from: 3.10.1.7 3.10.1.2 1.3
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.2
-name: one-column-per-language
-kind: finding
-is: Drop the lexicon as rows with one column per language: adding a language reshapes every row. The removed file nl-tongues.fk had already changed to rows of (symbol, surface) kept per language, and its comment gives that reason.
-status: inferred
-conf: high
-from: 3.10.1.2 3.10.2.2
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.3
-name: values-on-failure
-kind: finding
-is: Drop pass-through of the surface word on a lexicon miss and a string value on a parse failure: an unknown word or an unparsable text is a reported fault. In the old translator the sentence "the cat is black" would intern two English strings into the pivot and decode to "cat adalah black".
-status: inferred
-conf: high
-from: 3.10.1.5 1.9.1
-src: 2.18.32#5.1
-limit: The example sentence is inferred from the code and was not run.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.4
-name: english-as-join-key
-kind: finding
-is: Drop English as the unstated join key. In the old body the codebook joins a symbol to its row by the English phrase although its comment says no language is privileged, the label table is anchored on an English frequency list, every base mapping of the dictionary has an English surface, and the 64 core words are English.
-status: inferred
-conf: high
-from: 3.10.3.3 3.10.3.5 3.10.3.9 3.10.3.1
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.5
-name: machine-translated-cells
-kind: finding
-is: Drop machine-translated cells as lexicon content. In the old 10,000-row label table 57.0% of the non-English cells are machine translation, no row is reviewed, 25.2% of rows have no concept key, and the first rows show wrong senses; the table is a set of labels keyed by English word frequency and not a concept inventory.
-status: inferred
-conf: high
-from: 3.10.3.5 3.10.3.6
-limit: Whether the table may be carried forward at all is the owner's decision: its licence files were deleted from the tree.
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.6
-name: ascii-text-floor
-kind: finding
-is: Drop ASCII-only normalisation and ASCII letter classes as the base for text: a 26-letter lowercase map and a class of A-Z, a-z and underscore cannot carry a language written outside basic Latin letters.
-status: inferred
-conf: high
-from: 3.10.1.4
-at: 2026-11-24
-by: r2/gap-natural-language-lane
-
-n: 3.10.9.7
-name: many-schemes-and-unwitnessed-claims
-kind: finding
-is: Drop several id schemes for one idea, and statements of proof that no standing check bears on. In the old body seven schemes each give a meaning an id by its own rule, none joined to the translator; its header says "proven on fkwu" with its band deleted; the core lexicon presents properties of index arithmetic on a grid as findings about meaning.
-status: inferred
-conf: high
-from: 3.10.3.11 3.10.2.1 3.10.2.4 3.10.3.1
-at: 2026-11-24
-by: r2/gap-natural-language-lane

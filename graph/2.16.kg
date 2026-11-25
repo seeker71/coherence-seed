@@ -1,21 +1,8 @@
-# Sources of the study of the earlier in-house NUMS.Go study and its miniature (hub 3.8). Line ranges sit in the citing claim. Commits of the parent repository are cited as 2.3#commit-<hash>, commits of NUMS.Go as 2.2#commit-<hash>.
-
 n: 2.16
 name: nums-study-sources
 kind: hub
-is: The primary sources behind hub 3.8: the round-two study report on the folder nums-go-2023, the folder's eight text and Python files, the NUMS.Go files the study re-read, the documents of the parent repository, of the old body and of two sibling checkouts that carry the ice, water and gas vocabulary, and the first-round critique and core report.
+is: Sources the design and its evidence cite: nums-study-sources.
 at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.1
-name: gap-nums-study-2023.md
-kind: source
-is: The round-two study report on the folder nums-go-2023 and its Python miniature, 463 lines: what the folder is, who wrote it, what the miniature does on a run, where the ice, water and gas mapping comes from, and where the folder disagrees with NUMS.Go.
-path: coherence-seed/study/r2/gap-nums-study-2023.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.2
 name: nums-go-2023-README.md
@@ -26,18 +13,6 @@ rev: 5fd7b8a0b
 date: 2026-06-15
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.3
-name: study-notes.md
-kind: source
-is: The folder's source walk of NUMS.Go, 584 lines, called phase 1a: type listings and pseudo-code for the nums and http packages, a size estimate for a port and a list of open gaps.
-path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/study-notes.md
-rev: 5fd7b8a0b
-date: 2026-06-15
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.4
 name: network-substrate-design.md
@@ -48,7 +23,6 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.5
 name: mini-nums-core.py
@@ -59,7 +33,6 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.6
 name: mini-nums-calc.py
@@ -70,7 +43,6 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.7
 name: mini-nums-test_mini.py
@@ -81,7 +53,6 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.8
 name: mini-nums-README.md
@@ -92,7 +63,6 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.9
 name: recipe.go
@@ -102,7 +72,6 @@ path: NUMS.Go/nums/recipe.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.10
 name: reflect.go
@@ -112,47 +81,6 @@ path: NUMS.Go/nums/reflect.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.11
-name: parser.go
-kind: source
-is: The tree-sitter front of the NUMS.Go core package, 657 lines: the language list and the file parser with its per-language dispatch.
-path: NUMS.Go/nums/parser.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.12
-name: go.go
-kind: source
-is: The Go handlers of the NUMS.Go core package, 1,502 lines; RegisterGo at lines 1425-1502 fills the dispatch table.
-path: NUMS.Go/nums/go.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.13
-name: nums_nodes.go
-kind: source
-is: The node id struct, the node structs and the reservation predicates of the NUMS.Go core package, 886 lines.
-path: NUMS.Go/nums/nums_nodes.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.14
-name: nums_db.go
-kind: source
-is: The in-memory node databases of the NUMS.Go core package, 272 lines: Record_Entry, Update_Entry and, at the end, two commented-out C++ member functions.
-path: NUMS.Go/nums/nums_db.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.15
 name: emit_module.go
@@ -162,7 +90,6 @@ path: NUMS.Go/nums/emit_module.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.16
 name: blueprint.go
@@ -172,17 +99,6 @@ path: NUMS.Go/nums/blueprint.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.17
-name: OBJECT_MODEL_BML_NUMS.md
-kind: source
-is: A 180-line design document of the parent repository on the kernel's object model, which opens with an owner quotation dated 2026-05-29 and names the folder nums-go-2023 as its NUMS source.
-path: Coherence-Network/kernels/OBJECT_MODEL_BML_NUMS.md
-rev: 7eecf4da5
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.18
 name: coherence-substrate-INDEX.md
@@ -192,7 +108,6 @@ path: Coherence-Network/docs/coherence-substrate/INDEX.md
 rev: 7eecf4da5
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.19
 name: substrate-phase.fk
@@ -202,7 +117,6 @@ path: coherence-kernel/form/form-stdlib/substrate-phase.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.20
 name: living-equation.fk
@@ -212,7 +126,6 @@ path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.21
 name: LIVING_CODEX_SPECIFICATION.md
@@ -223,47 +136,6 @@ rev: 6ea184a
 date: 2025-09-12
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.24
-name: critic.md
-kind: source
-is: The first-round completeness critique, 471 lines; gap G1 (lines 50-64) names the unread folder nums-go-2023 and gap G2 (lines 66-75) corrects the statement that NUMS.Go has no cell record.
-path: coherence-seed/study/r1/critic.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.25
-name: nums-core.md
-kind: source
-is: The first-round study report on the NUMS.Go core package, 540 lines, which the round-two study cites by section for the NUMS.Go side of its comparisons.
-path: coherence-seed/study/r1/nums-core.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.26
-name: form-language.md
-kind: source
-is: The parent repository's page on the Form language, 157 lines, first added in commit 02dd37592 of 2026-05-08; line 5 now names fkwu as its sole live kernel.
-path: Coherence-Network/docs/coherence-substrate/form-language.md
-rev: 7eecf4da5
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
-
-n: 2.16.27
-name: substrate-kernel.py
-kind: source
-is: The Python substrate kernel of the parent repository, 798 lines, in a directory first added by commit 02dd37592; counted and not read.
-path: Coherence-Network/api/app/services/substrate/kernel.py
-rev: 7eecf4da5
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-nums-study-2023
 
 n: 2.16.28
 name: mini-nums-jsonschema.py
@@ -274,4 +146,4 @@ rev: 02dd37592
 date: 2026-05-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-nums-study-2023
+

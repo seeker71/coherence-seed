@@ -1,21 +1,8 @@
-# Sources of the form-language study. Files of the old body that graph/2.kg already names are cited there, not here.
-
 n: 2.7
 name: form-language-sources
 kind: hub
-is: The study report on Form as a language and the old-body files its claims cite: the interface, cell and artifact documents, the core library, the control cores and their lowered memo, the files that define node states, the grammar files, three bands, the conformance vectors and one memory note.
+is: Sources the design and its evidence cite: form-language-sources.
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.1
-name: form-language.md
-kind: source
-is: The round-1 study report on Form the language: a feature inventory in sections 0 to 22 with a log of the probes it ran on the old runtime; 355 lines.
-path: coherence-seed/study/r1/form-language.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.2
 name: kernel-interface.md
@@ -26,7 +13,6 @@ rev: b8ff978c9
 date: 2026-11-17
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.3
 name: in-process-cells.md
@@ -36,7 +22,6 @@ path: coherence-kernel/docs/in-process-cells.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.4
 name: native-form-artifacts.md
@@ -46,7 +31,6 @@ path: coherence-kernel/docs/native-form-artifacts.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.5
 name: core.fk
@@ -57,7 +41,6 @@ rev: b8ff978c9
 date: 2026-10-29
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.6
 name: AUTHORING.md
@@ -67,7 +50,6 @@ path: coherence-kernel/form/form-stdlib/AUTHORING.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.7
 name: kernel-roadmap.md
@@ -77,7 +59,6 @@ path: coherence-kernel/form/kernel-roadmap.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.8
 name: user-blueprint-registry.md
@@ -87,7 +68,6 @@ path: coherence-kernel/form/user-blueprint-registry.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.9
 name: form-ontology-bp.fk
@@ -97,17 +77,6 @@ path: coherence-kernel/form/form-stdlib/form-ontology-bp.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.10
-name: host-kernel.form
-kind: source
-is: A specification file of the old body on the kernel as host: resources as offered ports, host drivers as carriers, and closing recipes that name proof bands; 250 lines.
-path: coherence-kernel/axioms/host-kernel.form
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.11
 name: kernel-self-composition.form
@@ -117,7 +86,6 @@ path: coherence-kernel/axioms/kernel-self-composition.form
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.12
 name: bml-native-north-star.form
@@ -127,7 +95,6 @@ path: coherence-kernel/grammars/bml-native-north-star.form
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.13
 name: persistence.fk
@@ -137,47 +104,6 @@ path: coherence-kernel/form/form-stdlib/persistence.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.14
-name: substrate-phase.fk
-kind: source
-is: A recipe that reads a phase (gas 0, water 1, ice 2, plasma 3) from circulation counts and names a move; 54 lines.
-path: coherence-kernel/form/form-stdlib/substrate-phase.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.15
-name: cache.fk
-kind: source
-is: The old body's cache recipe, whose header names the source file ice, the in-memory recipe water and lookup results gas; 51 lines.
-path: coherence-kernel/form/form-stdlib/cache.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.16
-name: jit-heat-gate.fk
-kind: source
-is: A policy recipe that counts heat per interned identity, compiles on a threshold and drops the compiled entry on cooling; 101 lines.
-path: coherence-kernel/form/form-stdlib/jit-heat-gate.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.17
-name: living-equation.fk
-kind: source
-is: A grammar file whose header maps blueprint to ice, recipe to water and the named-cell layer to gas; 118 lines.
-path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.18
 name: form-lift.fk
@@ -187,27 +113,6 @@ path: coherence-kernel/form/form-stdlib/grammars/form-lift.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.19
-name: channel-flow.fk
-kind: source
-is: A channel recipe that tags each network layer with a phase string gas, water or ice and codes them 1, 2, 3; 123 lines.
-path: coherence-kernel/form/form-stdlib/channel-flow.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.20
-name: resident-async-ingress.fk
-kind: source
-is: A queue recipe that projects an empty or closed channel as gas, a flowing one as water and a full one as ice; 317 lines.
-path: coherence-kernel/form/form-stdlib/resident-async-ingress.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.21
 name: choice-lane-core.fk
@@ -217,7 +122,6 @@ path: coherence-kernel/control/choice-lane-core.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.22
 name: offer-ack-core.fk.lowfk
@@ -227,7 +131,6 @@ path: coherence-kernel/control/offer-ack-core.fk.lowfk
 date: 2026-11-21
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.23
 name: control-invite-grammar.fk
@@ -237,7 +140,6 @@ path: coherence-kernel/grammars/control-invite-grammar.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.24
 name: compiler.fk
@@ -247,7 +149,6 @@ path: coherence-kernel/form/form-stdlib/compiler.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.25
 name: boot.fk
@@ -257,7 +158,6 @@ path: coherence-kernel/form/form-stdlib/boot.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.26
 name: kernel-laws-band.fk
@@ -267,17 +167,6 @@ path: coherence-kernel/form/form-stdlib/tests/kernel-laws-band.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.27
-name: kernel-census-band.fk
-kind: source
-is: The band that reads the node census by home through kernel_stat 58, 59 and 60; 122 lines.
-path: coherence-kernel/form/form-stdlib/tests/kernel-census-band.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.28
 name: nodeid-interning-band.fk
@@ -287,17 +176,6 @@ path: coherence-kernel/form/form-stdlib/tests/nodeid-interning-band.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.29
-name: canonical-s-expression-vectors.json
-kind: source
-is: The 13 canonical expressions of the old conformance gate, each with its pinned rendering; 71 lines.
-path: coherence-kernel/form/conformance/canonical-s-expression-vectors.json
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.30
 name: formbin-codec.bml
@@ -307,7 +185,6 @@ path: coherence-kernel/form/form-stdlib/bml/formbin-codec.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.31
 name: form-eval.fk
@@ -317,7 +194,6 @@ path: coherence-kernel/grammars/form-eval.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.32
 name: form-samples-README.md
@@ -327,17 +203,6 @@ path: coherence-kernel/form/form-samples/README.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.33
-name: float-artifact-roundtrip.fk
-kind: source
-is: A sample that sends a float leaf and a composite wrapping it through the wire codec and compares the recovered float; 35 lines.
-path: coherence-kernel/form/form-samples/float-artifact-roundtrip.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.34
 name: home-index.txt
@@ -347,7 +212,6 @@ path: coherence-kernel/form/form-stdlib/home-index.txt
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
 n: 2.7.35
 name: host-effect-vocabulary.bmf
@@ -357,34 +221,4 @@ path: coherence-kernel/grammars/host-effect-vocabulary.bmf
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/form-language
 
-n: 2.7.36
-name: source-resonance-stream.fk
-kind: source
-is: A recipe whose header adds plasma as a fourth phase beside ice, water and gas; 150 lines.
-path: coherence-kernel/form/form-stdlib/source-resonance-stream.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.37
-name: closure.fk
-kind: source
-is: A 13-line sample in which a nested defn captures a parameter of its parent and answers 15.
-path: coherence-kernel/form/form-samples/closure.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language
-
-n: 2.7.38
-name: hot-closure-note
-kind: source
-is: A private note of 2026-11-24 recording that a map over a closure holding locals went wrong at about its 1,024th call in one process, and that the runtime fault is not repaired.
-path: coherence-seed/sources/notes/reference-hot-closure-over-locals-stops-at-heat-mark.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/form-language

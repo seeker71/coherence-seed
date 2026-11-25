@@ -75,14 +75,14 @@ cc -O2 -o kg tools/kg.c
 | Hub | Holds |
 | --- | --- |
 | 1 ground | the five axioms word for word, their theorems, what they force on a kernel |
-| 2 sources | every file, repository, paper and page a claim cites, with dates |
-| 3 references read | NUMS.Go, Form, BML and an earlier kernel, as read and run |
-| 4 prior art | what systems outside this one show |
+| 2 sources | every file, repository, paper and page a kept claim cites, with dates |
+| 3 references read | NUMS.Go, Form, BML and an earlier kernel, as far as the design refers to them |
+| 4 prior art | what systems outside this one show, as far as the design refers to it |
 | 5 design | the architecture, decision by decision; 5.13 and 5.14 are what is built |
 | 6 open | questions, assumptions and limits: everything that can move |
 | 7 path | the stages ahead |
 | 8 graph | how this graph is written, checked and reviewed |
-| 9 reviews | independent readings that confirm single claims |
+| 9 reviews | independent readings that confirm single claims; none at present |
 
 A node is one block of `key: value` lines. Its address (`n`) is the handle other nodes cite.
 `status` says how the claim is known: `given` (the owner's word), `observed`, `relayed`, `inferred`,
@@ -92,7 +92,7 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | --- | --- |
 | `./kg check` | enforces the graph's rules and counts confirmed and unreviewed claims |
 | `./kg link N` | prints where the sources of node N can be read |
-| `./kg release` | takes out every review that no longer confirms its claim's present wording |
+| `./kg release` | takes out every source, piece of evidence and review that nothing living refers to |
 
 ## Layout
 
@@ -104,5 +104,3 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `ground/` | programs that witness the floor, with their expected answers |
 | `tools/` | the graph checker `kg`, the encoding's reference reader `enc`, the observer `fb` |
 | `graph/` | the claims |
-| `study/` | the long reports the evidence in hubs 3 and 4 is drawn from, dated 2026-11-24 |
-| `sources/notes/` | working notes about the earlier kernel that claims cite |

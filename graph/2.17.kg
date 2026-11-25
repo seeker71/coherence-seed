@@ -1,54 +1,28 @@
-# Sources of the study of the emitters written in the old body's own language (r2/gap-inlanguage-emitter). The runtime, its op table, the floor record and jit-page.bml are 2.1.6, 2.1.7, 2.1.10 and 2.1.14.
-
 n: 2.17
 name: in-language-emitter-sources
 kind: hub
-is: Sources cited by the study of the machine-code writers written in the old body's own language, read 2026-11-24: the study report, eleven program and test files of the old body, two of its documents and five private working notes. Three files of the leaf compiler's heat gate (2.17.21 to 2.17.23) were added by the review of 3.9. The runtime's C file, its operation table, the floor record and the page emitter jit-page.bml are cited from 2.1.6, 2.1.7, 2.1.10 and 2.1.14.
+is: Sources the design and its evidence cite: in-language-emitter-sources.
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.1
-name: gap-inlanguage-emitter.md
-kind: source
-is: The study report on the emitters written in the old body's language, 625 lines in 17 sections: the map of writers, what jit-page.bml compiles and declines, its frame and values, the helper table, offer and install, the encoders, the object writer, speeds and wrong answers on record, keep and let-go lists and a proposed minimal interface.
-path: coherence-seed/study/r2/gap-inlanguage-emitter.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.2
 name: form-asm.fk
 kind: source
-is: The old body's AArch64 assembler as data rows, 306 lines: one generic packer and 71 instruction encoders that answer little-endian bytes. The study gives its last commit as 2026-10-12.
+is: The old body's AArch64 assembler as data rows, 306 lines: one generic packer and 71 instruction encoders that answer little-endian bytes. The reading gives its last commit as 2026-10-12.
 path: coherence-kernel/form/form-stdlib/form-asm.fk
 rev: b8ff978c9
 date: 2026-10-12
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.3
 name: form-lower.fk
 kind: source
-is: The old body's leaf compiler, 678 lines: lowers a small op-tagged tree to AArch64 bytes through form-asm.fk. The study gives its last commit as 2026-11-08.
+is: The old body's leaf compiler, 678 lines: lowers a small op-tagged tree to AArch64 bytes through form-asm.fk. The reading gives its last commit as 2026-11-08.
 path: coherence-kernel/form/form-stdlib/form-lower.fk
 rev: b8ff978c9
 date: 2026-11-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.4
-name: form-macho.fk
-kind: source
-is: The old body's Mach-O object writer, 74 lines. The study gives its last commit as 2026-09-30.
-path: coherence-kernel/form/form-stdlib/form-macho.fk
-rev: b8ff978c9
-date: 2026-09-30
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.5
 name: anf-lower.bml
@@ -58,7 +32,6 @@ path: coherence-kernel/form/form-stdlib/bml/anf-lower.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.6
 name: native-jit-route.bml
@@ -68,7 +41,6 @@ path: coherence-kernel/form/form-stdlib/bml/native-jit-route.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.7
 name: form-cli-jit.bml
@@ -78,27 +50,6 @@ path: coherence-kernel/form/form-stdlib/form-cli-jit.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.8
-name: sha256-arm64-jit.fk
-kind: source
-is: A 138-line unit that builds a SHA-256 CPU image from form-asm.fk rows and runs it over raw buffers.
-path: coherence-kernel/form/native/metal/sha256-arm64-jit.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.9
-name: body-fingerprint.bml
-kind: source
-is: A 75-line unit that builds a 17-instruction FNV fingerprint CPU image for arm64 and carries a hand-written byte image for Linux x86-64. The study read it in part.
-path: coherence-kernel/form/form-stdlib/bml/body-fingerprint.bml
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.10
 name: jit-page-band.bml
@@ -108,27 +59,15 @@ path: coherence-kernel/form/form-stdlib/tests/jit-page-band.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.11
-name: form-macho-band.fk
-kind: source
-is: The 40-line test of the Mach-O object writer: five byte-level claims over a 251-byte object.
-path: coherence-kernel/form/form-stdlib/tests/form-macho-band.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.12
 name: jit-leaf-inram-band.fk
 kind: source
-is: The 73-line test of the leaf compiler's in-memory door. Its header names the 32-bit ceiling of the compiled code. The study read its header.
+is: The 73-line test of the leaf compiler's in-memory door. Its header names the 32-bit ceiling of the compiled code. The reading read its header.
 path: coherence-kernel/form/form-stdlib/tests/jit-leaf-inram-band.fk
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.13
 name: bml-direct-nodes-jit.md
@@ -139,7 +78,6 @@ rev: b8ff978c9
 date: 2026-11-13
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.14
 name: native-jit-routing.md
@@ -149,77 +87,16 @@ path: coherence-kernel/docs/native-jit-routing.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.15
-name: project-form-page-jit.md
-kind: source
-is: A private working note, 53 lines, on the page emitter: offer states, the helper table's ABI 3 of 2026-10-11 and ABI 4 of 2026-10-12, the witness band and what is still walked.
-path: coherence-seed/sources/notes/project-form-page-jit.md
-date: 2026-10-12
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.16
-name: project-per-recipe-jit-slice.md
-kind: source
-is: A private working note, 179 lines, on the per-recipe compile lanes of September 2026: the leaf door's speed witness and the C loop lane's timings.
-path: coherence-seed/sources/notes/project-per-recipe-jit-slice.md
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.17
-name: reference-hot-recipe-inline-drops-arguments.md
-kind: source
-is: A private working note, 16 lines, on the C loop lane dropping the effects of unread arguments once a recipe was hot, found 2026-10-03.
-path: coherence-seed/sources/notes/reference-hot-recipe-inline-drops-arguments.md
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.18
-name: reference-hot-closure-over-locals-stops-at-heat-mark.md
-kind: source
-is: A private working note, 25 lines, on a closure over locals that goes wrong near its 1024th call in one process, written 2026-11-24.
-path: coherence-seed/sources/notes/reference-hot-closure-over-locals-stops-at-heat-mark.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.19
-name: reference-jit-abi-mirrors-natives.md
-kind: source
-is: A private working note, 28 lines, on a former Go sibling kernel whose primitives existed twice, once native and once as a compiled-code helper, witnessed 2026-07-17.
-path: coherence-seed/sources/notes/reference-jit-abi-mirrors-natives.md
-date: 2026-07-17
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
-
-n: 2.17.20
-name: jit-tensor-emit.fk
-kind: source
-is: A 401-line unit of the old body that writes Rust, Metal and CUDA source text. The study read it to line 92.
-path: coherence-kernel/form/form-stdlib/jit-tensor-emit.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-inlanguage-emitter
 
 n: 2.17.21
 name: jit-heat-gate.fk
 kind: source
-is: The old body's 101-line gate over the leaf compiler: it counts requests per program identity in Form, has a lowerable program compiled once when its count reaches the mark, and cools. Opened by the review of 3.9, not by the study; its last commit is of 2026-11-04.
+is: The old body's 101-line gate over the leaf compiler: it counts requests per program identity in Form, has a lowerable program compiled once when its count reaches the mark, and cools. Opened by the review of 3.9, not by the reading; its last commit is of 2026-11-04.
 path: coherence-kernel/form/form-stdlib/jit-heat-gate.fk
 rev: b8ff978c9
 date: 2026-11-04
 got: 2026-11-24
 at: 2026-11-24
-by: r3/review-in-language-emitter
 
 n: 2.17.22
 name: jit-once-born.fk
@@ -230,7 +107,6 @@ rev: b8ff978c9
 date: 2026-10-04
 got: 2026-11-24
 at: 2026-11-24
-by: r3/review-in-language-emitter
 
 n: 2.17.23
 name: jit-decision.fk
@@ -241,4 +117,4 @@ rev: b8ff978c9
 date: 2026-10-03
 got: 2026-11-24
 at: 2026-11-24
-by: r3/review-in-language-emitter
+

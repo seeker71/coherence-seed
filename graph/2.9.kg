@@ -1,21 +1,8 @@
-# Sources of the fkwu runtime and JIT study (r1/runtime-jit). The runtime's C files and the in-language emitter are 2.1.7 to 2.1.14.
-
 n: 2.9
 name: runtime-jit-sources
 kind: hub
-is: Sources cited by the study of the old runtime fkwu and its machine-code emitters, read 2026-11-24: the study report, five documents and four program files of the old body, and ten private working notes. The runtime's C files, its headers and the in-language emitter are cited from 2.1.7 to 2.1.14.
+is: Sources the design and its evidence cite: runtime-jit-sources.
 at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.1
-name: runtime-jit.md
-kind: source
-is: The study report on the fkwu runtime and JIT, 525 lines in 15 sections: boot path, value words, node states, machine-code paths, memory, measurements taken on one machine, size by subsystem, caches, a carry-forward list, a let-go list and a bootstrap estimate.
-path: coherence-seed/study/r1/runtime-jit.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.2
 name: BOOTSTRAP.md
@@ -25,7 +12,6 @@ path: coherence-kernel/BOOTSTRAP.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.3
 name: native-jit-routing.md
@@ -35,7 +21,6 @@ path: coherence-kernel/docs/native-jit-routing.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.4
 name: bml-direct-nodes-jit.md
@@ -46,27 +31,6 @@ rev: b8ff978c9
 date: 2026-11-13
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.5
-name: cache.fk
-kind: source
-is: A 51-line library file of the old body whose header calls the source file ice, the in-memory recipe water and lookup results gas.
-path: coherence-kernel/form/form-stdlib/cache.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.6
-name: substrate-phase.fk
-kind: source
-is: A 54-line library file of the old body that reads a cell's state (gas, water, ice) from counts and names the move the counts ask for.
-path: coherence-kernel/form/form-stdlib/substrate-phase.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.7
 name: greenfield-produce-run.bml
@@ -76,104 +40,6 @@ path: coherence-kernel/observe/greenfield-produce-run.bml
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.8
-name: note-tag-space
-kind: source
-is: A private working note, 37 lines, on the runtime's nearly full tag space and on the value word's bands as listed on 2026-09-05.
-path: coherence-seed/sources/notes/reference-fkwu-tag-space-and-closure-scratch-ordering.md
-date: 2026-09-05
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.9
-name: note-jit-refusals
-kind: source
-is: A private working note of 2026-11-14, 21 lines, on how the C emitters report a refusal as a numbered code and which operations were added to them.
-path: coherence-seed/sources/notes/project-jit-refusals-are-arms-2026-11-14.md
-date: 2026-11-14
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.10
-name: note-len-walks
-kind: source
-is: A private working note, 65 lines, with entries of 2026-09-06 on list-length cost, on strings that never move, and on evaluator branches that must push a held index before a nested evaluation.
-path: coherence-seed/sources/notes/reference-len-walks-and-page-profiling.md
-date: 2026-09-06
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.11
-name: note-prebuilt-design
-kind: source
-is: A private working note of 2026-11-09, 33 lines, on prebuilt kernels: the chosen optimisation flag, kernel size and compile time on that day, and where lowered text is not deterministic.
-path: coherence-seed/sources/notes/project-prebuilt-design-2026-11-09.md
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.12
-name: note-inline-drops-arguments
-kind: source
-is: A private working note, 16 lines, on a fault found 2026-10-03: past 1,024 calls an inlining step in the runtime dropped the effects of unread arguments.
-path: coherence-seed/sources/notes/reference-hot-recipe-inline-drops-arguments.md
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.13
-name: note-closure-over-locals
-kind: source
-is: A private working note of 2026-11-24, 25 lines, on a closure over locals that goes wrong at about its 1,024th call in one process.
-path: coherence-seed/sources/notes/reference-hot-closure-over-locals-stops-at-heat-mark.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.14
-name: note-import-lane-vs-flat
-kind: source
-is: A private working note, 30 lines, on the two ways the runtime loads a unit, on images refused after every rebuild, and on a node field that an image arity table did not remap.
-path: coherence-seed/sources/notes/reference-fkwu-import-lane-vs-flat.md
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.15
-name: note-heat-boards
-kind: source
-is: A private working note, 21 lines, on the per-process board files the runtime writes into its working directory and their count on 2026-09-12.
-path: coherence-seed/sources/notes/reference-fkwu-heat-boards-burial.md
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.16
-name: note-version-store
-kind: source
-is: A private working note of 2026-11-09, 42 lines, on the runtime's version store and the disk held by dead images per checkout.
-path: coherence-seed/sources/notes/project-fkwu-version-store-2026-11-09.md
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
-
-n: 2.9.17
-name: note-jit-abi-mirrors
-kind: source
-is: A private working note, 28 lines, on the retired Go kernel keeping each compiled primitive twice, with a case witnessed 2026-07-17.
-path: coherence-seed/sources/notes/reference-jit-abi-mirrors-natives.md
-got: 2026-11-24
-at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.18
 name: kernel-interface.md
@@ -183,7 +49,6 @@ path: coherence-kernel/docs/kernel-interface.md
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
 
 n: 2.9.19
 name: membrane-witness.c
@@ -193,4 +58,4 @@ path: coherence-kernel/runtime/membrane-witness.c
 rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
-by: r1/runtime-jit
+

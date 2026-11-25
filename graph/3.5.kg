@@ -1,18 +1,14 @@
-# What the BML study (study/r1/bml.md) found. Sources are under 2.8; the 2000 thesis text is 2.3.1.
-
 n: 3.5
 name: bml
 kind: hub
-is: BML names four things: the 2000 system (grammar language, language, abstract machine, object model; thesis unfinished, 21 not-supported marks) and three 2026 readers that give fail, choice, cut, class and template different meanings. 2000 choice is re-entrant on a machine that undoes; 2026 choice is scoped, or a first non-absent value over immutable data. Multiple inheritance by delegation and the (object, interface) reference pair have no running witness in either era. The study read sources and ran nothing.
+is: BML names four things: the 2000 system (grammar language, language, abstract machine, object model; thesis unfinished, 21 not-supported marks) and three 2026 readers that give fail, choice, cut, class and template different meanings. 2000 choice is re-entrant on a machine that undoes; 2026 choice is scoped, or a first non-absent value over immutable data. Multiple inheritance by delegation and the (object, interface) reference pair have no running witness in either era. The reading read sources and ran nothing.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.1
 name: scope
 kind: hub
-is: What the word BML covers and how the study knows it: one 2000 system of four technologies whose thesis is unfinished, three 2026 readers with different meanings for the same words, and a study that read files and executed nothing.
+is: What the word BML covers and how the reading knows it: one 2000 system of four technologies whose thesis is unfinished, three 2026 readers with different meanings for the same words, and a study that read files and executed nothing.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.1.1
 name: bml-2000-four-technologies
@@ -21,7 +17,6 @@ is: BML in 2000 is four technologies by two authors: BMF, a top-down backtrackin
 status: observed
 src: 2.3.1#6 2.3.1#90 2.3.1#769-846 2.3.1#1011-1015 2.8.2#34-37 2.8.2#246
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.1.2
 name: thesis-2000-unfinished
@@ -30,42 +25,35 @@ is: The 2000 thesis text is incomplete as a specification: the sections Overload
 status: observed
 src: 2.3.1#748-765 2.3.1#1018-1023 2.3.1#640-690
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.1.3
 name: three-readers-2026
 kind: observation
 is: The 2026 body carries three BML readers: (a) a 135-line cursor grammar that erases types and bases and emits fail as a throw node; (b) a 4,400-line compiler for the thesis grammar with classes, delegation, templates and a field journal; (c) the form.bml dialect most of the body is written in, where fail and stop are the value nothing.
 status: observed
-src: 2.8.11#18-20 2.8.11#71-72 2.8.12#937-1012 2.8.13#1-13 2.8.14#52 2.8.37#11
+src: 2.8.11#18-20 2.8.11#71-72 2.8.12#937-1012 2.8.13#1-13 2.8.14#52
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.1.4
 name: study-executed-nothing
-kind: observation
-is: The BML study ran no BML or Form program and no 2000 binary, so every observation under hub 3.5 is a reading of source text or documents. Of the 490,522-byte thesis-lane compiler file the study read the comments and about 200 lines.
-status: observed
-src: 2.8.1#3-6 2.8.1#34-48 2.8.41#G6
+kind: finding
+is: The BML study ran no BML or Form program and no 2000 binary, so every observation under hub 3.5 is a reading of source text or documents. Of the 490,522-byte thesis-lane compiler file the reading read the comments and about 200 lines.
+status: assumed
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2
 name: control
 kind: hub
 is: In 2000 choice is a re-entrant choice point on a machine that undoes everything not exempted, cut has two descriptions, and stop and timeout do not exist. In 2026 reader (b) scopes choice to its statement and journals field sets, and reader (c) reduces fail, stop and timeout to the value nothing over one recover point.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.1
 name: choice-2000-sources
 kind: observation
 is: The 2000 thesis defines choice as code blocks tried in order, each run when the one before fails. Three 2000 sources place a failure after the completed statement: if_fail is defined as a choose followed by the failing statement, a test program has fail after its choose, and ChoiceSet.Pick returns another element on a later failure.
 status: observed
-src: 2.3.1#625-626 2.3.1#927-932 2.8.2#58-66 2.8.2#1007-1008 2.8.1#123-129
-limit: The test program lies in a 2000 source archive on local disk outside the repositories; the study report quotes it and the encoding pass reread it there.
+src: 2.3.1#625-626 2.3.1#927-932 2.8.2#58-66 2.8.2#1007-1008
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.2
 name: choice-2000-is-re-entrant
@@ -76,7 +64,6 @@ conf: mid
 from: 3.5.2.1 3.5.2.6
 limit: Inferred from documents and source text. No 2000 program was run and the virtual machine's choice-point code was not read.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.3
 name: choice-2026-two-meanings
@@ -85,7 +72,6 @@ is: In 2026 reader (b) choice is a statement that runs each branch from the stat
 status: observed
 src: 2.8.13#525-531 2.8.12#1981-1988 2.8.18#104-106 2.8.16#691-696 2.1.13#35 2.8.14#269
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.4
 name: fail-and-stop
@@ -94,7 +80,6 @@ is: In 2000 fail forces the machine into failure mode; the thesis has no stop wo
 status: observed
 src: 2.3.1#633-634 2.3.1#245 2.8.28#9-17 2.8.18#173 2.8.14#52 2.1.13#26-30 2.8.23#33 2.1.7#362-367
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.5
 name: cut-meanings
@@ -102,9 +87,8 @@ kind: observation
 is: Cut in 2000 is a grammar primitive that, executed backwards, reports an error, undoes everything and stops, and also a statement that disables retries back to a matching mark. In 2026 reader (b) cut commits the enclosing choice to the current branch, with three cases pinned by a fixture, and in reader (c) cut offers only the first alternative.
 status: observed
 src: 2.3.1#160-161 2.8.6#19 2.8.2#77-78 2.8.13#568-573 2.8.30#8-24 2.8.26#35-46 2.8.17#8
-limit: How the two 2000 descriptions reconcile is not stated in what the study read. The fixture was read, not run.
+limit: How the two 2000 descriptions reconcile is not stated in what the reading read. The fixture was read, not run.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.6
 name: undo-2000-machine-mode
@@ -113,7 +97,6 @@ is: In 2000 undo is the execution mode of the machine, not a statement: the mach
 status: observed
 src: 2.8.7#32 2.8.3#634 2.3.1#84 2.3.1#743 2.3.1#667 2.8.2#1014
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.7
 name: undo-and-store-2026
@@ -122,7 +105,6 @@ is: 2026 reader (b): save, mark, restore and discard keep a stack of snapshots; 
 status: observed
 src: 2.8.12#1941-1948 2.8.12#2072-2087 2.8.13#715-718 2.8.31#12 2.8.32#11-12 2.8.17#16-18 2.8.18#176 2.8.18#367-368
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.8
 name: timeout
@@ -132,7 +114,6 @@ status: observed
 src: 2.3.1#168-169 2.8.4#4 2.1.1#48 2.8.18#442-444 2.8.21#36 2.8.17#19-27 2.8.13#771-779
 limit: Whether the 2000 machine enforced the retry bound is unknown: the BML source of Multi match only forwards the match.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.9
 name: try-catch-throw
@@ -140,9 +121,8 @@ kind: observation
 is: 2000 exceptions use a channel apart from failure: typed catch, jerr handler jumps, the termination model. 2026 reader (b) holds the thrown value in a cell, while reader (c) lowers try to an attempt, so its handler learns only that the body was absent; in its backtrack walk a node acknowledgment appends a payload to memory and the walk goes on.
 status: observed
 src: 2.3.1#627-632 2.3.1#762 2.3.1#967-981 2.8.13#500-512 2.8.15#392-393 2.8.18#104-105 2.8.17#29-33
-limit: The thesis does not say whether a throw undoes state; the study looked and found no statement.
+limit: The thesis does not say whether a throw undoes state; the reading looked and found no statement.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.2.10
 name: reversible-machine-or-persistent-data
@@ -151,18 +131,16 @@ is: 2000 made the machine reversible and exempted what must persist. 2026 made m
 status: inferred
 conf: mid
 from: 3.5.2.6 3.5.2.7 3.5.4.3 1.3 1.7.8
-src: 2.8.13#4 2.8.12#2084-2087 2.8.18#176 2.8.18#378-379 2.8.1#669 2.8.1#671-679
+src: 2.8.13#4 2.8.12#2084-2087 2.8.18#176 2.8.18#378-379
 why: A reversible machine pays for undo on every instruction; an immutable value costs nothing to keep, and a host effect comes back only when the caller writes the saved value back.
-limit: The per-instruction cost of the 2000 machine is argued from its design, not measured. That the 2000 machine loses nothing is not shown: the study records as unknown how it undoes output to a real file or device. In its source text reader (b)'s locals are mutable and a snapshot saves and restores them.
+limit: The per-instruction cost of the 2000 machine is argued from its design, not measured. That the 2000 machine loses nothing is not shown: the reading records as unknown how it undoes output to a real file or device. In its source text reader (b)'s locals are mutable and a snapshot saves and restores them.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3
 name: objects
 kind: hub
 is: 2000 defines a reference as (object id, interface id, native flag) with two bases on every call, and multiple inheritance as one structural base plus delegation, marked unsupported in the thesis. 2026 reader (b) uses one record with a class id and one receiver, and no run of delegation or of the reference pair was seen in either era.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.1
 name: templates-and-generics
@@ -171,7 +149,6 @@ is: 2000 templates are class and interface templates whose parameters are bounde
 status: observed
 src: 2.3.1#755-757 2.8.12#4095-4100 2.8.33#13-15 2.8.20#32-33 2.8.18#504-505 2.8.18#187-205
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.2
 name: classes
@@ -180,17 +157,15 @@ is: 2000: a class is a structural specification with a list of interfaces, and c
 status: observed
 src: 2.3.1#234 2.8.3#660-662 2.8.13#598-602 2.8.18#504 2.8.14#114-116
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.3
 name: multiple-inheritance
 kind: observation
 is: 2000: a class has one structural parent and each further parent becomes a delegated field; the attribute delegate is marked not supported yet. 2026 reader (b) reads the first super as structural and each later class super as a delegation base that lends methods and subtype, not fields; none of 9 class fixtures contains the word delegate.
 status: observed
-src: 2.3.1#234 2.3.1#656 2.3.1#722-723 2.8.3#711 2.8.12#4254-4257 2.8.12#3363-3365 2.8.34#5-6 2.8.35 2.8.36 2.8.41#G6
+src: 2.3.1#234 2.3.1#656 2.3.1#722-723 2.8.3#711 2.8.12#4254-4257 2.8.12#3363-3365 2.8.34#5-6 2.8.35 2.8.36
 limit: The 248-line class-model test was not read in full and the 106-line core class surface was opened by no report. That delegation runs end to end is assumed for 2026 and unseen for 2000.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.4
 name: reference-pair-2000
@@ -199,7 +174,6 @@ is: The 2000 object-model thesis defines a reference as object identifier, inter
 status: observed
 src: 2.8.3#486 2.8.3#493 2.8.3#642-644 2.8.3#649-651 2.8.5#103
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.5
 name: pair-absent-in-2026
@@ -211,34 +185,21 @@ from: 3.5.3.2 3.5.3.3 3.5.3.4
 src: 2.8.13#604 2.8.13#632 2.8.13#684-685
 limit: Read from three lines of the lowering. No case was run that would show it, such as a delegated method calling an overridden method.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.3.6
 name: attributes
 kind: observation
 is: 2000 lets every definition carry attributes in seven contexts: class, inheritance, method, field, argument, variable, function. Of about 45 attributes tabulated, about 12 are honoured by 2026 reader (b), among them get, put, delegate, strict and the access levels; reader (b) carries and voices a flag to which the thesis gives no behaviour.
 status: observed
-src: 2.8.3#153 2.8.2#99-127 2.3.1#640-690 2.8.12#3554-3559 2.8.12#3593-3594 2.8.20#21 2.8.1#517-557
-limit: An attribute listed as not found means the study's search of comment lines showed no handling; it is not proof of absence.
+src: 2.8.3#153 2.8.2#99-127 2.3.1#640-690 2.8.12#3554-3559 2.8.12#3593-3594 2.8.20#21
+limit: An attribute listed as not found means the reading's search of comment lines showed no handling; it is not proof of absence.
 at: 2026-11-24
-by: r1/bml
-
-n: 3.5.3.7
-name: named-cell-record
-kind: observation
-is: The README beside the 2000 thesis says the parent repository's substrate inherits the reference pair as NamedCell{Recipe access, Base blueprint, Name, CTOR recipe}. A class NamedCell with base, access and ctor fields stands in that substrate's Python kernel, and NUMS.Go declares the same four-field record as NamedCell_t.
-status: observed
-src: 2.8.10#125 2.8.40#317-326 2.8.40#446 2.8.39#497-502 2.8.41#G1
-limit: The declarations were read, not run. The study report had left the claim assumed; the critic located the NUMS.Go record and the encoding pass opened the Python file.
-at: 2026-11-24
-by: r1/bml
 
 n: 3.5.4
 name: grammar-and-lowering
 kind: hub
 is: In 2000 grammar elements are objects that match and print themselves as grammar text, and the combinators are a few lines of choose and fail. In 2026 grammar is data over an immutable byte cursor with ordered alternatives and greedy repetition, and lowering passes through text: a 59,464-byte source becomes a 38,391,347-byte image.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.4.1
 name: bmf-2000-grammar-is-objects
@@ -247,37 +208,33 @@ is: In 2000 BMF each grammar element is a class with Match, AsString (prints gra
 status: observed
 src: 2.8.8#62-131 2.8.9#13-31 2.3.1#148-152 2.3.1#182 2.3.1#80-82 2.8.2#239
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.4.2
 name: combinators-from-choose-and-fail
 kind: observation
 is: The 2000 source of Branch.Match is a loop over the items of choose { item.Match; return } , { } followed by fail, and Repeat.Match is a loop up to the maximum of choose { item.Match } , { if count < minimum fail; return }. The repeat behaviour the thesis describes, starting at the maximum and backing off one element, is coded in neither method.
 status: observed
-src: 2.8.1#597-603 2.3.1#158
-limit: Both files lie in a 2000 source archive on local disk outside the repositories; the study report quotes them and the encoding pass reread them there. Neither was run.
+src: 2.3.1#158
+limit: Neither was run.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.4.3
 name: bmf-2026-grammar-is-data
 kind: observation
 is: 2026 BMF keeps grammar as data: patterns and templates are lists, the cursor is an immutable byte position over a surface, alternatives are tried in order and never revisited, repetition is greedy, and a text rule may name an emit action and a reverse action. Not found: rules with arguments, grammar change during a parse, predicates inside rules.
 status: observed
-src: 2.8.24#19-21 2.8.24#433-441 2.8.24#512-518 2.8.25#817-826 2.8.27#235-236 2.8.22#9 2.8.1#630-633
+src: 2.8.24#19-21 2.8.24#433-441 2.8.24#512-518 2.8.25#817-826 2.8.27#235-236 2.8.22#9
 limit: The 1,138-line grammar engine file was read in part, so not found is bounded by that reading.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.4.4
 name: lowering-2026-through-text
 kind: observation
 is: The 2026 form.bml path is text to grammar templates to Form text to a C parse to node rows to a flat image; the lowering compiler runs as a cell inside the runtime's own process. A 59,464-byte source becomes 201,998 bytes of lowered text and a 38,391,347-byte image, 645 times its source, because a closure of 351 units is assembled whole.
 status: observed
-src: 2.8.19#5-12 2.1.7#33187-33194 2.8.29#1-14 2.8.41#R11
-limit: Measured by the old body on 2026-11-13 on one machine (cold build 12.94 s) and read from its document, not rerun. The study report says a child process over a pipe, as the compiler file's header still does; the runtime source has replaced that.
+src: 2.8.19#5-12 2.1.7#33187-33194 2.8.29#1-14
+limit: Measured by the old body on 2026-11-13 on one machine (cold build 12.94 s) and read from its document, not rerun. The reading says a child process over a pipe, as the compiler file's header still does; the runtime source has replaced that.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.5
 name: ten-primitives
@@ -287,7 +244,6 @@ status: inferred
 conf: mid
 from: 1.1 1.5 1.3 3.5.2.2 3.5.2.4 3.5.2.5 3.5.2.6 3.5.3.1 3.5.3.4 3.5.3.6 3.5.4.3
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.6
 name: derivable-constructs
@@ -296,17 +252,15 @@ is: Derivable from the ten primitives: fail, if_fail, while_success and ChoiceSe
 status: inferred
 conf: mid
 from: 3.5.5 3.5.2.1 3.5.4.2 3.5.2.7 3.5.2.8 3.5.2.9 3.5.3.2 3.5.3.3 3.5.3.4 3.5.3.6
-src: 2.8.1#838-866 2.8.2#68-74 2.8.15#126-135 2.1.13#43-46 2.8.3#742-752 2.8.3#775 2.8.3#781-784 2.3.1#652-654 2.3.1#356
-limit: The list is the study report's and no derivation was run. While_success, defer, hold, shared inheritance, tagging, inner classes, singleton, unique and operators stand in no node and rest on the cited lines. The 2000 object-model thesis says tagging lacked its normalization mechanism, and the thesis marks singleton and unique not supported yet.
+src: 2.8.2#68-74 2.8.15#126-135 2.1.13#43-46 2.8.3#742-752 2.8.3#775 2.8.3#781-784 2.3.1#652-654 2.3.1#356
+limit: The list is the reading's and no derivation was run. While_success, defer, hold, shared inheritance, tagging, inner classes, singleton, unique and operators stand in no node and rest on the cited lines. The 2000 object-model thesis says tagging lacked its normalization mechanism, and the thesis marks singleton and unique not supported yet.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8
 name: keep
 kind: hub
 is: To keep: one meaning per control word; both strengths of choice with an explicit commit; a reversibility declaration per state; a failure that carries a reason; the reference pair with the two-base call rule; attributes and parameters on every declaration; grammar rules as cells of the language; binary layout and value-level types.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.1
 name: one-meaning-per-control-word
@@ -315,10 +269,9 @@ is: Give each control word one definition. Across the 2000 system and the three 
 status: inferred
 conf: high
 from: 3.5.1.3 3.5.2.2 3.5.2.3 3.5.2.4 3.5.2.5 3.5.2.6 3.5.2.7 3.5.3.1 3.5.3.2
-src: 2.8.13#525 2.8.1#874
-limit: The study report counts two or three. Four for fail counts the 2000 machine mode, reader (a)'s throw node, reader (b)'s FAILED flag and reader (c)'s value nothing; four for cut counts the two 2000 descriptions separately. Store stands for the family save, mark, restore and discard.
+src: 2.8.13#525
+limit: The reading counts two or three. Four for fail counts the 2000 machine mode, reader (a)'s throw node, reader (b)'s FAILED flag and reader (c)'s value nothing; four for cut counts the two 2000 descriptions separately. Store stands for the family save, mark, restore and discard.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.2
 name: two-strengths-of-choice
@@ -327,9 +280,7 @@ is: Keep both strengths of choice and name them apart: first-that-answers, which
 status: inferred
 conf: mid
 from: 3.5.2.2 3.5.2.3 3.5.2.5
-limit: The critic records three different statements of the default and its cost model across the round's reports; no model of re-entrant choice was run.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.3
 name: reversibility-declaration
@@ -339,7 +290,6 @@ status: inferred
 conf: mid
 from: 3.5.2.6 3.5.2.7 3.5.2.10 1.7.8
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.4
 name: failure-carries-a-reason
@@ -349,7 +299,6 @@ status: inferred
 conf: mid
 from: 3.5.2.9 3.5.2.4 1.5 1.1
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.5
 name: reference-pair-and-two-bases
@@ -358,9 +307,8 @@ is: Keep the reference as a (structure, behaviour) pair with the two-base call r
 status: inferred
 conf: mid
 from: 3.5.3.4 3.5.3.5
-limit: No running reference for the pair or for delegation exists in either era. The critic records that another report of the round recommends composing parents by flattening instead, which has different semantics.
+limit: No running reference for the pair or for delegation exists in either era.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.6
 name: attributes-and-parameters-everywhere
@@ -370,7 +318,6 @@ status: inferred
 conf: mid
 from: 3.5.3.6 3.5.3.1 3.5.4.1
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.7
 name: grammar-rules-as-cells
@@ -380,7 +327,6 @@ status: inferred
 conf: mid
 from: 3.5.4.1 3.5.4.2 3.5.4.3 1.9.2
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.8.8
 name: binary-layout-and-value-types
@@ -389,39 +335,16 @@ is: Keep binary layout declarations (binary types with size and mapping, struct 
 status: inferred
 conf: low
 from: 3.5.3.6 3.5.3.1
-src: 2.3.1#271-274 2.3.1#662 2.8.12#39 2.8.12#739 2.8.12#944 2.8.13 2.8.14 2.8.15 2.8.1#519 2.8.1#533 2.8.1#554
+src: 2.3.1#271-274 2.3.1#662 2.8.12#39 2.8.12#739 2.8.12#944 2.8.13 2.8.14 2.8.15
 why: Value-level types keep overload resolution, coercion chains, strict fields and cast parameters expressible, and layout bears on a bootstrap that emits machine code.
-limit: Not found means a word search on 2026-11-24: reader (b)'s lowering file has no line with BinaryType, binary, struct, inline, noobject or dynamic, and reader (c)'s grammar and lowering files have none with binary. Neither premise speaks of layout; the study report's own not found for struct and inline is a search of comment lines.
+limit: Not found means a word search on 2026-11-24: reader (b)'s lowering file has no line with BinaryType, binary, struct, inline, noobject or dynamic, and reader (c)'s grammar and lowering files have none with binary. Neither premise speaks of layout; the reading's own not found for struct and inline is a search of comment lines.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.9
 name: drop
 kind: hub
 is: What can go without losing expressiveness: mechanisms that are derivable (the separate exception channel; store and restore as words over immutable state), the 2000 compiler's fixed phases and operator tables, the text hop between grammar and nodes, and every reader beyond one.
 at: 2026-11-24
-by: r1/bml
-
-n: 3.5.9.1
-name: derivable-mechanisms
-kind: finding
-is: Drop the separate exception channel: try and catch are a recover point plus a payload, and the 2000 jerr channel is an implementation choice. Drop store and restore as words where state is immutable: a checkpoint is then a value the caller holds.
-status: inferred
-conf: mid
-from: 3.5.2.9 3.5.2.7 3.5.6
-at: 2026-11-24
-by: r1/bml
-
-n: 3.5.9.2
-name: fixed-phases-and-operator-tables
-kind: finding
-is: Drop the 2000 compiler's seven phases as a fixed list and its functor-notation tables of user-definable operators of 1 to 3 characters. A precedence table held as data, as the 2026 form.bml grammar has, does the work of the operator tables.
-status: inferred
-conf: mid
-from: 3.5.1.1
-src: 2.3.1#247-248 2.8.14#41-48
-at: 2026-11-24
-by: r1/bml
 
 n: 3.5.9.3
 name: text-hop
@@ -433,7 +356,6 @@ from: 3.5.4.4
 src: 2.8.19#8 2.8.19#26
 limit: The old body measured its text printer at 15 microseconds a recipe against 116 for a node walker, so removing the hop alone does not shorten a cold build; the lever it names is a cache keyed on the recipe's content id.
 at: 2026-11-24
-by: r1/bml
 
 n: 3.5.9.4
 name: extra-readers
@@ -442,6 +364,5 @@ is: Drop every BML reader beyond one: reader (a), which erases types and cannot 
 status: inferred
 conf: high
 from: 3.5.1.3
-src: 2.8.38#13-16
 at: 2026-11-24
-by: r1/bml
+

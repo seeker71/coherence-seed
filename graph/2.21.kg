@@ -1,21 +1,8 @@
-# Sources of the study of earlier restarts and the greenfield carrier (hub 3.13). The carrier's own files are 2.1.8 and 2.1.9; a commit is cited as 2.1#<hash>.
-
 n: 2.21
 name: earlier-restarts-sources
 kind: hub
-is: The second-round study report on earlier restart attempts and the greenfield carrier, and 18 primary sources its encoded claims cite: the carrier's witness and door, two specs beside the axioms, the bootstrap page and its three ground files, two revisions of the rewritten seed, two receipts of the rewrite, and five dated private notes. All are files; none was read through a summarising fetch.
+is: Sources the design and its evidence cite: earlier-restarts-sources.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.1
-name: gap-earlier-rewrites.md
-kind: source
-is: The second-round study report 'Gap G7: earlier restart attempts and the greenfield carrier', 732 lines: dated history of five sibling checkouts, a line-by-line description of membrane-boot, a witness run and a limits probe, and a size estimate for a standalone bootstrap.
-path: coherence-seed/study/r2/gap-earlier-rewrites.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.2
 name: membrane-witness.c
@@ -26,18 +13,6 @@ rev: 16b3d3eb6
 date: 2026-11-05
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.3
-name: greenfield-produce-run.bml
-kind: source
-is: The 20-line door that builds the carrier with its witness and runs the result with --produce; the only file outside the carrier's own three that names the carrier.
-path: coherence-kernel/observe/greenfield-produce-run.bml
-rev: 16b3d3eb6
-date: 2026-11-05
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.4
 name: host-kernel.form
@@ -48,73 +23,6 @@ rev: 4a69d6b1f
 date: 2026-10-04
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.5
-name: kernel-self-composition.form
-kind: source
-is: The self-composition spec beside the axioms, 152 lines: the primitives the kernel bottoms out in, channels, and the boot sequence from the five axioms.
-path: coherence-kernel/axioms/kernel-self-composition.form
-rev: 78acc2a4f
-date: 2026-10-04
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.6
-name: boot.fk
-kind: source
-is: The running Form counterpart of the boot theorem, 117 lines: load an image, offer a channel, extend by minting the next image.
-path: coherence-kernel/form/form-stdlib/boot.fk
-rev: cbc50311b
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.7
-name: BOOTSTRAP.md
-kind: source
-is: The old body's bootstrap page, 168 lines: one C compiler invocation, four verification commands with their expected output, and the section 'A number is not a pass'.
-path: coherence-kernel/BOOTSTRAP.md
-rev: afcb161af
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.8
-name: ground.fk
-kind: source
-is: The smallest checkout witness of the old body, 6 lines: one form, (add 40 2).
-path: coherence-kernel/bootstrap/ground.fk
-rev: 3630bd29c
-date: 2026-06-30
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.9
-name: ground-recursive.fk
-kind: source
-is: The recursion witness of the old body, 11 lines: a recursive fib defined with defn and called with 10.
-path: coherence-kernel/bootstrap/ground-recursive.fk
-rev: 3630bd29c
-date: 2026-06-30
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.10
-name: ground-numeric-list.fk
-kind: source
-is: The numeric-list witness of the old body, 4 lines: a function returning a list of an integer, a float and a nested list.
-path: coherence-kernel/bootstrap/ground-numeric-list.fk
-rev: 444238554
-date: 2026-07-15
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.11
 name: rewrite-first-seed
@@ -125,7 +33,6 @@ rev: b21a77483
 date: 2026-11-06
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.12
 name: rewrite-last-seed
@@ -136,7 +43,6 @@ rev: 803ce20d8
 date: 2026-11-08
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.13
 name: rewrite-floor-receipt
@@ -147,7 +53,6 @@ rev: 2673d5392
 date: 2026-11-06
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 2.21.14
 name: rewrite-integration-receipt
@@ -158,54 +63,4 @@ rev: 803ce20d8
 date: 2026-11-06
 got: 2026-11-24
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
-n: 2.21.15
-name: note-rewrite-form-on-main-runtime
-kind: source
-is: A private note of 2026-11-08 on the landing of the rewrite's Form half on the old C: the reason, what the old C gained, the door numbers that differ, and what stayed on the rewrite branch.
-path: coherence-seed/sources/notes/project-rewrite-form-on-main-runtime-2026-11-08.md
-date: 2026-11-08
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.16
-name: note-history-rewrite-and-the-cut
-kind: source
-is: A private note of 2026-11-08 on two earlier resets of the repository (a history filter that removed 39 large binaries, and the file cut of 2026-09-29) and on carrying the rewrite line to a home branch.
-path: coherence-seed/sources/notes/reference-history-rewrite-and-the-cut.md
-date: 2026-11-08
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.17
-name: note-local-loop-goal
-kind: source
-is: A private note of 2026-11-09 with dated updates: why the short-path worktrees ck-turn and ck-pre were made, and how a fault after the landing was found by building the pre-landing commit apart.
-path: coherence-seed/sources/notes/project-local-loop-goal-2026-11-09.md
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.18
-name: note-prebuilt-design
-kind: source
-is: A private note of 2026-11-09 on prebuilt kernels: the build key, reproducibility across flags and hosts, and lowering output whose bytes depend on allocation order.
-path: coherence-seed/sources/notes/project-prebuilt-design-2026-11-09.md
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 2.21.19
-name: note-fkwu-version-store
-kind: source
-is: A private note of 2026-11-09, with an entry of 2026-11-13, on the sealed kernel store: how the kernel is digested and built reproducibly, and what one edit costs in image assembly.
-path: coherence-seed/sources/notes/project-fkwu-version-store-2026-11-09.md
-date: 2026-11-09
-got: 2026-11-24
-at: 2026-11-24
-by: r2/gap-earlier-rewrites

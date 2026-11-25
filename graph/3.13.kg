@@ -1,38 +1,23 @@
-# What the study of earlier restarts and the greenfield carrier (study/r2/gap-earlier-rewrites.md) found. Sources are under 2.21; the carrier's files are 2.1.8 and 2.1.9; a commit of the old body is cited as 2.1#<hash>.
-
 n: 3.13
 name: earlier-restarts-and-carrier
 kind: hub
 is: Of five sibling checkouts of the old body, one was a restart: a C rewrite of the seed (2026-11-06 to 11-08) that grew from 1,574 lines and 24 operations to 10,302 and 254 in 56 hours, stayed about 40 times slower, and landed only its Form half, on the old C. The other restart is on main: a 1,199-line carrier written from the axioms (2026-11-05). It passes 31 checks on arm64, has no reader or image source, and its store fills after 3,947 offers. About 460 of its lines can be kept; a standalone C bootstrap is estimated at 1,800 to 2,200 lines.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1
 name: attempts
 kind: hub
-is: The five sibling checkouts are worktrees of one repository. One held a restart: a C rewrite of the seed that grew 6.5 times in 56 hours while covering the old surface again, stayed about 40 times slower, and landed only its Form half on the old C as one 200-file commit. A second witness for a rewritten runtime was built eight hours after the rewrite began. The study names six causes of not carrying.
+is: The five sibling checkouts are worktrees of one repository. One held a restart: a C rewrite of the seed that grew 6.5 times in 56 hours while covering the old surface again, stayed about 40 times slower, and landed only its Form half on the old C as one 200-file commit. A second witness for a rewritten runtime was built eight hours after the rewrite began. The reading names six causes of not carrying.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.1.1
-name: checkouts-are-worktrees
-kind: observation
-is: The five sibling checkouts of the old body are git worktrees of one repository. coherence-kernel-raw-loader is a merged performance lane, 0 commits ahead of main, that changed runtime/fkwu-uni.c by 1,035 insertions and 388 deletions. coherence-kernel-codex-floor is one merged commit. ck-pre and ck-turn hold no commits of their own.
-status: observed
-src: 2.21.1#0 2.21.1#2.1 2.1#7d85e5660 2.1#d30dcd880
-limit: Codex worktree 3cee and the checkout coherence-kernel-walk were not opened.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1.2
 name: rewrite-seed-growth
 kind: observation
 is: Commit b21a77483 of 2026-11-06 10:05 replaced the 32,016-line seed with 1,574 lines: an S-expression reader, an evaluator with six frame kinds and 24 registered operations. Lines and operations at later commits: 3,875 and 79, 7,222 and 186, 10,139 and 254, then 10,302 and 254 at 803ce20d8 on 2026-11-08 18:01, 56 hours after the first.
 status: observed
-src: 2.21.11#1-5 2.21.11#237-243 2.21.12 2.21.1#2.3
+src: 2.21.11#1-5 2.21.11#237-243 2.21.12
 limit: The 10,302-line final file was read only at its header and its value struct and by counts of its functions.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1.3
 name: rewrite-receipts
@@ -41,7 +26,6 @@ is: The rewrite's receipts of 2026-11-06 record that every body-wide door ended 
 status: observed
 src: 2.21.13#31-38 2.21.13#54-63 2.21.13#255-261 2.21.14#131-132 2.21.12
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1.4
 name: rewrite-forty-times-slower
@@ -49,38 +33,16 @@ kind: observation
 is: The message of the rewrite's last commit, 803ce20d8 of 2026-11-08 18:01, says 11 of 19 gate rows pass under a 30 to 60 s cap and 'The evaluator remains about 40x slower than main's (op-manifest 39 s against 1 s)'. The same message names a 552-byte frame that had been copied two or three times per evaluated argument.
 status: observed
 src: 2.1#803ce20d8
-limit: One measurement of one door by the rewrite's author on a branch nobody ran again. The study ran nothing, and no profile of the remaining factor exists.
+limit: One measurement of one door by the rewrite's author on a branch nobody ran again. The reading ran nothing, and no profile of the remaining factor exists.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1.5
 name: form-half-landed-on-old-c
 kind: observation
 is: Commit 7ed6ad7b2 of 2026-11-08 22:23 landed the rewrite's Form work on the old C: 200 files, with 143 changed lines in runtime/fkwu-uni.c. A note of that day gives the reason: the rewritten evaluator was about 40 times slower, and the owner had asked for no speed regression and minimal C change. The rewrite's C commits are not ancestors of main.
 status: observed
-src: 2.1#7ed6ad7b2 2.21.15#11-16 2.21.1#2.3
+src: 2.1#7ed6ad7b2
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.1.6
-name: landing-aftermath
-kind: observation
-is: Notes of 2026-11-08 and 11-09 record two costs of the 200-file landing. Door mode numbers differed between the two runtimes, so carried code 'must be renumbered or it silently hits the wrong door'. A fault the next day was found by building the pre-landing commit in a separate worktree, because 'Mixed-file reverts do not work (51 compile errors)'.
-status: observed
-src: 2.21.15#19-21 2.21.17#53-56
-limit: The notes are dated records; the study did not re-run what they report.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.1.7
-name: candidate-floor-came-after
-kind: observation
-is: Commit d30dcd880 of 2026-11-06 18:04 added observe/candidate-floor-run.bml, eight hours after the rewrite began. Its message says 'The body has one kernel, so a rewritten runtime had no second witness'. The organ runs a candidate kernel as a child on each band and compares each reading to the pin: full, short, stop or deadline.
-status: observed
-src: 2.1#d30dcd880 2.21.1#2.4
-limit: The study found no receipt of a full candidate sweep of the rewrite, only doors run by hand; the search was not exhaustive.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.1.8
 name: why-rewrite-did-not-carry
@@ -91,43 +53,12 @@ from: 3.13.1.2 3.13.1.3 3.13.1.4 3.13.1.5
 conf: mid
 limit: The speed gap is recorded once and its cause was not profiled.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.1.9
-name: causes-of-not-carrying
-kind: finding
-is: Six causes are named across the two restarts, five in the C rewrite and one in the carrier; none is shown in both. The rewrite: parity with the old surface was the acceptance test; a second reader appeared in C within a day; the first recorded comparison of speed with main is in its last commit; 200 files landed in one commit; and the second witness was built after the candidate. The carrier: it and the body were never joined by an image.
-status: inferred
-from: 3.13.1.2 3.13.1.3 3.13.1.4 3.13.1.5 3.13.1.6 3.13.1.7 3.13.2.8 3.13.2.12
-conf: mid
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2
 name: carrier
 kind: hub
 is: The greenfield carrier is one commit of 2026-11-05 that nothing later touches: a 64-bit word of 0, 1, nothing or node, immutable cells, offer as the only act, machine-code leaves and eleven doors, with no reader or evaluator. Its 31 checks pass on one arm64 Mac. Its production proof bypasses the membrane, its store never reuses a slot, a shared child doubles canonical bytes, and its x86-64 leaf returns the wrong number.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.2.1
-name: carrier-one-commit-untouched
-kind: observation
-is: The greenfield carrier is one commit, 16b3d3eb6 of 2026-11-05 15:17: 1,898 lines in four files (membrane-boot.c 1,199, membrane-boot.h 169, membrane-witness.c 510, a 20-line door). No later commit touches the C files and only that door names them. The header says 'C does not evaluate a recipe' and 'There is no arithmetic in this file'.
-status: observed
-src: 2.1#16b3d3eb6 2.1.9#31-36 2.21.3 2.21.1#2.2
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.2.2
-name: produce-proof-bypasses-membrane
-kind: observation
-is: The carrier commit is titled 'The greenfield carrier produces fkwu and form-cli', yet the production does not pass through the membrane: gf_produce in the witness file uses a private fork and exec helper to run cc -O2 on runtime/fkwu-uni.c. The membrane's own process port is exercised only with /usr/bin/true.
-status: observed
-src: 2.21.2#427-499 2.21.2#357-413 2.21.2#249-255 2.1#16b3d3eb6
-limit: The study read the routine and did not run the witness with --produce.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.3
 name: word-and-held
@@ -136,7 +67,6 @@ is: The carrier's 64-bit word is 0 for state 0, 1 for state 1, 2 for nothing and
 status: observed
 src: 2.1.9#10-16 2.1.8#94-110 2.1.8#124-129 2.1.8#813 2.1.8#598
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.4
 name: store-and-identity
@@ -145,7 +75,6 @@ is: A carrier cell is immutable, with at most 32 inline children and a 1 MiB pay
 status: observed
 src: 2.1.8#22-27 2.1.8#223-259 2.1.9#18-21
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.5
 name: offer-dispatch
@@ -154,7 +83,6 @@ is: The carrier's offer returns {arrived, ack} and dispatches on the target's ki
 status: observed
 src: 2.1.9#103-106 2.1.8#543-556 2.1.8#914-989 2.1.8#135-140
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.6
 name: ports-three-answers
@@ -164,7 +92,6 @@ status: observed
 src: 2.1.8#476-495 2.1.8#874-912 2.1.8#447 2.1.9#39-44 2.21.4#86-91
 limit: The absent-carrier path was read, not run: the one Mac used has both entropy and Metal. The header promises nothing for a missing driver.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.7
 name: leaf-abi
@@ -173,84 +100,47 @@ is: A carrier leaf is a cell whose payload is one ABI byte and raw machine code 
 status: observed
 src: 2.1.8#558-584 2.1.8#634-653 2.1.9#32-35
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.8
 name: freeze-thaw-one-image
 kind: observation
 is: The carrier's freeze writes the magic FBOOT3 and the channel's canonical bytes twice, as declared identity and as graph. Thaw accepts only that format, rebuilds the graph in a fresh machine and leaves the caller unchanged on any mismatch. The only such image anything in the tree produces is the witness's four-cell example of 176 bytes.
 status: observed
-src: 2.1.8#1068-1090 2.1.8#1105-1124 2.21.2#138-144 2.21.1#3.4
+src: 2.1.8#1068-1090 2.1.8#1105-1124 2.21.2#138-144
 limit: The two copies in one file detect damage to one of them; no digest is pinned outside the file.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.9
 name: witness-run-31-checks
-kind: observation
-is: On 2026-11-24 the study compiled the carrier and its witness from an unmodified membrane-boot.c with cc -O2 -Wall -Wextra in 0.19 s without diagnostics (binary 71,400 bytes) and ran it: 31 checks all 1, exit 0, page 16,384, arch aarch64, depth limit 1,022. One check enters a machine-code leaf with 40 and 2 and reads 42.
-status: observed
-src: 2.21.1#3.1 2.21.1#3.13
+kind: finding
+is: On 2026-11-24 the reading compiled the carrier and its witness from an unmodified membrane-boot.c with cc -O2 -Wall -Wextra in 0.19 s without diagnostics (binary 71,400 bytes) and ran it: 31 checks all 1, exit 0, page 16,384, arch aarch64, depth limit 1,022. One check enters a machine-code leaf with 40 and 2 and reads 42.
+status: assumed
 limit: One Apple arm64 machine. The witness copy differed from the repository file in seven path literals. The --produce half was not run.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.10
 name: witness-gaps
 kind: observation
 is: The carrier's passing witness leaves two things unproved. Its x86-64 add leaf, bytes 01 fe 89 f8 c3, returns its first argument, 40 where the check expects 42, and its branch check fails by construction off aarch64. On aarch64 the branch check passes the same port for both arms and discards the 'no' path, so either arm writes the 'yes' file.
 status: observed
-src: 2.21.2#110 2.21.2#285-297 2.21.1#3.13
+src: 2.21.2#110 2.21.2#285-297
 limit: Found by disassembly and reading; the witness was not run on x86-64.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.2.11
 name: measured-limits
 kind: observation
 is: A probe linked against the unmodified carrier measured three limits. After about 4,000 top-level offers of clock.monotonic the store is full (8,191 live cells, 4,096 frame rows) and no released slot is reused. A node naming one child twice doubles its canonical bytes: 2,621,420 at level 16, refused at level 17. A file of 1,048,577 bytes reads as nothing.
 status: observed
-src: 2.21.1#3.14 2.1.8#256 2.1.8#22-27
-limit: One machine. The offer count read 3,947 in the study's run and 4,029, 4,034 and 4,019 in three reruns; the other figures reproduced exactly.
+src: 2.1.8#256 2.1.8#22-27
+limit: One machine. The offer count read 3,947 in the reading's run and 4,029, 4,034 and 4,019 in three reruns; the other figures reproduced exactly.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.2.12
-name: why-carrier-did-not-carry
-kind: finding
-is: The greenfield carrier is a small implementation of the axioms' floor with no bridge from the body's source to an image it could thaw, and its commit title claims a production that its code hands to the old seed. The next commit on the theme, 19 hours later, was a new source interpreter in C, and the carrier was not touched again.
-status: inferred
-from: 3.13.2.1 3.13.2.2 3.13.2.8 3.13.1.2
-conf: high
-limit: The commits do not say whether the carrier was meant as the base of the rewrite or was an independent start.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.3
 name: standalone-bootstrap
 kind: hub
-is: What the two specs beside the axioms and the three ground files ask of a bootstrap, and what a new C bootstrap could take from the carrier: about 460 lines nearly unchanged and 530 to rewrite behind the same contract. The study estimates 1,350 to 1,500 lines of C without a walker and 1,800 to 2,200 with one, under conditions the earlier attempts did not set. Nothing in the specs or the carrier says how the first image comes to exist.
+is: What the two specs beside the axioms and the three ground files ask of a bootstrap, and what a new C bootstrap could take from the carrier: about 460 lines nearly unchanged and 530 to rewrite behind the same contract. The reading estimates 1,350 to 1,500 lines of C without a walker and 1,800 to 2,200 with one, under conditions the earlier attempts did not set. Nothing in the specs or the carrier says how the first image comes to exist.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.3.1
-name: specs-ask-of-a-bootstrap
-kind: observation
-is: host-kernel.form says every resource is 'reached ONLY through a typed PORT the kernel offers' and that offer and acknowledge is the syscall ABI. kernel-self-composition.form gives boot as 'primitives-then-channels-then-ports' and 'a-kernel-boots-a-bigger-kernel-it-authored'. Neither file says how the first image comes to exist.
-status: observed
-src: 2.21.4#80-91 2.21.4#144 2.21.5#99-103 2.21.6#1-3 2.21.1#4
-limit: boot.fk, the running counterpart, was read at lines 1 to 45 only.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.3.2
-name: ground-files-pin-little
-kind: observation
-is: The old body's bootstrap directory tracks three files of 21 lines: ground.fk is (add 40 2) and answers 42, ground-recursive.fk answers 55, ground-numeric-list.fk answers [1, 2.5, [3, 4]]. The rewrite was first measured against them, and its 3,875-line seed answered all three; the carrier's witness runs ground.fk alone, on two builds of the old seed, and the carrier itself answers none of them. BOOTSTRAP.md adds the section 'A number is not a pass'.
-status: observed
-src: 2.21.8#6 2.21.9#6-11 2.21.10#1-4 2.21.7#57-95 2.21.13#21-23 2.21.2#461-473
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.3.3
 name: inherit-460-rewrite-530
@@ -261,37 +151,22 @@ from: 3.13.2.3 3.13.2.4 3.13.2.5 3.13.2.6 3.13.2.7 3.13.2.8 3.13.2.9 3.13.2.11
 conf: mid
 limit: Counted by reading on one machine and one architecture; 'nearly unchanged' means correct as read and exercised by a passing check.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.3.4
 name: standalone-estimate
 kind: finding
-is: To stand alone the carrier lacks an entry, a store that scales, an image format for shared graphs, a walker or a binary seed, most doors and a code arena. The study estimates a standalone C bootstrap at 1,350 to 1,500 lines with a binary seed per target, or 1,800 to 2,200 with a walker and a numeric seed, above the first round's 1,400 to 1,600.
+is: To stand alone the carrier lacks an entry, a store that scales, an image format for shared graphs, a walker or a binary seed, most doors and a code arena. The reading estimates a standalone C bootstrap at 1,350 to 1,500 lines with a binary seed per target, or 1,800 to 2,200 with a walker and a numeric seed, above the first round's 1,400 to 1,600.
 status: inferred
 from: 3.13.3.3 3.13.2.11 3.13.2.8 3.13.1.2
-src: 2.21.1#7 2.31#r1/runtime-jit.md:449-462
 conf: low
 limit: Scaled from measured sizes, not built; the rewrite overran its first size 6.5 times in 56 hours. Holds only if the walker runs one program, the compiler, written against about 25 primitives, and a line count gates from the first commit. The 100 to 150 lines for a strong digest in C are assumed.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.8
 name: keep
 kind: hub
 is: Seven things to carry forward. From the carrier: the word that keeps nothing apart from state 0; equality by canonical bytes, with children named by identity; one offer entry with publication apart from entry and a callback passed to leaf code; ports with three distinct answers; minting, whole-image refusal and unresumed faults. From the rewrite and the notes: a second witness built first, and a build key of seed digest plus target.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.8.1
-name: keep-word-nothing-apart-from-zero
-kind: finding
-is: Keep the carrier's word: 0 is state 0, 1 is state 1, 2 is nothing and a node is a tagged slot, so that nothing and state 0 are different words and any other bit pattern is not a word. The study calls this the only encoding in either tree that maps one to one onto axiom 1.
-status: inferred
-from: 3.13.2.3 1.1
-conf: high
-limit: Whether the integer 1 and state 1 are the same thing to leaf code is open; the carrier merges them at the ABI-1 boundary.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.8.2
 name: keep-equality-is-bytes-children-by-identity
@@ -302,18 +177,6 @@ from: 3.13.2.4 3.13.2.11 1.3
 conf: high
 limit: Whether a collision-resistant digest must exist in C or FNV may stay as an index is not settled.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.8.3
-name: keep-offer-publication-and-callback
-kind: finding
-is: Keep offer as the single entry with a two-field outcome (arrived, ack), keep publication of machine code apart from entering it, and keep a leaf ABI in which code receives its offer callback as an argument and therefore holds no absolute address.
-status: inferred
-from: 3.13.2.5 3.13.2.7 1.5
-conf: high
-limit: Whether held work (arrived = 0) should be visible to leaf code is open; the carrier turns it into nothing at the callback.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.8.4
 name: keep-port-three-answers
@@ -323,47 +186,12 @@ status: inferred
 from: 3.13.2.6 1.4 1.7.19
 conf: high
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.8.5
-name: keep-mint-refuse-and-record
-kind: finding
-is: Keep three behaviours of the carrier: offering a channel an argument mints a new channel and leaves the old one byte-identical; thaw re-derives identity and refuses the whole image on any mismatch; a fault is recorded with its signal number and is not resumed.
-status: inferred
-from: 3.13.2.5 3.13.2.8 3.13.2.9 1.3 1.7.20
-src: 2.1.8#1165-1178 2.1.9#52-54
-conf: high
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.8.6
-name: keep-second-witness-before-candidate
-kind: finding
-is: Build the second witness before the candidate it judges, and keep the rewrite receipts' habit of naming the first stop of every door with the command that read it. In the old body the organ that reads a candidate kernel against every band was built eight hours after the rewrite it was meant to witness.
-status: inferred
-from: 3.13.1.7 3.13.1.3
-conf: mid
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.8.7
-name: keep-build-key-seed-digest-and-target
-kind: finding
-is: Keep the build key as seed digest plus target, not executable bytes, and treat the output's file name as part of a reproducible macOS build, because macOS signs a binary with its file name as identifier. Both rules come from notes of 2026-11-09.
-status: inferred
-from: 1.3
-src: 2.21.18#11-12 2.21.19#16-17
-conf: mid
-limit: The notes are dated records; the study did not re-verify their measurements.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.9
 name: drop
 kind: hub
 is: Seven things to let go: the old bands and registry as the acceptance test of a new floor; a second reader of the surface in C; wide struct values and a journal replayed by every process; doors chosen by a number that can differ between runtimes; fixed tables, path buffers and observations kept in the store they observe; titles and green checks that claim more than the code does; and landing a whole stack as one commit.
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
 n: 3.13.9.1
 name: drop-old-bands-as-acceptance-test
@@ -373,67 +201,4 @@ status: inferred
 from: 3.13.1.2 3.13.1.3 3.13.1.8
 conf: high
 at: 2026-11-24
-by: r2/gap-earlier-rewrites
 
-n: 3.13.9.2
-name: drop-second-reader-in-c
-kind: finding
-is: Do not write a second reader of the surface grammar in C, even for a day. The C rewrite gained a reader for the second surface on its first day, ended with 32 parse_ functions, and its own receipt named removing 'the duplicate C parsing paths' as debt.
-status: inferred
-from: 3.13.1.3
-conf: high
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.9.3
-name: drop-wide-values-and-replayed-journal
-kind: finding
-is: Drop two implementation choices of the C rewrite: a value passed as a wide struct, with 552-byte frames copied per evaluated argument, and an interning journal replayed by every process, which a commit message records at 58 MB with three interns taking over ten minutes.
-status: inferred
-from: 3.13.1.2 3.13.1.4
-src: 2.21.11#196-207 2.1#757ae59ca
-conf: mid
-limit: The 40-fold gap was measured after the frame copies and the journal were both repaired, so neither explains it; the wide value struct was still there.
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.9.4
-name: drop-numbered-multiplexed-doors
-kind: finding
-is: Drop doors selected by a mode number on one multiplexed primitive. During the two days with two runtimes the mode numbers of one such primitive differed between them, and code carried across would silently reach the wrong door.
-status: inferred
-from: 3.13.1.6
-conf: mid
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.9.5
-name: drop-fixed-tables-and-in-store-observations
-kind: finding
-is: Drop tables sized for a demonstration (8,192 cells, 32 children, 4,096 frame rows), frame rows kept in the store they observe, and fixed path buffers: 512 and 256 bytes in the carrier, and a 128-byte buffer in the old seed that failed on a checkout path of about 165 bytes.
-status: inferred
-from: 3.13.2.4 3.13.2.11
-src: 2.1.8#22-27 2.1.8#677 2.1.8#838 2.21.17#37-39
-conf: high
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.9.6
-name: drop-claims-beyond-the-code
-kind: finding
-is: Drop titles and green checks that claim more than the code does. The carrier's commit says it produces fkwu while its witness shells out to cc on the old seed; behind 31 passing checks its x86-64 leaf returns the wrong number and its branch check cannot tell the two arms apart.
-status: inferred
-from: 3.13.2.2 3.13.2.9 3.13.2.10
-conf: high
-at: 2026-11-24
-by: r2/gap-earlier-rewrites
-
-n: 3.13.9.7
-name: drop-one-commit-stack-landing
-kind: finding
-is: Do not land a change of the whole stack as one commit. The rewrite's Form half landed as 200 files at once; the next day a fault had to be found by building the pre-landing commit in a separate worktree, because mixed-file reverts gave 51 compile errors.
-status: inferred
-from: 3.13.1.5 3.13.1.6
-conf: mid
-at: 2026-11-24
-by: r2/gap-earlier-rewrites

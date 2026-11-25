@@ -321,3 +321,4 @@ status: observed
 src: 2.1.1#1-27 2.30.2
 limit: It names form/form-stdlib/offer-ack-core.fk as a home of the running proof, and the old body has that file only under control/. git ls-files shows the same.
 at: 2026-11-24
+

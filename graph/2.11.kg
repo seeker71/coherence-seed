@@ -1,31 +1,8 @@
-# Sources of the bootstrap-language study (hub 4.1). Web pages reached the study through a summarising fetch tool.
-
 n: 2.11
 name: bootstrap-language-sources
 kind: hub
-is: Sources of the bootstrap-language study of 2026-11-24: the study report, the first-round critic's review, one old-body file, and 40 public pages on Apple's JIT rules, Windows and Linux executable memory, Go, Rust, C code generators, Zig and bootstrappable builds. Every page was read through a fetch tool that summarises.
+is: Sources the design and its evidence cite: bootstrap-language-sources.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.1
-name: web-bootstrap-language.md
-kind: source
-is: The study report on the bootstrap language: C, Go and Rust compared, with Zig and hex or assembly as outside options, 516 lines. It holds the experiments run on one Apple M4 Max under macOS 26.3.1 and the list of pages fetched.
-path: coherence-seed/study/r1/web-bootstrap-language.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.2
-name: critic.md
-kind: source
-is: The completeness critique of the first study round, 472 lines: gaps, 47 spot-checks with verdicts, contradictions between reports, and what is ready to decide.
-path: coherence-seed/study/r1/critic.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.3
 name: form-macho.fk
@@ -36,7 +13,6 @@ rev: 936d946e8
 date: 2026-09-30
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.4
 name: apple-porting-jit-compilers
@@ -45,7 +21,6 @@ is: Apple developer documentation, Porting just-in-time compilers to Apple silic
 url: https://developer.apple.com/tutorials/data/documentation/apple-silicon/porting-just-in-time-compilers-to-apple-silicon.json
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.5
 name: apple-allow-unsigned-executable-memory
@@ -54,7 +29,6 @@ is: Apple entitlement reference for com.apple.security.cs.allow-unsigned-executa
 url: https://developer.apple.com/tutorials/data/documentation/bundleresources/entitlements/com.apple.security.cs.allow-unsigned-executable-memory.json
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.6
 name: wasmtime-issue-11989
@@ -63,7 +37,6 @@ is: Archived discussion of Wasmtime issue 11989, Support mmap flag MAP_JIT for m
 url: https://bytecodealliance.github.io/zulip-archive/stream/225357-git-wasmtime/topic/wasmtime.20.2F.20issue.20.2311989.20Support.20mmap.20flag.20MAP_JIT.20for.20MACOS.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.7
 name: win32-virtualalloc
@@ -73,7 +46,6 @@ url: https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-
 date: 2024-02-05
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.8
 name: linux-pr-set-mdwe
@@ -82,7 +54,6 @@ is: Linux manual page for the PR_SET_MDWE prctl operation.
 url: https://man7.org/linux/man-pages/man2/PR_SET_MDWE.2const.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.9
 name: v8-control-flow-integrity
@@ -92,7 +63,6 @@ url: https://v8.dev/blog/control-flow-integrity
 date: 2023-10-09
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.10
 name: go-1.26-release-notes
@@ -102,7 +72,6 @@ url: https://go.dev/doc/go1.26
 date: 2026-02
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.11
 name: go-1.23-release-notes
@@ -111,7 +80,6 @@ is: Go 1.23 release notes.
 url: https://go.dev/doc/go1.23
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.12
 name: go-1.5-release-notes
@@ -120,7 +88,6 @@ is: Go 1.5 release notes.
 url: https://go.dev/doc/go1.5
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.13
 name: go-abi-internal
@@ -129,7 +96,6 @@ is: The Go compiler's internal ABI specification.
 url: https://go.dev/src/cmd/compile/abi-internal
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.14
 name: go-runtime-hacking.md
@@ -138,7 +104,6 @@ is: The Go runtime's HACKING.md, read from the master branch.
 url: https://raw.githubusercontent.com/golang/go/master/src/runtime/HACKING.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.15
 name: go-os-signal
@@ -147,7 +112,6 @@ is: Documentation of Go's os/signal package, including the rules for non-Go code
 url: https://pkg.go.dev/os/signal
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.16
 name: go-issue-20123
@@ -157,7 +121,6 @@ url: https://github.com/golang/go/issues/20123
 date: 2017-04-25
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.17
 name: golang-dev-foreign-jit-frames
@@ -167,7 +130,6 @@ url: https://groups.google.com/g/Golang-dev/c/mABYStr5aYs
 date: 2026-04-30
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.18
 name: wazero-rationale.md
@@ -176,7 +138,6 @@ is: The design rationale of wazero, a WebAssembly runtime in pure Go, read from 
 url: https://raw.githubusercontent.com/tetratelabs/wazero/main/RATIONALE.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.19
 name: wazero-mmap-unix.go
@@ -185,7 +146,6 @@ is: wazero's unix platform file for mapping executable memory, read from the mai
 url: https://raw.githubusercontent.com/tetratelabs/wazero/main/internal/platform/mmap_unix.go
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.20
 name: purego
@@ -194,7 +154,6 @@ is: The repository page of purego, a Go library that calls C functions without c
 url: https://github.com/ebitengine/purego
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.21
 name: purego-syscall.go
@@ -203,35 +162,6 @@ is: purego's syscall.go, read from the main branch.
 url: https://raw.githubusercontent.com/ebitengine/purego/main/syscall.go
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.22
-name: rust-1.88.0-announcement
-kind: source
-is: The Rust blog's announcement of Rust 1.88.0.
-url: https://blog.rust-lang.org/2025/06/26/Rust-1.88.0/
-date: 2025-06-26
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.23
-name: rust-blog
-kind: source
-is: The Rust blog's front page, which on the day read listed Rust 1.100.0 of 2026-11-12 and a parallel-frontend post of 2026-11-16.
-url: https://blog.rust-lang.org/
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.24
-name: rust-reference-abi
-kind: source
-is: The Rust Reference chapter on the application binary interface: symbol and section attributes.
-url: https://doc.rust-lang.org/reference/abi.html
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.25
 name: cranelift-readme
@@ -240,7 +170,6 @@ is: The README of the Cranelift code generator in the Wasmtime repository.
 url: https://github.com/bytecodealliance/wasmtime/blob/main/cranelift/README.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.26
 name: wasmtime-platform-support
@@ -249,7 +178,6 @@ is: Wasmtime's documentation of platform support and stability, including the no
 url: https://docs.wasmtime.dev/stability-platform-support.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.27
 name: dynasm-rs
@@ -258,7 +186,6 @@ is: The repository page of dynasm-rs, a run-time assembler for Rust built on pro
 url: https://github.com/CensoredUsername/dynasm-rs
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.28
 name: luajit-lj-mcode.c
@@ -267,7 +194,6 @@ is: LuaJIT's machine-code area allocator, read from the v2.1 branch.
 url: https://raw.githubusercontent.com/LuaJIT/LuaJIT/v2.1/src/lj_mcode.c
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.29
 name: pep-744
@@ -277,7 +203,6 @@ url: https://peps.python.org/pep-0744/
 date: 2024-04-11
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.30
 name: python-3.15-whatsnew
@@ -287,7 +212,6 @@ url: https://docs.python.org/3.15/whatsnew/3.15.html
 date: 2026-10-09
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.31
 name: cpython-tools-jit-readme
@@ -296,44 +220,6 @@ is: The README of CPython's Tools/jit directory, read from the main branch.
 url: https://raw.githubusercontent.com/python/cpython/main/Tools/jit/README.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.32
-name: copy-and-patch-paper
-kind: source
-is: The arXiv record of the copy-and-patch compilation paper; version 1 of 2020-11-26, version 3 of 2021-09-15. The abstract page is what was fetched.
-url: https://arxiv.org/abs/2011.13127
-date: 2020-11-26
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.33
-name: mir
-kind: source
-is: The repository page of MIR, a lightweight JIT compiler written in C.
-url: https://github.com/vnmakarov/mir
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.34
-name: qbe
-kind: source
-is: The home page of the QBE compiler backend.
-url: https://c9x.me/compile/
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.35
-name: tinycc
-kind: source
-is: The repository page of the Tiny C Compiler.
-url: https://github.com/TinyCC/tinycc
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.36
 name: zig-goodbye-cpp
@@ -343,7 +229,6 @@ url: https://ziglang.org/news/goodbye-cpp/
 date: 2022-12-07
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.37
 name: stage0-posix
@@ -352,7 +237,6 @@ is: The repository page of stage0-posix, the chain from a hex0 seed to a C subse
 url: https://github.com/oriansj/stage0-posix
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.38
 name: bootstrappable-mes
@@ -361,7 +245,6 @@ is: The bootstrappable-builds page on GNU Mes and its C compiler mescc.
 url: https://bootstrappable.org/projects/mes.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.39
 name: live-bootstrap
@@ -370,7 +253,6 @@ is: The repository page of live-bootstrap, which automates the path from hex0 to
 url: https://github.com/fosslinux/live-bootstrap
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 2.11.40
 name: bootstrappable.org
@@ -379,31 +261,4 @@ is: The home page of the bootstrappable-builds project.
 url: https://bootstrappable.org/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
-n: 2.11.41
-name: zig-download
-kind: source
-is: Zig's download page, which on the day read listed 0.17.1 of 2026-11-02 as the latest stable release and 0.18.0-dev as master.
-url: https://ziglang.org/download/
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.42
-name: zig-0.17.0-release-notes
-kind: source
-is: The release notes of Zig 0.17.0.
-url: https://ziglang.org/download/0.17.0/release-notes.html
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 2.11.43
-name: zig-overview
-kind: source
-is: Zig's language overview page.
-url: https://ziglang.org/learn/overview/
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-bootstrap-language

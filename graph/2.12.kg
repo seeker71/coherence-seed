@@ -1,21 +1,8 @@
-# Sources of the study r1/web-jit-and-performance. Web pages were read through a summarising fetch tool.
-
 n: 2.12
 name: sources-self-compiling-systems
 kind: hub
-is: Sources of the first-round web study of JIT compilation, small self-hosting systems, images and host efficiency: the study report itself, 41 public pages and papers fetched on 2026-11-24 through a summarising fetch tool, and one file of the old body.
+is: Sources the design and its evidence cite: sources-self-compiling-systems.
 at: 2026-11-24
-by: r1/web-jit-and-performance
-
-n: 2.12.1
-name: web-jit-and-performance.md
-kind: source
-is: The study report: bootstrapping a small system to the hardware's full efficiency, 573 lines, with a table of 64 web sources and 3 local ones. Its local commands (sysctl, sw_vers, compiler versions, the powermetrics manual) are recorded in it.
-path: coherence-seed/study/r1/web-jit-and-performance.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.2
 name: copy-and-patch-paper
@@ -25,7 +12,6 @@ url: https://arxiv.org/abs/2011.13127
 date: 2020-11-26
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.3
 name: baseline-jit-for-lua-post
@@ -35,7 +21,6 @@ url: https://sillycross.github.io/2023/05/12/2023-05-12/
 date: 2023-05-12
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.4
 name: pep-744
@@ -45,7 +30,6 @@ url: https://peps.python.org/pep-0744/
 date: 2024-04-11
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.5
 name: whats-new-python-3.15
@@ -55,7 +39,6 @@ url: https://docs.python.org/3.15/whatsnew/3.15.html
 date: 2026-10-09
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.6
 name: pep-836
@@ -65,7 +48,6 @@ url: https://peps.python.org/pep-0836/
 date: 2026-07-02
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.7
 name: lwn-pause-for-the-python-jit
@@ -75,17 +57,15 @@ url: https://lwn.net/Articles/1090385/
 date: 2026-09-01
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.8
 name: pep-836-discussion-thread
 kind: source
-is: The discuss.python.org thread on PEP 836; the study read posts 41 to 80, dated 2026-07-17 to 2026-10-30.
+is: The discuss.python.org thread on PEP 836; the reading read posts 41 to 80, dated 2026-07-17 to 2026-10-30.
 url: https://discuss.python.org/t/pep-836-jit-go-brrr-the-path-to-a-supported-jit-compiler-for-cpython/108010
 date: 2026-10-30
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.9
 name: deegen-paper
@@ -95,7 +75,6 @@ url: https://arxiv.org/abs/2411.11469
 date: 2024-11-18
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.10
 name: v8-sparkplug-post
@@ -105,7 +84,6 @@ url: https://v8.dev/blog/sparkplug
 date: 2021-05-27
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.11
 name: tpde-paper
@@ -115,7 +93,6 @@ url: https://arxiv.org/abs/2505.22610
 date: 2025-05-28
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.12
 name: in-place-interpreter-paper
@@ -125,7 +102,6 @@ url: https://arxiv.org/abs/2205.01183
 date: 2022-05-02
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.13
 name: tracing-vs-partial-evaluation-paper
@@ -135,7 +111,6 @@ url: https://stefan-marr.de/papers/oopsla-marr-ducasse-meta-tracing-vs-partial-e
 date: 2015
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.14
 name: rpython-jit-overview
@@ -144,17 +119,6 @@ is: The RPython documentation's JIT overview, which describes the 2009 move from
 url: https://rpython.readthedocs.io/en/latest/jit/overview.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
-
-n: 2.12.15
-name: weval-paper
-kind: source
-is: The paper Partial Evaluation, Whole-Program Compilation (the weval tool), arXiv 2411.10559. Abstract page only.
-url: https://arxiv.org/abs/2411.10559
-date: 2024-11-15
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.16
 name: v8-maglev-post
@@ -164,7 +128,6 @@ url: https://v8.dev/blog/maglev
 date: 2023-12-05
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.17
 name: v8-leaving-sea-of-nodes-post
@@ -174,7 +137,6 @@ url: https://v8.dev/blog/leaving-the-sea-of-nodes
 date: 2025-03-25
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.18
 name: qbe-home
@@ -183,7 +145,6 @@ is: The QBE compiler backend's home page. Its releases page lists 1.0 on 2022-06
 url: https://c9x.me/compile/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.19
 name: cranelift-home
@@ -192,7 +153,6 @@ is: The Cranelift code generator's home page. Undated.
 url: https://cranelift.dev/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.20
 name: cranelift-egraph-rfc
@@ -201,27 +161,6 @@ is: The accepted Bytecode Alliance RFC for Cranelift's acyclic e-graph mid-end. 
 url: https://github.com/bytecodealliance/rfcs/blob/main/accepted/cranelift-egraph.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
-
-n: 2.12.21
-name: stoke-paper
-kind: source
-is: The paper Stochastic Superoptimization (STOKE), arXiv 1211.0557, ASPLOS 2013. Abstract page only.
-url: https://arxiv.org/abs/1211.0557
-date: 2012-11-02
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-jit-and-performance
-
-n: 2.12.22
-name: souper-paper
-kind: source
-is: The paper Souper: A Synthesizing Superoptimizer, arXiv 1711.04422; version 1 of 2017-11-13, version 2 of 2018-04-06. Abstract page only.
-url: https://arxiv.org/abs/1711.04422
-date: 2017-11-13
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.23
 name: maru-page
@@ -231,17 +170,15 @@ url: https://piumarta.com/software/maru/
 date: 2012-08-24
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.24
 name: steps-2012-final-report
 kind: source
-is: VPRI Technical Report TR-2012-001, STEPS Toward the Reinvention of Programming, 2012 final report, a PDF. The study read pages 4 to 6 as page images.
+is: VPRI Technical Report TR-2012-001, STEPS Toward the Reinvention of Programming, 2012 final report, a PDF. The reading read pages 4 to 6 as page images.
 url: https://tinlizzie.org/VPRIPapers/tr2012001_steps.pdf
 date: 2012-10
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.25
 name: squeak-oopsla-1997-paper
@@ -251,7 +188,6 @@ url: http://files.squeak.org/docs/OOPSLA.Squeak.html
 date: 1997
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.26
 name: sectorforth-readme
@@ -260,7 +196,6 @@ is: The README of sectorforth, a Forth in a 512-byte boot sector. Undated.
 url: https://github.com/cesarblum/sectorforth
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.27
 name: dusk-os-home
@@ -269,7 +204,6 @@ is: The home page of Dusk OS, a Forth-based operating system. Undated.
 url: https://duskos.org/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.28
 name: stage0-posix-readme
@@ -278,7 +212,6 @@ is: The README of stage0-posix, a bootstrap chain from a hex seed toward a C com
 url: https://github.com/oriansj/stage0-posix
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.29
 name: v8-startup-snapshots-post
@@ -288,7 +221,6 @@ url: https://v8.dev/blog/custom-startup-snapshots
 date: 2015-09-25
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.30
 name: unison-the-big-idea
@@ -297,7 +229,6 @@ is: The Unison documentation page The big idea, on code identified by a hash of 
 url: https://www.unison-lang.org/docs/the-big-idea/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.31
 name: capnproto-home
@@ -306,7 +237,6 @@ is: The home page of Cap'n Proto, a serialization format that is also an in-memo
 url: https://capnproto.org/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.32
 name: py-lmdb-docs
@@ -315,7 +245,6 @@ is: The py-lmdb documentation, read for its description of LMDB because the LMDB
 url: https://lmdb.readthedocs.io/en/release/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.33
 name: apple-porting-jit-compilers
@@ -324,7 +253,6 @@ is: Apple's developer page Porting just-in-time compilers to Apple silicon, read
 url: https://developer.apple.com/tutorials/data/documentation/apple-silicon/porting-just-in-time-compilers-to-apple-silicon.json
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.34
 name: wikipedia-aarch64
@@ -333,7 +261,6 @@ is: The Wikipedia article AArch64, a secondary source and a live page.
 url: https://en.wikipedia.org/wiki/AArch64
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.35
 name: hello-sme-paper
@@ -343,7 +270,6 @@ url: https://arxiv.org/abs/2409.18779
 date: 2024-09-27
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.36
 name: metal-make-library-from-source
@@ -352,7 +278,6 @@ is: Apple's reference page for MTLDevice makeLibrary(source:options:), read in t
 url: https://developer.apple.com/tutorials/data/documentation/metal/mtldevice/makelibrary(source:options:).json
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.37
 name: spirv-specification
@@ -361,7 +286,6 @@ is: The Khronos SPIR-V specification, version 1.6 revision 8, copyright 2014 to 
 url: https://registry.khronos.org/SPIR-V/specs/unified1/SPIRV.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.38
 name: tinygrad-readme
@@ -370,7 +294,6 @@ is: The README of tinygrad, a tensor library with its own kernel compiler. Undat
 url: https://github.com/tinygrad/tinygrad
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.39
 name: halide-home
@@ -379,7 +302,6 @@ is: The home page of Halide, a language that separates an image algorithm from i
 url: https://halide-lang.org/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.40
 name: mlx-readme
@@ -388,7 +310,6 @@ is: The README of MLX, an array framework for Apple silicon. Undated.
 url: https://github.com/ml-explore/mlx
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.41
 name: energy-of-languages-paper
@@ -398,7 +319,6 @@ url: https://arxiv.org/abs/2410.05460
 date: 2024-10-07
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
 n: 2.12.42
 name: arena-allocator-post
@@ -408,15 +328,4 @@ url: https://www.dgtlgrove.com/p/untangling-lifetimes-the-arena-allocator
 date: 2022-09-23
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-jit-and-performance
 
-n: 2.12.43
-name: host-kernel.form
-kind: source
-is: The old body's host-kernel file, 250 lines, which describes a hot pure composite crystallizing into a native leaf and melting when cool.
-path: coherence-kernel/axioms/host-kernel.form
-rev: 4a69d6b1f
-date: 2026-10-04
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-jit-and-performance

@@ -1,87 +1,57 @@
-# What the study of the NUMS.Go core package found (study/r1/nums-core.md).
-
 n: 3.1
 name: nums-core
 kind: hub
 is: The nums package of NUMS.Go (7,045 lines of Go in 15 files, last changed 2023-03-17) represents a subset of Go as nodes with a four-field ID Package.Level.Type.Instance: a fixed catalogue at levels 1 and 2, composites minted by arrival order from level 3. Names and literal text sit in side tables; a full rename changed no node. The package executes and stores nothing, does not build as checked in, builds with four lines removed, and panics on its three shipped samples. Numbering varies between runs. A cell is only a declared named slot.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1
 name: standing
 kind: hub
 is: The nums package is a 2023 prototype of 7,045 lines that represents a subset of Go as numbers and executes nothing. It does not build as checked in, builds with four lines removed, completes on small files and panics on its three shipped samples; the request's description of it as fully working does not hold.
 at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.1.1
-name: history
-kind: observation
-is: NUMS.Go has 60 commits, from bd100c6 on 2023-02-01 to 9e6bbb4 on 2023-04-05. The nums directory was last changed in ec1f742 on 2023-03-17; the 14 later commits all touch http/ (15,292 lines of Go, 15 of its 25 files importing nums) and two also touch test/sample.go. Commit b508f08 of 2023-02-08 calls the Go handlers a translation of a C++ NUMS.
-status: observed
-src: 2.2 2.4.1#1 2.4.24#14 2.4.24#60-62 2.4.25#5 2.4.25#13
-limit: The C++ original was not seen. Of http/ only the size, the imports and the uses of nums were read: its language enum, file and stack types and assertion helpers, and one call into the nums parser inside test_nums, which nothing calls.
-at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.2
 name: nature
 kind: observation
 is: The nums package is 7,045 lines of Go in 15 files, 1,502 of them in go.go, with no test file. It is a static representation of Go source in a numeric space plus a partial printer back to Go text. It holds no evaluator, interpreter or code generator, and no call that writes a file: both node databases live in memory, per module.
 status: observed
-src: 2.4.1#0 2.4.1#1 2.4.1#3 2.4.13#6-17
+src: 2.4.13#6-17
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.3
 name: build
 kind: observation
 is: As checked in, go build and go vet in nums/ exit 1 under go1.27.2: line 8 of go.work and line 5 of nums/go.mod point at a sibling directory, <tree-sitter-fork>, that is absent. In a copy with four lines removed (that replace line, and the verilog import and case in parser.go) both commands exit 0 offline against the pinned upstream binding.
 status: observed
-src: 2.4.18#8 2.4.17#5 2.4.6#24 2.4.6#148-149 2.4.1#7.1 2.4.1#7.2
+src: 2.4.18#8 2.4.17#5 2.4.6#24 2.4.6#148-149
 limit: One machine, darwin/arm64. The build needs cgo and a C compiler. The absent directory is a private fork that added a Verilog grammar; whether the fork changed anything else is unknown.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.4
 name: worked-example
-kind: observation
-is: For a 14-line Go file the study's dump shows 3 blueprint and 14 recipe entries. The expression a + b is recipe 1.3.0.2, stored as 0.2.3.1+0.1.11.1+0.1.11.2 (Math +, Parameter 1, Parameter 2). Function add is two entries: a signature blueprint 1.3.0.2 (Function of return and parameter types) and recipe 1.3.0.4, stored as 0.2.18.1+1.3.0.1+1.6.0.1.
-status: observed
-src: 2.4.1#6.1 2.4.1#6.2
+kind: finding
+is: For a 14-line Go file the reading's dump shows 3 blueprint and 14 recipe entries. The expression a + b is recipe 1.3.0.2, stored as 0.2.3.1+0.1.11.1+0.1.11.2 (Math +, Parameter 1, Parameter 2). Function add is two entries: a signature blueprint 1.3.0.2 (Function of return and parameter types) and recipe 1.3.0.4, stored as 0.2.18.1+1.3.0.1+1.6.0.1.
+status: assumed
 limit: The numbers come from one run of a dump program in a session scratch directory that was not kept; member ordinals in the same dump vary between runs.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.5
 name: samples-panic
 kind: observation
-is: Built from the copy, nums completes on the study's 14-line example and 17 single-feature probes and panics with a nil dereference on all three Go samples shipped in the repository. On sample/sample.go, which the repository's 19-line driver loads, 36 functions and 547 nodes are recorded and 68 ASSERT lines logged first; assertion helpers only log.
+is: Built from the copy, nums completes on the reading's 14-line example and 17 single-feature probes and panics with a nil dereference on all three Go samples shipped in the repository. On sample/sample.go, which the repository's 19-line driver loads, 36 functions and 547 nodes are recorded and 68 ASSERT lines logged first; assertion helpers only log.
 status: observed
-src: 2.4.1#7.3 2.4.20#13 2.4.16#5-18 2.4.7#1010
+src: 2.4.20#13 2.4.16#5-18 2.4.7#1010
 limit: Whether the three samples completed at an earlier commit was not checked.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.6
 name: probe-matrix
 kind: observation
-is: In the study's probes of nums, arithmetic, comparison, if/else, return, assignment, literals, pointers, struct fields and calls are recorded and print back as Go. Three-clause for, range, closures, composite literals, and go or defer on a later-declared callee are recorded but do not print back; map indexing and switch are not recorded.
+is: In the reading's probes of nums, arithmetic, comparison, if/else, return, assignment, literals, pointers, struct fields and calls are recorded and print back as Go. Three-clause for, range, closures, composite literals, and go or defer on a later-declared callee are recorded but do not print back; map indexing and switch are not recorded.
 status: observed
-src: 2.4.1#7.4 2.4.7#916-922 2.4.12#147-153
-limit: No probe of the study holds &&, || or !; a reviewer probe (if !a && b || a), run again for this node, is recorded and prints back unchanged. Range is recorded as 'Access range' over auto-declared globals, not as a Loop node; go and defer on a later-declared callee carry the no-node ID 0.0.0.0 as callee.
+src: 2.4.7#916-922 2.4.12#147-153
+limit: No probe of the reading holds &&, || or !; a reviewer probe (if !a && b || a), run again for this node, is recorded and prints back unchanged. Range is recorded as 'Access range' over auto-declared globals, not as a Loop node; go and defer on a later-declared callee carry the no-node ID 0.0.0.0 as callee.
 at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.1.7
-name: names-only-and-absent
-kind: observation
-is: Only names, stubs or notes in nums: languages other than Go (twelve grammars, no handlers), Go package import, cross-module identity, 15 of 23 edge bits, an ID-space outline no code reads, and a builder-style API as comments in test/sample.go. Absent: execution, persistence, natural language, node kinds for choice, fail, stop, store or generics.
-status: observed
-src: 2.4.6#451-461 2.4.6#482-485 2.4.3#125-150 2.4.19 2.4.21#6-24 2.4.1#8 2.4.1#9
-limit: The http/ tree of the same repository, which holds a sentence histogram and a label hierarchy, was not studied.
-at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.1.8
 name: premise-against-runs
@@ -92,14 +62,12 @@ conf: high
 from: 3.1.1.2 3.1.1.3 3.1.1.5 3.1.1.6
 limit: A C++ NUMS that the Go code was translated from was not found; if it exists and executes, the description may hold there.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2
 name: space-and-store
 kind: hub
 is: A NUMS ID is four fields, Package.Level.Type.Instance, in 80 bits; levels 1 and 2 are a fixed catalogue from many languages and levels 3 to 21 are composites. A node is a category plus ordered child IDs, minted by arrival order with a use count; declarations change content under a fixed ID, and a cell is a declared named slot, not an instance.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.1
 name: node-id
@@ -108,7 +76,6 @@ is: NodeID_t has four fields, Package.Level.Type.Instance, of 16, 16, 16 and 32 
 status: observed
 src: 2.4.2#11-24 2.4.2#55-57 2.4.2#91 2.4.2#640 2.4.3#60 2.4.3#108
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.2
 name: levels
@@ -117,7 +84,6 @@ is: In NUMS, level 0 is undefined, level 1 holds leaves, level 2 a fixed catalog
 status: observed
 src: 2.4.3#5-29 2.4.2#814-830 2.4.4#168-170
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.3
 name: recipe-catalogue
@@ -127,7 +93,6 @@ status: observed
 src: 2.4.3#56-80 2.4.3#125-150 2.4.3#215-216 2.4.3#280 2.4.3#375 2.4.9#49-60 2.4.9#84-86 2.4.9#392-413 2.4.9#516-553 2.4.7#627-630 2.4.7#655
 limit: The catalogue comment defines TempWrite as a write with no global state change. An assignment statement gets it only when its left side is an Access node holding no global or member; the write lowered from := and the field writes of a composite literal also get it. Run on a scratch copy with four lines removed.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.4
 name: blueprint-catalogue-and-edges
@@ -136,7 +101,6 @@ is: NUMS blueprint leaves are Void and Numeric (Bool, Integer, Decimal, Imag, Co
 status: observed
 src: 2.4.3#104-113 2.4.3#175-182 2.4.3#534-548 2.4.3#781-807 2.4.2#743-764 2.4.11#23-35 2.4.8#81-102
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.5
 name: composite-node
@@ -145,7 +109,6 @@ is: A NUMS composite node is a category ID from the catalogue plus an ordered li
 status: observed
 src: 2.4.2#727-731 2.4.2#780-785 2.4.2#866-886
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.6
 name: minting-by-ordinal
@@ -154,7 +117,6 @@ is: Record_Entry in NUMS stores a node under its serialized string. A string alr
 status: observed
 src: 2.4.4#55-80 2.4.2#16 2.4.2#735 2.4.2#789 2.4.2#290-294
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.7
 name: reserved-nodes-mutate
@@ -163,23 +125,20 @@ is: A NUMS node whose string has no child is stored as category=key, so it is ne
 status: observed
 src: 2.4.4#69-72 2.4.4#82-85 2.4.10#265-281
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.2.8
 name: named-cell
 kind: observation
 is: NamedCell_t in NUMS holds an access recipe, a base blueprint, a name and a constructor recipe, and the blueprint handle returns fields and members as that struct. The two-field Cell_t is unused. NUMS therefore represents a cell as a declared named slot; a cell has no run-time instance and no value there.
 status: observed
-src: 2.4.12#497-502 2.4.14#73 2.4.14#93 2.4.14#172-184 2.4.15#3-6 2.4.23#G2
+src: 2.4.12#497-502 2.4.14#73 2.4.14#93 2.4.14#172-184 2.4.15#3-6
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3
 name: names-and-lens
 kind: hub
 is: Names and literal text sit in side tables of small ordinals: a full rename changes no node, while numbering still varies between runs through Go map order. Text enters through tree-sitter and 65 Go-only handlers that declare whatever does not resolve, and leaves through a printer that covers a subset of function bodies and is called only by a log.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.1
 name: symbol-tables
@@ -188,35 +147,30 @@ is: NUMS keeps names in two tables outside the node databases: one per recipe (l
 status: observed
 src: 2.4.5#9-15 2.4.5#85-103 2.4.8#209-234
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.2
 name: rename-experiment
-kind: observation
-is: Replacing every identifier of the study's 14-line Go example with a different word changed no NUMS node: over 20 runs each, the blueprint and recipe databases of the original and the renamed file fell into the same two byte-identical dumps. The critic re-ran the dump six times per file and saw the same.
-status: observed
-src: 2.4.1#6.4 2.4.23#N6
+kind: finding
+is: Replacing every identifier of the reading's 14-line Go example with a different word changed no NUMS node: over 20 runs each, the blueprint and recipe databases of the original and the renamed file fell into the same two byte-identical dumps.
+status: assumed
 limit: One example file; the dump program lived in a session scratch directory that was not kept.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.3
 name: literals-outside-tree
 kind: observation
-is: NUMS stores literal values as source text in the per-recipe table, not in the tree. In the study's probe, a function returning a + 1 and one returning b + 2 produced the identical body node (1.5.0.1, use count 2); their tables were Integers {"1": 1} and Integers {"2": 1}. A recipe's meaning is its tree plus its table.
+is: NUMS stores literal values as source text in the per-recipe table, not in the tree. In the reading's probe, a function returning a + 1 and one returning b + 2 produced the identical body node (1.5.0.1, use count 2); their tables were Integers {"1": 1} and Integers {"2": 1}. A recipe's meaning is its tree plus its table.
 status: observed
-src: 2.4.1#6.4 2.4.5#11
+src: 2.4.5#11
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.4
 name: numbering-not-deterministic
 kind: observation
-is: NUMS numbering differs between runs of the same input. Member ordinals are handed out while ranging over a Go map in Fetch_Fields, which is reached each time a blueprint handle is made in order to fill a display string. Over 20 runs the two numberings split 19 to 1 for the study's example file and 16 to 4 for its renamed copy.
+is: NUMS numbering differs between runs of the same input. Member ordinals are handed out while ranging over a Go map in Fetch_Fields, which is reached each time a blueprint handle is made in order to fill a display string. Over 20 runs the two numberings split 19 to 1 for the reading's example file and 16 to 4 for its renamed copy.
 status: observed
-src: 2.4.14#14-26 2.4.14#185-187 2.4.1#6.4
+src: 2.4.14#14-26 2.4.14#185-187
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.5
 name: parser-front
@@ -226,7 +180,6 @@ status: observed
 src: 2.4.6#11-24 2.4.6#29-47 2.4.6#451-461 2.4.6#631-657 2.4.7#1209-1502 2.4.7#185 2.4.7#1197-1207 2.4.22#golang/parser.c
 limit: The 213 names and numbers were compared with the upstream grammar at the pinned version, not with the private fork the repository points at. true_literal, false_literal and nil_literal have no comment; int_literal serves two symbols, Token three and Sequence five.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.6
 name: auto-declare-and-lossy
@@ -235,7 +188,6 @@ is: In NUMS a name that resolves as no local, parameter, member, function, globa
 status: observed
 src: 2.4.9#198-304 2.4.7#41-53 2.4.7#418 2.4.7#1300 2.4.6#623-625 2.4.6#640-642
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.3.7
 name: printer
@@ -245,25 +197,12 @@ status: observed
 src: 2.4.12#88-351 2.4.8#370
 limit: What comes back is a normalized function body, not the source text: c := a + b printed as var c int followed by c = a + b.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.4
 name: needs
 kind: hub
 is: What a shared, executable numeric root needs that NUMS lacks: identity computed from canonical content, with no mutation under an ID; a meaning for each catalogue entry, blueprints precise enough to emit code, cell instances and a decision on literals; and lenses held as tables keyed by catalogue ID with a reader small enough for a bootstrap.
 at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.4.1
-name: needs-content-identity
-kind: finding
-is: A NUMS ID is the Nth distinct shape of its level seen in one module in one run, and reserved nodes change content under a fixed ID, against axiom 3. A shared root needs the ID to be a function of the canonical serialization, no map order reaching a number, and nominal identity kept in the name layer; the category+child string is a form to hash.
-status: inferred
-conf: high
-src: 2.1.1#68
-from: 3.1.2.6 3.1.2.7 3.1.3.4 1.3
-at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.4.2
 name: needs-meaning
@@ -273,7 +212,6 @@ status: inferred
 conf: high
 from: 3.1.1.2 3.1.2.8 3.1.3.3 3.1.3.6
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.4.3
 name: needs-lenses-as-data
@@ -284,14 +222,12 @@ conf: mid
 src: 2.4.3#212 2.4.3#300 2.4.2#516-535
 from: 3.1.3.5 3.1.3.7
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8
 name: keep
 kind: hub
 is: Seven things to carry forward from NUMS: the four-part address in three tiers; a node as category plus ordered child IDs, stored once with a use count; names and literals as a detachable table; attributes on the reference and a function as signature plus body; a cross-language catalogue that names effect; the rule beside its handler; a no-node ID.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8.1
 name: four-part-address-three-tiers
@@ -302,9 +238,7 @@ conf: mid
 src: 2.1.1#59
 from: 3.1.2.1 3.1.2.2 1.2
 why: The axioms file names the same four fields in the same order at line 59, (a-cell-is (package level type instance)); that the axiom's shape descends from the NUMS struct is inferred from the identical names.
-limit: The first-round critic found that NUMS and the old runtime give different meanings to Level, Package and Type, and that in NUMS minted nodes always have type 0; the shape of the ID is not settled by this finding.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8.2
 name: node-is-category-plus-children
@@ -314,7 +248,6 @@ status: inferred
 conf: high
 from: 3.1.2.5 3.1.2.6
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8.3
 name: names-as-detachable-table
@@ -324,7 +257,6 @@ status: inferred
 conf: high
 from: 3.1.3.1 3.1.3.2 3.1.3.3 1.7.2
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8.4
 name: blueprint-side-shapes
@@ -334,7 +266,6 @@ status: inferred
 conf: mid
 from: 3.1.2.4 3.1.1.4
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.8.5
 name: cross-language-catalogue-with-effect
@@ -346,35 +277,12 @@ src: 2.4.3#133-134 2.4.7#627-630 2.4.9#84-86
 from: 3.1.2.3
 limit: That the NUMS catalogue was meant as a cross-language operator alphabet is inferred from its non-Go entries and comments; only Go was ever read into it. Effect in the category is an intent to carry forward, not a property NUMS demonstrates.
 at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.8.6
-name: rule-beside-handler
-kind: finding
-is: Carry forward the practice of keeping the surface grammar rule beside the code that builds its numeric form, as each NUMS Go handler does in a comment, so the map from surface rule to numeric construction is readable in one place.
-status: inferred
-conf: mid
-from: 3.1.3.5
-at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.8.7
-name: undefined-is-no-node
-kind: finding
-is: Carry forward a first-class no-node ID that is distinct from Null and from false: in NUMS an ID with level 0 and type 0 is undefined, Null is leaf type 1 and Bool false is leaf type 2 with instance 0.
-status: inferred
-conf: high
-src: 2.4.2#89 2.4.2#283-297 2.4.3#57-60
-from: 3.1.2.2 1.1
-at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.9
 name: drop
 kind: hub
 is: Six things to drop from NUMS: IDs that are ordinals per module and per run; in-place update under a fixed ID; assertions that log and continue; declaring whatever does not resolve; Go spellings, hand-copied symbol numbers and a cgo parser in the core; ID spaces told apart only by a host type, map scans for names, and emit as the word for both ways.
 at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.9.1
 name: ordinal-per-run-ids
@@ -384,27 +292,6 @@ status: inferred
 conf: high
 from: 3.1.2.6 3.1.3.4
 at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.9.2
-name: in-place-update-under-fixed-id
-kind: finding
-is: Let go of updating a node in place under a fixed ID, as NUMS does for structs, interfaces, packages and function declarations. Under axiom 3 a changed composition is a new node, and the name is what moves.
-status: inferred
-conf: high
-from: 3.1.2.7 1.3
-at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.9.3
-name: log-and-continue-assertions
-kind: finding
-is: Let go of assertions that log and continue. In NUMS a failed precondition runs on into the next step, and the largest shipped sample ends in a nil dereference after 68 logged assertion lines.
-status: inferred
-conf: high
-from: 3.1.1.5
-at: 2026-11-24
-by: r1/nums-core
 
 n: 3.1.9.4
 name: auto-declare-unresolved
@@ -414,25 +301,4 @@ status: inferred
 conf: high
 from: 3.1.3.6
 at: 2026-11-24
-by: r1/nums-core
 
-n: 3.1.9.5
-name: parser-bound-core
-kind: finding
-is: Let go of Go spellings inside the core, of hand-copied grammar symbol numbers that are valid for one grammar version only, and of a tree-sitter cgo dependency in anything called a bootstrap.
-status: inferred
-conf: high
-from: 3.1.3.5 3.1.3.7
-limit: That a grammar update would re-point every handler without notice is inferred from the table being copied by hand; no such update was tried.
-at: 2026-11-24
-by: r1/nums-core
-
-n: 3.1.9.6
-name: untagged-spaces-scans-and-emit
-kind: finding
-is: Let go of two ID spaces told apart only by a host-language type, of number-to-name lookups that scan a map, and of the word emit for both directions: in NUMS the emit files build into the numeric space, and the printer back to text is in another file.
-status: inferred
-conf: mid
-from: 3.1.2.1 3.1.3.1 3.1.3.7
-at: 2026-11-24
-by: r1/nums-core

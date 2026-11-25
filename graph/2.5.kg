@@ -1,18 +1,7 @@
-# Sources of the nums-model study (hub 3.2). NUMS.Go files were read at commit 9e6bbb4; the repository itself is source 2.2.
-
 n: 2.5
 name: nums-model-sources
 kind: hub
-is: The files the nums-model study cites: its own report, the first-round critic, and 31 files of the NUMS.Go repository at commit 9e6bbb4 of 2023-04-05, most of them under http/model and http/config.
-at: 2026-11-24
-
-n: 2.5.1
-name: nums-model.md
-kind: source
-is: The round-one study report on the second generation of NUMS.Go (the http/ module), 701 lines. It holds the outputs of the builds, test runs, traces and probes the study ran in scratch copies.
-path: coherence-seed/study/r1/nums-model.md
-date: 2026-11-24
-got: 2026-11-24
+is: Sources the design and its evidence cite: nums-model-sources.
 at: 2026-11-24
 
 n: 2.5.2
@@ -33,15 +22,6 @@ rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.5.4
-name: implementation.go
-kind: source
-is: The newer model's implementation, 2,772 lines: built-in recipe templates, package and declaration construction, generic instantiation, and the stub methods.
-path: NUMS.Go/http/model/implementation.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.5.5
 name: label.go
 kind: source
@@ -56,24 +36,6 @@ name: node.go
 kind: source
 is: The old model's node methods, 1,644 lines: selector evaluation, naming rules, label resolution and pruning, result projection, sentences and scores.
 path: NUMS.Go/http/model/node.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.5.7
-name: id_scope.go
-kind: source
-is: Identifier-scope methods, 925 lines: import of Go packages, lookup through the scope chain, blueprint inference and the per-recipe summary.
-path: NUMS.Go/http/model/id_scope.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.5.8
-name: package.go
-kind: source
-is: The Go package record and its scan phases, 199 lines.
-path: NUMS.Go/http/model/package.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
@@ -186,15 +148,6 @@ rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.5.21
-name: newapi_test.go
-kind: source
-is: The two committed tests of the newer model, 71 lines; a generic snippet stands commented out at lines 45-50.
-path: NUMS.Go/http/newapi_test.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.5.22
 name: sentenseHistogram.json
 kind: source
@@ -250,48 +203,12 @@ rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.5.28
-name: debugging.go
-kind: source
-is: The assertion helpers, 18 lines: <PREFIX>_ASSERT_ and DEBUGBREAK_ write a log line, <PREFIX>_Unhandled panics.
-path: NUMS.Go/nums/debugging.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.5.29
 name: query-api-and-todo.txt
 kind: source
 is: A design note at the repository root: the span record, the planned query surface and a flat wish-list of content labels.
 path: NUMS.Go/query api and todo.txt
 rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.5.30
-name: query.go
-kind: source
-is: The query filter options and the filter predicate, 246 lines.
-path: NUMS.Go/http/model/query.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.5.31
-name: blueprint.go
-kind: source
-is: The old model's blueprint (type) kinds and the shape histogram BlueprintSize, 486 lines.
-path: NUMS.Go/http/model/blueprint.go
-rev: 9e6bbb4
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.5.32
-name: critic.md
-kind: source
-is: The completeness critique of the first study round, which re-checked four claims of the nums-model report (its rows N4, N5, N8, N9) and confirmed each.
-path: coherence-seed/study/r1/critic.md
-date: 2026-11-24
 got: 2026-11-24
 at: 2026-11-24
 
@@ -303,3 +220,4 @@ path: NUMS.Go/http/config/id-sample.txt
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
+

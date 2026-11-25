@@ -1,21 +1,8 @@
-# Sources of the study r1/web-numeric-root: prior art for one numeric node space under every language.
-
 n: 2.14
 name: numeric-root-sources
 kind: hub
-is: The sources cited by hub 4.4: the study report, two NUMS.Go files and 39 web pages on content-addressed code, label lenses, code stores shared across languages, grammars, meaning representations and three-valued logic. The study read each page through a summarising fetch tool; the wording cited was matched against each page's text on 2026-11-24. A fortieth page, the HVM1 README on branch master, was added in review and read as raw text.
+is: Sources the design and its evidence cite: numeric-root-sources.
 at: 2026-11-24
-by: r1/web-numeric-root
-
-n: 2.14.1
-name: web-numeric-root.md
-kind: source
-is: The study report, 750 lines: prior art on the programming side, the natural-language side and the absent-value lineage, fourteen recommendations, three counter-arguments, ten open questions and a source index.
-path: coherence-seed/study/r1/web-numeric-root.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.2
 name: nums_symbols.go
@@ -25,7 +12,6 @@ path: NUMS.Go/nums/nums_symbols.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.3
 name: language.go
@@ -35,7 +21,6 @@ path: NUMS.Go/http/model/language.go
 rev: 9e6bbb4
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.4
 name: unison-big-idea
@@ -44,7 +29,6 @@ is: Unison documentation page 'The big idea': definitions identified by a hash o
 url: https://www.unison-lang.org/docs/the-big-idea/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.5
 name: unison-hashes
@@ -53,7 +37,6 @@ is: Unison language reference page on hashes: what is hashed, how a hash is writ
 url: https://www.unison-lang.org/docs/language-reference/hashes/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.6
 name: unison-1-0
@@ -63,17 +46,6 @@ url: https://www.unison-lang.org/unison-1-0
 date: 2025-11
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
-
-n: 2.14.7
-name: sep-incompleteness
-kind: source
-is: Stanford Encyclopedia of Philosophy entry on the incompleteness theorems, first published 2013-11-11, substantive revision 2025-10-08.
-url: https://plato.stanford.edu/entries/goedel-incompleteness/
-date: 2025-10-08
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.8
 name: wikipedia-de-bruijn-index
@@ -82,7 +54,6 @@ is: Wikipedia article on de Bruijn indices. Undated.
 url: https://en.wikipedia.org/wiki/De_Bruijn_index
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.9
 name: locally-nameless-paper
@@ -92,7 +63,6 @@ url: https://chargueraud.org/research/2009/ln/main.pdf
 date: 2009
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.10
 name: dhall-standard-readme
@@ -101,7 +71,6 @@ is: The README of the Dhall language standard: alpha-normalisation, beta-normali
 url: https://github.com/dhall-lang/dhall-lang/blob/master/standard/README.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.11
 name: office-watch-excel-languages
@@ -111,7 +80,6 @@ url: https://office-watch.com/2026/excel-formulas-different-languages-how-it-wor
 date: 2026-05-31
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.12
 name: wikipedia-non-english-languages
@@ -120,27 +88,24 @@ is: Wikipedia article on non-English-based programming languages, with sections 
 url: https://en.wikipedia.org/wiki/Non-English-based_programming_languages
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.13
 name: wikifunctions-function-model
 kind: source
-is: The Wikifunctions function model page: ZObjects, their keys, the labelized view, the normal and canonical forms. Last edited 2026-02-25 by the study's reading.
+is: The Wikifunctions function model page: ZObjects, their keys, the labelized view, the normal and canonical forms. Last edited 2026-02-25 by the reading's reading.
 url: https://www.wikifunctions.org/wiki/Wikifunctions:Function_model
 date: 2026-02-25
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.14
 name: mps-faq
 kind: source
-is: The frequently asked questions page of the JetBrains MPS 2026.2 help, dated 2026-08-06 by the study's reading.
+is: The frequently asked questions page of the JetBrains MPS 2026.2 help, dated 2026-08-06 by the reading's reading.
 url: https://www.jetbrains.com/help/mps/mps-faq.html
 date: 2026-08-06
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.15
 name: semantic-codegen-doc
@@ -149,7 +114,6 @@ is: The CodeGen document of GitHub's semantic project: why hand-written shared s
 url: https://github.com/github/semantic/blob/main/docs/codegen.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.16
 name: semantic-repository
@@ -159,7 +123,6 @@ url: https://github.com/github/semantic
 date: 2025-04-01
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.17
 name: codeql-about
@@ -168,7 +131,6 @@ is: The CodeQL overview page 'About CodeQL'. Undated.
 url: https://codeql.github.com/docs/codeql-overview/about-codeql/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.18
 name: glean-introduction
@@ -177,7 +139,6 @@ is: The introduction page of the Glean code-indexing system's documentation. Und
 url: https://glean.software/docs/introduction/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.19
 name: mlir-rationale
@@ -186,7 +147,6 @@ is: The MLIR rationale document. Undated.
 url: https://mlir.llvm.org/docs/Rationale/Rationale/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.20
 name: k-framework-projects
@@ -195,25 +155,6 @@ is: The K framework's project list, which gives a start date for each current se
 url: https://kframework.org/projects/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
-
-n: 2.14.21
-name: wikipedia-interaction-nets
-kind: source
-is: Wikipedia article on interaction nets, with sections on interaction combinators and on the non-deterministic extension. Undated.
-url: https://en.wikipedia.org/wiki/Interaction_nets
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-numeric-root
-
-n: 2.14.22
-name: bend-repository
-kind: source
-is: The front page and README of the Bend language repository as it stood in November 2026, describing Bend 2 and its limitations. Undated.
-url: https://github.com/HigherOrderCO/Bend
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.23
 name: darklang-status-update
@@ -223,7 +164,6 @@ url: https://blog.darklang.com/an-overdue-status-update/
 date: 2024-03-12
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.24
 name: hazel-site
@@ -233,7 +173,6 @@ url: https://hazel.org/
 date: 2026-11
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.25
 name: nix-content-address
@@ -243,7 +182,6 @@ url: https://nix.dev/manual/nix/latest/store/derivation/outputs/content-address
 rev: 2.36.0
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.26
 name: gf-site
@@ -253,7 +191,6 @@ url: https://www.grammaticalframework.org/
 date: 2026-11-05
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.27
 name: gf-tutorial
@@ -262,7 +199,6 @@ is: The Grammatical Framework tutorial. Undated.
 url: https://www.grammaticalframework.org/doc/tutorial/gf-tutorial.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.28
 name: wikidata-introduction
@@ -272,7 +208,6 @@ url: https://www.wikidata.org/wiki/Wikidata:Introduction
 date: 2026-10-21
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.29
 name: wikifunctions-about
@@ -282,37 +217,33 @@ url: https://www.wikifunctions.org/wiki/Wikifunctions:About
 date: 2026-07-13
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.30
 name: wikifunctions-status-updates
 kind: source
-is: The list of Wikifunctions weekly status updates, with headlines to 2026-11-23 by the study's reading.
+is: The list of Wikifunctions weekly status updates, with headlines to 2026-11-23 by the reading's reading.
 url: https://www.wikifunctions.org/wiki/Wikifunctions:Status_updates
 date: 2026-11-23
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.31
 name: abstract-wikipedia-meta
 kind: source
-is: The Abstract Wikipedia project page on Meta-Wiki with its timeline and current status, last edited 2026-09-29 by the study's reading.
+is: The Abstract Wikipedia project page on Meta-Wiki with its timeline and current status, last edited 2026-09-29 by the reading's reading.
 url: https://meta.wikimedia.org/wiki/Abstract_Wikipedia
 date: 2026-09-29
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.32
 name: fellows-evaluation
 kind: source
-is: An evaluation of Abstract Wikipedia and Wikifunctions by a group of Google.org fellows. The study dates the writing to 2022; the page text shows only its last edit, 2026-07-24.
+is: An evaluation of Abstract Wikipedia and Wikifunctions by a group of Google.org fellows. The reading dates the writing to 2022; the page text shows only its last edit, 2026-07-24.
 url: https://meta.wikimedia.org/wiki/Abstract_Wikipedia/Google.org_Fellows_evaluation
 date: 2022
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.33
 name: abstract-wikipedia-rfc
@@ -322,7 +253,6 @@ url: https://meta.wikimedia.org/wiki/Requests_for_comment/The_future_of_Abstract
 date: 2026-07-14
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.34
 name: amr-specification
@@ -332,7 +262,6 @@ url: https://github.com/amrisi/amr-guidelines/blob/master/amr.md
 date: 2019-05-01
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.35
 name: umr-guidelines
@@ -342,7 +271,6 @@ url: https://raw.githubusercontent.com/umr4nlp/umr-guidelines/master/guidelines.
 date: 2022-08-08
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.36
 name: universal-dependencies-site
@@ -352,7 +280,6 @@ url: https://universaldependencies.org/
 date: 2026-11-15
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.37
 name: wikipedia-lojban
@@ -361,7 +288,6 @@ is: Wikipedia article on Lojban. Undated.
 url: https://en.wikipedia.org/wiki/Lojban
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.38
 name: wikipedia-natural-semantic-metalanguage
@@ -370,7 +296,6 @@ is: Wikipedia article on Natural Semantic Metalanguage. Undated.
 url: https://en.wikipedia.org/wiki/Natural_semantic_metalanguage
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.39
 name: sep-montague-semantics
@@ -380,7 +305,6 @@ url: https://plato.stanford.edu/entries/montague-semantics/
 date: 2025-02-05
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.40
 name: sep-many-valued-logic
@@ -390,7 +314,6 @@ url: https://plato.stanford.edu/entries/logic-manyvalued/
 date: 2026-09-29
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.41
 name: wikipedia-null-sql
@@ -399,7 +322,6 @@ is: Wikipedia article on the SQL null marker. Undated.
 url: https://en.wikipedia.org/wiki/Null_(SQL)
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
 n: 2.14.42
 name: cue-logic
@@ -408,14 +330,4 @@ is: The CUE documentation page 'The Logic of CUE'. Undated.
 url: https://cuelang.org/docs/concept/the-logic-of-cue/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-numeric-root
 
-n: 2.14.43
-name: hvm1-readme-master
-kind: source
-is: The README on branch master, the default branch, of the repository HigherOrderCO/HVM1, to which the address github.com/HigherOrderCO/HVM redirects; it describes the 2022 prototype. Branch main of the same repository holds the HVM2 README. Undated.
-url: https://github.com/HigherOrderCO/HVM1/blob/master/README.md
-rev: 7365a56cc
-got: 2026-11-24
-at: 2026-11-24
-by: r3/review-numeric-root

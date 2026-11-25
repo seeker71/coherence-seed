@@ -1,31 +1,8 @@
-# Sources of the semantic-machinery study (hub 4.5). Locators that begin with 'txt' are line numbers in the study's pdftotext copy of a PDF.
-
 n: 2.15
 name: semantic-machinery-sources
 kind: hub
-is: The study report on choice, objects, identity and boundaries, the first-round critique, and 31 published sources its encoded claims cite: 6 PDFs and 25 web pages and repository files. The study read the web pages through a summarising fetch; 29 of the 31 were read again while encoding, as local text copies or raw page bytes.
+is: Sources the design and its evidence cite: semantic-machinery-sources.
 at: 2026-11-24
-by: r1/web-semantics-machines
-
-n: 2.15.1
-name: web-semantics-machines.md
-kind: source
-is: The first-round study report 'Semantic machinery one grammar must carry natively', 352 lines: control, object model and generics, identity and boundaries, each with prior art, a smallest sufficient set, a cost table and proposals R1 to R22.
-path: coherence-seed/study/r1/web-semantics-machines.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-semantics-machines
-
-n: 2.15.2
-name: critic.md
-kind: source
-is: The completeness critique of the first study round, 471 lines: gaps G1 to G15, 47 spot-checks, contradictions C1 to C12 between reports, and what is ready and not ready to decide.
-path: coherence-seed/study/r1/critic.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.3
 name: wam-tutorial-copy
@@ -35,7 +12,6 @@ url: https://studfile.net/preview/429183/page:6/
 date: 1999-02-18
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.4
 name: icon-language-book
@@ -44,7 +20,6 @@ is: The Icon Programming Language, third edition, describing Icon version 9.3, a
 url: https://www2.cs.arizona.edu/icon/ftp/doc/lb1up.pdf
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.5
 name: verse-calculus-paper
@@ -54,7 +29,6 @@ url: https://simon.peytonjones.org/assets/pdfs/verse-icfp23.pdf
 date: 2023-08
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.6
 name: constraint-services-thesis
@@ -64,7 +38,6 @@ url: https://www.ps.uni-saarland.de/Publications/documents/Schulte_PHD_2000.pdf
 date: 2000
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.7
 name: mercury-determinism-manual
@@ -73,7 +46,6 @@ is: The Determinism chapter of the Mercury reference manual, the undated 'latest
 url: https://mercurylang.org/information/doc-latest/mercury_reference_manual/Determinism.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.8
 name: koka-tour
@@ -82,7 +54,6 @@ is: The source of the Koka language tour on the repository's master branch. On 2
 url: https://raw.githubusercontent.com/koka-lang/koka/master/doc/spec/tour.kk.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.9
 name: ocaml-manual-effects
@@ -91,7 +62,6 @@ is: The effect handlers chapter of the OCaml 5.3 manual.
 url: https://ocaml.org/manual/5.3/effects.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.10
 name: ocaml-effects-paper
@@ -101,7 +71,6 @@ url: https://arxiv.org/abs/2104.00250
 date: 2021-04-01
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.11
 name: wasm-stack-switching-explainer
@@ -110,7 +79,6 @@ is: The explainer of the WebAssembly stack-switching proposal (typed continuatio
 url: https://github.com/WebAssembly/stack-switching/blob/main/proposals/stack-switching/Explainer.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.12
 name: wasm-proposals-list
@@ -119,7 +87,6 @@ is: The list of WebAssembly proposals by phase. On 2026-11-24 it lists stack swi
 url: https://github.com/WebAssembly/proposals
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.13
 name: ghc-stm-docs
@@ -128,7 +95,6 @@ is: The API documentation of Control.Monad.STM in the Haskell stm package, versi
 url: https://hackage.haskell.org/package/stm/docs/Control-Monad-STM.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.14
 name: go-interfaces-article
@@ -138,7 +104,6 @@ url: https://research.swtch.com/interfaces
 date: 2009-12-01
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.15
 name: rust-trait-object-reference
@@ -147,7 +112,6 @@ is: The trait objects page of the Rust reference.
 url: https://doc.rust-lang.org/reference/types/trait-object.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.16
 name: rust-dynmetadata-docs
@@ -156,7 +120,6 @@ is: The standard-library documentation of DynMetadata, the metadata of a Rust tr
 url: https://doc.rust-lang.org/std/ptr/struct.DynMetadata.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.17
 name: swift-type-layout
@@ -165,7 +128,6 @@ is: The type layout document of the Swift ABI: existential containers, their val
 url: https://github.com/swiftlang/swift/blob/main/docs/ABI/TypeLayout.rst
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.18
 name: itanium-cxx-abi
@@ -174,7 +136,6 @@ is: The Itanium C++ ABI specification: virtual table layout, virtual table group
 url: https://itanium-cxx-abi.github.io/cxx-abi/abi.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.19
 name: traits-paper
@@ -184,7 +145,6 @@ url: https://scg.unibe.ch/archive/papers/Scha03aTraits.pdf
 date: 2003
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.20
 name: python-mro-howto
@@ -193,7 +153,6 @@ is: The Python documentation's account of the C3 method resolution order adopted
 url: https://docs.python.org/3/howto/mro.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.21
 name: eiffel-inheritance-tutorial
@@ -202,7 +161,6 @@ is: The inheritance chapter of the Eiffel tutorial: the final name rule, feature
 url: https://www.eiffel.org/doc/eiffel/ET-_Inheritance
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.22
 name: go-generics-dictionaries-design
@@ -211,7 +169,6 @@ is: The Go 1.18 design document on implementing generics by dictionaries and gcs
 url: https://go.googlesource.com/proposal/+/refs/heads/master/design/generics-implementation-dictionaries-go1.18.md
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.23
 name: go-1.27-release-notes
@@ -221,7 +178,6 @@ url: https://go.dev/doc/go1.27
 date: 2026-08
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.24
 name: unison-big-idea
@@ -230,7 +186,6 @@ is: The Unison documentation page 'The big idea': definitions identified by a ha
 url: https://www.unison-lang.org/docs/the-big-idea/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.25
 name: ipfs-merkle-dag
@@ -239,7 +194,6 @@ is: The IPFS documentation page on Merkle DAGs.
 url: https://docs.ipfs.tech/concepts/merkle-dag/
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.26
 name: unified-gc-paper
@@ -249,7 +203,6 @@ url: https://web.eecs.umich.edu/~weimerw/2012-4610/reading/bacon-garbage.pdf
 date: 2004-10
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.27
 name: perceus-publication-page
@@ -259,7 +212,6 @@ url: https://www.microsoft.com/en-us/research/publication/perceus-garbage-free-r
 date: 2021
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.28
 name: sel4-whitepaper
@@ -269,7 +221,6 @@ url: https://sel4.systems/About/seL4-whitepaper.pdf
 date: 2026-07-17
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.29
 name: pony-reference-capabilities
@@ -278,7 +229,6 @@ is: The reference capabilities chapter of the Pony tutorial.
 url: https://tutorial.ponylang.io/reference-capabilities/reference-capabilities.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.30
 name: wasi-0.3-announcement
@@ -288,7 +238,6 @@ url: https://bytecodealliance.org/articles/WASI-0.3
 date: 2026-06-11
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.31
 name: wasm-component-model-why
@@ -297,22 +246,20 @@ is: The 'why the component model' page of the WebAssembly component model docume
 url: https://component-model.bytecodealliance.org/design/why-component-model.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.32
 name: erlang-processes-reference
 kind: source
-is: The processes chapter of the Erlang reference manual, read by the study as the OTP 29.1.2 documentation.
+is: The processes chapter of the Erlang reference manual, read by the reading as the OTP 29.1.2 documentation.
 url: https://www.erlang.org/doc/system/ref_man_processes.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 2.15.33
 name: erlang-expressions-reference
 kind: source
-is: The expressions chapter of the Erlang reference manual, read by the study as the OTP 29.1.2 documentation; it covers send and receive.
+is: The expressions chapter of the Erlang reference manual, read by the reading as the OTP 29.1.2 documentation; it covers send and receive.
 url: https://www.erlang.org/doc/system/expressions.html
 got: 2026-11-24
 at: 2026-11-24
-by: r1/web-semantics-machines
+

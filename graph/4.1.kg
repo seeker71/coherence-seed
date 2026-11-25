@@ -1,68 +1,55 @@
-# What the bootstrap-language study found: C, Go, Rust, Zig and hex as the language of the first host program.
-
 n: 4.1
 name: bootstrap-language
 kind: hub
 is: C is the bootstrap language: one translation unit under about 3,000 lines, a table of C-ABI host doors and a line-count gate. On one M4 Max, MAP_JIT with a per-thread write toggle cost 21 ns a pair and ran unhardened and under the hardened runtime with allow-jit; write-then-mprotect cost 454 ns and was killed under the hardened runtime. Go held a collection 627 ms behind JIT code and paid 23.6 ns per cgo call; Rust reached 50 KB with no_std; Zig is pre-1.0; the old C seed grew to 34,149 lines.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1
 name: jit-host-rules
 kind: hub
 is: Apple silicon forbids a thread to write and execute one region at once. The documented path is MAP_JIT, a per-thread write toggle and an instruction-cache flush; a hardened-runtime build needs the allow-jit entitlement and gets one MAP_JIT region. Measured on one M4 Max: the toggle path ran in 2 of 3 signing states at 21 ns a pair, and write-then-mprotect was killed under the hardened runtime. The old body's two C carriers already use the MAP_JIT path. Windows and Linux have their own calls, read and not run.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.1
 name: apple-jit-entitlement-rules
 kind: observation
 is: Apple's porting page for JIT compilers says Apple silicon enables memory protection for all apps, hardened or not; the allow-jit entitlement is required only with the Hardened Runtime; with both, an app can create only one MAP_JIT region; sys_icache_invalidate must be called before running newly written instructions.
 status: relayed
-src: 2.11.4 2.11.1#57-64
-limit: The page carries no publication date. The first-round critic refetched it and got the same quotations, through the same summarising tool.
-see: 2.11.2#270
+src: 2.11.4
+limit: The page carries no publication date.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.2
 name: apple-allowlist-path-and-ios
 kind: observation
 is: Apple's porting page says an app with the jit-write-allowlist entitlement can no longer call pthread_jit_write_protect_np and must write through pthread_jit_write_with_callback_np, whose callbacks are declared with the C macro PTHREAD_JIT_WRITE_ALLOW_CALLBACKS_NP, one allowlist per executable. pthread_jit_write_protect_np is not available on iOS.
 status: relayed
-src: 2.11.4 2.11.1#65-69
+src: 2.11.4
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.3
 name: jit-signing-matrix
-kind: observation
+kind: finding
 is: A C test on an M4 Max. With only an ad-hoc signature, MAP_JIT with the toggle and write-then-mprotect both returned 42 and plain RWX mmap failed (Permission denied). Under the hardened runtime, MAP_JIT mmap failed (Invalid argument) without entitlement and worked with allow-jit; the mprotect path was killed by signal 9 in both cases.
-status: observed
-src: 2.11.1#84-88
+status: assumed
 limit: One run per cell on one machine under macOS 26.3.1. The kills were seen as signal 9; the kernel's stated reason was not read from the log. Plain RWX was not run under the hardened runtime.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.4
 name: jit-write-toggle-cost
-kind: observation
+kind: finding
 is: On an M4 Max, one pthread_jit_write_protect_np off-and-on pair cost 20.9 ns; one mprotect read-write to read-execute pair over a 16 KB page cost 453.7 ns, about 22 times more; an indirect call from C into JIT code and back cost 0.79 ns.
-status: observed
-src: 2.11.1#90-93
-limit: One run of a tiny program on one machine; the study calls its nanosecond figures orders of magnitude, not benchmarks.
+status: assumed
+limit: One run of a tiny program on one machine; the reading calls its nanosecond figures orders of magnitude, not benchmarks.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.5
 name: mprotect-publishing-fails-hardened
 kind: observation
 is: Wasmtime issue 11989, open when read, reports Code Signature Invalid under the hardened runtime for code written read-write and then switched to read-execute; a maintainer confirms that MAP_JIT fixes it. The workaround in use, the allow-unsigned-executable-memory entitlement, carries Apple's warning that it exposes an app to common vulnerabilities.
 status: relayed
-src: 2.11.6 2.11.5 2.11.1#75-77 2.11.1#99-103
-limit: The critic did not refetch the Wasmtime page.
+src: 2.11.6 2.11.5
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.6
 name: old-body-jit-doors
@@ -71,7 +58,6 @@ is: The old body's two C carriers use the MAP_JIT path. map_executable in membra
 status: observed
 src: 2.1.8#558-584 2.1.7#4910-4929
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.7
 name: old-body-host-reach
@@ -80,243 +66,140 @@ is: The old body reaches host libraries through the C ABI and emits its own obje
 status: observed
 src: 2.1.8#488 2.1.7#4112-4127 2.11.3#1-20
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.1.8
 name: other-hosts-executable-memory
 kind: observation
 is: Windows documents VirtualAlloc, VirtualProtect to PAGE_EXECUTE and FlushInstructionCache for generated code. Linux PR_SET_MDWE (6.3) lets a process irreversibly refuse writable-executable mappings and mappings that turn executable. A V8 blog post of 2023-10-09 calls temporary permission flipping inherently racy and turns to per-thread permissions.
 status: relayed
-src: 2.11.7 2.11.8 2.11.9 2.11.1#132-145
+src: 2.11.7 2.11.8 2.11.9
 limit: Windows and Linux hosts were read, not run. That a dual mapping of one memory object answers PR_SET_MDWE is from model memory.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.2
 name: go
 kind: hub
 is: Go builds in 0.1 s and calls JIT code at 0.79 ns, and its runtime stays in the process: a collection waited 627 ms for JIT code to return, a cgo call cost 23.6 ns, the pure-Go mprotect path was killed under the hardened runtime, and the Go team does not support JIT frames. Stacks, the internal ABI and signal handling belong to the runtime. wazero and purego show what working around the runtime takes.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.2.1
-name: go-pure-jit-measured
-kind: observation
-is: A pure Go program (cgo off, Go 1.27.2) built in 0.10 s to 2,447,186 bytes (1,604,402 stripped) and linked libSystem and libresolv. Writing arm64 words, mprotect to RX and a call through a func value returned 42 at 0.79 ns a call, against 0.76 ns for a Go-to-Go noinline call. Under the hardened runtime the same binary was killed by signal 9.
-status: observed
-src: 2.11.1#156-162
-limit: One run on one M4 Max.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.2.2
-name: cgo-call-cost
-kind: observation
-is: On Go 1.27.2 on an M4 Max, one cgo call to a trivial C function cost 23.6 ns against 0.79 ns for a direct call into JIT code, about 30 times; the build with cgo took 0.65 s against 0.10 s without.
-status: observed
-src: 2.11.1#170-172
-limit: One run on one machine.
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.2.3
 name: go-gc-waits-for-jit-code
-kind: observation
+kind: finding
 is: With the main goroutine inside a foreign arm64 loop that ran 679 ms, a runtime.GC() requested 50 ms in returned after 627 ms, the rest of the loop. With the same loop compiled by Go (777 ms) the collection returned after 0.31 ms. GOMAXPROCS was 16, Go 1.27.2, M4 Max.
-status: observed
-src: 2.11.1#179-184
+status: assumed
 limit: One run of each case.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.2.4
 name: go-jit-frames-unsupported
 kind: observation
 is: Go issue 20123 (2017-04-25) is answered 'We don't support JITed code': frames without stack maps fail the collector's stack scan with 'unexpected return pc'. A golang-dev post of 2026-04-30 cites about 43 ns for a cgo switch against a 2 ns target and proposes a foreign JIT stack-frame protocol. Go 1.26 notes cgo overhead cut by about 30%.
 status: relayed
-src: 2.11.16 2.11.17 2.11.10 2.11.1#168-169 2.11.1#173-175 2.11.1#192-194
-limit: The issue closed the day it opened, and no Go team reply to the 2026 post was visible. The critic's refetch of the issue page agreed with the study.
-see: 2.11.2#273
+src: 2.11.16 2.11.17 2.11.10
+limit: The issue closed the day it opened, and no Go team reply to the 2026 post was visible.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.2.5
 name: go-runtime-owns-stacks-abi-signals
 kind: observation
 is: Go's documents say: goroutine stacks start near 2K and grow or shrink; system stacks cannot grow; the internal ABI changes between versions and on arm64 holds the current goroutine in R28; the runtime installs its signal handlers first and foreign handlers must set SA_ONSTACK; since Go 1.23 the linker refuses linkname to unmarked runtime symbols.
 status: relayed
-src: 2.11.14 2.11.13 2.11.15 2.11.11 2.11.1#195-209
+src: 2.11.14 2.11.13 2.11.15 2.11.11
 limit: That stack growth relocates the stack is from model memory, not from a fetched page.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.2.6
 name: go-precedents
 kind: observation
 is: wazero, a WebAssembly runtime in pure Go, enters generated code through an assembler trampoline, never lets it call Go, cannot preempt it, and switches code to RX with mprotect. purego calls C without cgo, is beta, and its SyscallN miscalls functions that mix integer and float parameters. Go 1.5 removed its own C by automatic translation into Go.
 status: relayed
-src: 2.11.18 2.11.19 2.11.20 2.11.21 2.11.12 2.11.1#215-230
+src: 2.11.18 2.11.19 2.11.20 2.11.21 2.11.12
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.3
 name: rust
 kind: hub
 is: Rust reaches the Apple JIT calls through three extern "C" declarations with no crates and no hidden runtime: 455 KB with std, 50 KB with no_std, 0.09 s rebuilds, a 406 MB toolchain holding the host target only. Naked functions are stable since 1.88. Wasmtime's no_std build omits its compilers, Cranelift and Winch, which need an operating system that makes executable pages.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.3.1
 name: rust-jit-measured
-kind: observation
+kind: finding
 is: With rustc 1.99.1 and no crates, MAP_JIT, the write toggle and the icache flush through three extern "C" declarations returned 42. The build took 0.95 s first, 0.09 s after. The binary is 455,384 bytes with std and 50,128 bytes with no_std, no_main, panic=abort and -lSystem; without that link argument the link fails on _mmap.
-status: observed
-src: 2.11.1#243-249
-limit: One machine. The Rust-to-JIT call reading of 1.7 ns differs from C's 0.8 ns because of how the loop was guarded; the study draws no conclusion from it.
+status: assumed
+limit: One machine. The Rust-to-JIT call reading of 1.7 ns differs from C's 0.8 ns because of how the loop was guarded; the reading draws no conclusion from it.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.3.2
-name: rust-documented-control
-kind: observation
-is: Rust's pages say naked functions are stable since 1.88.0 of 2025-06-26, with no compiler-generated prologue or epilogue; symbol and section control comes from no_mangle, export_name and link_section; the current release on 2026-11-24 was 1.100.0 of 2026-11-12.
-status: relayed
-src: 2.11.22 2.11.23 2.11.24 2.11.1#252-258
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.3.3
 name: rust-jit-ecosystem
 kind: observation
 is: Cranelift calls itself production-ready, with four backends (x86-64, aarch64, s390x, riscv64), APIs not yet stable and a policy of requiring the latest stable Rust. Wasmtime on no_std excludes Cranelift and Winch, so no_std hosts run precompiled code only. dynasm-rs is a proc-macro assembler for x86, x64, AArch64 and RISC-V.
 status: relayed
-src: 2.11.25 2.11.26 2.11.27 2.11.1#259-267
-limit: Cranelift's cited speed figures (about 2% slower than V8 TurboFan, about 14% slower than an LLVM-based engine) come from a paper the README cites and were not refetched by the critic.
+src: 2.11.25 2.11.26 2.11.27
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4
 name: c
 kind: hub
 is: C meets every duty of the bootstrap without a layer between: the JIT test builds in 0.05 s to 34 KB, Metal answers from about 20 lines at 5.9 ns a message, and Apple clang emits freestanding objects for four foreign targets. LuaJIT, CPython's JIT, MIR, QBE and TinyCC are code generators in C; Zig bootstraps through about 4,000 lines of C; the bootstrappable chain reaches a C compiler from a 256-byte seed. The old seed's 34,149 lines show that C does not stay small unaided.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.1
 name: c-build-measured
-kind: observation
+kind: finding
 is: With Apple clang 17.0.0 on an M4 Max, cc -O2 built the C JIT test in 0.05 s to a 33,816-byte binary that links only libSystem. Compiling without linking (cc -O2 -c) took 0.19 s for the 1,199-line membrane-boot.c (0.06 s at -O0) and 5.52 s for the 34,149-line fkwu-uni.c.
-status: observed
-src: 2.11.1#284-286
-limit: One run each. The 5.52 s is compile only; the critic lists 3.6 s and 8.5 s as readings of the same seed under other conditions, the last with the full link.
-see: 2.11.2#353-356
+status: assumed
+limit: One run each.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.2
 name: metal-from-plain-c
-kind: observation
+kind: finding
 is: A plain C program of about 20 lines reaches Metal with no binding layer: dlopen of the Metal framework, MTLCreateSystemDefaultDevice and two objc_msgSend calls print 'Apple M4 Max'. One objc_msgSend property read cost 5.9 ns.
-status: observed
-src: 2.11.1#287-288
+status: assumed
 limit: One run on one machine.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.4.3
-name: cross-objects-and-toolchain-sizes
-kind: observation
-is: Apple clang emitted freestanding objects for x86_64 and aarch64 Linux (ELF) and Windows (COFF) with --target and -ffreestanding and no extra install; linking them needs a linker and system libraries the machine lacks. Pure Go cross-built for linux/arm64 and linux/amd64 unaided. On disk: Xcode 2.8 GB, Go 270 MB, Rust 406 MB, host target only.
-status: observed
-src: 2.11.1#163-164 2.11.1#248-249 2.11.1#289-292 2.11.1#396
-limit: The smaller Command Line Tools were not measured.
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.4
 name: old-seed-size
 kind: observation
 is: The old body's C seed runtime/fkwu-uni.c is 34,149 lines and its axiom-first carrier runtime/membrane-boot.c is 1,199 lines, counted with wc -l on 2026-11-24. The seed includes <sys/mman.h> when the host has it, declares pthread_jit_write_protect_np by hand, and still passes literal flag values to mmap.
 status: observed
-src: 2.1.7#1960-1963 2.1.7#4890-4918 2.1.8 2.11.1#125
-limit: The study report says the seed declares mmap by hand; that declaration stands under a guard that is off whenever the header was found, as on this Mac.
+src: 2.1.7#1960-1963 2.1.7#4890-4918 2.1.8
+limit: The reading says the seed declares mmap by hand; that declaration stands under a guard that is off whenever the header was found, as on this Mac.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.5
 name: luajit-and-cpython-jits
 kind: observation
 is: LuaJIT's machine-code allocator, in C, covers POSIX mmap, Windows VirtualAlloc, W^X toggling and a MAP_JIT path with pthread_jit_write_protect_np behind LUAJIT_ENABLE_OSX_HRT. CPython's copy-and-patch JIT (PEP 744) needs LLVM and Clang at build time and nothing at run time; in Python 3.15 it is still experimental.
 status: relayed
-src: 2.11.28 2.11.29 2.11.30 2.11.31 2.11.1#295-307
-limit: The fetch tool noted a void function returning a value in LuaJIT's hardened-runtime branch. The 3.15 speed figures (11 to 12% on AArch64 macOS, 7 to 8% on x86-64 Linux) lay beyond what the critic's refetch returned.
-see: 2.11.2#278
+src: 2.11.28 2.11.29 2.11.30 2.11.31
+limit: The fetch tool noted a void function returning a value in LuaJIT's hardened-runtime branch.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.4.6
-name: small-c-code-generators
-kind: observation
-is: The copy-and-patch paper reports code generation two orders of magnitude faster than LLVM -O0. MIR is a JIT in C whose generator is about 23.4K lines against about 2,420K for GCC, at 0.91 of gcc -O2 on 15 small benchmarks. QBE aims at 70% of industrial compilers' performance in 10% of the code. TinyCC runs C directly and has a Mach-O writer.
-status: relayed
-src: 2.11.32 2.11.33 2.11.34 2.11.35 2.11.1#308-316
-limit: TinyCC is not installed on the study machine and was not tested.
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.7
 name: zig-bootstraps-through-c
 kind: observation
 is: Since 2022-12-07 Zig commits a WebAssembly seed, zig1.wasm.zst of 637 KB compressed, and about 4,000 lines of portable C, a wasm-to-C translator, which together replaced about 80,000 lines of C++. The chain reproduces: zig3 and zig4 match byte for byte.
 status: relayed
-src: 2.11.36 2.11.1#317-321
-limit: The study's count of 22 WASI imports is not stated on the page, which lists imports numbered 0 to 22; the critic marked the count unverifiable and confirmed the other figures by a second relayed fetch.
-see: 2.11.2#271
+src: 2.11.36
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.4.8
 name: bootstrappable-chain
 kind: observation
 is: The bootstrappable-builds chain starts from a 256-byte hex0 seed and builds hex1, hex2, M0, a per-architecture cc and M2-Planet, a C subset compiler, for AMD64, x86, AArch64 and RISC-V. Mes builds TinyCC, which builds GCC 2.95, which builds GCC 4.7.4. live-bootstrap automates hex0 to a Linux system.
 status: relayed
-src: 2.11.37 2.11.38 2.11.39 2.11.40 2.11.1#322-328
+src: 2.11.37 2.11.38 2.11.39 2.11.40
 limit: The Guix full-source-bootstrap post and the GNU Mes home page refused the fetch.
 at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.5
-name: zig-and-hex
-kind: hub
-is: Zig 0.17.1 is pre-1.0 and its 0.17.0 release removed language features and changed one so that code can break without a compile error, while zig cc cross-compiles C for every target from a 51 MiB download. A hex or assembly seed is proven on Linux from 256 bytes; macOS supports no statically linked binaries, so a hex seed there would be a complete signed, dynamically linked Mach-O image.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.5.1
-name: zig-state
-kind: observation
-is: Zig's latest stable was 0.17.1 of 2026-11-02 (51 MiB, macOS aarch64). The 0.17.0 notes remove @cImport, four other features and two linkage kinds, and change @bitCast so code can break with no compile error; aarch64-macos is Tier 2, its self-hosted backend blocked on linker work. Zig builds for all its targets from any host; zig cc compiles C.
-status: relayed
-src: 2.11.41 2.11.42 2.11.43 2.11.1#346-355
-limit: Zig is not installed on the study machine; nothing about it was run. The four features are array multiplication, void{}, the errdefer capture and i0; the linkage kinds are internal and link_once.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.5.2
-name: macos-needs-dynamic-linking
-kind: observation
-is: wazero's rationale quotes Apple: 'Apple does not support statically linked binaries on Mac OS X', and says Go on darwin always uses "CGO" mechanisms in its runtime layer, whatever CGO_ENABLED is. Every binary the study measured, pure Go with cgo off included, links libSystem, and the old body's Mach-O emitter relies on ld to link and sign ad hoc.
-status: relayed
-src: 2.11.18 2.11.3#1-20 2.11.1#364-366
-at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8
 name: keep
 kind: hub
 is: Carry forward: C as a strict small subset in one translation unit under about 3,000 lines; a table of host doors with C-ABI signatures as the whole public surface; MAP_JIT, a per-thread write toggle and one reserved region from the first line; a line-count gate on the C file; replacement of the C one function at a time until the system writes its own signed image; and the conditions under which the choice of C flips.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8.1
 name: c-as-strict-small-subset
@@ -325,10 +208,8 @@ is: The bootstrap is written in a strict C99/C11 subset: one translation unit, a
 status: inferred
 conf: high
 from: 4.1.1.2 4.1.1.3 4.1.1.6 4.1.1.8 4.1.2.3 4.1.3.1 4.1.4.1 4.1.4.2 4.1.4.7
-limit: The 3,000-line target is the study's own figure; the critic records that two other first-round studies name smaller seeds. That the unit also builds with TinyCC and with zig cc is proposed as the test of the subset and was not run. That Vulkan speaks the platform C ABI is assumed; no Vulkan page was read.
-see: 2.11.2#338-342
+limit: That the unit also builds with TinyCC and with zig cc is proposed as the test of the subset and was not run. That Vulkan speaks the platform C ABI is assumed; no Vulkan page was read.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8.2
 name: host-door-table
@@ -337,9 +218,8 @@ is: The bootstrap's public surface is one table of host doors, entry points with
 status: inferred
 conf: mid
 from: 4.1.1.6 4.1.1.7 4.1.1.8 4.1.4.2
-limit: No such table was built or run in the study.
+limit: No such table was built or run in the reading.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8.3
 name: jit-contract-from-first-line
@@ -348,9 +228,8 @@ is: From its first line the bootstrap reserves one large MAP_JIT region once, wr
 status: inferred
 conf: high
 from: 4.1.1.1 4.1.1.3 4.1.1.4 4.1.1.6
-limit: Under the hardened runtime without allow-jit the measured MAP_JIT mmap failed, so the study's phrase 'working in all signing states' overstates its own table. The toggle does not exist on iOS.
+limit: Under the hardened runtime without allow-jit the measured MAP_JIT mmap failed, so the reading's phrase 'working in all signing states' overstates its own table. The toggle does not exist on iOS.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8.4
 name: line-count-gate
@@ -360,7 +239,6 @@ status: inferred
 conf: high
 from: 4.1.4.4
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
 n: 4.1.8.5
 name: replace-one-function-at-a-time
@@ -369,79 +247,6 @@ is: A small evaluator in the bootstrap runs the one grammar's own code generator
 status: inferred
 conf: mid
 from: 4.1.1.7 4.1.2.6 4.1.4.5 4.1.4.7 4.1.4.8
-limit: Not built. The study offers a copy-and-patch tier in place of the evaluator; CPython's needs LLVM and Clang at build time, which the critic notes conflicts with a minimal stored bootstrap.
-see: 2.11.2#338-342
+limit: Not built.
 at: 2026-11-24
-by: r1/web-bootstrap-language
 
-n: 4.1.8.6
-name: flip-conditions
-kind: finding
-is: The choice of C flips to Rust if the bootstrap stays above about 10,000 lines for years and parses untrusted input, or is to hold a ready-made code generator such as Cranelift; to Go for a hosted prototype whose emitted code is rare, short and never calls back; to a hex0 seed on Linux if audit from a few hundred bytes comes first.
-status: inferred
-conf: mid
-from: 4.1.2.1 4.1.2.4 4.1.3.1 4.1.3.3 4.1.4.8 4.1.5.1
-limit: The study's table has four more rows. Go is re-evaluated if its runtime supports foreign JIT frames, Zig if it reaches 1.0 with a native aarch64 backend. Two rows keep C: if Apple removes the toggle for apps without the allowlist, emission runs inside a registered callback; if iOS is a target, only interpretation or ahead-of-time images remain.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9
-name: drop
-kind: hub
-is: Let go: Go as the bootstrap, because its runtime stays in the process and emitted code cannot replace it piecewise; Rust for a few thousand lines meant to dissolve, with Cranelift as a dependency; Zig as the language while it is pre-1.0; a hand-written hex or assembly seed as the starting point; and publishing code by write-then-mprotect, plain RWX mappings, or any thread patching any code.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9.1
-name: go-as-bootstrap
-kind: finding
-is: Go is not the bootstrap language. Its runtime owns signals, stacks and the stop of all goroutines and cannot be replaced one function at a time by emitted code. A kernel that is normally inside JIT code would stall every collection or make the Go runtime part of the emitted code's calling convention.
-status: inferred
-conf: high
-from: 4.1.2.1 4.1.2.2 4.1.2.3 4.1.2.4 4.1.2.5 4.1.2.6
-limit: Go stays a fit language for a host program; NUMS.Go is a Go workspace, of which the study read the directory listing only. The measured test binary, runtime included, is 1.6 MB stripped and 2.4 MB unstripped; the runtime's own share of it was not measured.
-see: 2.2
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9.2
-name: rust-as-bootstrap
-kind: finding
-is: Rust is not the bootstrap language for a few thousand lines meant to dissolve. Its runtime control equals C's; its safety covers only the non-JIT part: writing and calling machine code is unsafe in any language. Wasmtime's no_std build omits Cranelift and Winch, which need an OS that makes executable pages: a dependency the system would not keep.
-status: inferred
-conf: mid
-from: 4.1.3.1 4.1.3.2 4.1.3.3
-limit: That Rust's own ABI is unspecified is from model memory; only extern "C" would cross. Six-week releases and a 406 MB toolchain are the standing cost the study names.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9.3
-name: zig-as-language
-kind: finding
-is: Zig is not the bootstrap language while it is pre-1.0: a language whose 0.17.0 release removed features and changed meaning without a compile error does not suit a file that must keep building for years. zig cc remains an optional tool for cross-linking the C bootstrap for Linux and Windows from the Mac.
-status: inferred
-conf: mid
-from: 4.1.5.1
-limit: Zig is not installed on the study machine; the reading rests on its pages alone. Only the 0.17.0 release notes were read, so whether every release removes features is not known.
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9.4
-name: hex-seed-as-start
-kind: finding
-is: A hand-written hex or assembly seed is not the starting point. It is proven on Linux, where a static binary may issue system calls directly; on macOS it would have to be a complete signed, dynamically linked Mach-O image, thousands of opaque bytes for each architecture and operating system.
-status: inferred
-conf: mid
-from: 4.1.4.8 4.1.5.2
-at: 2026-11-24
-by: r1/web-bootstrap-language
-
-n: 4.1.9.5
-name: write-then-mprotect-publishing
-kind: finding
-is: Three ways of publishing machine code are dropped. Writing a read-write page and switching it to read-execute with mprotect is killed under the hardened runtime. A plain RWX mapping without MAP_JIT is refused even without the hardened runtime. A design in which any thread patches any code does not fit a write permission that is per thread.
-status: inferred
-conf: high
-from: 4.1.1.1 4.1.1.2 4.1.1.3 4.1.1.5
-at: 2026-11-24
-by: r1/web-bootstrap-language

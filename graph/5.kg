@@ -488,7 +488,7 @@ is: Three rules can be checked mechanically. Only water changes in place. A node
 status: inferred
 from: 3.14.8.3 3.14.8.4 3.14.8.5 5.6.2
 conf: mid
-limit: These rules are the gap study's proposal; no source states them and nothing enforces them yet.
+limit: These rules are a proposal; no source states them and nothing enforces them yet.
 at: 2026-11-24
 
 n: 5.6.6
@@ -821,7 +821,7 @@ is: Matrix instructions and the GPU are further backends for the same lowered ke
 status: inferred
 from: 4.2.8.7 4.2.4.3 4.2.4.4 5.8.3
 conf: low
-limit: How the old body emits GPU kernels was thin in every study, and nothing here was measured.
+limit: How the old body emits GPU kernels was barely read, and nothing here is measured.
 at: 2026-11-24
 
 n: 5.10.8
@@ -904,3 +904,4 @@ status: inferred
 from: 3.12 3.13 3.4.2.7
 conf: mid
 at: 2026-11-24
+

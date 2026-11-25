@@ -1,18 +1,14 @@
-# What published systems show about choice, objects, identity and boundaries, read against the five axioms. Study: r1/web-semantics-machines.
-
 n: 4.5
 name: semantic-machinery
 kind: hub
 is: Machinery for choice, objects and identity in 31 sources, read against the five axioms. Control reduces to five parts: a result of zero, one, many or not yet; ordered choice; one choice-consuming delimiter; a store rule tied to it; one-shot suspension. Objects reduce to shape, interface, witness, a 2-word (data, witness) reference and recipes taking shapes as arguments. Identity: a hash of a name-free canonical form, counted references on an acyclic graph, capability references. 22 proposals; costs are counted from layouts, none measured.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1
 name: control
 kind: hub
 is: Nine readings of published control systems. A WAM choice point is n+7 words and backtracking copies no stack; the Verse calculus has 8 expression forms and yields zero, one or many values or gets stuck; Oz searches by copying; Mercury types determinism; OCaml 5 and WebAssembly continuations are one-shot. Five parts cover them all.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.1
 name: wam-choice-point-and-trail
@@ -22,7 +18,6 @@ status: relayed
 src: 2.15.3#pp36-41
 limit: Read through a summarising fetch of a third-party copy of the book. A direct read on 2026-11-24 confirmed the trail and the conditional-binding rule, not the frame layout. The page on cut was not fetched; cut as one register assignment is from model memory.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.2
 name: icon-bounded-expression
@@ -31,7 +26,6 @@ is: Icon evaluates by goal direction: failure makes earlier generators produce f
 status: observed
 src: 2.15.4#ch2-p18 2.15.4#ch7-pp89-90
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.3
 name: verse-zero-one-many-or-stuck
@@ -40,7 +34,6 @@ is: The Verse calculus has 8 expression forms: value, 'eq; e', exists, fail, cho
 status: observed
 src: 2.15.5#fig1 2.15.5#2.2
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.4
 name: verse-one-all-split-transactional
@@ -49,7 +42,6 @@ is: In the Verse calculus one{e} fails if e fails and otherwise returns e's firs
 status: observed
 src: 2.15.5#fig1 2.15.5#5.3 2.15.5#conclusion 2.15.5#appendix-F
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.5
 name: oz-spaces-copy-not-trail
@@ -58,7 +50,6 @@ is: Mozart/Oz computation spaces offer six operations: NewSpace, Inject, Merge, 
 status: observed
 src: 2.15.6#4.8 2.15.6#abstract
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.6
 name: mercury-determinism-categories
@@ -67,7 +58,6 @@ is: Mercury gives each mode of a predicate a determinism: det (exactly one solut
 status: observed
 src: 2.15.7
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.7
 name: koka-resume-classes
@@ -76,16 +66,14 @@ is: In Koka a 'ctl' operation yields to its innermost handler, unwinds the stack
 status: observed
 src: 2.15.8
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.8
 name: one-shot-control-substrates
 kind: observation
-is: OCaml 5 continuations must be resumed exactly once; a second use raises Continuation_already_resumed. Its effects implementation reports a mean 1% overhead on programs that use no effects. WebAssembly stack switching, at phase 3 on 2026-11-24, is also one-shot: its explainer says none of its critical use cases requires multi-shot continuations.
+is: OCaml 5 continuations must be resumed exactly once; a second use raises Continuation_already_resumed. Its effects implementation reports a mean 1% overhead on programs that use no effects.
 status: observed
 src: 2.15.9 2.15.10 2.15.11 2.15.12
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.9
 name: stm-retry-orelse
@@ -94,26 +82,22 @@ is: In GHC's software transactional memory, retry abandons the current transacti
 status: observed
 src: 2.15.13
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.1.10
 name: control-five-part-set
 kind: finding
-is: Five parts cover every control system the study read: a result that is zero, one, many or not yet; ordered choice; a delimiter that consumes choice (cut, once, if, not, every, collect-all); a store rule for abandoned branches (trail, old-value log, copy or persistent value); and suspension with resumption.
+is: Five parts cover every control system the reading read: a result that is zero, one, many or not yet; ordered choice; a delimiter that consumes choice (cut, once, if, not, every, collect-all); a store rule for abandoned branches (trail, old-value log, copy or persistent value); and suspension with resumption.
 status: inferred
 conf: mid
-src: 2.15.1#1.2
 from: 4.5.1.1 4.5.1.2 4.5.1.3 4.5.1.4 4.5.1.5 4.5.1.7 4.5.1.8 4.5.1.9
-limit: A reduction by reading; no model was run. Not every system shows all five: as encoded, the WAM node (4.5.1.1) has no suspension and the Icon node (4.5.1.2) no not-yet result. Datalog and tabling engines were not studied. The persistent-value store rule rests on sources not encoded here (microKanren, Clojure). The old-value log is credited to STM and AutoRTFM (report line 106): 4.5.1.9 records rollback and no log, and the AutoRTFM page returned HTTP 403 to the study, which saw a search summary only (line 51).
+limit: A reduction by reading; no model was run. Not every system shows all five: as encoded, the WAM node (4.5.1.1) has no suspension and the Icon node (4.5.1.2) no not-yet result. Datalog and tabling engines were not studied. The persistent-value store rule rests on sources not encoded here (microKanren, Clojure)
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2
 name: objects-and-generics
 kind: hub
 is: Six readings of object and generics layouts. A Go interface value and a Rust trait-object pointer are 2 words (data, table); the Itanium C++ ABI needs offsets, thunks, secondary tables and a table of tables because the table pointer sits inside the object; traits compose by flattening; Go generics pass a dictionary per shape. Five parts cover them.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.1
 name: go-interface-fat-pair
@@ -122,7 +106,6 @@ is: A Go interface value is two words: a pointer to an itable and a pointer to t
 status: observed
 src: 2.15.14
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.2
 name: rust-swift-witness-tables
@@ -131,7 +114,6 @@ is: A Rust trait-object pointer is a data pointer plus a vtable pointer; the vta
 status: observed
 src: 2.15.15 2.15.16 2.15.17
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.3
 name: itanium-embedded-vptr-extras
@@ -140,7 +122,6 @@ is: The Itanium C++ ABI's virtual table holds virtual call offsets, virtual base
 status: observed
 src: 2.15.18#2.5.2 2.15.18#1.1 2.15.18#2.6
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.4
 name: traits-flattening
@@ -149,7 +130,6 @@ is: In the 2003 traits paper a trait is a group of methods with no state variabl
 status: observed
 src: 2.15.19#txt94-111 2.15.19#txt375-381 2.15.19#txt478
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.5
 name: c3-and-eiffel-resolution
@@ -158,7 +138,6 @@ is: C3 linearisation computes L[C(B1..BN)] = C + merge(L[B1]..L[BN], B1..BN) and
 status: observed
 src: 2.15.20 2.15.21
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.6
 name: go-generics-dictionaries
@@ -167,7 +146,6 @@ is: Go 1.18 compiles one body of a generic function per GC shape (types with the
 status: observed
 src: 2.15.22 2.15.23
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.2.7
 name: object-five-part-set
@@ -175,18 +153,15 @@ kind: finding
 is: Five parts cover the object and generics machinery read: a shape (layout and size of a value), an interface (ordered operation signatures), a witness (the table mapping one interface onto one shape's recipes, derived and cacheable), a reference (data, witness), and a recipe that takes shapes or witnesses as ordinary arguments.
 status: inferred
 conf: mid
-src: 2.15.1#2.2
 from: 4.5.2.1 4.5.2.2 4.5.2.3 4.5.2.4 4.5.2.6
 limit: A reduction by reading. Prototype maps, inline caches, CLOS method combination and type-class implementations are outside the encoded evidence; the last two were not studied.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3
 name: identity-and-boundaries
 kind: hub
 is: Eight readings of identity, reclamation, capability and message systems. Unison names a definition by a 512-bit SHA3 hash of its name-free syntax tree; a Merkle DAG is built from the leaves; tracing and counting are duals; in seL4 (about 10 kSLOC) invoking a capability is the only way to act on an object; WASI 0.3 dates from 2026-06-11.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.1
 name: unison-content-hash
@@ -195,7 +170,6 @@ is: Unison identifies each definition by a 512-bit SHA3 hash of its syntax tree,
 status: observed
 src: 2.15.24
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.2
 name: merkle-dag-properties
@@ -204,7 +178,6 @@ is: In a Merkle DAG a node's identifier is the hash of its payload and its child
 status: observed
 src: 2.15.25
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.3
 name: gc-tracing-counting-duals
@@ -213,7 +186,6 @@ is: The 2004 paper A Unified Theory of Garbage Collection formulates tracing and
 status: observed
 src: 2.15.26#abstract
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.4
 name: perceus-reuse
@@ -223,7 +195,6 @@ status: observed
 src: 2.15.27#abstract
 limit: Abstract only; the paper body was not read.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.5
 name: sel4-capability
@@ -232,7 +203,6 @@ is: The seL4 whitepaper (revision 1.4.1, 2026-07-17) calls a capability an encap
 status: observed
 src: 2.15.28#txt170 2.15.28#txt240-250 2.15.28#txt850-860
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.6
 name: pony-reference-capabilities
@@ -241,7 +211,6 @@ is: Pony marks a reference with one of six capabilities: iso (isolated), val (va
 status: observed
 src: 2.15.29
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.7
 name: wasi-0.3-components
@@ -250,7 +219,6 @@ is: A WebAssembly component may not export a memory, so it cannot communicate th
 status: observed
 src: 2.15.30 2.15.31 2.15.12
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.3.8
 name: erlang-send-and-receive-after
@@ -258,20 +226,16 @@ kind: observation
 is: In Erlang a send to a process identifier never fails, even when the process no longer exists. 'receive' scans the queue for the first message matching a clause; 'receive ... after T' runs its timeout body when nothing matches within T milliseconds, with 0 and infinity as the two ends. Links are bidirectional, monitors one-way.
 status: relayed
 src: 2.15.32 2.15.33
-limit: The study read the two pages through a summarising fetch; a direct read on 2026-11-24 got an empty response from the site, so the wording is unconfirmed.
+limit: The reading read the two pages through a summarising fetch; a direct read on 2026-11-24 got an empty response from the site, so the wording is unconfirmed.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.4
 name: costs-are-counts-not-measurements
-kind: observation
-is: The study states its own limits: its cost tables are mostly counts of words and loads derived from published layouts, not measurements on the target hardware, and every inferred row should be measured before it decides a design. It names six papers read as abstracts only and eight sources it tried and could not read.
-status: observed
-src: 2.15.1#6 2.15.1#0
-see: 2.15.2
-limit: The six undercount: the report also cites the arXiv abstract pages of 1312.1399 (line 76), 2104.00250 (lines 79 and 137) and 2509.11901 (line 83). Two of the eight were fetched and gave nothing readable: the Koka book page (834 KB, mostly inline image data) and the Verse failure page (rendered empty). The critic adds that nothing was measured on the target machine for hashing cost per node, a content-addressed store against the present intern index, a choice-point stack against a persistent store, or dictionary passing against specialisation.
+kind: finding
+is: The reading states its own limits: its cost tables are mostly counts of words and loads derived from published layouts, not measurements on the target hardware, and every inferred row should be measured before it decides a design. It names six papers read as abstracts only and eight sources it tried and could not read.
+status: assumed
+limit: Two of the eight were fetched and gave nothing readable: the Koka book page (834 KB, mostly inline image data) and the Verse failure page (rendered empty)
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.5
 name: three-areas-share-structures
@@ -279,18 +243,15 @@ kind: finding
 is: The three areas share structures: the witness of the object model is the capability of the boundary; the allocation mark in a choice-point frame is a region; a store snapshot is an identifier; and tabling and specialisation caches are both memo tables keyed by content addresses.
 status: inferred
 conf: mid
-src: 2.15.1#4
 from: 4.5.1.10 4.5.2.7 4.5.3.1 4.5.3.5 1.3 1.4
-limit: Reasoned from the study's own three reductions; no implementation shows the four identifications holding at once.
+limit: Reasoned from the reading's own three reductions; no implementation shows the four identifications holding at once.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8
 name: keep
 kind: hub
-is: Eight proposals kept from the study's 22: acknowledgment as evaluation rule, three primitives, transactional effects, determinism on the blueprint, (data, witness) references, flattening and one generics mechanism, identity at freeze, capability references. The critic marks the meaning of fail, the object model and the node states as not ready.
+is: Eight proposals kept from the reading's 22: acknowledgment as evaluation rule, three primitives, transactional effects, determinism on the blueprint, (data, witness) references, flattening and one generics mechanism, identity at freeze, capability references.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.1
 name: ack-is-the-evaluation-rule
@@ -298,12 +259,9 @@ kind: finding
 is: Proposal: every expression yields nothing, 0, 1 or node(s) as its evaluation rule, with no booleans for control. 0, an answered no, triggers backtracking; nothing, no answer, triggers hold or timeout handling and is never read as a verdict. A timeout is the clock acknowledging nothing to a delimiter.
 status: inferred
 conf: low
-src: 2.15.1#1.4
 from: 1.1 1.5 1.7.17 1.7.19 4.5.1.2 4.5.1.3 4.5.3.8
-see: 2.15.2
-limit: Disputed inside the round: another study reads fail as the nothing arm; the old body's running offer core lowers fail to nothing while its minimal surface pops choice on ack 0; whether not-yet is a value is answered three ways. The critic lists the meaning of the four acknowledgments as not ready and as needing the owner. The node's own premise 1.7.17 reads fail as nothing: core-axioms.form lines 170-172 say 'The core had read the nothing-ground twice, and both readings were terminal: FAIL ("it did not land") and STOP'. Reading fail as 0, the trigger of backtracking, departs from that given theorem and rests on the study's reading of the Verse calculus (4.5.1.3; report lines 103 and 113).
+limit: The node's own premise 1.7.17 reads fail as nothing: core-axioms.form lines 170-172 say 'The core had read the nothing-ground twice, and both readings were terminal: FAIL ("it did not land") and STOP'
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.2
 name: three-control-primitives
@@ -311,12 +269,9 @@ kind: finding
 is: Proposal: the surface has fail, ordered choice and one choice-consuming delimiter of split shape, with one and all as its common forms; if, not, every, try and cut are sugar. Operations with handlers are the general control form, in three declared resume classes: never resumes, resumes once in tail position, may resume later or more than once.
 status: inferred
 conf: mid
-src: 2.15.1#1.4
 from: 4.5.1.3 4.5.1.4 4.5.1.7 4.5.1.10
-see: 2.15.2
-limit: The critic records three statements of the default in the round: re-entrant choice with commit, first non-absent value, and ordered choice with a consuming delimiter. Default strength and the scope of cut are listed as not ready.
+limit: Default strength and the scope of cut are listed as not ready.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.3
 name: transactional-effects-on-a-choice-stack
@@ -324,11 +279,9 @@ kind: finding
 is: Proposal: every effect inside a choice-consuming delimiter is transactional. Immutable content-addressed nodes need no undo, since restore is repointing; live mutable cells get a value trail scoped to the innermost choice point; effects that left the body are forbidden there or declare a compensating recipe. Suspension is one-shot stack switching.
 status: inferred
 conf: mid
-src: 2.15.1#1.4
 from: 4.5.1.1 4.5.1.4 4.5.1.8 4.5.1.9 1.3 1.7.8
 limit: Not run; the costs behind the choice of a choice-point stack with a value trail are counts from published layouts.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.4
 name: determinism-on-the-blueprint
@@ -336,11 +289,9 @@ kind: finding
 is: Proposal: infer a determinism per recipe on Mercury's lattice and store it on the blueprint. A det recipe compiles with no choice machinery, a semidet one as a conditional branch, and only nondet recipes touch the choice stack. Tabling keyed by recipe id and argument ids follows from content addressing and covers packrat parsing.
 status: inferred
 conf: mid
-src: 2.15.1#1.4
 from: 4.5.1.6 4.5.1.1 1.3
 limit: That packrat parsing buys linear time by memoising every (rule, position) result is from model memory; no compile was run.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.5
 name: data-witness-references
@@ -348,12 +299,10 @@ kind: finding
 is: Proposal: a reference is a (data, witness) pair and data never contains a table pointer, so the data's bytes and content address are the same through every interface. Witnesses are computed on demand and memoised by (shape id, interface id); with content addresses that cache never goes invalid. Conformance is structural and can be added later.
 status: inferred
 conf: mid
-src: 2.15.1#2.4
 from: 4.5.2.1 4.5.2.2 4.5.2.3 4.5.2.7 1.3 1.4
-see: 2.15.2 3.12.4.1 3.12.2.1 3.12.2.2
-limit: The reference pair has a record of running in 2000 (3.12.4.1: six instruction-count logs, undated and attributed to 2000, with interface casts executed 426 to 1,909 times per run) and none in the 2026 body, which uses one record with a class id (3.12.2.1, 3.12.2.2); the first-round critic (critic.md 112-122, G6) had found no running witness. The cost figures are counts, not measurements.
+see: 3.12.4.1 3.12.2.1 3.12.2.2
+limit: The cost figures are counts, not measurements.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.6
 name: flattening-and-one-generics-mechanism
@@ -361,12 +310,10 @@ kind: finding
 is: Proposal: several parents compose by flattening into a new shape with conflicts resolved in the text, with no subobjects and no pointer adjustment. Templates and generics are one mechanism: recipes that take blueprints as arguments, run by passing a dictionary or specialised into machine code cached by (recipe id, argument shape ids).
 status: inferred
 conf: low
-src: 2.15.1#2.4
 from: 4.5.2.4 4.5.2.5 4.5.2.6 4.5.2.7
-see: 2.15.2 3.12.2.4 3.12.4.4 3.12.4.5 3.12.4.8
-limit: The critic records a contradiction: another study of the round keeps multiple inheritance by delegation to shared base objects, which flattening does not provide. Flattening of a second class base is what the 2026 body does (3.12.2.4); its fixture stood under a pinned Verdict 119 at commit 1044906a5 of 2026-09-15 and was deleted by the cut of 2026-09-29 (3.12.4.4, 3.12.4.5). Delegation to separate base objects has no record of running in either era (3.12.4.8). The critic's 'No running reference exists for either' (critic.md 419-420) predates that second-round study.
+see: 3.12.2.4 3.12.4.4 3.12.4.5 3.12.4.8
+limit: Flattening of a second class base is what the 2026 body does (3.12.2.4); its fixture stood under a pinned Verdict 119 at commit 1044906a5 of 2026-09-15 and was deleted by the cut of 2026-09-29 (3.12.4.4, 3.12.4.5). Delegation to separate base objects has no record of running in either era (3.12.4.8)
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.7
 name: identity-at-freeze-counted-references
@@ -374,12 +321,11 @@ kind: finding
 is: Proposal: identity is computed only when a node freezes, as a hash of its canonical numeric form (kind number, child ids, literal bytes), names kept apart. Frozen nodes are immutable and reclaimed by precise reference counting with reuse; a Merkle DAG has no cycles, so counting finds everything unreferenced. Live nodes are addressed by location.
 status: inferred
 conf: mid
-src: 2.15.1#3.2 2.15.1#3.4 2.1.4#575 2.1.4#585
+src: 2.1.4#575 2.1.4#585
 from: 4.5.3.1 4.5.3.2 4.5.3.3 4.5.3.4 1.3 1.7.2
-see: 2.15.2 3.14 3.15.2.2
-limit: The study mapped frozen, live and transient onto ice, water and gas from two lines of the old body's AGENTS.md and marked the mapping assumed; hub 3.14 has since traced the three words to 2025-09-09 and counted 21 uses on 12 axes, with no definition by the owner. The critic finds four incompatible axes for those words in the round and no choice on whether literal values sit inside the hashed node. The study measured no hash; hub 3.15 has since measured direct SHA-256 at 16.0 ns per 40-byte digest on one Apple M4 Max, with synthetic nodes (3.15.2.2). The counting argument is the report's section 3.2 item 3 (line 275).
+see: 3.14 3.15.2.2
+limit: The reading mapped frozen, live and transient onto ice, water and gas from two lines of the old body's AGENTS.md and marked the mapping assumed; hub 3.14 has since traced the three words to 2025-09-09 and counted 21 uses on 12 axes, with no definition by the owner. The reading measured no hash; hub 3.15 has since measured direct SHA-256 at 16.0 ns per 40-byte digest on one Apple M4 Max, with synthetic nodes (3.15.2.2)
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.8.8
 name: capability-references-one-offer
@@ -387,19 +333,15 @@ kind: finding
 is: Proposal: a reference crossing a cell boundary is a capability in three modes: frozen (shared freely), unique live (moved) or opaque handle (compared and offered to, never read). A crossing outside an offered witness fails a check and leaves a record. Offer is one primitive: a direct call when det and local, else enqueue plus future.
 status: inferred
 conf: mid
-src: 2.15.1#3.4
 from: 4.5.3.5 4.5.3.6 4.5.3.7 4.5.3.8 1.4 1.5
-see: 2.15.2
-limit: The critic notes that no report of the round studied the new kernel's unit of parallelism, so the cross-cell half has no local evidence. Promise pipelining and eventual sends were recalled from model memory, not read.
+limit: Promise pipelining and eventual sends were recalled from model memory, not read.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.9
 name: drop
 kind: hub
-is: Five things the study argues against: multi-shot continuations as the base of choice; a table pointer inside the object; booleans and exception-typed timeouts as carriers of control; hashing every intermediate value at run time; ambient authority and per-cell event loops. The study has no let-go list; these come from its proposals and cautions.
+is: Five things the reading argues against: multi-shot continuations as the base of choice; a table pointer inside the object; booleans and exception-typed timeouts as carriers of control; hashing every intermediate value at run time; ambient authority and per-cell event loops. The reading has no let-go list; these come from its proposals and cautions.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.9.1
 name: multi-shot-continuations-as-choice-substrate
@@ -407,11 +349,9 @@ kind: finding
 is: Drop multi-shot continuations as the base of choice. Chronological backtracking does not need them: the WAM re-enters each alternative from saved registers and copies no stack, and OCaml 5 and WebAssembly stack switching are one-shot by design. Multi-shot is paid only where a resumption escapes as a value and is frozen into a node.
 status: inferred
 conf: mid
-src: 2.15.1#1.3
 from: 4.5.1.1 4.5.1.8
 limit: Inferred from published frame layouts and manuals; no timing compares a choice-point stack with cloned continuations on the target machine.
 at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.9.2
 name: table-pointer-inside-the-object
@@ -419,22 +359,9 @@ kind: finding
 is: Drop the table pointer inside the object and base subobjects. The offsets, thunks, secondary tables and table of tables of the Itanium C++ ABI exist because the table pointer lives in the object and each base needs its own view of 'this'; an embedded pointer would also put an address inside content that is hashed for identity.
 status: inferred
 conf: mid
-src: 2.15.1#2.2
 from: 4.5.2.3 4.5.2.1 1.3
 limit: Inferred from the ABI text and the Go layout. It covers interface inheritance; shared base state, which delegation provides, is the open half named in the keep hub.
 at: 2026-11-24
-by: r1/web-semantics-machines
-
-n: 4.5.9.3
-name: booleans-and-exception-timeouts
-kind: finding
-is: Drop booleans as the carrier of control and timeout as an exception type. Icon drives control by success and failure, not Boolean values; the Verse calculus has no True and False constructors; Erlang's 'receive ... after' delivers a timeout as one more branch of the receive.
-status: inferred
-conf: mid
-src: 2.15.1#1.4 2.15.4#intro-pxvi 2.15.5#2.5
-from: 4.5.1.2 4.5.1.3 4.5.3.8 1.1
-at: 2026-11-24
-by: r1/web-semantics-machines
 
 n: 4.5.9.4
 name: hashing-every-intermediate-value
@@ -442,19 +369,7 @@ kind: finding
 is: Drop hashing of every intermediate value at run time: a 40-byte node costs 1.2 to 2.3 ns without identity against 28.1 to 44.8 ns minted with one into a store of 16.8 million nodes. Identity is computed when a node freezes and not while it is being worked on.
 status: inferred
 conf: low
-src: 2.15.1#3.3
 from: 4.5.3.1 4.5.3.2 3.15.4.1
-limit: The study stated this as a caution (report line 294); the figures are the second-round measurement 3.15.4.1, one thread on one shared machine with synthetic nodes. 4.5.3.1 and 4.5.3.2 say nothing about run-time cost. That hash consing pays off only for immutable, frequently compared structure is the study's own inference; its encyclopedia source, not encoded here, says only that equality becomes a pointer comparison, usually with a hash table of weak references (line 242).
+limit: 4.5.3.1 and 4.5.3.2 say nothing about run-time cost. That hash consing pays off only for immutable, frequently compared structure is the reading's own inference; its encyclopedia source, not encoded here, says only that equality becomes a pointer comparison, usually with a hash table of weak references (line 242).
 at: 2026-11-24
-by: r1/web-semantics-machines
 
-n: 4.5.9.5
-name: ambient-authority-and-per-cell-event-loops
-kind: finding
-is: Drop ambient authority and per-cell event loops. A cell reaches only what it holds a reference to, as in seL4, where invoking a capability is the only way to act on an object; WASI 0.3 moved streams and futures into the boundary ABI, where under 0.2 each component needed its own event loop.
-status: inferred
-conf: mid
-src: 2.15.1#3.4
-from: 4.5.3.5 4.5.3.7 1.4
-at: 2026-11-24
-by: r1/web-semantics-machines

@@ -28,6 +28,10 @@ reading in a separate node with `status: inferred`.
   was corrected, what came before, who did which round, or a list of updates: git holds that. When
   something stops being true, change it in place or take it out. The tree always reads as if it
   had been written today on a clean sheet.
+- **Only what is needed.** The repository holds what closes the gap from the floor to the north
+  star: the code, its specifications, the design, what is open, and the evidence and sources the
+  design refers to. Notes, reports, closed questions and measurements nothing refers to are taken
+  out; `./kg release` does this for the graph.
 - **Two living pages.** `NORTH_STAR.md` is the direction. `FLOOR.md` is what stands, with the date
   it was observed; when you observe again, replace its content and its date.
 - **Follow a real flow.** Pick work that makes something run end to end and be watched through

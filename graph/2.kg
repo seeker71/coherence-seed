@@ -1,5 +1,3 @@
-# Sources. A path is written as <repository>/<path>; the repositories are named in 2.1, 2.2 and 2.3.
-
 n: 2.1
 name: old-body
 kind: source
@@ -76,14 +74,6 @@ date: 2026-11-25
 got: 2026-11-25
 at: 2026-11-25
 
-n: 2.30.12
-name: notes
-kind: source
-is: Fifty-two working notes of the sessions that built the old body, copied here on 2026-11-25 so that every claim citing one can be checked from this repository alone. They are evidence of what those sessions found, written at the dates they carry; several describe parts of the old body that no longer exist.
-path: coherence-seed/sources/notes
-got: 2026-11-25
-at: 2026-11-25
-
 n: 2.33
 name: Crypo-Coin-Coherency-Network
 kind: source
@@ -111,24 +101,6 @@ date: 2026-11-24
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.30.4
-name: node-vectors.tsv
-kind: source
-is: The conformance vectors of the node encoding: 46 nodes with their bytes and ids, 58 texts and 23 byte strings a reader must refuse, each with the refusal's word.
-path: coherence-seed/spec/node-vectors.tsv
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.30.5
-name: enc.c
-kind: source
-is: The reference reader, printer and checker of the node encoding, 279 lines of C; it runs the vector file.
-path: coherence-seed/tools/enc.c
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.30.6
 name: core-operations.md
 kind: source
@@ -141,17 +113,8 @@ at: 2026-11-24
 n: 2.30.7
 name: ck.c
 kind: source
-is: The bootstrap: C99 in one file with the layout header fb.h, built by the Makefile, which fails the build when the two pass 2,000 lines together. Rewritten on 2026-11-25 so that all of its memory is the framebuffer.
+is: The bootstrap: C99 in one file with the layout header fb.h, built by the Makefile, which fails the build when the two pass 2,000 lines together. All of its memory is the framebuffer.
 path: coherence-seed/bootstrap/ck.c
-date: 2026-11-25
-got: 2026-11-25
-at: 2026-11-25
-
-n: 2.30.8
-name: ground-programs
-kind: source
-is: Fourteen programs in the canonical print with their expected outcomes in expect.tsv: the three ground programs of the old body, ten witnesses of choice, cut, need, an exhausted choice, range, fault, recover and native code, and a long recursion of 158.6 million walker steps for watching a run.
-path: coherence-seed/ground
 date: 2026-11-25
 got: 2026-11-25
 at: 2026-11-25
@@ -239,15 +202,6 @@ rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.1.12
-name: local-agent-goal.form
-kind: source
-is: The old body's goal file, which records the C seed's line count over time.
-path: coherence-kernel/docs/local-agent-goal.form
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.1.13
 name: offer-ack-core.fk
 kind: source
@@ -297,74 +251,3 @@ date: 2000
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.31
-name: study-reports
-kind: source
-is: The full reports of the study rounds of 2026-11-24, kept under study/. Each holds more detail and more citations than the nodes drawn from it.
-path: coherence-seed/study
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24
-name: study-round-three
-kind: source
-is: The six reports of the third study round, on a model reading and choosing nodes inline.
-path: coherence-seed/study/r3
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.1
-name: model-lane-executor.md
-kind: source
-is: The old body's decode step as built, with a computed budget for one step.
-path: coherence-seed/study/r3/model-lane-executor.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.2
-name: model-lane-learning.md
-kind: source
-is: How the old body attaches capability to its model and what the text route cost.
-path: coherence-seed/study/r3/model-lane-learning.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.3
-name: web-node-tokens.md
-kind: source
-is: Published mechanisms for emitting or consuming something other than a vocabulary token in one pass.
-path: coherence-seed/study/r3/web-node-tokens.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.4
-name: web-adapters-steering.md
-kind: source
-is: Published ways to extend a frozen model at run time, with per-step cost arithmetic.
-path: coherence-seed/study/r3/web-adapters-steering.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.5
-name: web-structured-embeddings.md
-kind: source
-is: How a node gets a vector and how a hidden state finds a node, with scan timings on the first machine.
-path: coherence-seed/study/r3/web-structured-embeddings.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.24.6
-name: web-metal-execution.md
-kind: source
-is: A cost model for a decode step on Apple silicon, with a probe run on the first machine.
-path: coherence-seed/study/r3/web-metal-execution.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24

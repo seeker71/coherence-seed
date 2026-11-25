@@ -1,5 +1,3 @@
-# A model on Metal reading, choosing and creating nodes inline. Facts relayed from the six reports under study/r3.
-
 n: 3.16
 name: model-and-substrate
 kind: hub
@@ -8,21 +6,17 @@ at: 2026-11-24
 
 n: 3.16.1
 name: decode-step-as-built
-kind: observation
+kind: finding
 is: The old body runs a 27B model (64 layers, width 5,120, vocabulary 248,320, 27 GiB at 8 bits) wholly on the GPU: 1,269 dispatches a token in 32 command buffers with one wait at a 4-byte read of the chosen id. Best recorded decode is 63 ms a token.
-status: relayed
-src: 2.24.1
+status: assumed
 limit: The 63 ms figure is from a note of 2026-10-07; readings move 2 to 4 times with machine state and no split of the step by phase was recorded.
-by: r3/model-lane-executor
 at: 2026-11-24
 
 n: 3.16.2
 name: step-is-bound-by-bytes
-kind: observation
+kind: finding
 is: A decode step reads about 27 GB of weights at about 432 GB/s, 79 percent of the chip's stated memory rate. A line through llama.cpp's published M4 Max figures gives step time of 4.3 ms plus 2.03 ms per GB of weights. What a step can also carry is priced first in bytes read.
-status: relayed
-src: 2.24.1 2.24.6
-by: r3/web-metal-execution
+status: assumed
 at: 2026-11-24
 
 n: 3.16.3
@@ -33,141 +27,111 @@ status: inferred
 from: 3.16.1 3.16.2
 conf: mid
 limit: Arithmetic over the model's shapes, not a measurement of a head with extra rows.
-by: r3/model-lane-executor
 at: 2026-11-24
 
 n: 3.16.4
 name: exact-scan-measured
-kind: observation
+kind: finding
 is: Measured on the first machine with a hand-written Metal kernel: an exact scan of one million vectors of width 256 to 512 takes 2.5 to 2.9 ms; ten million fit the same time at width 64; a billion cannot be scanned inside a step. The vendor's generic matrix call took 47 ms for the same million-row query.
-status: relayed
-src: 2.24.5
+status: assumed
 limit: A shared, noisy machine; minimums; one query shape.
-by: r3/web-structured-embeddings
 at: 2026-11-24
 
 n: 3.16.5
 name: small-work-is-latency-bound
-kind: observation
+kind: finding
 is: Measured on the first machine: a wait for the GPU costs 61 to 77 microseconds at best and up to 3 ms under contention; a GPU thread has a floor of about 130 microseconds whatever the size of small work. A rank-16 update on 128 matrices is 42 MB, 0.1 to 0.2 ms if fused into existing kernels and 5 to 33 ms as 256 separate dispatches.
-status: relayed
-src: 2.24.6
-by: r3/web-metal-execution
+status: assumed
 at: 2026-11-24
 
 n: 3.16.6
 name: text-route-cost
-kind: observation
+kind: finding
 is: The old body's model reaches nodes only by spelling text: about 15 tokens of envelope per call, 54 tokens for an average tool call (3.6 s of decode), a node addressed by spelling its four numbers. There is no mask over the logits. Recorded: 33 of 94 controls refused, 29 of them for unknown names; 181 forged observations in 388 streams.
-status: relayed
-src: 2.24.2
-by: r3/model-lane-learning
+status: assumed
 at: 2026-11-24
 
 n: 3.16.7
 name: reserved-row-prototype
-kind: observation
+kind: finding
 is: On 2026-10-02 a rank-one overlay on the output head, two vectors of width 5,120 fitted in closed form in 327 s with no gradient trainer, made the frozen 27B emit a reserved id at 11 of 12 control sites with none wrong. The model file has 243 unused rows in both tables. The overlay was recorded and never used in a live lane.
-status: relayed
-src: 2.24.2
-by: r3/model-lane-learning
+status: assumed
 at: 2026-11-24
 
 n: 3.16.8
 name: last-block-adapter-effect
-kind: observation
+kind: finding
 is: The old body's adapter on the 27B is one rank-8 pair on the last block, 721,096 bytes, costing 1.003 times a bare step. Its measured effect was within the band of a permuted pair with no learned direction. A role prompt alone moved 116 to 209 of 225 predicates. Adapters on earlier layers were not tried because the backward pass through the recurrent layers is unwritten.
-status: relayed
-src: 2.24.2
-by: r3/model-lane-learning
+status: assumed
 at: 2026-11-24
 
 n: 3.16.9
 name: appended-rows-work
-kind: observation
+kind: finding
 is: Published results on frozen models: rows appended to the output head choose among tools after minutes of training (ToolkenGPT), and among 1,000 procedures at 94.7 to 97.5 percent with no forgetting when rows are renormalised (TokMem). A row trained per item cannot be chosen before it is trained: 0.0 percent on 837 unseen tools against 33.7 percent top-5 for rows computed from descriptions by the same frozen model.
-status: relayed
-src: 2.24.3
-by: r3/web-node-tokens
+status: assumed
 at: 2026-11-24
 
 n: 3.16.10
 name: hash-is-a-poor-target
-kind: observation
-is: Published results: a model generating random ids scores far below learned ids (0.0296 against 0.0454 recall at 5), and an id of several digits costs one pass of the model per digit (400 ms against 20 ms when the id became one step). Generating ids from weights lost to a plain two-encoder search at 8.8 million items.
-status: relayed
-src: 2.24.3
-by: r3/web-node-tokens
+kind: finding
+is: Published results: a model generating random ids scores far below learned ids (0.0296 against 0.0454 recall at 5), and an id of several digits costs one pass of the model per digit (400 ms against 20 ms when the id became one step)
+status: assumed
 at: 2026-11-24
 
 n: 3.16.11
 name: node-as-one-input
-kind: observation
+kind: finding
 is: Published result (xRAG): a document's frozen embedding passed through a two-layer projector into one input position recovers 42.46 against 43.63 for 175 tokens of the text, and loses on questions that need several hops. Feeding raw hidden states back as inputs gave little (42.2 to 43.6 percent).
-status: relayed
-src: 2.24.3 2.24.5
-by: r3/web-structured-embeddings
+status: assumed
 at: 2026-11-24
 
 n: 3.16.12
 name: masks-are-cheap
-kind: observation
+kind: finding
 is: Published results: a grammar mask over 128,000 candidates costs under 50 microseconds on the CPU and overlaps the GPU's work; a mask from a trie of valid names took invented tools from about 7 percent to none.
-status: relayed
-src: 2.24.3
-by: r3/web-node-tokens
+status: assumed
 at: 2026-11-24
 
 n: 3.16.13
 name: capability-units
-kind: observation
+kind: finding
 is: Published capability units for a frozen model come in eight shapes: low-rank matrix pair, per-channel scale, residual vector, positional low-rank edit, dictionary feature, key-value row at a layer, cached attention state, and a mix of two logit rows. By arithmetic over the 27B's shapes nearly all cost under 3 percent of a step unmerged; published 2.5 times slowdowns come from many small kernel launches.
-status: relayed
-src: 2.24.4
-by: r3/web-adapters-steering
+status: assumed
 at: 2026-11-24
 
 n: 3.16.14
 name: what-is-created-in-one-step
-kind: observation
+kind: finding
 is: A unit can be made inside a step when its content is an activation the pass already produced: a steering vector, a key, a node's output row, a cached attention block. A matrix pair needs gradient steps, or a trained generator (0.209 s per document on a 2B model after about five days of training per base model).
-status: relayed
-src: 2.24.4
-by: r3/web-adapters-steering
+status: assumed
 at: 2026-11-24
 
 n: 3.16.15
 name: composition-is-the-weak-point
-kind: observation
+kind: finding
 is: Published results: summed adapters lose identity, edits made in place collapse after 100 to 4,000 edits, steering has a narrow usable range, dictionary feature indices are about 30 percent stable across seeds. What holds: units kept beside the weights and routed (0.83 at 1,000 edits where in-place editing gives 0.01), and adapting only positions after an invocation point so the cached prefix stays valid (up to 35 times faster for many variants).
-status: relayed
-src: 2.24.4
-by: r3/web-adapters-steering
+status: assumed
 at: 2026-11-24
 
 n: 3.16.16
 name: branches-share-a-pass
-kind: observation
+kind: finding
 is: A second sequence in the same pass over the weights cost 68 ms against 67 for one in the old body, and 8 rows cost 1.46 times one; published figures for dense models are 1.18 to 1.33 times at two branches. A known prefix restored from a snapshot cost 184 ms where recomputing cost 19.5 s.
-status: relayed
-src: 2.24.2 2.24.6
-by: r3/web-metal-execution
+status: assumed
 at: 2026-11-24
 
 n: 3.16.17
 name: dreaming-evidence
-kind: observation
+kind: finding
 is: Published results: self-generated data helps when it is distilled into a new side unit that a check on real data accepts, and collapses when it replaces real data or edits the base in place.
-status: relayed
-src: 2.24.4
-by: r3/web-adapters-steering
+status: assumed
 at: 2026-11-24
 
 n: 3.16.18
 name: vector-capacity
-kind: observation
+kind: finding
 is: A probe on the first machine put the capacity of one vector for exactly recoverable role and filler pairs at about its width divided by 64: 4 pairs at width 256, 64 at width 4,096.
-status: relayed
-src: 2.24.5
-by: r3/web-structured-embeddings
+status: assumed
 at: 2026-11-24
+

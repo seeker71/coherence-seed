@@ -1,18 +1,7 @@
-# Sources of the host-language-grammars study (hub 3.11). Old-body files were read at commit b8ff978c9; files removed by the cut of 2026-09-29 were read from the tree one commit before 115fea55e. Line ranges sit in the citing claim.
-
 n: 2.19
 name: host-language-grammars-sources
 kind: hub
-is: The primary sources behind hub 3.11: the study report on the old body's host-language grammars; the five host-language rule files, the two rule engines and the files around them at commit b8ff978c9; six files the cut of 2026-09-29 removed, read from the tree one commit before it; two NUMS.Go configuration files; two first-round reports on NUMS.Go; and four web pages on grammars that both parse and print.
-at: 2026-11-24
-
-n: 2.19.1
-name: gap-host-language-grammars.md
-kind: source
-is: The study report of round 2 on gap G4, 643 lines: what the five host-language rule files read and write back, how a rule is held as data, whether two languages reach one node, the cost per language, and a C probe of one rule set that reads and prints.
-path: coherence-seed/study/r2/gap-host-language-grammars.md
-date: 2026-11-24
-got: 2026-11-24
+is: Sources the design and its evidence cite: host-language-grammars-sources.
 at: 2026-11-24
 
 n: 2.19.2
@@ -30,26 +19,6 @@ name: rust-bmf.fk
 kind: source
 is: The old body's Rust rule file, 114 lines and 12,019 bytes: 20 rules on lines 84 to 103, 10 of them with a reverse.
 path: coherence-kernel/form/form-stdlib/grammars/rust-bmf.fk
-rev: b8ff978c9
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.4
-name: typescript-bmf.fk
-kind: source
-is: The old body's TypeScript rule file, 252 lines and 26,809 bytes: 33 rules on lines 195 to 227 and a token scanner.
-path: coherence-kernel/form/form-stdlib/grammars/typescript-bmf.fk
-rev: b8ff978c9
-date: 2026-10-03
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.5
-name: prolog-bmf.fk
-kind: source
-is: The old body's Prolog rule file, 135 lines and 12,786 bytes: 15 rules on lines 110 to 124.
-path: coherence-kernel/form/form-stdlib/grammars/prolog-bmf.fk
 rev: b8ff978c9
 date: 2026-10-03
 got: 2026-11-24
@@ -201,24 +170,6 @@ rev: 115fea55e^
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.19.21
-name: converge.fk-before-cut
-kind: source
-is: The program of the sample folder named 02-cross-language-content-addressing, removed by commit 115fea55e of 2026-09-29 and read from the tree one commit before it.
-path: coherence-kernel/form/form-samples/cross-modal/02-cross-language-content-addressing/converge.fk
-rev: 115fea55e^
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.22
-name: cross-language-sample-README-before-cut
-kind: source
-is: The README of the sample folder named 02-cross-language-content-addressing, with a section on what is not reachable; removed by commit 115fea55e and read from the tree one commit before it.
-path: coherence-kernel/form/form-samples/cross-modal/02-cross-language-content-addressing/README.md
-rev: 115fea55e^
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.19.23
 name: ontology-band-triage-receipt-before-cut
 kind: source
@@ -258,44 +209,3 @@ date: 2010-09-30
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.19.27
-name: bnfc-home
-kind: source
-is: The home page of the BNF Converter, a generator of abstract syntax, lexer, parser and printer from one labelled grammar.
-url: https://bnfc.digitalgrammars.com/
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.28
-name: bnfc-lbnf-reference
-kind: source
-is: The reference page of LBNF, the labelled grammar notation the BNF Converter reads.
-url: https://bnfc.readthedocs.io/en/latest/lbnf.html
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.29
-name: spoofax-sdf3-templates
-kind: source
-is: The Spoofax reference page on SDF3 template productions, which carry layout for the generated printer.
-url: https://spoofax.dev/references/sdf3/templates/
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.30
-name: nums-core.md
-kind: source
-is: The first-round study report on the NUMS.Go core package, which the host-language study cites for the NUMS front end, catalogue, name tables and printer.
-path: coherence-seed/study/r1/nums-core.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.19.31
-name: nums-model.md
-kind: source
-is: The first-round study report on the second NUMS.Go design, which the host-language study cites for the label hierarchy and the per-language tables.
-path: coherence-seed/study/r1/nums-model.md
-date: 2026-11-24
-got: 2026-11-24
-at: 2026-11-24

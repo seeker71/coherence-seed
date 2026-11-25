@@ -15,13 +15,13 @@ at: 2026-11-24
 n: 2
 name: sources
 kind: hub
-is: Every file, repository, paper and page a claim cites, each with its own date, the revision read and the day it was read.
+is: Every file, repository, paper and page a kept claim cites, each with its own date, the revision read and the day it was read.
 at: 2026-11-24
 
 n: 3
 name: references-read
 kind: hub
-is: What the working references are when read and run: NUMS.Go, Form, BML in 2000 and in 2026, the fkwu runtime and its in-language emitter, the old body's lessons, and its earlier restarts.
+is: What the references are when read and run, as far as the design refers to them: NUMS.Go, Form, BML in 2000 and in 2026, and an earlier kernel with its runtime, its emitter and its lessons.
 at: 2026-11-24
 
 n: 4
@@ -59,3 +59,4 @@ name: reviews
 kind: hub
 is: Independent readings of single claims against their sources. A review names the digest of the wording it confirms; one that no longer matches its claim is released.
 at: 2026-11-25
+

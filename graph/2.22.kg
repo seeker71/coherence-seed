@@ -1,18 +1,7 @@
-# Sources of the ice-water-gas origin study (hub 3.14). Commit messages are cited on the repository node as '#commit-<hash>'; line ranges sit in the citing claim.
-
 n: 2.22
 name: ice-water-gas-origin-sources
 kind: hub
-is: The primary sources behind hub 3.14: the study report; the Living Codex repository of 2025 with its first spec, phase engine, phase module, registry, tests and audit module; one spec of a sibling repository of 2026-02; eight files of the parent repository that define or bind the three words; twelve files of the old body that use them; and one private memory note. Commit messages of the old body and the parent repository are cited on 2.1 and 2.3.
-at: 2026-11-24
-
-n: 2.22.1
-name: gap-ice-water-gas-origin.md
-kind: source
-is: The study report on the origin and definitions of ice, water and gas, 334 lines: a table of 22 uses, the owner's statements in date order, the conflicts, a proposed single definition and eight open questions.
-path: coherence-seed/study/r2/gap-ice-water-gas-origin.md
-date: 2026-11-24
-got: 2026-11-24
+is: Sources the design and its evidence cite: ice-water-gas-origin-sources.
 at: 2026-11-24
 
 n: 2.22.2
@@ -31,16 +20,6 @@ name: FRACTAL_UNFOLDING_SPEC.md
 kind: source
 is: The spec shipped in the first commit of the Living Codex, read at that commit. It defines ice, water and gas in one line and names melt, refreeze and hydrate. The file is absent from the working tree at the repository head.
 path: Living-Codex-CSharp/FRACTAL_UNFOLDING_SPEC.md
-rev: 5fc24ba
-date: 2025-09-09
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.4
-name: Phase.cs
-kind: source
-is: The PhaseEngine of the Living Codex with its Melt and Refreeze methods, cited at the first commit. The copy at the repository head is 32 lines and carries the same two methods at lines 7-13.
-path: Living-Codex-CSharp/src/CodexBootstrap/Runtime/Phase.cs
 rev: 5fc24ba
 date: 2025-09-09
 got: 2026-11-24
@@ -119,15 +98,6 @@ date: 2026-02-12
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.22.13
-name: nums-go-2023-README.md
-kind: source
-is: The README of the parent repository's earlier study of NUMS.Go, 194 lines; its phase column and transition table were written by commit 02dd37592 on 2026-05-08.
-path: Coherence-Network/docs/field/urs/artifacts/nums-go-2023/README.md
-rev: 7eecf4da5
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.22.14
 name: graph.py
 kind: source
@@ -182,15 +152,6 @@ rev: 7eecf4da5
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.22.20
-name: coherence-substrate-INDEX.md
-kind: source
-is: The index page of the parent repository's substrate documents, 416 lines.
-path: Coherence-Network/docs/coherence-substrate/INDEX.md
-rev: 7eecf4da5
-got: 2026-11-24
-at: 2026-11-24
-
 n: 2.22.21
 name: host-kernel.form
 kind: source
@@ -236,73 +197,3 @@ rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
 
-n: 2.22.26
-name: living-equation.fk
-kind: source
-is: A grammar file of the old body, 118 lines, whose header binds Blueprint to ice, Recipe to water and NamedCell to gas.
-path: coherence-kernel/form/form-stdlib/grammars/living-equation.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.27
-name: source-resonance-stream.fk
-kind: source
-is: The old body's file that adds plasma as a fourth phase with its own read and invite functions, 150 lines; first seen at commit a25a7cbf2 on 2026-08-14.
-path: coherence-kernel/form/form-stdlib/source-resonance-stream.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.28
-name: resident-async-ingress.fk
-kind: source
-is: The old body's resident ingress channels, 317 lines, with a projection of a channel's fill level onto the three phase values.
-path: coherence-kernel/form/form-stdlib/resident-async-ingress.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.29
-name: channel-flow.fk
-kind: source
-is: The old body's channel-flow model, 123 lines, which labels each of seven layers with a phase string and codes gas 1, water 2, ice 3.
-path: coherence-kernel/form/form-stdlib/channel-flow.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.30
-name: form-lift.fk
-kind: source
-is: The grammar of the old body's lift dialect, 112 lines, with the literals ice, liquid and compost.
-path: coherence-kernel/form/form-stdlib/grammars/form-lift.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.31
-name: form-glass-live.bml
-kind: source
-is: The old body's live observation surface, 1,423 lines, with a classifier from a resource's lifecycle word to a phase index.
-path: coherence-kernel/form/form-stdlib/form-glass-live.bml
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.32
-name: nl-translate.fk
-kind: source
-is: The old body's neutral-lexicon translator, 70 lines, whose seed rows carry a phase column.
-path: coherence-kernel/form/form-stdlib/nl-translate.fk
-rev: b8ff978c9
-got: 2026-11-24
-at: 2026-11-24
-
-n: 2.22.33
-name: project-per-recipe-jit-slice.md
-kind: source
-is: A private memory note on the per-recipe JIT, which records a direction of 2026-09-01 on where compiled pages live.
-path: coherence-seed/sources/notes/project-per-recipe-jit-slice.md
-got: 2026-11-24
-at: 2026-11-24
