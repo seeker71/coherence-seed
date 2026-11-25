@@ -831,6 +831,12 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }
       if (!geti(a[0], &m) || !geti(a[1], &n)) { fault("kind"); break; }
       if (op == LT) { W->v = m < n ? E(YES) : E(NO); break; }
+      if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
+        if (m >= n) { W->mode = M_FAILED; break; }
+        if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
+          cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), f.node, 3, f.node, mki(m + 1), f.env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail }; ncp++; }
+        W->v = a[0]; break;
+      }
       if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
         if (!n) { W->v = 0; W->reason = txt("zero"); break; }
         if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); break; }
@@ -847,6 +853,11 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
     while (ntrail > q->mtrail) { ntrail--; held[trail[ntrail].key] = trail[ntrail].old; } /* and cells hold what they held */
+    if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
+      int64_t m = 0, n = 0; geti((H)q->i, &m); geti((H)q->coll, &n);
+      W->v = (H)q->i; if (m + 1 < n) q->i = mki(m + 1); else ncp--;
+      W->mode = M_RET; break;
+    }
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
       ncp--; W->v = q->coll ? q->coll : seen_as("nothing", W->reason ? W->reason : txt("no-path"));
       W->reason = 0; W->mode = M_RET; break;

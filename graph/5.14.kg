@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 53 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 54 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 98 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 99 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 53.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 54.
 at: 2026-11-25
 
 n: 5.14.2
@@ -450,4 +450,16 @@ conf: mid
 why: 5.9.3 asks for a fault handler. Trying machine code and host functions while a system runs is only safe if getting one wrong costs a fault and not the process.
 flip: 5.9.3 says the handler records and does not resume; this one resumes the walker, which it can because the walker keeps no state outside the region. What a host function changed before it faulted stays changed.
 limit: Saving the return point once per run and a mark around each call of code; the mark costs the per-node code step about a seventh of its speed.
+at: 2026-11-25
+
+n: 5.14.42
+name: counting-is-a-choice-that-counts
+kind: decision
+is: Entry 99, range, answers the integers from a up to b one at a time: one choice point that holds the next integer instead of a list of options, re-entered by a fail like any choice and closed by a cut. It keeps no activation, so going through a list or a leaf by index needs no recursion. Observed on 2026-11-25: three million integers gathered in 0.09 s with one activation in use; with the lens, the ice and the region programs counting this way the lens's round trip of 70 files takes 0.24 s where it took 0.29 s.
+status: inferred
+from: 5.4.7 5.14.6 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: Every loop over indices was a recipe calling itself, one activation and one choice point a round, and a loop that does not return keeps them all.
+limit: Other loops are still recursions, and a recursion that never returns still keeps an activation for every round.
 at: 2026-11-25

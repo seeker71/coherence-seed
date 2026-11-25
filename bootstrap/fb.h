@@ -7,7 +7,7 @@
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
-#define SEEDED 99u
+#define SEEDED 100u
 enum {
 BYTES = 1, TEXT = 2, NAT = 3, INT = 4, U8 = 5, U16 = 6, U32 = 7,
 U64 = 8, I8 = 9, I16 = 10, I32 = 11, I64 = 12, F32 = 13, F64 = 14, LIST = 16, NO = 32, YES = 33, QUOTE = 34, ARG = 35, RECIPE = 36, CALL = 37, SELF = 38, SEQ = 39,
@@ -18,7 +18,7 @@ BLUEPRINT = 64, COUNT = 65, CHILD = 66, BYTE = 67, LEAF = 68, PACK = 69, JOIN = 
 BINDING = 72, UP = 73, BASE = 74, LAZY = 75, READ = 76, PRINT = 77, ID = 78, FILE_OP = 79,
 CLOCK = 80, STEP = 81, OUTCOME = 82, DIV = 83, MOD = 84, FAULT = 85, LAYER = 86, ENCODE = 87,
 DECODE = 88, HOLD = 89, HELD = 90, TRAIL = 91, NOTE = 92, UNBIND = 93, PEEK = 94, HANDLE = 95,
-AT = 96, LOOK = 97, HOST = 98, LAST = 98 };
+AT = 96, LOOK = 97, HOST = 98, RANGE = 99, LAST = 99 };
 #define FB_ENTRY_NAMES \
 [0] = "root", [1] = "bytes", [2] = "text", [3] = "nat", [4] = "int", [5] = "u8", \
 [6] = "u16", [7] = "u32", [8] = "u64", [9] = "i8", [10] = "i16", [11] = "i32", \
@@ -33,7 +33,7 @@ AT = 96, LOOK = 97, HOST = 98, LAST = 98 };
 [78] = "id", [79] = "file", [80] = "clock", [81] = "step", [82] = "outcome", [83] = "div", \
 [84] = "mod", [85] = "fault", [86] = "layer", [87] = "encode", [88] = "decode", [89] = "hold", \
 [90] = "held", [91] = "trail", [92] = "note", [93] = "unbind", [94] = "peek", [95] = "handle", \
-[96] = "at", [97] = "look", [98] = "host", 
+[96] = "at", [97] = "look", [98] = "host", [99] = "range", 
 enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", 
 enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUTCOME, F_LAYER, F_COUNT };

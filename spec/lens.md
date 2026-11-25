@@ -98,7 +98,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
   words; since then its source is its own showing, and the rows and their matcher were written in
   it.
 - `ground/lens-round-trip.ck`, written in the lens, raises, shows, reads and lowers every file of
-  nodes in the repository: 69 files, none differs, in 0.2 s.
+  nodes in the repository: 70 files, none differs, in 0.2 s.
 
 ## Limits
 

@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 68 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 69 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 97 read a region, 98 calls the host, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 97 read a region, 98 calls the host, 99 counts, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -392,6 +392,11 @@ until a new choice is tried.
 Read with these: `if c then a else b` is `(choice (seq (cut (need c)) a) b)`, and "the first
 answer only" is `(choice (cut x))`.
 
+
+`(range a b)`, entry 99, is a choice whose options are the integers from a up to b: it answers
+a, and each fail that returns to it gives the next, until the one before b. It keeps one choice
+point and no activation however long it runs, so counting through a list or a leaf, the
+commonest loop, is `(child x (range 0 (count x)))` and no recursion.
 ## Arithmetic
 
 `add`, `sub`, `mul` and `lt` take `int` leaves. The floor computes in 64 bits. A result outside
@@ -442,8 +447,8 @@ fault of the processor anywhere else, in the bootstrap's own code, ends the proc
   seven arguments.
 - Programs are written in words through the first lens (`spec/lens.md`), which is words and
   leaves only. There is no operation on the bits of a number.
-- A recursion that never returns keeps an activation for every round until it does: a loop is
-  bounded by the activations area.
+- A recursion that never returns keeps an activation for every round until it does, so a loop
+  written as a recursion is bounded by the activations area. Counting with `range` is not.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
