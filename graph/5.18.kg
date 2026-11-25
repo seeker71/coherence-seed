@@ -3,25 +3,25 @@
 n: 5.18
 name: the-emitter
 kind: hub
-is: The emitter written in form: a module of named definitions that compiles definitions over numbers, with what they call, to one machine-code leaf. Its code answers a number or declines, is held to the walker's outcome by a program, and for an entry is a faster form of the entry's own binding.
+is: The emitter written in form: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf. Its code answers a number or a node, or declines, is held to the walker's outcome by two programs, and for an entry is a faster form of the entry's own binding.
 at: 2026-11-26
 
 n: 5.18.1
 name: an-emitter-in-form
 kind: decision
-is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, bound to the recipe or to the entry asked for. It knows numbers: any int leaf, arguments, let, the five operations, tests of lt and eq joined by if, and a call of the recipe itself by self or by name (5.18.2). For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 128, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form, a layer of named definitions. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf. It knows numbers, let, tests joined by if, calls among definitions (5.18.5) and, by asking the bootstrap, the parts of a node and the building of one (5.18.6). For any other node it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
 conf: mid
 why: The emitter is to be a program in the language (5.10.4), and the walker already gives it what it needs: a node's parts, arithmetic, all and pack. Dividing by 256 is done by reading the bytes of a product, since no operation works on bits.
-flip: Per-node hand-back to the walker, as 5.10.4 describes, needs emitted code to call the walker; until then a recipe with one unknown node is not compiled at all.
+flip: Emitted code calls the bootstrap's operations on values (5.18.6) and not the walker. Per-node hand-back, as 5.10.4 describes, needs that; until then a recipe with one node that searches is not compiled at all.
 at: 2026-11-25
 
 n: 5.18.2
 name: code-and-walker-are-held-equal-by-a-program
 kind: observation
-is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-three recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Six faults planted in it each turned the program red.
+is: Observed on 2026-11-26. ground/code-or-walker.ck runs twenty-nine recipes on the walker and again after asking for their code and holds the outcomes equal: nested lets, large and negative integers, division by zero and of the most negative number, tests with a nothing inside, and three the emitter refuses. The emitter was first written again from one recipe of bare numbers into named definitions and gave byte for byte the same code for seven recipes; then it was extended. Six faults planted in it each turned the program red.
 status: observed
 src: 2.30.6 2.30.7
 limit: The program's first version saw none of the planted faults: its helper was a bound entry, which runs on the bindings beneath its own and so never saw the code. The numbers are 64-bit integers only. One machine.
@@ -43,14 +43,14 @@ at: 2026-11-26
 n: 5.18.4
 name: code-is-a-faster-form-of-the-binding
 kind: decision
-is: Entry 112, fast, gives the newest binding of an entry a code leaf as its faster form: tried first on integers wherever that binding runs, the recipe running when it declines. The binding stays where it is, so the other definitions of its layer see the code. It steps aside while something bound from outside sits on a bootstrap operation or on an entry the program defines. Observed on 2026-11-26: a definition of the same layer ran on the code; with a counter on add from outside every addition was seen, and without it the code ran again.
+is: Entry 112, fast, gives the newest binding of an entry a code leaf as its faster form: tried first wherever that binding runs, the recipe running when it declines. The binding stays where it is, so the other definitions of its layer see the code. It steps aside while something bound from outside sits on a bootstrap operation or on an entry the program defines. Observed on 2026-11-26: a definition of the same layer ran on the code; with a counter on add from outside every addition was seen, and without it the code ran again.
 status: inferred
 from: 5.18.1 5.18.3 5.17.1 5.14.19 7.21
 src: 2.30.7 2.30.6
 conf: mid
 why: Code bound above a recipe is unseen by everything bound before it, which is most of a program written as a layer of definitions. Code is not another meaning of the entry; it is the same meaning in another form, so it belongs with the binding it is a form of.
 flip: A form set on a binding is not undone by a fail. Watching from outside turns every faster form off, not only those that replaced what is watched.
-limit: Witnessed in ground/code-or-walker.ck, turned red by two planted faults. Code still calls no recipe but its own.
+limit: Witnessed in ground/code-or-walker.ck, turned red by two planted faults.
 at: 2026-11-26
 
 n: 5.18.5
@@ -59,5 +59,39 @@ kind: observation
 is: Observed on 2026-11-26. The emitter compiles an entry with every definition it calls into one leaf behind a table of branches, so the leaf lies wherever it is put. A call in the last position is a jump when nothing has overflowed. Two definitions that call each other, and a loop calling a third, ended as on the walker; that loop ran thirty million rounds in 0.4 s. Beneath a faster form that declined, faster forms are not tried again: a recursion deeper than the machine stack was answered by the walker.
 status: observed
 src: 2.30.6 2.30.7
-limit: Numbers only: nothing that reads or builds a node, no backtracking. Before the rule about declining, such a recursion tried its code again at every step and did not end in two minutes. Two more faults planted in the emitter, a wrong slot and a jump that ignores an overflow, each turned ground/code-or-walker.ck red.
+limit: No backtracking. Before the rule about declining, such a recursion tried its code again at every step and did not end in two minutes. Two more faults planted in the emitter, a wrong slot and a jump that ignores an overflow, each turned ground/code-or-walker.ck red.
+at: 2026-11-26
+
+n: 5.18.6
+name: code-asks-the-bootstrap
+kind: decision
+is: The machine's serve, at byte 128 of the region, is the address of one function of the bootstrap that does an operation on values in hand. Code calls it under the contract it is called by: a number as it is, any other value as its handle, one register saying how many and which. quote is the value itself, all the list of those that are something, and any operation on values alone is itself. A fault there is the program's and does not return to the code. So code reads and builds nodes while the store stays the bootstrap's.
+status: inferred
+from: 5.18.1 5.14.33 5.10.9 7.21
+src: 2.30.6 2.30.7
+conf: mid
+why: 5.10.9 asks that code be handed what it needs and hold no addresses of the store. One function for every operation keeps what code sees to one address and one contract, and what it gets is what the walker would get: the same C does both.
+flip: Each read of a node is a call. Operations written out as instructions would be faster and would tie the code to the store's layout. The handle of an entry of the bootstrap's catalogue is written into the instructions, since it is the same in every run; no other handle is.
+limit: The operations on values were one stretch of the walker and are now one function that both use. Control and the calling of recipes are not served.
+at: 2026-11-26
+
+n: 5.18.7
+name: every-value-has-a-kind
+kind: decision
+is: The emitter knows for every value whether it is a number or a node. A parameter used as a number is taken as one, and the code declines a call that gives anything else; any other parameter takes anything, a number given for it being made a node on the way in. Where the other kind is wanted the bootstrap is asked for it. After an overflow, a nothing where a number was wanted or a decline, no further call is made and the code is marked declined: the bootstrap is never handed a value that means nothing.
+status: inferred
+from: 5.18.1 5.18.6 5.10.4
+src: 2.30.6
+conf: mid
+why: Numbers stay in registers, where the speed is; nodes are handles, which is what the bootstrap takes. The kinds change how fast the code is and not what it answers, since each crossing is exact. A fault the code did not reach is left for the walker to find.
+flip: A parameter used both ways is a number, so a call that gives it a node declines. Kinds are settled once for a definition, not for each call.
+at: 2026-11-26
+
+n: 5.18.8
+name: code-on-nodes-is-held-to-the-walker
+kind: observation
+is: Observed on 2026-11-26. ground/code-on-nodes.ck runs fifty-six recipes over nodes on the walker and again as code and holds the outcomes equal: reading, comparing and building, a nothing and a fault wherever one can arise, definitions handing nodes to each other. It says for each whether the code answered: forty-three did, and the thirteen that end in nothing or a fault were handed back. Counting the lens's definition as a tree, 5,711 nodes, 300 times took 0.67 s walked and 0.04 s compiled; a chain of a million pairs was built and summed in 0.13 s against 0.53 s.
+status: observed
+src: 2.30.6 2.30.7
+limit: Seven faults planted in the emitter each turned it red; one, a call skipped without the decline being marked, was seen only after a case was written for it. One machine.
 at: 2026-11-26

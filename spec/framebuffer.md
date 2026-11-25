@@ -26,10 +26,12 @@ The first page is the **head**: a magic word, the layout version, the writer's p
 walker's registers (the **machine**), and one **area** entry per table. An area entry says what its
 records are, how large one is, how many are in use, how many fit, and where the table starts.
 
-Machine code reads the region too, and two places in the head are kept for it whatever else
+Machine code reads the region too, and three places in the head are kept for it whatever else
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
-16,384 bytes from the region's start; and at byte 152 where the nodes area starts. A leaf that
-reads any other place is tied to one layout version.
+16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
+to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
+code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
+to one layout version.
 
 | Area | Records | Holds |
 | --- | --- | --- |
@@ -86,7 +88,7 @@ A program reads its own region with `peek` (`spec/core-operations.md`, entries 9
 base)` is a field of a record, `(fb.show)` the text of a view of the region with every binding
 in words, and `(fb.check)` the list of places where the description and the running region
 disagree: the size of each kind of record against the size its area states, the count of areas,
-and the two places code relies on. `ground/region-describes-itself.ck` runs that check; a
+and the three places code relies on. `ground/region-describes-itself.ck` runs that check; a
 description with a field widened or two fields changed over is reported.
 
 The same program reads another process's region. `look` maps it to be read only, and

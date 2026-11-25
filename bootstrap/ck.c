@@ -182,7 +182,7 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 12; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 13; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -606,21 +606,30 @@ static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* What an outcome answers: a word and a node, as 'ck run' prints them. */
 static H seen_as(const char *word, H v) { const char *why; H p[2] = { txt(word), v }; return mk(1, E(LIST), p, 2, &why); }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
- * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
+ * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
+ * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
 /* Code a program gave is called under watch: when the processor faults inside it, the walker goes
  * on and the program has a fault, crash, like any other. A fault anywhere else ends the process. */
 static void crashed(int sig) {
   (void)sig; if (coding) siglongjmp(in_code, 1);
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
 }
-static Ret called(void *fn, const int64_t *arg) { coding = 1; Ret r = host.call(fn, arg); coding = 0; return r; }
+static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
 static int landed(void *fn, int64_t *arg) {
   if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
   Ret r = called(fn, arg);
-  if (r.k == 3) return 0;
+  if (r.k == 3 || (r.k == 4 && !r.v)) return 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
   else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
+  return 1;
+}
+/* The values code is given: an integer as the number it is, any other as its node's handle. The
+ * eighth register says how many there are and, above its low byte, has a bit for each that came
+ * as a handle. Code that takes numbers only declines when a bit is set. */
+static int given(const H *a, uint32_t c, int64_t *arg) {
+  if (c > 6) return 0;
+  arg[7] = c; for (uint32_t j = 0; j < c; j++) if (!geti(a[j], &arg[j])) { arg[j] = a[j]; arg[7] |= 256 << j; }
   return 1;
 }
 /* Something bound from outside sits on an operation of the bootstrap or on an entry the program defines:
@@ -643,8 +652,7 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
   if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
-    uint32_t j = 0; while (j < c && j < 6 && geti(a[j], &arg[j])) j++;      /* on integers. Where it declines, what the */
-    if (j == c) { arg[7] = c; if (landed(birth(B(b)->fast), arg)) { W->mode = M_RET; return 1; } cool = COOL; }      /* recipe */
+    if (given(a, c, arg)) { if (landed(birth(B(b)->fast), arg)) { W->mode = M_RET; return 1; } cool = COOL; }      /* Where it declines, what the recipe */
     memset(arg, 0, sizeof arg);           /* calls does not try faster forms again: the reason to decline is still there */
   }
   if (nd[impl].comp) {
@@ -656,9 +664,8 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
     W->env = enter(impl, a, c, sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
-  if (node) { arg[0] = node; arg[1] = from; }
-  else for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) return 0;   /* code takes integers only */
-  arg[7] = c;
+  if (node) { arg[0] = node; arg[1] = from; arg[7] = c; }
+  else if (!given(a, c, arg)) return 0;
   if (!landed(birth(impl), arg)) return 0;
   W->mode = M_RET; return 1;
 }
@@ -710,14 +717,183 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
   if (!W->v) W->reason = txt(why);
 }
 
+/* The operations on values alone, the values in hand. env is the activation they are done in, and
+ * node the node that asked, for a range. */
+static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
+  const char *why; int64_t m, n, r = 0;
+  if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
+    H none[MOST]; uint32_t n0 = 0;
+    if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); return; }
+    for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
+    if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    W->v = mk(1, E(CLOSED), a, c, &why); return;
+  }
+  if (op == FAULT) {                  /* the program's own fault: its reason is whatever node it gives */
+    if (c != 1) { fault("arity"); return; }
+    W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; return;
+  }
+  if (op >= BLUEPRINT && op < DIV) { parts(op, a, c, act[env].lim >> 31); return; }
+  if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
+    if (c != 1) { fault("arity"); return; }
+    if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, (uint32_t)len, &why); ntext = mark; return; }
+    if (nd[a[0]].comp) { fault("kind"); return; }
+    if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
+    return;
+  }
+  if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
+    int64_t arg[8] = {0}; uint32_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
+    if (c < 1 || c > 7) { fault("arity"); return; }
+    if (ncp) { fault("irreversible"); return; }        /* what cannot be undone is refused while a choice is open */
+    for (uint32_t j = 0; j < c && W->mode != M_FAULT; j++) {
+      if (!a[j] || nd[a[j]].comp) { fault("kind"); return; }
+      if (j && geti(a[j], &arg[j-1])) continue;
+      char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
+      if (j) arg[j-1] = (int64_t)(intptr_t)s; else arg[7] = (int64_t)(intptr_t)host.symbol(s);
+    }
+    if (W->mode == M_FAULT) { ntext = mark; return; }
+    if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; return; }
+    void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0;
+    ntext = mark;                     /* given back before the call, since a crash does not return here */
+    r = called(fn, arg); W->v = mki(r.v);
+    return;
+  }
+  if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
+    int64_t o = 0, n = 0; uint32_t mark = ntext;
+    if (c != 3) { fault("arity"); return; }
+    if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault("kind"); return; }
+    room(A_CELLS, (uint64_t)E(LOOK) + 1); if (N(A_CELLS) <= E(LOOK)) N(A_CELLS) = E(LOOK) + 1;
+    if (held[E(LOOK)] != a[0]) {
+      char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
+      void *p = host.watch(s); ntext = mark;
+      if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = txt("no-region"); return; }
+      W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0];
+    }
+    const Head *far = (const Head *)(uintptr_t)W->watch;
+    if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = txt("range"); return; }
+    uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
+    W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
+  }
+  if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
+    int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
+    if (c != (op == PEEK ? 2u : 1u)) { fault("arity"); return; }
+    if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (op == HANDLE) { W->v = mki(a[0]); return; }
+    if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault("kind"); return; }
+    if (op == AT ? (o < 1 || o >= nn) : (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > fb->bytes
+                                          || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = txt("range"); return; }
+    if (op == AT) { W->v = (H)o; return; }
+    uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
+    W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
+  }
+  if (op == NOTHING) {                /* an answer of nothing, and the reason beside it */
+    if (c != 1) { fault("arity"); return; }
+    W->v = 0; W->reason = a[0] ? a[0] : txt("nothing-in"); return;
+  }
+  if (op == FAST) {                   /* code as a faster form of the newest binding of an entry or a recipe: tried first */
+    if (c != 2) { fault("arity"); return; }      /* wherever that binding runs. A form of what is there, it is not undone */
+    uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
+    if (!r || !a[1]) { W->v = 0; W->reason = txt(r ? "nothing-in" : "unbound"); return; }
+    if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault("kind"); return; }
+    B(r)->fast = a[1]; W->v = E(YES); return;
+  }
+  if (op == BOUND) {                  /* what runs an entry or a recipe: its newest binding as a node, the entry, the */
+    if (c < 1 || c > 2) { fault("arity"); return; }     /* implementation and whether that runs on its own binding, as one made */
+    uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;       /* in a layer does. Seen from the top of the program, or, with a second */
+    if (r && c == 2) {                /* entry, as that entry's own implementation sees it */
+      uint32_t of = a[1] ? bound(a[1], 0, ~0u) : 0;
+      r = of ? bound(a[0], 0, of > OUT ? (PM | out[of-OUT-1].sees << 24) : (OMOST << 24 | bd[of-1].sees)) : 0;
+    }
+    if (!r) { W->v = 0; W->reason = txt("unbound"); return; }
+    H p[3] = { a[0], B(r)->impl, (r > OUT ? B(r)->sees + OUT : B(r)->sees) >= r ? E(YES) : E(NO) };
+    W->v = mk(1, E(BINDING), p, 3, &why); return;
+  }
+  if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
+    if (c != 1) { fault("arity"); return; }      /* that says so points back at it, so a fail restores it */
+    if (!(act[env].lim & OWN)) {    /* from outside: the newest one made there, which no fail brings back */
+      uint32_t j = nout; while (j && out[j-1].entry != a[0]) j--;
+      if (j && a[0]) { out[j-1].entry = 0; while (nout && !out[nout-1].entry) nout--; }
+      W->v = j && a[0] ? E(YES) : E(NO); return;
+    }
+    if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !bykey[a[0]]) { W->v = E(NO); return; }
+    room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind, 0 }; nbind++;
+    bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); return;
+  }
+  if (op == HOLD || op == HELD || op == NOTE) {   /* a cell is any node; what it holds is a node. While a choice is */
+    H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
+    if (c != (op == HELD ? 1u : 2u)) { fault("arity"); return; }
+    if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = txt("empty"); return; }
+    room(A_CELLS, (uint64_t)key + 1); if (N(A_CELLS) <= key) N(A_CELLS) = key + 1;
+    if (op == NOTE) ;                 /* a note is what was seen of a run, not part of it: no fail undoes it */
+    else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
+    W->v = held[key] = a[1]; return;
+  }
+  if (c != 2) { fault("arity"); return; }
+  if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); return; }
+  if (!geti(a[0], &m) || !geti(a[1], &n)) { fault("kind"); return; }
+  if (op == LT) { W->v = m < n ? E(YES) : E(NO); return; }
+  if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
+    if (m >= n) { W->mode = M_FAILED; return; }
+    if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, mki(m + 1), env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter }; ncp++; }
+    W->v = a[0]; return;
+  }
+  if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
+    if (op >= SHL && (n < 0 || n > 63)) { W->v = 0; W->reason = txt("range"); return; }
+    uint64_t u = (uint64_t)m, w = (uint64_t)n;
+    W->v = mki((int64_t)(op == BAND ? u & w : op == BOR ? u | w : op == BXOR ? u ^ w : op == SHL ? u << w : u >> w)); return;
+  }
+  if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
+    if (!n) { W->v = 0; W->reason = txt("zero"); return; }
+    if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); return; }
+    W->v = mki(op == DIV ? m / n : m % n); return;
+  }
+  if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
+                : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = txt("range"); return; }
+  W->v = mki(r);
+}
+
+/* Code asks the bootstrap for an operation on values in hand, as the bootstrap asks code: an integer
+ * as the number it is, any other value as its handle, the eighth register saying how many and which.
+ * The seventh is the operation: quote is the value itself, all the list of those that are something,
+ * and any operation on values alone is itself. With 256 added the answer is asked as a number: k 0,
+ * or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
+ * nothing. A fault goes to the walker and does not come back here. */
+static int basic(long long op) {
+  return op >= ADD && op <= LAST && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
+      && op != OUTCOME && op != LAYER && !(op >= RANGE && op <= OUTSIDE) && op != AFTER;
+}
+static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
+  int64_t v[6] = { a0, a1, a2, a3, a4, a5 }, m; H a[8] = {0}, x; uint32_t c = cm & 255, n = 0; int num = op >> 8 & 1; const char *why;
+  op &= 255; if (c > 6) c = 6;
+  for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
+  x = a[0];                               /* what code reads most is answered without a number being built for it */
+  if (x && op == COUNT && num && c == 1) return (Ret){ nd[x].n, 0 };
+  if (x && op == BYTE && num && c == 2 && !(cm >> 9 & 1) && !nd[x].comp && (uint64_t)v[1] < nd[x].n) return (Ret){ bytes[nd[x].off + v[1]], 0 };
+  if (x && op == CHILD && c == 2 && !(cm >> 9 & 1) && nd[x].comp && (uint64_t)v[1] < nd[x].n) W->v = KID(x, v[1]);
+  else {
+    for (uint32_t j = 0; j < c; j++) if (!(cm >> (8 + j) & 1)) a[j] = mki(v[j]);
+    if (op == QUOTE) W->v = c == 1 ? a[0] : 0;
+    else if (op == ALL) { for (uint32_t j = 0; j < c; j++) if (a[j]) a[n++] = a[j]; W->v = mk(1, E(LIST), a, n, &why); }
+    else if (!basic(op)) fault("kind"); else base(op, a, c, W->env, 0);
+    if (W->mode == M_FAULT) siglongjmp(in_code, 3);
+  }
+  if (!num) return (Ret){ W->v, 4 };
+  return !W->v ? (Ret){ 0, 2 } : geti(W->v, &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 };
+}
+
 static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
-  W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
+  W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
-    ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
+    coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
+  case 3: coding = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
@@ -850,7 +1026,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL; break; }
       for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
-      long long op = catn(nd[f.node].bp); int64_t m, n, r = 0;
+      long long op = catn(nd[f.node].bp);
       uint32_t b = 0, lim = f.aux;        /* code that declines leaves the values to what lies beneath it. So does a */
       W->cut = f.cut; W->env = f.env;     /* lazy bound after this node began: it takes nodes, and here are answers */
       while ((nbind || nout) && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && (is_lazy(B(b)->impl) || !apply(b, lim, a, c, f.env, 0))) { lim = under(b, lim); b = 0; }
@@ -873,13 +1049,6 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
           W->v = E(YES); break;
         }
       }
-      if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
-        H none[MOST]; uint32_t n0 = 0;
-        if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); break; }
-        for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
-        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        W->v = mk(1, E(CLOSED), a, c, &why); break;
-      }
       if (op == CALL) {
         H full[MOST]; uint32_t n = c - 1, on = act[f.env].lim; memcpy(full, a + 1, sizeof(H) * n);
         H to = callee(a[0], full, &n);    /* a call its own code declined runs wholly on what lies beneath that code */
@@ -890,141 +1059,13 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
-        int64_t arg[8] = {0}; uint32_t j = 1;
-        if (c > 7 || !a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE)) { fault("kind"); break; }
-        while (j < c && geti(a[j], &arg[j-1])) j++;
-        if (j < c) { fault("kind"); break; }
-        arg[7] = c - 1;
+        int64_t arg[8] = {0};
+        if (!a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE) || !given(a + 1, c - 1, arg)) { fault("kind"); break; }
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
         break;
       }
       if (op > LAST) { fault("kind"); break; }       /* an entry only code ran, and the code declined these values */
-      if (op == FAULT) {                  /* the program's own fault: its reason is whatever node it gives */
-        if (c != 1) { fault("arity"); break; }
-        W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; break;
-      }
-      if (op >= BLUEPRINT && op < DIV) { parts(op, a, c, act[f.env].lim >> 31); break; }
-      if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
-        if (c != 1) { fault("arity"); break; }
-        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, (uint32_t)len, &why); ntext = mark; break; }
-        if (nd[a[0]].comp) { fault("kind"); break; }
-        if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
-        break;
-      }
-      if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
-        int64_t arg[8] = {0}; uint32_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
-        if (c < 1 || c > 7) { fault("arity"); break; }
-        if (ncp) { fault("irreversible"); break; }        /* what cannot be undone is refused while a choice is open */
-        for (uint32_t j = 0; j < c && W->mode != M_FAULT; j++) {
-          if (!a[j] || nd[a[j]].comp) { fault("kind"); break; }
-          if (j && geti(a[j], &arg[j-1])) continue;
-          char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
-          if (j) arg[j-1] = (int64_t)(intptr_t)s; else arg[7] = (int64_t)(intptr_t)host.symbol(s);
-        }
-        if (W->mode == M_FAULT) { ntext = mark; break; }
-        if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; break; }
-        void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0;
-        ntext = mark;                     /* given back before the call, since a crash does not return here */
-        r = called(fn, arg); W->v = mki(r.v);
-        break;
-      }
-      if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
-        int64_t o = 0, n = 0; uint32_t mark = ntext;
-        if (c != 3) { fault("arity"); break; }
-        if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault("kind"); break; }
-        room(A_CELLS, (uint64_t)E(LOOK) + 1); if (N(A_CELLS) <= E(LOOK)) N(A_CELLS) = E(LOOK) + 1;
-        if (held[E(LOOK)] != a[0]) {
-          char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
-          void *p = host.watch(s); ntext = mark;
-          if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = txt("no-region"); break; }
-          W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0];
-        }
-        const Head *far = (const Head *)(uintptr_t)W->watch;
-        if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = txt("range"); break; }
-        uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
-        W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
-      }
-      if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
-        int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
-        if (c != (op == PEEK ? 2u : 1u)) { fault("arity"); break; }
-        if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        if (op == HANDLE) { W->v = mki(a[0]); break; }
-        if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault("kind"); break; }
-        if (op == AT ? (o < 1 || o >= nn) : (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > fb->bytes
-                                              || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = txt("range"); break; }
-        if (op == AT) { W->v = (H)o; break; }
-        uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
-        W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; break;
-      }
-      if (op == NOTHING) {                /* an answer of nothing, and the reason beside it */
-        if (c != 1) { fault("arity"); break; }
-        W->v = 0; W->reason = a[0] ? a[0] : txt("nothing-in"); break;
-      }
-      if (op == FAST) {                   /* code as a faster form of the newest binding of an entry or a recipe: tried first */
-        if (c != 2) { fault("arity"); break; }      /* wherever that binding runs. A form of what is there, it is not undone */
-        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
-        if (!r || !a[1]) { W->v = 0; W->reason = txt(r ? "nothing-in" : "unbound"); break; }
-        if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault("kind"); break; }
-        B(r)->fast = a[1]; W->v = E(YES); break;
-      }
-      if (op == BOUND) {                  /* what runs an entry or a recipe: its newest binding as a node, the entry, the */
-        if (c < 1 || c > 2) { fault("arity"); break; }     /* implementation and whether that runs on its own binding, as one made */
-        uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;       /* in a layer does. Seen from the top of the program, or, with a second */
-        if (r && c == 2) {                /* entry, as that entry's own implementation sees it */
-          uint32_t of = a[1] ? bound(a[1], 0, ~0u) : 0;
-          r = of ? bound(a[0], 0, of > OUT ? (PM | out[of-OUT-1].sees << 24) : (OMOST << 24 | bd[of-1].sees)) : 0;
-        }
-        if (!r) { W->v = 0; W->reason = txt("unbound"); break; }
-        H p[3] = { a[0], B(r)->impl, (r > OUT ? B(r)->sees + OUT : B(r)->sees) >= r ? E(YES) : E(NO) };
-        W->v = mk(1, E(BINDING), p, 3, &why); break;
-      }
-      if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
-        if (c != 1) { fault("arity"); break; }      /* that says so points back at it, so a fail restores it */
-        if (!(act[f.env].lim & OWN)) {    /* from outside: the newest one made there, which no fail brings back */
-          uint32_t j = nout; while (j && out[j-1].entry != a[0]) j--;
-          if (j && a[0]) { out[j-1].entry = 0; while (nout && !out[nout-1].entry) nout--; }
-          W->v = j && a[0] ? E(YES) : E(NO); break;
-        }
-        if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !bykey[a[0]]) { W->v = E(NO); break; }
-        room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind, 0 }; nbind++;
-        bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); break;
-      }
-      if (op == HOLD || op == HELD || op == NOTE) {   /* a cell is any node; what it holds is a node. While a choice is */
-        H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
-        if (c != (op == HELD ? 1u : 2u)) { fault("arity"); break; }
-        if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
-        if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = txt("empty"); break; }
-        room(A_CELLS, (uint64_t)key + 1); if (N(A_CELLS) <= key) N(A_CELLS) = key + 1;
-        if (op == NOTE) ;                 /* a note is what was seen of a run, not part of it: no fail undoes it */
-        else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
-        W->v = held[key] = a[1]; break;
-      }
-      if (c != 2) { fault("arity"); break; }
-      if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
-      if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }
-      if (!geti(a[0], &m) || !geti(a[1], &n)) { fault("kind"); break; }
-      if (op == LT) { W->v = m < n ? E(YES) : E(NO); break; }
-      if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
-        if (m >= n) { W->mode = M_FAILED; break; }
-        if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-          cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), f.node, 3, f.node, mki(m + 1), f.env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter }; ncp++; }
-        W->v = a[0]; break;
-      }
-      if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
-        if (op >= SHL && (n < 0 || n > 63)) { W->v = 0; W->reason = txt("range"); break; }
-        uint64_t u = (uint64_t)m, w = (uint64_t)n;
-        W->v = mki((int64_t)(op == BAND ? u & w : op == BOR ? u | w : op == BXOR ? u ^ w : op == SHL ? u << w : u >> w)); break;
-      }
-      if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
-        if (!n) { W->v = 0; W->reason = txt("zero"); break; }
-        if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); break; }
-        W->v = mki(op == DIV ? m / n : m % n); break;
-      }
-      if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
-                    : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = txt("range"); break; }
-      W->v = mki(r); break; }
+      base(op, a, c, f.env, f.node); break; }
     }
     break; }
   case M_FAILED: {

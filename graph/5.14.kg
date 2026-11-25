@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only numbers (5.18.1). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
+is: Every operation, every recipe and the step can be replaced; only add, sub, mul and lt are written in form, the step in machine code takes only leaves, and the emitter compiles only what answers once and leaves no mark (5.18.1). The store, freeze, thaw and the other host functions are not operations and have no binding. A replaced step decides what a node means, and the walker still carries the run between nodes: the continuation, the choice points and the undo are its own. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own.
 status: inferred
 from: 5.14.19 5.14.24 7.13 5.9.3
 conf: high
@@ -336,14 +336,14 @@ limit: The two-process check is still one line of the Makefile's shell.
 at: 2026-11-25
 
 n: 5.14.33
-name: code-reads-two-fixed-places-of-the-head
+name: code-reads-fixed-places-of-the-head
 kind: decision
-is: Code that reads the region may count on two places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach, and at byte 152 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. ground/deep-on-code.ck now runs a recursion 600,000 deep, more than the stack holds, on emitted code.
+is: Code that reads the region may count on three places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach; at byte 128 the address it calls to ask the bootstrap (5.18.6); and at byte 160 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. ground/deep-on-code.ck now runs a recursion 600,000 deep, more than the stack holds, on emitted code.
 status: inferred
 from: 5.14.28 5.7.6 5.14.10
 src: 2.30.7 2.30.9 2.30.11
 conf: mid
-flip: A leaf that needs more of the region than these two places wants a table it is handed, as 5.10.9 describes, not more fixed bytes.
+flip: A leaf that needs more of the region than these places asks the bootstrap for it (5.18.6), as 5.10.9 describes, and wants no more fixed bytes.
 at: 2026-11-25
 
 n: 5.14.34

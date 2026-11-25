@@ -58,7 +58,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 46, 47, 48 | add, sub, mul | a, b | integer arithmetic on `int` leaves |
 | 49 | eq | a, b | yes if a and b are the same node, otherwise no |
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
-| 51 | native | code, arguments | runs a machine-code leaf with up to six integer arguments |
+| 51 | native | code, arguments | runs a machine-code leaf on up to six values |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
 
 ## Fail, choice and cut
@@ -99,15 +99,37 @@ Dividing by zero answers nothing with the reason `zero`.
 
 ## Native code
 
-A leaf under entry 52 holds AArch64 instructions for a function that takes up to six 64-bit
-integers in x0 to x5, finds the region's address in x6 and how many values it was given in x7,
-and answers in x0 and x1. x1 says what x0 is: 0 a number, 1 a truth (yes unless x0 is zero), 4
-the handle of a node in the region, 3 nothing at all: the code declines and what lies beneath its
-binding runs. Anything else is no answer, which is nothing with the
-reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
+A leaf under entry 52 holds AArch64 instructions for a function of up to six values, in x0 to
+x5. A value that is an integer of at most eight bytes comes as the number it is; any other comes
+as the handle of its node. x7 says how many values there are in its low byte and has, above it,
+a bit for each value that came as a handle: code that takes numbers only declines when one of
+those bits is set. x6 holds the region's address. The code answers in x0 and x1. x1 says what x0
+is: 0 a number, 1 a truth (yes unless x0 is zero), 4 the handle of a node in the region, 3
+nothing at all: the code declines and what lies beneath its binding runs. It declines as well
+when it answers 4 with no handle: it met nothing, and the reason is left for the walker to say.
+Anything else is no answer, which is nothing with the reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
 copies it once into the process's code region and calls it; code that declines there answers
 nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
 the reason `no-native`.
+
+### Code asks the bootstrap
+
+The machine's `serve`, at byte 128 of the region, is the address of one function of the
+bootstrap that does an operation on values in hand. Code calls it as it is called itself: the
+values in x0 to x5, numbers as they are and nodes as handles, x7 saying how many and which; x6
+holds the operation's number.
+
+- `quote` is the value itself, so a number comes back as its node.
+- `all` is the list of those values that are something.
+- Any operation that works on values alone is itself: the parts of a node, building one,
+  arithmetic, cells, the encoding. Control and the calling of recipes are not, and asking for
+  them is the fault `kind`.
+
+With 256 added to the operation the answer is asked as a number: x1 is 0 with the number in x0,
+2 when the answer is nothing, 3 when it is a node that is no number. Otherwise x1 is 4 and x0
+the handle, none for nothing. When the operation faults, the fault is the program's and the call
+does not return: the walker goes on from the fault. So code reads and builds nodes without
+knowing how the store is laid out, and what it gets is what the walker would have got.
 
 ## Faults the walker names
 
@@ -200,9 +222,9 @@ have.
   a compiled version and back. Only data entries keep their meaning.
 - **i says how it wants to be used.** A `recipe` is called with the children's answers. A `lazy`
   (entry 75, shaped like a recipe) is given the node itself, unevaluated, and so can stand for a
-  control operation. A code leaf is called with the answers as integers. It may decline, and it
-  is not asked at all when an answer is not an integer; then what lies beneath it runs, so code
-  takes the cases it is sure of and leaves the rest. A recipe's call that its code declined runs
+  control operation. A code leaf is called with the answers, numbers as they are and any other
+  value as its handle (Native code, above). It may decline; then what lies beneath it runs, so
+  code takes the cases it is sure of and leaves the rest. A recipe's call that its code declined runs
   wholly on the bindings beneath that code. A
   leaf of any other blueprint is run by whatever that blueprint is bound to, which is how a new
   kind of implementation, another processor or a table, comes in without a change to the bootstrap.
@@ -541,8 +563,8 @@ SHA-256 in `form/id.ck` is written with them.
 ## Entry 112: fast, a faster form of what is bound
 
 `(fast e code)` gives the newest binding of e, an entry or a recipe bound to a recipe, a faster
-form: a code leaf that is tried first wherever that binding runs, on integers, and when it
-declines the recipe runs. The binding stays what it was, where it was: every definition that
+form: a code leaf that is tried first wherever that binding runs, and when it declines the
+recipe runs. The binding stays what it was, where it was: every definition that
 could see the recipe sees the code, the others of its own layer among them, and what is bound
 later lies above both. It is a form of what is there and not a change to the run, so no fail
 undoes it.
@@ -561,27 +583,46 @@ The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to 
 in form: a layer of definitions, one for each instruction it uses, which answers the
 instruction's word as a number, and a few for the shapes of node it knows. It makes one pass over
 the recipe's body, each node's instructions gathered as bytes by `all` and packed into one leaf
-under entry 52. What it knows is numbers:
+under entry 52. What it knows:
 
-- an `int` leaf of any size, and an argument;
+- an `int` leaf of any size, an argument, and an entry of the bootstrap's catalogue as a
+  constant;
 - `let`: the part is kept in the frame at its argument's place, and what was there is put back
   after the body;
 - `add`, `sub`, `mul`, `div` and `mod`, with an overflow or a division by zero collected in one
   register, and the five operations on bits;
-- `(if c a b)`, where c is an `lt` or an `eq` of numbers, `yes`, `no`, or an `if` of such tests.
-  A nothing inside a test makes that test fail, as on the walker;
+- the parts of a node and the building of one: `blueprint`, `count`, `leaf`, `child`, `byte`,
+  `held`, `join` and `pack`, and `(all (choice a b ..))` of up to six parts, which is what
+  `tuple` stands for. Each is asked of the bootstrap (Native code, above), so the code holds
+  handles and the store stays the bootstrap's;
+- `(if c a b)`, where c is an `lt` of numbers, an `eq` of numbers or of nodes, anything that
+  answers a node, which holds unless the node is `no` or there is none, `yes`, `no`, or an `if`
+  of such tests. A nothing inside a test makes that test fail, as on the walker;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is
   compiled into the same leaf, which begins with a table of branches, one for each, and calls
   go through the table: the leaf lies wherever it is put. A definition is taken in only as the
-  caller's own implementation sees it, and only if it too is numbers. A call in the last
+  caller's own implementation sees it, and only if it too can be compiled. A call in the last
   position is a jump when nothing has overflowed before it, so a recursion written as a loop
   runs as a loop, to any depth.
 
 For any other node the emitter emits a byte that `pack` refuses, so a recipe is compiled whole or
 not at all, and what is not compiled stays on the walker.
 
-**The leaf answers a number or declines.** It declines when an overflow or a division by zero is
+**Every value has a kind, a number or a node**, and the emitter knows it as it writes. A
+parameter that is used as a number, in arithmetic, in a comparison with a number or as an index,
+is taken as a number, and the code declines a call that gives it anything else. Every other
+parameter is taken as a node and takes anything: a number given for it is made a node on the
+way in. Where a number is wanted and a node is in hand, or the other way round, the bootstrap is
+asked for the one from the other. A definition answers a node if any of its ways out does. The
+kinds decide how fast the code is and never what it answers.
+
+**Once it has declined, code asks for nothing more.** After an overflow, a nothing where a
+number was wanted or a decline from a call, no call is made, of the bootstrap or of another
+definition: the code is marked declined instead. So the bootstrap is never handed a value that
+means nothing, and a fault the code did not reach is the walker's to find.
+
+**The leaf answers a number or a node, or declines.** It declines when an overflow or a division by zero is
 left at its end, when it was given fewer arguments than the recipe reads, and when the machine
 stack, whose floor it reads from the region's head, has no room for its frame
 (`ground/deep-on-code.ck` goes 600,000 deep). A decline travels up through the calls above it,
@@ -600,7 +641,13 @@ the emitter must refuse. Its last lines show an entry's code used by another def
 aside while `add` is watched from outside and back after; an entry bound outside a layer left on
 the walker; two definitions that call each other and a loop that calls a third, compiled
 together; that loop run for thirty million rounds; and a recursion deeper than the machine stack
-answered by the walker. Nine faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+answered by the walker. Nine faults planted in the emitter each turned it red.
+`ground/code-on-nodes.ck` does the same for fifty-six recipes over nodes: reading, comparing and
+building them, a nothing and a fault at each place one can arise, a number where a node is
+wanted and the other way round, definitions that hand nodes to each other, and a chain of a
+hundred thousand pairs built by one and walked by another. For each it says whether the code
+answered or handed the call back: thirteen hand back, each one that ends in nothing or in a
+fault, and the rest the code answers. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
@@ -629,11 +676,18 @@ would not be what the walker does there.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles numbers only: it calls only what it can compile with it, a test stands
-  only as the condition of an `if`, there is no answer of yes or no, and an expression nested
-  deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
-  walker: code may decline only before it has done anything, because a declined call is run
-  again from its start. The watcher that offers recipes by how often they run sees only `call`.
+- The emitter compiles what answers once. Nothing that searches: no `choice` but an `if`, no
+  `fail`, `seq`, `need`, `cut` or `recover`, and no `all` but over a row of parts. Nothing that
+  leaves a mark: no `hold`, `note`, `bind` or file, because a declined call is run again from
+  its start, and building a node twice gives the same node while writing a cell twice does not.
+  A test stands only as the condition of an `if`. A node is a constant only when it is an entry
+  of the bootstrap's catalogue: the handle of a text, a list or an entry a module added belongs
+  to one run. An expression nested deeper than seven registers is not compiled. So the emitter
+  does not yet compile itself.
+- Each operation on a node is a call into the bootstrap; none is written out as instructions.
+  A chain of a million pairs is built and summed in 0.13 s, against 0.53 s on the walker, and
+  most of what is left is the store finding each node.
+- The watcher that offers recipes by how often they run sees only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the
   walker. It goes on computing while it unwinds, so a recursion that branches can spend long on
   answers it will discard.
