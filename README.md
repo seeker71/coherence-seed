@@ -28,11 +28,12 @@ two commands, `run` and `text`; everything else is a program they run.
 
 ## Read it and write it
 
-What is stored is the canonical print, numbers and brackets. The lens
-([`spec/lens.md`](spec/lens.md)), itself a program in form, shows a stored node in words:
+What is stored is the canonical print, numbers and brackets, and beside it the names a person
+gave to arguments. The lens ([`spec/lens.md`](spec/lens.md)), itself a program in form, shows a
+stored node in words and names:
 
 ```bash
-./ck text lens/to-words.ck lens/all.ck < ground/warms-itself.ck
+./ck text lens/to-words.ck lens/all.ck < lens/lens.ck
 ```
 
 and turns what is written in words into a node to store:

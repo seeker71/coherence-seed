@@ -452,10 +452,12 @@ static H read_node(Rd *r) {
   for (uint32_t j = 0; j < nopen; j++) if (opened[j] == x) return refuse(r, "not-canonical");     /* rule 4 */
   opened[me] = x; return x;
 }
+/* A print ends with the text or at a line end. What a file holds after that line lies beside
+ * the node and is no part of it: a lens keeps the names it gave there. */
 static H read_print(const char *s, const char **why) {    /* s lies in the region */
   Rd r = { s, NULL }; nopen = 0;
   H x = read_node(&r);
-  if (x && *r.p) x = refuse(&r, "syntax");
+  if (x && *r.p && *r.p != '\n') x = refuse(&r, "syntax");
   *why = r.err; return x;
 }
 static void oput(const char *s) { uint32_t l = (uint32_t)strlen(s); room(A_PRINT, (uint64_t)nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
@@ -527,6 +529,12 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
   for (uint32_t j = 0, q = vals; j < c; j++, q = lk[q].next) if (q != vals - j) return;
   nlink -= c;
 }
+static long long argn(H x) {              /* which argument a node (arg k) names; -1 when it is not one */
+  H i = x && nd[x].comp && nd[x].bp == E(ARG) && nd[x].n == 1 ? KID(x, 0) : 0; long long j = 0;
+  if (!i || nd[i].comp || nd[i].bp != E(NAT) || nd[i].n > 3) return -1;
+  for (uint32_t b = nd[i].n; b > 0; b--) j = j << 8 | bytes[nd[i].off + b - 1];
+  return j;
+}
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
@@ -586,9 +594,7 @@ static void parts(long long op, const H *a, uint32_t c) {
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
     if (nd[x].comp) { fault("kind"); return; }
     uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
-    if (op == READ) {                     /* a print file ends in one line feed, which is not part of the print */
-      if (nd[x].n && s[nd[x].n - 1] == '\n') s[nd[x].n - 1] = 0;
-      if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
+    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
     else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
       if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
     ntext = m; return;
@@ -643,12 +649,13 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
-      H i = c == 1 ? KID(x, 0) : 0; uint32_t j = 0;
-      if (!i || nd[i].comp || nd[i].bp != E(NAT) || nd[i].n > 4) { fault("arity"); break; }
-      for (uint32_t b = nd[i].n; b > 0; b--) j = j << 8 | bytes[nd[i].off + b - 1];
-      if (!W->env || j >= act[W->env].n) fault("arg"); else answer(argp[act[W->env].off + j]);
+      long long j = argn(x);
+      if (j < 0) fault("arity"); else if (j >= act[W->env].n) fault("arg"); else answer(argp[act[W->env].off + j]);
       break; }
-    case SELF: if (!W->env) fault("no-recipe"); else answer(act[W->env].recipe); break;
+    case SELF: if (!act[W->env].recipe) fault("no-recipe"); else answer(act[W->env].recipe); break;
+    case LET:                             /* (let $k v body): body runs on the same arguments, with argument k being v */
+      if (c != 3 || argn(KID(x, 0)) < 0) { fault("arity"); break; }
+      W->k = push(F_LET, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 1); break;
     case SEQ:
       if (!c) { answer(E(YES)); break; }
       if (c > 1) W->k = push(F_SEQ, x, 1, W->env, W->cut, 0, W->k, 0);
@@ -711,6 +718,12 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->mode = M_FAILED; break;
     case F_NEED: if (!W->v || W->v == E(NO)) W->mode = M_FAILED; break;
     case F_RECOVER: break;
+    case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
+      uint32_t j = (uint32_t)argn(KID(f.node, 0)); Activation o = act[f.env]; uint32_t n = o.n > j ? o.n : j + 1;
+      room(A_ACTIVATIONS, (uint64_t)nact + 1); room(A_ARGUMENTS, (uint64_t)nargp + n);
+      memset(argp + nargp, 0, sizeof(H) * n); memcpy(argp + nargp, argp + o.off, sizeof(H) * o.n); argp[nargp + j] = W->v;
+      o.by = W->at; o.off = nargp; o.n = n; act[nact] = o; nargp += n;
+      W->env = nact++; W->cut = f.cut; W->x = KID(f.node, 2); W->mode = M_EVAL; break; }
     case F_LAYER: for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind; break;    /* made together, they see each other */
     case F_OUTCOME:
       cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
@@ -890,10 +903,9 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
 }
 
 /* ---- commands: a program is run, and everything else is a program -------------------------- */
-static H file_node(const char *path) {      /* a print file: one node and one line feed */
-  size_t len; char *s = (char *)load(path, &len); const char *why;
-  if (len && s[len-1] == '\n') s[len-1] = 0;
-  H x = read_print(s, &why);
+static H file_node(const char *path) {      /* a print file: one node on its first line */
+  size_t len; const char *why;
+  H x = read_print((char *)load(path, &len), &why);
   if (!x) { say("refused ", why); exit(1); }
   return x;
 }

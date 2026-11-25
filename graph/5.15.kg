@@ -3,36 +3,36 @@
 n: 5.15
 name: word-lens
 kind: hub
-is: The first lens, one module written in form. Words beside the catalogue's numbers and leaves written as people write them turn text into nodes and back; rows of two shapes turn a surface into the core and back. The canonical print stays what is stored. It is a step toward the home lens of 5.3.5 and not that lens: its shapes are brackets only.
+is: The first lens, one module written in form. Words beside the catalogue's numbers and leaves written as people write them turn text into nodes and back; names kept beside a recipe and a let stand for arguments; rows of two shapes turn a surface into the core and back. The canonical print stays what is stored. It is a step toward the home lens of 5.3.5 and not that lens: its shapes are brackets only.
 at: 2026-11-25
 
 n: 5.15.1
 name: words-are-rows-beside-the-nodes
 kind: decision
-is: An entry's word is a row, a word and the entry it names, in a list a bound entry answers (lens/words.ck). No node holds its own word, so renaming changes no id and a second lexicon can name the same entries otherwise. Entries below 128 are named by the bootstrap's pages; from 128 up by modules written in form, and 129 to 184 are the lens's own.
+is: An entry's word is a row, a word and the entry it names, in a list a bound entry answers (lens/words.ck). No node holds its own word, so renaming changes no id and a second lexicon can name the same entries otherwise. Entries below 128 are named by the bootstrap's pages; from 128 up by modules written in form.
 status: inferred
 from: 5.3.2 5.13.3 5.1.5
 src: 2.30.14 2.30.15
 conf: mid
-limit: No row yet says which numbers a module may take; the lens's range is a convention of its page.
+limit: No row yet says which numbers a module may take; which a module has is a convention of the lexicon.
 at: 2026-11-25
 
 n: 5.15.2
 name: showing-is-total-and-reading-inverts-it
 kind: decision
-is: The lens shows every node: a word or #N for an entry, a number for a short int or nat, quotes for a plain text, brackets with hex for every other leaf, and brackets around a blueprint and its children for a composite. Reading takes all of these and gives back the node that was shown. A node written twice is one node, so sharing needs no mark. Text it cannot read is a fault whose reason is a word and the place.
+is: The lens shows every node: a word or #N for an entry, a number for a short int or nat, quotes for a plain text, brackets with hex for every other leaf, a name or $k for an argument, braces for a recipe, and brackets around a blueprint and its children for any other composite. Reading takes all of these and gives back the node that was shown. A node written twice is one node, so sharing needs no mark. Text it cannot read is a fault whose reason is a word and the place.
 status: inferred
 from: 5.3.3 5.3.8 5.3.4 5.14.31
 src: 2.30.14 2.30.15
 conf: mid
 why: The notation is the one the observer already prints, so what is watched and what is written look the same.
-flip: A node with much sharing shows long; naming a part and using it twice needs a row the lens does not have.
+flip: A part a let names (5.15.5) is written once. Sharing that no let names still shows in full each time it appears.
 at: 2026-11-25
 
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens was brought into being once, by substituting numbers for words in its source. Since then it shows its own stored node, through its own rows, as 382 lines of text and reads that text back to the same canonical print, byte for byte; its matcher and rows were written in it. ground/lens-round-trip.ck raises, shows, reads and lowers each of the 71 files of nodes in the repository and names none that differs, in 0.2 s and 31 million walker steps. Six malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens shows its own stored node, through its own rows and names, as 741 lines and reads them back to the file it is stored as, byte for byte in both lines. Names were first read by a second lens written in the first; its 85 definitions were then named with no byte of its node changing. ground/lens-round-trip.ck shows, reads and stores again each of the 72 files of nodes here and names none that differs, in 0.4 s. Fourteen malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.
@@ -41,7 +41,7 @@ at: 2026-11-25
 n: 5.15.4
 name: a-row-is-two-shapes-run-both-ways
 kind: decision
-is: A row is a pair of nodes with holes: the surface a person writes and the core it stands for. One matcher written in form runs it both ways. Reading lowers surface to core, showing raises core to surface; the first row that fits is used, what is under quote is left alone, and a hole named rest holds the remaining children. Rows are a list a bound entry answers (lens/rows.ck), written in the lens itself: if, first, when, not, let and def. Adding a row adds both its reading and its showing.
+is: A row is a pair of nodes with holes: the surface a person writes and the core it stands for. One matcher written in form runs it both ways. Reading lowers surface to core, showing raises core to surface; the first row that fits is used, what is under quote is left alone, and a hole named rest holds the remaining children. Rows are a list a bound entry answers (lens/rows.ck), written in the lens itself: if, first, when, not and tuple. Adding a row adds both its reading and its showing.
 status: inferred
 from: 5.3.2 5.1.5 5.15.2 5.14.30
 src: 2.30.14 2.30.15
@@ -49,4 +49,17 @@ conf: mid
 why: 5.3.2 asks for rows read forwards and run backwards with no printer written by hand. Between two shapes of nodes that is matching and substitution, and it leaves text to the words and leaves beneath. A surface word is an entry of a higher namespace that lowers into the core (5.1.5).
 flip: A pattern over text, as an infix operator or a host language needs, is not a pair of node shapes; that part of 5.3.2 is not built.
 limit: A hole may stand once on each side. Every row is tried at every node.
+at: 2026-11-25
+
+n: 5.15.5
+name: names-lie-beside-the-node-they-name
+kind: decision
+is: An argument is a number in the node and a name beside it. The names of a recipe's arguments and the name a let gives are a row keyed by that node's content id, kept on a second line of the node's file, which the bootstrap does not read. Text names arguments in braces, {a b | body}, and a let's part before its value; the reader turns a name into its number, and the printer shows the name where reading it back gives that number. Naming changes no node and no id.
+status: inferred
+from: 5.2.4 5.2.1 5.1.1 5.15.1 5.14.43
+src: 2.30.14 2.30.15 2.30.3
+conf: mid
+why: 5.2.4 keeps names as rows keyed by node and lens and bound variables by position. The id is the one identity a row can carry between processes (5.2.1). Keeping the rows in the node's own file means they are written whenever the node is and cannot go stale.
+flip: Two recipes that are one node share one row, so they cannot be named differently. A second lens with other names for the same node would need its own rows; the line holds one lens's.
+limit: A recipe inside another sees none of the outer names, as a recipe captures nothing. In a recipe with no names the first let name takes argument 0.
 at: 2026-11-25

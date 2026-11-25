@@ -463,3 +463,16 @@ conf: mid
 why: Every loop over indices was a recipe calling itself, one activation and one choice point a round, and a loop that does not return keeps them all.
 limit: Other loops are still recursions, and a recursion that never returns still keeps an activation for every round.
 at: 2026-11-25
+
+n: 5.14.43
+name: let-gives-a-part-a-place
+kind: decision
+is: Entry 100, let, evaluates a value and runs its body on the same arguments with one argument, numbered in the node, being that value. The number is a level: it means the same through all of a recipe's body. Self, the cut scope and the bindings are the enclosing recipe's. It replaced a let that was a call of a recipe written in place, under which nesting renumbered the arguments. Observed on 2026-11-25: a program in form rewrote the old lets of 26 stored files into this one, and every ground program ended as before.
+status: inferred
+from: 5.4.12 5.2.4 5.14.6 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: Bound variables are referred to by position (5.2.4), and a position that moves with nesting cannot carry a name. A let that keeps the arguments it stands among is also what a compiler wants: a value in a slot, with no call.
+flip: Each let makes an activation that copies the arguments it stands among. Where that copy is felt, the activation can be extended in place when nothing can return to its older form.
+limit: A let takes one value; several are lets inside each other, which the lens writes flat.
+at: 2026-11-25

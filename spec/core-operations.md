@@ -5,14 +5,14 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 69 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 70 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
-94 to 97 read a region; 98 calls the host and 99 counts. 128 is the first operation that exists
-only in form: entries below 128 are the bootstrap's to name, and from 128 up they are named by
-modules written in form.
+94 to 97 read a region; 98 calls the host, 99 counts and 100 gives a part a place. 128 is the
+first operation that exists only in form: entries below 128 are the bootstrap's to name, and from
+128 up they are named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -244,7 +244,7 @@ like any other.
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 76 | read | t | the node whose canonical print is the bytes of leaf t, with or without the one line feed a print file ends in; a refused print answers nothing with the refusal's word |
+| 76 | read | t | the node whose canonical print is the first line of leaf t: what follows a line feed is not read; a refused print answers nothing with the refusal's word |
 | 77 | print | x | a text leaf holding x's canonical print |
 | 78 | id | x | a bytes leaf holding x's content id |
 | 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |
@@ -402,6 +402,22 @@ them. With no choice open a program wrote a file through `creat`, `write` and `c
 the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
 refusal.
 
+## Entry 100: let, a part given a place
+
+`(let $k v body)` evaluates v, then runs body on the same arguments with argument k being v. The
+first child is the argument's own node and is not evaluated. Nothing else changes: `self` is still
+the recipe the let stands in, a `cut` in body commits what it would have committed outside, and
+the bindings that body runs on are the same. Arguments above the ones passed, up to k, are
+nothing.
+
+A let is how a part is named and used twice. Its number is a level and not a distance: a let
+inside another let, or inside a choice, leaves every argument where it was, so `$2` means the
+same thing through all of a recipe's body. Giving an argument that already has a value hides the
+old one inside body only; outside the let it is what it was, since the let makes a new activation
+and the old one is never changed. `(let $0 5 $0)` at the top of a program answers 5.
+
+A wrong shape, three children of which the first is an argument, is a fault, `arity`.
+
 ## Entry 128: compile, which exists only in form
 
 | N | name | children | what it does |
@@ -442,13 +458,13 @@ not know.
   calls that have returned are given back as soon as no open choice can return to them.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct
   recursion only.
-- Recipes do not capture the arguments of an enclosing recipe.
+- A recipe does not capture the arguments of a recipe around it. A `let` is not a recipe: its
+  body keeps the arguments it stands among.
 - Integer law is still question 6.1.11; the 64-bit bound is the floor's.
 - The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.
 - An operation that evaluates its children first takes at most eight, so a call passes at most
   seven arguments.
-- Programs are written in words through the first lens (`spec/lens.md`), which is words and
-  leaves only. There is no operation on the bits of a number.
+- There is no operation on the bits of a number.
 - A recursion that never returns keeps an activation for every round until it does, so a loop
   written as a recursion is bounded by the activations area. Counting with `range` is not.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run

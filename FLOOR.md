@@ -8,12 +8,12 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 986 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 998 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 54 operations: control with backtracking and counting, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 55 operations: control with backtracking and counting, a part given a place, arithmetic, a node's parts and bytes, cells, binding what runs, reading and printing, the step itself, the bytes of its own region and of another's, and any function of the host by name |
 | Swapping | [`form/`](form) | any operation, any recipe and the walker's step can be given another implementation, and have it taken away, while a program runs |
 | Emitter | [`form/compile.aarch64.ck`](form/compile.aarch64.ck) | written in form: compiles a recursion over numbers to one machine-code leaf |
-| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, and rows that turn a surface into the core and back |
+| Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: several parents composed into one shape, a reference as a cell and a view, send, and super that moves the view |
 | Programs | [`ground/`](ground) | 41 that witness the above; one more runs them and judges how each ends |
@@ -40,13 +40,17 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   and the walker runs what it declines: through overflows, missing and wrong arguments and a
   recursion deeper than the machine stack, the answer, the reason and the fault were the
   walker's own in seventeen trials by hand.
-- **The lens reads its own definition.** It shows its stored node, through its own rows, as 382
-  lines and reads them back to the same node, byte for byte, and does the same for each of the 71
-  files of nodes here in 0.2 s. Its rows and their matcher were written in it. Text it cannot read
-  is a fault that names what and where.
+- **The lens reads its own definition.** It shows its stored node, through its own rows and with
+  its own names, as 741 lines and reads them back to the file it is stored as, byte for byte, and
+  does the same for each of the 72 files of nodes here in 0.4 s. Its rows and their matcher were
+  written in it. Text it cannot read is a fault that names what and where.
+- **Names lie beside the nodes.** A recipe's arguments and the parts a `let` gives a place are
+  numbers in the node and names on a second line of its file. The lens's 85 definitions were
+  given names with no byte of the node changing. A `let` keeps the arguments it stands among, so
+  a number means one thing through all of a recipe; a program in form rewrote the old lets of 26
+  stored files, and every ground program ended as before.
 - **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
-  what a cell held; a note is kept. With its words in cells the lens's round trip takes 0.20 s
-  where it took 0.37 s.
+  what a cell held; a note is kept.
 - **What were C commands are programs.** The conformance check, freeze and thaw are written in
   form; the form freeze wrote the same bytes as the C freeze it replaced.
 - **The region describes itself.** The layout of its records is a node. The C header is made
@@ -76,9 +80,9 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   the recipe itself. It compiles a recipe whole or not at all and cannot hand a node back to the
   walker, so it compiles no call of another recipe, no backtracking and nothing that builds a
   node.
-- **The home lens.** The first lens's shapes are brackets only: nothing infix, no names for a
-  recipe's arguments, no way to name a part and use it twice. Most stored programs were composed
-  in numbers before it existed; they show through it and were not rewritten in it.
+- **The home lens.** The first lens's shapes are brackets only: nothing is written infix, and a
+  recipe inside another sees none of the outer names. Outside the lens itself, the stored
+  programs' arguments are still numbers: they were composed before names existed.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 72
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (659 lines of C under `tools/`), the Makefile's 65 lines, ten pages, the claim

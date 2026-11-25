@@ -99,7 +99,10 @@ hex    = one or more pairs of 0-9 a-f
 
 Rules that make it canonical:
 
-1. One space between items and no other white space. A file holds one node and one line feed.
+1. One space between items and no other white space. A print ends where the text ends or at a
+   line feed. A file holds one node on its first line. A second line, when there is one, is the
+   print of the names a lens keeps for parts of that node (`spec/lens.md`); it lies beside the
+   node and is no part of it.
 2. A catalogue entry is always written `#N` and never as a leaf in brackets.
 3. Each `[` and each `(` opens a node and gives it the next number, starting at 0. `#N` and `^k`
    open nothing.

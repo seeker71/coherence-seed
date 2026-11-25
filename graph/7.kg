@@ -19,7 +19,7 @@ at: 2026-11-25
 n: 7.4
 name: stage-3-home-lens
 kind: plan
-is: The home lens as rows written in the grammar, read forwards and printed backwards. Closes when the lens reads its own definition, prints it, and the reprint reads to the same nodes. A first lens, of words, leaves and six rows written in itself, does that for itself (5.15.3, 5.15.4). Its shapes are brackets only: no pattern over text, no operator table, no named arguments, so the surface of 5.3.5 is not built. Whether the stage is closed by this evidence is the guide's to say.
+is: The home lens as rows written in the grammar, read forwards and printed backwards. Closes when the lens reads its own definition, prints it, and the reprint reads to the same nodes. A first lens, of words, leaves, names for arguments and five rows written in itself, does that for itself (5.15.3, 5.15.4, 5.15.5). Its shapes are brackets only: no pattern over text and no operator table, so the surface of 5.3.5 is not built. Whether the stage is closed by this evidence is the guide's to say.
 status: inferred
 from: 5.3.2 5.3.5 5.3.3 5.15
 at: 2026-11-25
