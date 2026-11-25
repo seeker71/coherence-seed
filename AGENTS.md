@@ -21,7 +21,9 @@ We hold this work together. Guidance orients; it is not a list to enforce, and w
 needs no permission. It is kept short and in our own words (graph node 7.13), not quoted.
 
 - **Form first.** New code is written in form and kept as nodes. C is the bootstrap only, and no
-  other language is written. What a program lacks becomes an operation of the bootstrap.
+  other language is written. What a program lacks becomes an operation of the bootstrap. Write in
+  words through the lens and read stored nodes through it ([`spec/lens.md`](spec/lens.md)); what
+  is stored is the canonical print.
 - **Every part can be replaced.** The bootstrap's code is one implementation of each part; a
   recipe or machine code can take its place while the system runs.
 - **Follow a real flow.** Make something run end to end and watch it through the framebuffer. A

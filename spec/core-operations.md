@@ -3,10 +3,11 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 54 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 56 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, and 128 is the first operation that exists only in form. Entries
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, and 128
+is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
 needs them.
@@ -27,7 +28,9 @@ Evaluating a node is an offer. It ends in exactly one of:
   children or arithmetic on something that is not a number. A fault unwinds to the nearest
   `recover`, or ends the run.
 
-A reason is a text leaf. It is exempt from undo.
+A reason is a node, most often a text leaf. It is exempt from undo. `(fault r)`, entry 85, is a
+program's own fault: it breaks off with the reason r exactly as the walker's faults do, through
+every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 
 ## Entries
 
@@ -69,8 +72,8 @@ Everything the floor keeps in memory is a record whose first word is one of thes
 | 59 | activation | a running recipe and where its arguments are |
 | 60 | choice-point | an open choice, its next option and the marks it returns to |
 | 61 | gathered | one answer collected by `all` |
-| 62 | words | a table of 32-bit words: handles or counts |
-| 63 | bytes | a table of bytes |
+| 62 | word-table | a table of 32-bit words: handles or counts |
+| 63 | byte-table | a table of bytes |
 | 72 | binding | one entry and the implementation that runs it |
 
 The table of code leaves that have a runnable copy uses entry 52.
@@ -141,6 +144,10 @@ have.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
   calls, e means what it meant before this binding. So a new `add` can use the `add` it replaces,
   and `add` and `sub` can each be written with the other.
+- **Bindings made together are one layer.** `(layer x)`, entry 86, evaluates x, and every binding
+  x made then runs on all of them: its implementation sees itself and the others by name, with
+  what was bound before the layer beneath. This is how a set of definitions that call each other
+  is written; a single `bind` outside a layer keeps meaning what it meant before.
 - **A binding is undone like anything else.** A fail that returns to a choice entered before the
   binding takes the binding away.
 - **A binding is a record in the region** (`spec/framebuffer.md`): the entry, the implementation,
@@ -329,8 +336,10 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 - The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.
 - An operation that evaluates its children first takes at most eight, so a call passes at most
   seven arguments.
-- Programs are written by hand in the canonical print (`./ck canon` numbers the repeats). There is
-  no operation on the bits of a number.
+- Programs are written in words through the first lens (`spec/lens.md`), which is words and
+  leaves only. There is no operation on the bits of a number.
+- A recursion that never returns keeps an activation for every round until it does: a loop is
+  bounded by the activations area.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.

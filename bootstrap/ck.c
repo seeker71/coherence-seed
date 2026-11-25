@@ -541,7 +541,7 @@ static int apply(uint32_t b, const H *a, uint32_t c, uint32_t from, H node) {
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = bd[r-1].impl;
   }
   if (nd[impl].comp) {
-    W->env = enter(impl, a, c, b - 1, from, W->cut); if (!node || !is_lazy(impl)) W->cut = ncp;
+    W->env = enter(impl, a, c, bd[b-1].sees, from, W->cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
   if (node) { arg[0] = node; arg[1] = from; }
@@ -572,7 +572,7 @@ static void parts(long long op, const H *a, uint32_t c) {
     long long e = catn(x);
     if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     room(A_BIND, (uint64_t)nbind + 1); room(A_BOUND, (uint64_t)x + 1); if (N(A_BOUND) <= x) N(A_BOUND) = x + 1;
-    bd[nbind] = (Bind){ E(BINDING), W->at, x, l, bykey[x] }; bykey[x] = ++nbind; W->v = E(YES); return;
+    bd[nbind] = (Bind){ E(BINDING), W->at, x, l, bykey[x], nbind }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
   if (op == COUNT) { W->v = mki(nd[x].n); return; }
@@ -613,7 +613,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       lim = b - 1; b = 0;
     }
     if (given) break;
-    if (!b && (is_data(op) || op > MOD)) { answer(x); break; }    /* data, or an entry with no meaning yet */
+    if (!b && (is_data(op) || op > LAST)) { answer(x); break; }/* data, or an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -648,6 +648,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
+    case LAYER: if (c != 1) { fault("arity"); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, 0, W->k, nbind); W->x = KID(x, 0); break;
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE, (uint64_t)ncp + 1); W->reason = 0;
@@ -684,6 +685,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->mode = M_FAILED; break;
     case F_NEED: if (!W->v || W->v == E(NO)) W->mode = M_FAILED; break;
     case F_RECOVER: break;
+    case F_LAYER: for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind; break;    /* made together, they see each other */
     case F_OUT:
       cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
@@ -725,7 +727,11 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
         break;
       }
-      if (op > MOD) { fault("kind"); break; }        /* an entry only code ran, and the code declined these values */
+      if (op > LAST) { fault("kind"); break; }       /* an entry only code ran, and the code declined these values */
+      if (op == RAISE) {                  /* the program's own fault: its reason is whatever node it gives */
+        if (c != 1) { fault("arity"); break; }
+        W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; break;
+      }
       if (op >= BLUEPRINT && op < DIV) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }

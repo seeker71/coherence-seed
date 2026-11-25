@@ -74,6 +74,24 @@ date: 2026-11-25
 got: 2026-11-25
 at: 2026-11-25
 
+n: 2.30.14
+name: lens.md
+kind: source
+is: The word lens: its notation, its words as rows beside the nodes, how it is used, how it is known to read its own definition, and its limits.
+path: coherence-seed/spec/lens.md
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
+n: 2.30.15
+name: lens.ck
+kind: source
+is: The word lens as nodes: one layer of 32 bound entries that read text into nodes and show nodes as text, with its words in lens/words.ck beside it.
+path: coherence-seed/lens/lens.ck
+date: 2026-11-25
+got: 2026-11-25
+at: 2026-11-25
+
 n: 2.33
 name: Crypo-Coin-Coherency-Network
 kind: source

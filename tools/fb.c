@@ -28,12 +28,12 @@
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
 static const char *const NAMES[SEEDED + 1] = { [1] = "bytes", "text", "nat", "int", [16] = "list",
   [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", "bind", "binding", "up", "base", "lazy",
-  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod",
+  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer",
   [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
   "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
-  "frame", "link", "activation", "choice-point", "gathered", "words", "bytes" };
+  "frame", "link", "activation", "choice-point", "gathered", "word-table", "byte-table" };
 static const char *const MODE[] = { "eval", "ret", "failed", "fault", "done" };
-static const char *const FKIND[] = { "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome" };
+static const char *const FKIND[] = { "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer" };
 
 static uint8_t *img; static uint64_t size;                /* a private copy of one frame, laid out as the region is */
 static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
@@ -165,7 +165,7 @@ static void detail(void) {
   uint32_t k = m->k;
   for (int i = 0; k && k < hd->a[A_FRAME].n && i < 12; i++, k = fr[k].k) {
     const Frame *f = &fr[k];
-    printf("  frame %-6u %-8s child %-2u of %s\n", k, FKIND[f->t <= F_OUT ? f->t : 0], f->i, str(f->node, 100));
+    printf("  frame %-6u %-8s child %-2u of %s\n", k, FKIND[f->t <= F_LAYER ? f->t : 0], f->i, str(f->node, 100));
     printf("  %14s written by ", ""); writer(f->by); printf("\n");
   }
   if (k) printf("  ... and older frames\n");

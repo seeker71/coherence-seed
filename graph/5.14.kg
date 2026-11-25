@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 40 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 42 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes, control with backtracking, arithmetic and native code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), 83 and 84 divide. From 128 up entries are named by modules in form; 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are control, arithmetic and native code; 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), 83 and 84 divide, 85 is a fault (5.14.31), 86 a layer (5.14.30). From 128 up modules in form name them (5.15.1).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -307,6 +307,30 @@ from: 5.4.2 5.14.21 5.14.24 7.13 5.11.4
 src: 2.30.7 2.30.6
 conf: mid
 why: The reason beside a nothing could be printed by the bootstrap and read by no program, so only a shell loop over printed lines could judge a run. An outcome held as a node is compared by identity, and the table of expected lines becomes a node too.
+see: 5.14.31
 limit: The expectations are written in the canonical print, which nobody reads easily; ground/observe.ck answers the list as the programs stand now, to be read against the old one before it is stored. The check's own answer is still compared by one line of the Makefile.
 at: 2026-11-25
 
+
+n: 5.14.30
+name: bindings-made-together-are-one-layer
+kind: decision
+is: A binding's implementation runs on the bindings beneath its own (5.14.20), which keeps a replacement from meeting itself and so forbids definitions that call each other or themselves by name. Entry 86, layer, evaluates a node and then lets every binding made inside it run on all of them, with what was bound before beneath. Each binding record says how many bindings its implementation sees. A set of definitions is written as one layer; one bind alone keeps the older meaning.
+status: inferred
+from: 5.14.20 5.14.19 6.1.14 7.13
+src: 2.30.7 2.30.6
+conf: mid
+why: Found by running: the first lens, bound entry by entry, could not call its own helpers. Entries bound in one layer name each other through the table, so a cycle of definitions needs no cycle of nodes, which is one answer to how mutual recursion lives in a hashed store (6.1.14).
+flip: A layer that should stay open, so later definitions join it, needs more than a mark set when it closes.
+at: 2026-11-25
+
+n: 5.14.31
+name: a-program-raises-its-own-fault
+kind: decision
+is: Entry 85, fault, breaks off with a reason the program gives, any node, exactly as the walker's own faults do: through every all and choice to the nearest recover or outcome. A fail turns execution around and is absorbed by an all; a fault is for what must not be absorbed, such as text a lens cannot read (5.3.8).
+status: inferred
+from: 5.3.8 5.4.6 5.14.29
+src: 2.30.7 2.30.6
+conf: mid
+why: Without it a reader written in form could only fail, and a fail inside a gathering loses the reason and reads as the end of the list.
+at: 2026-11-25
