@@ -72,11 +72,12 @@ Each line here is held by a program that runs under `make check`, or names how i
   and the pairs below 400 were counted in 79 ms on the walker and 2 ms compiled. A definition
   that answers more than once hands each answer to the search that called it, so a search
   crosses definitions: one that calls itself handed up all 5,711 nodes of the lens's definition.
-- **The emitter compiles part of the system, itself included.** Asked for every definition the
-  repository's modules bind, it compiles 161 of 304, each the same alone and after all the
-  others: all 26 of its own instruction builders and 35 more of its 64 definitions, so it goes
-  on compiling partly on code it made. The reader of the print written in form read the lens's
-  19,780 bytes in 20 ms on the walker and in 7 ms after.
+- **The emitter compiles part of the system, itself included, and is faster for it.** Of the 304
+  definitions the repository's modules bind it compiles 161, each the same alone and after all
+  the others. Having compiled 61 of its own 91, it compiles the other 213 again on that code:
+  every leaf byte for byte what it wrote walked, in 0.5 s where walked took 2.1 s. The reader of
+  the print written in form read the lens's 19,780 bytes in 20 ms on the walker and in 7 ms
+  after.
 - **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
   hundredth call. From a second process, a program in form looked at a recursion that takes
   14.3 s, found the recipe it was in, and asked the run to compile it: it ended at 1.3 s.
@@ -121,7 +122,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   compiles no mark but a note, no call of a recipe held as a value, no search as the condition
   of an `if`, and nothing nested deeper than seven registers; a definition that answers more
   than once is compiled only where another searches it. 143 of the system's 304 definitions
-  wait on those. It is itself mostly walked and slow: compiling 136 definitions takes 2.1 s. Code for a recipe that
+  wait on those. A third of the emitter itself is among them, the part that searches. Code for a recipe that
   is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and

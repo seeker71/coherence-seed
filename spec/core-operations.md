@@ -712,16 +712,18 @@ refused. Five planted faults each turned it red, and a sixth made it never end. 
 nodes of the lens's definition were handed up by a definition calling itself, counted the same
 as on the walker.
 
-`ground/compiles-its-own.ck` asks the emitter for every definition the repository's own modules
-bind: 161 of 304 compile, all 26 of the emitter's instruction builders and 35 more of its own
-definitions among them, so from then on the emitter runs partly on code it made. Each compiles
-the same alone in a fresh process and after all the others. That count first came out
-differently in two programs, which is how a wrong kind for the root as a constant was found.
+`ground/compiles-its-own.ck` has the emitter compile the system and then itself. Walked, it
+compiles the 213 definitions the other modules bind, and 100 of them give code. Then it
+compiles its own 91: 61 give code, all 26 instruction builders among them. Then, running on
+that code, it compiles the 213 again, and the program holds two things: every leaf is byte for
+byte the one the walked emitter wrote, and the second pass took less than half the time of the
+first (2.1 s and 0.5 s when measured). Each of the 161 also compiles the same alone in a fresh
+process. That count once came out differently in two programs, which is how a wrong kind for
+the root as a constant was found.
 The reader of the print written in form (`form/read.ck`) read the lens's 19,780 bytes in 20 ms
 on the walker and in 7 ms after this, to the same node; the lens showed its own definition and
-read it back in 54 ms and then in 50 ms. Compiling the 136 that were bound took 2.1 s: the
-emitter is itself mostly walked, and it compiles a definition again with each one that calls
-it. `ground/compiles-a-recipe.ck` loads the
+read it back in 54 ms and then in 50 ms. The emitter compiles a definition again with each one
+that calls it, and the rest of it, 30 definitions, is walked. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
