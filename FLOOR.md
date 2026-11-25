@@ -51,7 +51,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   numbers in the node and names on a second line of its file. The definitions of the lens, the
   objects, the region, the header, the ice and the watcher were given names with no byte of a
   node changing by the naming. The emitter, which was one recipe of bare instruction numbers,
-  was written again as named definitions and emits byte for byte the code it did. A `let` keeps the arguments it stands among, so
+  was written again as named definitions and emits byte for byte the code it did. The ground
+  programs composed in numbers before the lens were written again in names; two of them had
+  been binding entries 100 and 101, which have since become `let` and `outside`. A `let` keeps the arguments it stands among, so
   a number means one thing through all of a recipe; a program in form rewrote the old lets of 26
   stored files, and every ground program ended as before.
 - **A program has memory it can change.** A fail, the end of an `all` and of an `outcome` put back
@@ -107,8 +109,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
   is bound like any implementation, so definitions bound before it, its own layer's among
   them, do not see it.
 - **The home lens.** The first lens's shapes are brackets only: nothing is written infix, and a
-  recipe inside another sees none of the outer names. Most ground programs still show their
-  arguments as numbers: they were composed before names existed.
+  recipe inside another sees none of the outer names.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 79
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
