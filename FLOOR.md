@@ -58,7 +58,7 @@ Each line here is held by a program that runs under `make check`, or names how i
   and it steps aside while something from outside watches an operation it replaced.
   Twenty-nine recipes over numbers, eighty over nodes, thirty-six that test, fail and choose,
   thirty-three that search and twenty-five that search other definitions end the same both
-  ways; forty-six faults planted in the emitter turned that red.
+  ways; forty-six faults planted in the emitter and the bootstrap turned that red.
   Definitions that call each other are compiled into one leaf, and a recursion written as a loop
   runs as one: thirty million rounds, each calling a second definition, in 0.4 s.
 - **Code works on nodes by asking the bootstrap.** One address in the region does any operation
