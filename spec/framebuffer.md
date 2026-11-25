@@ -68,6 +68,21 @@ value in hand, the reason, the running activation, the continuation, and `at`, t
 running. `at` is the writer stamped on whatever is made next. `step` counts the walker's steps and
 serves as the region's clock.
 
+## The region describes itself
+
+What each record looks like is a node, `region/layout.ck`: for the head, the machine, an area
+entry and each kind of record, its fields in order with their widths and whether each holds a
+handle, a number or bytes; and the areas by name in the order of the table. `bootstrap/fb.h` is
+the same layout as the C compiler needs it.
+
+A program reads its own region with `peek` (`spec/core-operations.md`, entries 94 to 96), and
+`region/region.ck`, written in form, reads it through the description: `(fb.get "area" "n"
+base)` is a field of a record, `(fb.show)` the text of a view of the region with every binding
+in words, and `(fb.check)` the list of places where the description and the running region
+disagree: the size of each kind of record against the size its area states, the count of areas,
+and the two places code relies on. `ground/region-describes-itself.ck` runs that check; a
+description with a field widened or two fields changed over is reported.
+
 ## Frames, recording and replay
 
 A **frame** is a copy of the head page and of the used part of every area, taken by a second

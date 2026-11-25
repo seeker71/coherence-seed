@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 63 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 66 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 93 are cells, their trail, notes and unbinding, 94 to 96 read the region, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -264,6 +264,18 @@ on the walker and ends on machine code, a second is compiled the same way, and a
 emitter does not know stays on the walker until the watcher rests. The answers are the
 walker's, in 1.6 million walker steps where the first recursion alone takes 158.6 million
 there. The observer shows the bindings afterwards: watched, released, compiled, watched again.
+
+## Entries 94 to 96: the region, read by a program in it
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 94 | peek | o, n | a bytes leaf holding n bytes of the region from byte o; nothing with `range` outside it or on the page kept under the stack |
+| 95 | handle | x | the number of x's place in the node table |
+| 96 | at | h | the node at that place; nothing with `range` when there is none |
+
+Diagnostics is reading the region, and these let a program do it for its own. What the bytes
+mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a place in this
+process's memory and means nothing in another or in a stored node.
 
 ## Entry 81: the step
 

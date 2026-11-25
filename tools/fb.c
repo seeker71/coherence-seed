@@ -28,7 +28,7 @@
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
 static const char *const NAMES[SEEDED + 1] = { [1] = "bytes", "text", "nat", "int", [16] = "list",
   [64] = "blueprint", "count", "child", "byte", "leaf", "pack", "join", "bind", "binding", "up", "base", "lazy",
-  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer", "encode", "decode", "hold", "held", "trail", "note", "unbind",
+  "read", "print", "id", "file", "clock", "step", "outcome", "div", "mod", "fault", "layer", "encode", "decode", "hold", "held", "trail", "note", "unbind", "peek", "handle", "at",
   [32] = "no", "yes", "quote", "arg", "recipe", "call", "self", "seq", "choice", "fail", "cut", "all", "need",
   "recover", "add", "sub", "mul", "eq", "lt", "native", "code", "framebuffer", "area", "machine", "node",
   "frame", "link", "activation", "choice-point", "gathered", "word-table", "byte-table" };

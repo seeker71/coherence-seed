@@ -738,6 +738,18 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
       }
+      if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
+        int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
+        if (c != (op == PEEK ? 2u : 1u)) { fault("arity"); break; }
+        if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (op == HANDLE) { W->v = mki(a[0]); break; }
+        if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault("kind"); break; }
+        if (op == AT ? (o < 1 || o >= nn) : (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > fb->bytes
+                                              || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = txt("range"); break; }
+        if (op == AT) { W->v = (H)o; break; }
+        uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
+        W->v = mk(0, E(1), copy, (uint32_t)n, &why); ntext = mark; break;
+      }
       if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
         if (c != 1) { fault("arity"); break; }      /* that says so points back at it, so a fail restores it */
         if (!a[0] || a[0] >= N(A_BOUND) || !bykey[a[0]]) { W->v = E(NO); break; }

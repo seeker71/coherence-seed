@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 48 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 51 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 93 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 96 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault, cells and notes, and the region itself. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 48.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 51.
 at: 2026-11-25
 
 n: 5.14.2
@@ -390,4 +390,17 @@ src: 2.30.7 2.30.6
 conf: mid
 why: 5.4.8 keeps apart what is journaled and what has crossed the boundary of what is undone. The guidance asks that a diagnostic can be put in for a while and taken out again while the system runs.
 flip: A binding removed from the middle of an entry's chain, or by name, needs more than the newest.
+at: 2026-11-25
+
+n: 5.14.37
+name: the-region-is-described-by-a-node-and-read-through-it
+kind: decision
+is: What each record of the region looks like is a node, region/layout.ck: fields in order, their widths, and whether each holds a handle, a number or bytes. Entries 94 to 96, peek, handle and at, let a program read its own region, and region/region.ck reads it through that description: a field of a record, a view of the region as text with every binding in words, and a check of the description against the running region. Observed on 2026-11-25: the check finds nothing, and names a field that was widened and two that were changed over.
+status: inferred
+from: 5.7.6 5.7.7 5.14.10 5.14.33 6.1.11 7.13
+src: 2.30.7 2.30.9 2.30.11
+conf: mid
+why: The region was to carry its blueprints, and the layouts lived only in a C header: emitted code read a record by a position typed in by hand and a change of layout broke it with no check failing (5.14.33). A layout that is a node can be read, checked and used to compute where a field lies.
+flip: Two descriptions, the node and the header, can still drift where the check does not look: the order and width of fields inside a record of the right size. One should be made from the other.
+limit: It reads its own region only; watching another process is still the observer in C. The emitter does not yet take its offsets from the description.
 at: 2026-11-25

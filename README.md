@@ -138,6 +138,7 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `spec/` | the node encoding and its vectors, the core operations, the framebuffer, and the lens |
 | `lens/` | the lens as nodes: its reader, printer and matcher, its words, its rows, and two programs that run it on standard input |
 | `ice/` | freeze and thaw as nodes |
+| `region/` | the layout of the region's records as a node, and the program that reads the region through it |
 | `ground/` | programs that witness the floor; `check.ck` runs them against the outcomes in `expect.ck` |
 | `form/` | operations written in form and as machine code, the emitter, and the watcher |
 | `tools/` | the graph checker `kg`, the observer `fb`; both are C until generated code replaces them |
