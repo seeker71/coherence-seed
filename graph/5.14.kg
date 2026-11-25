@@ -9,7 +9,7 @@ at: 2026-11-25
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes and calls, control with backtracking, arithmetic, comparison, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are reading, printing, the id, a file and the clock, 81 is the walker's step (5.14.24), and 82 is compile, which exists only in form (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes and calls, control with backtracking, arithmetic, comparison, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 read, print, give the id, a file and the clock, 81 is the walker's step (5.14.24), and 82 is compile, in form only (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
