@@ -3,7 +3,7 @@
 BUDGET = 2000
 # How many times the stored form may still read a part of a node by a bare number, where no shape
 # names the part (graph node 7.22). It is lowered as code is written properly, and never raised.
-BARE = 300
+BARE = 270
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h

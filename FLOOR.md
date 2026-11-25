@@ -116,10 +116,11 @@ helper could not see the code (found by planting faults that nothing noticed).
 
 - **Proper form everywhere.** The emitter is written with shapes, named cases and named
   instructions: 149 definitions, the longest 102 lines where one was 655, no raw encoding
-  outside its 55 builders. The lens reads its readers' answers and the parts of a let by name.
-  300 reads of a node by a bare number are left in the stored form, the budget `make check`
-  holds: 77 in the lens, 61 in the emitter, 39 in the rest of `form/`, 32 in the region's
-  programs, 21 in the objects, 63 in the ground programs. Nothing checks that a value has the
+  outside its 55 builders. The lens reads its readers' answers and the parts of a let by name,
+  the objects a reference's cell and view, the hash its state. 270 reads of a node by a bare
+  number are left in the stored form, the budget `make check` holds: 77 in the lens, 61 in the
+  emitter, 19 in the rest of `form/`, 32 in the region's programs, 11 in the objects, 4 in the
+  ice, 3 in the lens's commands, 63 in the ground programs. Nothing checks that a value has the
   shape its name says, no module is written with the objects' send and super, there are no
   templates over shapes, and a module's words are still numbered by hand in one lexicon.
 
