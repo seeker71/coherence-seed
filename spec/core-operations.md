@@ -3,14 +3,14 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 41 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
-the floor's own records, 64 to 70 take a node apart and build one, and 71 gives an entry a new
-implementation. It does not yet name operations that hold an offer or bind a cell; those come with
-the stage that first needs them.
+it. This page names 44 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+the floor's own records, 64 to 70 take a node apart and build one, and 71 to 75 let a program
+replace what runs. It does not yet name operations that hold an offer or bind a cell; those come
+with the stage that first needs them.
 
-The bootstrap's C is one implementation of each operation, the one a cold start runs. The same
-operations are written in form under `form/`, and any of them can take the C's place while a
-program runs (entry 71).
+The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
+operation, and any recipe, can be given another while a program runs (entry 71): to add a
+diagnostic, to try a faster or a gentler version, to run it elsewhere, and to go back.
 
 ## Outcomes
 
@@ -116,15 +116,21 @@ kept as nodes: given candidate bytes it answers the `nat` leaf they are, or the 
 
 ## Entry 71: an operation's implementation
 
-`(bind e i)` gives catalogue entry e the implementation i and answers yes. From then on a
-composite under e evaluates its children in order and hands their answers to i.
+`(bind e i)` gives e the implementation i and answers yes. From then on i runs wherever e would
+have.
 
-- **i is a recipe or a code leaf.** A recipe is called with the answers as its arguments. A leaf
-  under entry 52 is called with them as up to six integers and answers as `native` does.
-- **e is an operation that evaluates its children first, or an entry with no meaning yet.** That is
-  37 `call`, 46 to 51, 64 to 71, and every entry from 73 up, so a program can bring a new operation
-  into being. The control entries (34 `quote`, 35 `arg`, 38 to 45), the data entries and the
-  record kinds keep the bootstrap's meaning; binding one is the fault `kind`.
+- **e is any operation, an entry with no meaning yet, or a recipe.** Control operations included.
+  A bound recipe is replaced wherever it is called, so one recipe can be swapped for a tracked or
+  a compiled version and back. Only data entries keep their meaning.
+- **i says how it wants to be used.** A `recipe` is called with the children's answers. A `lazy`
+  (entry 75, shaped like a recipe) is given the node itself, unevaluated, and so can stand for a
+  control operation. A code leaf is called with the answers as integers. A leaf of any other
+  blueprint is run by whatever that blueprint is bound to, which is how a new kind of
+  implementation, another processor or a table, comes in without a change to the bootstrap.
+- **`(up x)` and `(base x)`** (entries 73, 74) evaluate the node x where the user of the
+  implementation stands, with its arguments. Under `base` the node's own entry means what it meant
+  beneath this binding, and everything inside it is as the user sees it: a `lazy` that records
+  something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
   calls, e means what it meant before this binding. So a new `add` can use the `add` it replaces,
   and `add` and `sub` can each be written with the other.
@@ -151,8 +157,10 @@ a number is negative when `(count (byte d last))` is 2. Each code version is one
 directly: it computes, and says in its second result whether the answer is a number, a yes or no,
 or out of range.
 
-Not yet written in form: 37 `call`, 49 `eq`, 51 `native`, 64 to 71. The control entries cannot be
-replaced yet, so they have no form either.
+Every operation can be replaced; the others are not yet written in form. `ground/` shows the
+kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked on every call and
+then released (`tracked-recipe.ck`), a control operation brought into being (`invented-control.ck`),
+and a new kind of implementation (`new-kind.ck`).
 
 ## Fail, choice and cut
 
@@ -207,8 +215,11 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
   seven arguments.
 - Programs are written by hand in the canonical print (`./ck canon` numbers the repeats). There is
   no operation on the bits of a number.
-- A control entry cannot be given a new implementation: its children are not evaluated first, and
-  the floor has no way yet to hand a recipe the unevaluated node and the caller's arguments.
+- A `lazy` keeps the cut scope it was used in, but a recipe it calls starts a new one. A control
+  operation rewritten from nothing in form therefore cannot yet pass a `cut` through a helper;
+  wrapping with `base` has no such limit.
+- What is not an operation has no binding yet: the store, the reader, the printer, freeze, thaw,
+  the host functions and the walker's own step.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.

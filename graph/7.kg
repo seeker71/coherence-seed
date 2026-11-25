@@ -98,3 +98,11 @@ status: given
 by: guide
 see: 7.10 7.11 8.14
 at: 2026-11-25
+
+n: 7.21
+name: every-part-swappable
+kind: plan
+is: The path to a system where anything can be exchanged while it runs. One table says what runs for each operation and each recipe (5.14.19); what is left is to bring the rest under it. Next, each thing the bootstrap does beyond the operations becomes an entry with a binding: reading, printing, the id, the store, ice, files, the clock, and then the walker's own step, so that a compiled or a tracing evaluator is one more implementation. After that: bindings that arrive from outside through the region, bindings with a scope, and recipes that try implementations, measure them and keep what serves.
+status: inferred
+from: 7.13 5.14.19 5.14.23 5.9.6
+at: 2026-11-25

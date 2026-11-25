@@ -8,14 +8,14 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 866 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 884 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 29 operations: control with backtracking, arithmetic, a node's parts, native code, and `bind` |
-| Replaceable operations | [`form/`](form) | add, sub, mul and lt in form and as machine code; any takes the bootstrap's place while a program runs |
-| Programs as nodes | [`ground/`](ground) | 21 programs that witness the above |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 31 operations: control with backtracking, arithmetic, a node's parts, native code, and replacing what runs |
+| Swapping | [`form/`](form) | any operation, control included, and any recipe can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code |
+| Programs as nodes | [`ground/`](ground) | 25 programs that witness the above |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,328 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,329 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -26,18 +26,23 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 - A program takes a node apart to its bytes and builds it again; the answer is the same node. A
   rule of the encoding runs as nodes. A build the encoding would refuse answers nothing.
 - A program replaces an operation while it runs, by a recipe or by machine code, and the programs
-  answer the same. A replacement runs on what it replaced, and a fail takes it away again. The
+  answer the same. A replacement runs on what it replaced, and a fail takes it away again.
+- A diagnostic is put on every use of `choice` and the answers do not change; the marks it leaves
+  are read from the region. One recipe is tracked on each of its calls, then released. A control
+  operation and a new kind of implementation are brought into being by a program. The
   long recursion takes 9.3 s on four form operations, 0.80 s on four machine-code leaves, and
   0.75 s on the bootstrap's own.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,150 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,151 claims, none of them reviewed by a second reader.
 
 ## Not there
 
-- **Form everywhere.** The control operations cannot be replaced yet; most operations, the store,
-  the reader and the host functions exist only in C. The Makefile's shell, the two C tools, these
-  pages, the graph's blocks and the tables are not form nodes.
+- **Everything swappable** (path: graph node 7.21). Operations and recipes are; the store, the
+  reader, the printer, ice, the host functions and the walker's own step are C with no binding.
+  A binding comes only from the running program and has no scope of its own.
+- **Form everywhere.** Most operations exist only in C. The Makefile's shell, the two C tools,
+  these pages, the graph's blocks and the tables are not form nodes.
 - **A compiler.** Machine code is written by hand, one leaf an operation; the walker still drives
   every step.
 - **A way to write form.** Programs are written by hand in the canonical print; there is no home

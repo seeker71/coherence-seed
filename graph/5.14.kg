@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 29 operations whose registers are a record in the region and whose operations a running program can replace, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 31 operations whose registers are a record in the region and whose operations a running program can replace, the birth of code pages and a table of six host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entry 71 gives an entry a new implementation (5.14.19) and 72 is the kind of that record.
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Twenty-one entries are named, 32 to 52: no, yes, quote, arg, recipe, call, self, seq, choice, fail, cut, all, need, recover, add, sub, mul, eq, lt, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11) and 64 to 70 take a node apart and build one (5.14.15). Entries 71 to 75 let a program replace what runs (5.14.19).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -106,7 +106,7 @@ at: 2026-11-25
 n: 5.14.10
 name: floor-is-a-framebuffer
 kind: observation
-is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 21 ground programs answer as expected.
+is: All of the bootstrap's memory is one POSIX shared region laid out by bootstrap/fb.h: the node table, payloads, both indexes, frames, links, activations, arguments, choice points, gathered answers, the reader's and printer's working lists, every file it reads, and the machine stack. It keeps no heap. The walker's registers are the region's machine record. Observed on 2026-11-25: the 142 encoding vectors hold and the 25 ground programs answer as expected.
 status: observed
 src: 2.30.7 2.30.9 2.30.11
 see: 5.14.12 5.14.13
@@ -196,7 +196,7 @@ at: 2026-11-25
 n: 5.14.19
 name: an-operation-is-a-binding
 kind: decision
-is: The bootstrap's C is one implementation of an operation, the one a cold start runs. bind gives a catalogue entry another: a recipe, called with the children's answers, or a machine-code leaf, called with them as integers. It holds for every entry that evaluates its children first and for every entry from 73 up, so a program replaces an operation or brings a new one into being. A binding is a record in the region with the entry, the implementation and the bind node that wrote it.
+is: The bootstrap's C is one implementation of an operation, the one a cold start runs. bind gives any operation, any unnamed entry or any recipe another, and the implementation says how it is used: a recipe takes the children's answers, a lazy takes the node unevaluated and so can stand for a control operation, a code leaf takes integers, and a leaf of another blueprint is run by what that blueprint is bound to. up and base let an implementation evaluate a node where its user stands. A binding is a record in the region with its writer.
 status: inferred
 from: 7.13 5.9.6 5.9.7 5.7.7 5.14.1
 src: 2.30.7 2.30.6
@@ -238,7 +238,7 @@ at: 2026-11-25
 n: 5.14.23
 name: what-cannot-be-replaced-yet
 kind: limit
-is: The control entries quote, arg, self, seq, choice, fail, cut, all, need and recover cannot be given a new implementation: their children are not evaluated first, and the floor has no way to hand a recipe the unevaluated node together with the caller's arguments. call, eq, native, the seven operations on a node's parts and bind can be replaced and are not yet written in form. The store, the reader, the printer, freeze, thaw and the host functions are C with no binding at all.
+is: Every operation and every recipe can be replaced, and only add, sub, mul and lt are written in form. What is not an operation has no binding: the store, the reader, the printer, freeze, thaw, the host functions and the walker's own step are C. A binding is made only by the running program, lasts until a fail takes it away, and has no scope of its own. A control operation rewritten from nothing in form cannot pass a cut through a helper recipe.
 status: inferred
 from: 5.14.19 7.13 5.9.3
 conf: high

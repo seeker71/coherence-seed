@@ -19,3 +19,7 @@ bind-undone	node [#4 03]
 enhanced	node [#4 04]
 on-form	node (#16 [#4 37] #33 #32 [#4 d6] [#4 fe])
 on-code	node (#16 [#4 37] #33 #32 [#4 d6] [#4 fe])
+traced-choice	node (#16 [#4 01] [#4 02] [#4 03])
+tracked-recipe	node (#16 [#4 37] ^1)
+invented-control	node (#16 [#2 79] [#2 6e])
+new-kind	node [#4 2a]

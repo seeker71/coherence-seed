@@ -480,9 +480,9 @@ static void *birth(H leaf) {              /* the leaf's instructions, runnable; 
 static uint32_t push(uint32_t t, H node, uint32_t i, uint32_t env, uint32_t cut, uint32_t vals, uint32_t k, uint32_t aux) {
   room(A_FRAME, (uint64_t)nfr + 1); fr[nfr] = (Frame){ E(FRAME), W->at, t, node, i, env, cut, vals, k, aux, nact }; return nfr++;
 }
-static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim) {
+static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t up) {
   room(A_ACT, (uint64_t)nact + 1); room(A_ARG, (uint64_t)nargp + n);
-  memcpy(argp + nargp, a, sizeof(H) * n); act[nact] = (Act){ E(ACT), W->at, recipe, nargp, n, lim }; nargp += n;
+  memcpy(argp + nargp, a, sizeof(H) * n); act[nact] = (Act){ E(ACT), W->at, recipe, nargp, n, lim, up }; nargp += n;
   return nact++;
 }
 /* The newest binding of entry e among the first lim, counted from 1; 0 when the bootstrap's own
@@ -500,6 +500,7 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
   nlink -= c;
 }
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
+static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, any other k out of range. */
@@ -510,9 +511,14 @@ static void landed(void *fn, const int64_t *arg) {
 }
 /* Run binding b on values already in hand: a recipe is entered on the bindings beneath b,
  * a code leaf is called with the values as integers. */
-static void apply(uint32_t b, const H *a, uint32_t c) {
-  H impl = bd[b-1].impl; int64_t arg[6] = {0};
-  if (nd[impl].comp) { W->env = enter(impl, a, c, b - 1); W->cut = ncp; W->x = KID(impl, 0); W->mode = M_EVAL; return; }
+static void apply(uint32_t b, const H *a, uint32_t c, uint32_t from) {
+  H impl = bd[b-1].impl, t[9]; int64_t arg[6] = {0};
+  if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
+    uint32_t r = bound(nd[impl].bp, b - 1);             /* is bound to runs it, given the leaf and the values */
+    if (!r || !nd[bd[r-1].impl].comp) { fault("kind"); return; }
+    t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = bd[r-1].impl;
+  }
+  if (nd[impl].comp) { W->env = enter(impl, a, c, b - 1, from); W->cut = ncp; W->x = KID(impl, 0); W->mode = M_EVAL; return; }
   for (uint32_t j = 0; j < c; j++) if (j > 5 || !geti(a[j], &arg[j])) { fault("kind"); return; }
   W->mode = M_RET; landed(birth(impl), arg);
 }
@@ -522,10 +528,10 @@ static void parts(long long op, const H *a, uint32_t c) {
   const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
   if (c != (op == BLUEPRINT || op == COUNT || op == LEAF ? 1u : 2u)) { fault("arity"); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
-  if (op == BIND) {                       /* control and data entries keep the bootstrap's meaning */
+  if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
     long long e = catn(x);
-    if (e < CALL || (e > CALL && e < ADD) || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING
-        || !(is_recipe(l) || (!nd[l].comp && nd[l].bp == E(CODE)))) { fault("kind"); return; }
+    int data = e >= 0 && (e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY);
+    if (data || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     room(A_BIND, (uint64_t)nbind + 1); bd[nbind] = (Bind){ E(BINDING), W->at, x, l }; nbind++; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
@@ -554,14 +560,18 @@ static void parts(long long op, const H *a, uint32_t c) {
 static void run(H top) {                  /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   const char *why; H a[8];
   W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
-  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Act){ E(ACT), 0, 0, 0, 0, ~0u };
+  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Act){ E(ACT), 0, 0, 0, 0, ~0u, 0 }; W->one = 0;
   for (;; W->step++) switch (W->mode) {
   case M_EVAL: {
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n;
-    uint32_t b = nbind && op >= QUOTE ? bound(nd[x].bp, act[W->env].lim) : 0;
-    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op > BIND)) { answer(x); break; }
-    switch (op) {
+    uint32_t lim = W->one ? W->one - 1 : act[W->env].lim; W->one = 0;
+    uint32_t b = nbind && op >= QUOTE ? bound(nd[x].bp, lim) : 0;
+    if (!b && (op < QUOTE || op == RECIPE || (op > NATIVE_OP && op < BLUEPRINT) || op == BINDING || op > BASE)) { answer(x); break; }
+    if (b && is_lazy(bd[b-1].impl)) {     /* it is given the node itself and keeps the cut scope it was used in */
+      a[0] = x; W->env = enter(bd[b-1].impl, a, 1, b - 1, W->env); W->x = KID(bd[b-1].impl, 0); break;
+    }
+    switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
       H i = c == 1 ? KID(x, 0) : 0; uint32_t j = 0;
@@ -597,8 +607,8 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, 0, W->k, ncp); W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8 || (!c && !b)) { fault("arity"); break; }
-      if (!c) { apply(b, a, 0); break; }
-      W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
+      if (!c) { apply(b, a, 0, W->env); break; }
+      W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, lim); W->x = KID(x, 0); break;
     }
     break; }
   case M_RET: {
@@ -625,20 +635,26 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case F_RECOVER: break;
     case F_HANDLER:
       if (!is_recipe(W->v)) { fault("not-a-recipe"); break; }
-      a[0] = f.node; W->env = enter(W->v, a, 1, act[f.env].lim); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
+      a[0] = f.node; W->env = enter(W->v, a, 1, act[f.env].lim, act[f.env].up); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
     case F_ARGS: {
       room(A_LINK, (uint64_t)nlink + 1); lk[nlink] = (Link){ E(LINK), W->at, W->v, f.vals }; uint32_t vals = nlink++;
       uint32_t c = nd[f.node].n;
-      if (f.i < c) { W->k = push(F_ARGS, f.node, f.i + 1, f.env, f.cut, vals, W->k, 0);
+      if (f.i < c) { W->k = push(F_ARGS, f.node, f.i + 1, f.env, f.cut, vals, W->k, f.aux);
         W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL; break; }
       for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp); int64_t m, n, r = 0;
-      uint32_t b = nbind ? bound(nd[f.node].bp, act[f.env].lim) : 0;
-      if (b) { apply(b, a, c); break; }
+      uint32_t b = nbind ? bound(nd[f.node].bp, f.aux) : 0;
+      if (b) { apply(b, a, c, f.env); break; }
+      if (op == UP || op == BASE) {       /* a node evaluated where the user of this implementation stands */
+        if (c != 1 || !a[0]) { fault("arity"); break; }
+        W->one = op == BASE ? act[f.env].lim + 1 : 0;       /* base: its own entry means what it meant beneath */
+        W->env = act[f.env].up; W->cut = f.cut; W->x = a[0]; W->mode = M_EVAL; break;
+      }
+      if (op == CALL && nbind && (b = bound(a[0], f.aux))) { apply(b, a + 1, c - 1, f.env); break; }
       if (op == CALL) {
         if (!is_recipe(a[0])) { fault("not-a-recipe"); break; }
-        W->env = enter(a[0], a + 1, c - 1, act[f.env].lim); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
+        W->env = enter(a[0], a + 1, c - 1, act[f.env].lim, act[f.env].up); W->cut = ncp; W->x = KID(a[0], 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
         int64_t arg[6] = {0};

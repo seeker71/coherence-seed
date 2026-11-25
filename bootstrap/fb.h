@@ -17,20 +17,22 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 73u                        /* every entry this file names is in the store from the start */
+#define SEEDED 76u                       /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
        ADD, SUB, MUL, EQ, LT, NATIVE_OP, CODE,                      /* 32 to 52: spec/core-operations.md */
        FB, AREA, MACHINE, NODE, FRAME, LINK, ACT, CHOICEPT, GATHERED, WORDS, BYTES,    /* 53 to 63 */
        BLUEPRINT, COUNT, CHILD, BYTE, LEAF, PACK, JOIN,             /* 64 to 70: a node's parts */
-       BIND, BINDING };                       /* 71 gives an entry an implementation; 72 is that record's kind */
+       BIND, BINDING,                         /* 71 gives a node an implementation; 72 is that record's kind */
+       UP, BASE, LAZY };                      /* 73, 74: evaluate where the caller stands; 75: a recipe given the node */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER };
 typedef struct { H bp, by; uint32_t t; H node; uint32_t i, env, cut, vals, k, aux, mact; } Frame;
 typedef struct { H bp, by; H v; uint32_t next; } Link;
-typedef struct { H bp, by; H recipe; uint32_t off, n, lim; } Act;   /* lim: how many bindings it runs on */
+typedef struct { H bp, by; H recipe; uint32_t off, n, lim, up; } Act;   /* lim: how many bindings it runs
+                                                 on; up: the activation that used the implementation it belongs to */
 typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll, mbind; } Choice;
 typedef struct { H bp, by; uint32_t id; H v; } Gathered;
 typedef struct { H bp, by; H leaf; uint32_t off; } Born;      /* a runnable copy of a code leaf */
@@ -50,7 +52,7 @@ enum { A_NODE, A_BYTES, A_KIDS, A_TAB, A_IDTAB, A_FRAME, A_LINK, A_ACT, A_ARG, A
  * "code" is the one address kept here: where this process mapped its executable pages. */
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE };
 typedef struct { H bp, by; uint32_t mode; H at, x, v, reason; uint32_t env, cut, k;
-                 uint32_t outcome, gathers, ids, pcount, loose, ncode; uint64_t step, code; } Machine;
+                 uint32_t outcome, gathers, ids, pcount, loose, ncode, one, pad; uint64_t step, code; } Machine;
 
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_PAGE 16384u
