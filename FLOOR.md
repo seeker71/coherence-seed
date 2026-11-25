@@ -71,7 +71,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 853 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 89 files of nodes here, in 0.5 s. Text it cannot read is a fault
+  for byte, as is each of the 91 files of nodes here, in 0.6 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
