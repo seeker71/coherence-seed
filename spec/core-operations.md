@@ -550,7 +550,7 @@ under entry 52. What it knows is numbers:
 - `let`: the part is kept in the frame at its argument's place, and what was there is put back
   after the body;
 - `add`, `sub`, `mul`, `div` and `mod`, with an overflow or a division by zero collected in one
-  register;
+  register, and the five operations on bits;
 - `(if c a b)`, where c is an `lt` or an `eq` of numbers, `yes`, `no`, or an `if` of such tests.
   A nothing inside a test makes that test fail, as on the walker;
 - a call of the recipe itself, as a machine call of the leaf's own first instruction: by
@@ -569,11 +569,11 @@ different. It keeps its arguments, fourteen places for them and for the parts a 
 the registers it uses in a frame of 208 bytes on the machine stack, and a node's result in a
 register chosen by its depth, x19 to x25.
 
-`ground/code-or-walker.ck` runs twenty-three recipes on the walker and again after asking for
+`ground/code-or-walker.ck` runs twenty-seven recipes on the walker and again after asking for
 their code, and holds the two outcomes equal: every shape above, the largest and the most
-negative numbers, a division by zero, tests with a nothing inside, and three the emitter must
-refuse. Its last lines show the walker's `add` unused while an entry's code runs, and an entry
-bound outside a layer left on the walker. Six faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
+negative numbers, a division by zero, a shift too far, tests with a nothing inside, and three
+the emitter must refuse. Its last lines show the walker's `add` unused while an entry's code runs, and an entry
+bound outside a layer left on the walker. Seven faults planted in the emitter each turned it red. `ground/compiles-a-recipe.ck` loads the
 emitter, runs a recursion on the walker, compiles it and runs a much longer one on the leaf.
 
 The code is bound as any implementation is: above what was bound before it, and unseen by
@@ -601,9 +601,9 @@ is called sees it wherever the caller would.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
-- The emitter compiles numbers only: no call of another recipe, no control beyond the one shape
-  of condition, no answer of yes or no, no negative or large literal, and an expression nested
-  deeper than seven registers is not compiled. It cannot hand a node it does not know back to the
+- The emitter compiles numbers only: no call of another recipe, a test only as the condition of
+  an `if`, no answer of yes or no, and an expression nested deeper than seven registers is not
+  compiled. It cannot hand a node it does not know back to the
   walker: code may decline only before it has done anything, because a declined call is run
   again from its start. The watcher that offers recipes by how often they run sees only `call`.
 - Where emitted code declines, the work is done twice: once until it declines, then on the
@@ -621,4 +621,4 @@ is called sees it wherever the caller would.
   inside may name another reason than the bootstrap's.
 - A binding has no name of its own: `unbind` takes the newest of an entry, not one in the middle.
 - Nothing bounds a run but the region's capacities: a wrong recipe under a recursion gives no
-  answer and goes on until an area is full.
+  answer and goes on until an area is full, which is the fault `full`.

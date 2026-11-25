@@ -54,7 +54,7 @@ Each line here is held by a program that runs under `make check`, or names how i
   bootstrap's own they hold the 142 vectors, ids among them; on the reader and printer every
   ground program runs.
 - **Emitted code is the walker or faster, never different.** It answers a number or declines.
-  Twenty-three recipes end the same both ways; six faults planted in the emitter turned that red.
+  Twenty-seven recipes end the same both ways; seven faults planted in the emitter turned that red.
 - **A run makes itself faster, or is made faster.** A watcher in form compiles a recipe at its
   hundredth call. From a second process, a program in form looked at a recursion that takes
   14.3 s, found the recipe it was in, and asked the run to compile it: it ended at 1.3 s.
