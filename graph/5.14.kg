@@ -585,7 +585,7 @@ at: 2026-11-26
 n: 5.14.53
 name: the-framebuffer-read-as-a-profiler
 kind: observation
-is: Observed on 2026-11-26. The lens showing its own source was recorded from a second process every millisecond, and the node the walker was at in each frame was counted. 94 of 169 frames stood at the end of a small all. The walker, ending an all, went through everything gathered by every all still open around it; it now goes through its own answers only, which lie above where it began. The showing took 0.28 s before and 0.09 s after, and the round trip of every file 0.80 s and 0.53 s. After it no node stood out. region/profile.ck, written in form, now does the looking and the counting, by node and by the recipe that was running.
+is: Observed on 2026-11-26. The lens showing its own source was looked at from a second process every millisecond and the node the walker was at was counted: 94 of 169 looks stood at the end of a small all. Ending an all, the walker went through everything gathered by every all open around it; it now goes through its own answers only. The showing took 0.28 s before and 0.09 s after. region/profile.ck, in form, does the looking and counting, by node and by the recipe that was running.
 status: observed
 src: 2.30.7 2.30.10 2.30.11
 limit: A frame is a sample; a node that takes little time and is met often is seen, one met rarely is not. One program, one machine.
