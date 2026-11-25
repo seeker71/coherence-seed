@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 58 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 61 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
 what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
-an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, and 128
+an outcome, 83 and 84 divide, 85 is a program's own fault, 86 makes bindings one layer, 87 and 88 are the encoding itself, 89 to 91 are cells and their trail, and 128
 is the first operation that exists only in form. Entries
 below 128 are the bootstrap's to name; from 128 up they are named by modules written in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
@@ -220,6 +220,28 @@ bootstrap once did as commands is written in form:
 
 `ck` itself has two commands, `run` and `text`. Everything else is a program they run.
 
+## Entries 89 to 91: cells and their trail
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 89 | hold | k, v | the cell k now holds the node v; answers v |
+| 90 | held | k | the node the cell k holds; nothing with the reason `empty` when it holds none |
+| 91 | trail | | data: the kind of a trail record |
+
+A cell is where a program keeps something it will change. Any node is a cell, and what tells one
+use from another is the shape of the node: `(lens.find "add")`, built with `join`, is the cell
+the lens keeps the entry for that word in. Holding costs one write.
+
+**A change to a cell is undone like everything else.** While a choice is open, what a cell held
+before each change goes on the trail, and a fail that returns to that choice puts it back; so do
+the end of an `all` and of an `outcome`. A program that wants to try something, look at the
+result and leave no trace wraps it in `outcome`. With no choice open there is nothing to return
+to and nothing is kept on the trail.
+
+What follows from that: a table built inside an option is gone when the option fails. A table
+meant to last is built before the choices that will use it, as the lens indexes its words when
+it loads. `ground/cells.ck` runs each kind of undo.
+
 ## Entry 81: the step
 
 | N | name | children | what it does |
@@ -348,8 +370,9 @@ recipe), `not-a-recipe` (calling something else), `kind` (an operand of the wron
 
 ## Limits
 
-- The floor has no cell a program can change in place, so "undo" here is dropping what an option
-  made. Journaled cells and their trail belong to stage 5.
+- A cell holds a node and has a trail, and that is all: it has no blueprint it is declared with,
+  no access or constructor recipe, no view, and nothing that is exempt from undo (a log that
+  must outlast a fail cannot be kept in one). Those belong to stage 5.
 - A call in the last position of a recipe keeps no frame. The activations and gathered values of
   calls that have returned are given back as soon as no open choice can return to them.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct

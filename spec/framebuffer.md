@@ -44,6 +44,8 @@ reads any other place is tied to one layout version.
 | born-code | code | which code leaves have a runnable copy, and where |
 | bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
 | bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
+| cells | words | for each node used as a cell, the node it holds |
+| trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
 | stack | bytes | the machine stack of the C code and of code leaves |
 

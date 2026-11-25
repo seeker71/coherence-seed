@@ -98,8 +98,8 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
-static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum, *bykey;
-static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born; static Bind *bd;
+static H *kids, *tab, *idtab, *argp, *opened, *tk; static uint32_t *pnum, *bykey; static H *held;
+static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Gathered *coll; static Born *born; static Bind *bd; static Trail *trail;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
 #define nn N(A_NODE)
@@ -115,6 +115,7 @@ static Frame *fr; static Link *lk; static Act *act; static Choice *cp; static Ga
 #define ncoll N(A_GATHER)
 #define nborn N(A_BORN)
 #define nbind N(A_BIND)
+#define ntrail N(A_TRAIL)
 #define nopen N(A_OPEN)
 #define ntk N(A_TK)
 #define ntb N(A_TB)
@@ -136,6 +137,7 @@ static void fb_open(void) {
     [A_ARG] = { WORDS, 4, 1u << 25 },              [A_CHOICE] = { CHOICEPT, sizeof(Choice), 1u << 20 },
     [A_GATHER] = { GATHERED, sizeof(Gathered), 1u << 22 }, [A_BORN] = { CODE, sizeof(Born), 1u << 12 },
     [A_BIND] = { BINDING, sizeof(Bind), 1u << 16 },   [A_BOUND] = { WORDS, 4, 1u << 22 },
+    [A_HELD] = { WORDS, 4, 1u << 22 },                [A_TRAIL] = { TRAIL, sizeof(Trail), 1u << 22 },
     [A_OPEN] = { WORDS, 4, 1u << 22 },             [A_TK] = { WORDS, 4, 1u << 22 },
     [A_TB] = { BYTES, 1, 1u << 26 },               [A_OUT] = { BYTES, 1, 1u << 26 },
     [A_PNUM] = { WORDS, 4, 1u << 22 },
@@ -150,11 +152,11 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FB); fb->version = 5; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FB); fb->version = 6; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODE); bytes = AT(A_BYTES); kids = AT(A_KIDS); tab = AT(A_TAB); idtab = AT(A_IDTAB); fr = AT(A_FRAME);
-  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND); bykey = AT(A_BOUND);
+  lk = AT(A_LINK); act = AT(A_ACT); argp = AT(A_ARG); cp = AT(A_CHOICE); coll = AT(A_GATHER); born = AT(A_BORN); bd = AT(A_BIND); bykey = AT(A_BOUND); held = AT(A_HELD); trail = AT(A_TRAIL);
   opened = AT(A_OPEN); tk = AT(A_TK); tb = AT(A_TB); ob = AT(A_OUT); pnum = AT(A_PNUM); text = AT(A_TEXT);
   nn = 1;
 }
@@ -508,7 +510,7 @@ static void unlink_vals(uint32_t vals, uint32_t c) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
-static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY; }
+static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* What an outcome answers: a word and a node, as 'ck run' prints them. */
@@ -626,7 +628,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       if (!c) { W->mode = M_FAILED; break; }
       W->cut = ncp;
       if (c > 1) { room(A_CHOICE, (uint64_t)ncp + 1);
-        cp[ncp] = (Choice){ E(CHOICEPT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind }; ncp++; }
+        cp[ncp] = (Choice){ E(CHOICEPT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
       if (c > 1) { fault("arity"); break; }
@@ -639,7 +641,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case ALL:
       if (c != 1) { fault("arity"); break; }
       room(A_CHOICE, (uint64_t)ncp + 1);
-      cp[ncp] = (Choice){ E(CHOICEPT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind }; ncp++;
+      cp[ncp] = (Choice){ E(CHOICEPT), x, 1, x, 0, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
@@ -647,7 +649,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE, (uint64_t)ncp + 1); W->reason = 0;
-      cp[ncp] = (Choice){ E(CHOICEPT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind }; ncp++;
+      cp[ncp] = (Choice){ E(CHOICEPT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail }; ncp++;
       W->k = push(F_OUT, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8) { fault("arity"); break; }
@@ -736,6 +738,15 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
         break;
       }
+      if (op == HOLD || op == HELD) {     /* a cell is any node; what it holds is a node. While a choice is */
+        H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
+        if (c != (op == HOLD ? 2u : 1u)) { fault("arity"); break; }
+        if (!key || (op == HOLD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (op == HELD) { if (!(W->v = key < N(A_HELD) ? held[key] : 0)) W->reason = txt("empty"); break; }
+        room(A_HELD, (uint64_t)key + 1); if (N(A_HELD) <= key) N(A_HELD) = key + 1;
+        if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
+        W->v = held[key] = a[1]; break;
+      }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
       if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); break; }
@@ -756,6 +767,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     Choice *q = &cp[ncp-1]; W->at = q->node;
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
+    while (ntrail > q->mtrail) { ntrail--; held[trail[ntrail].key] = trail[ntrail].old; } /* and cells hold what they held */
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
       ncp--; W->v = q->coll ? q->coll : seen_as("nothing", W->reason ? W->reason : txt("no-path"));
       W->reason = 0; W->mode = M_RET; break;

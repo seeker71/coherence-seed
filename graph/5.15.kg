@@ -32,7 +32,7 @@ at: 2026-11-25
 n: 5.15.3
 name: the-lens-reads-its-own-definition
 kind: observation
-is: Observed on 2026-11-25. The lens was brought into being once, by substituting numbers for words in its source. Since then it shows its own stored node, through its own rows, as 382 lines of text and reads that text back to the same canonical print, byte for byte; its matcher and rows were written in it. ground/lens-round-trip.ck raises, shows, reads and lowers each of the 52 files of nodes in the repository and names none that differs, in 0.3 s and 56 million walker steps. Six malformed texts each faulted with a word and a place.
+is: Observed on 2026-11-25. The lens was brought into being once, by substituting numbers for words in its source. Since then it shows its own stored node, through its own rows, as 382 lines of text and reads that text back to the same canonical print, byte for byte; its matcher and rows were written in it. ground/lens-round-trip.ck raises, shows, reads and lowers each of the 59 files of nodes in the repository and names none that differs, in 0.2 s and 31 million walker steps. Six malformed texts each faulted with a word and a place.
 status: observed
 src: 2.30.14 2.30.15 2.30.7
 limit: The list of files is written into the program, so a new file is not covered until it is added. One machine.

@@ -148,7 +148,7 @@ table. The vectors use these words:
 Sixteen of these depend only on the bytes or the text at hand. `unknown` depends on what the reader
 holds: a reader that takes nodes in from bytes keeps each one it accepts, and can place a node
 only under a blueprint and over children it already has. It holds the root and entries 1 to 31
-from the start, and may hold more; the bootstrap starts with entries 0 to 86. A node read from
+from the start, and may hold more; the bootstrap starts with entries 0 to 91. A node read from
 text is never `unknown`, because its blueprint and children are written before it closes.
 
 ## Choices

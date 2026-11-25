@@ -17,7 +17,7 @@
 
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
-#define SEEDED 89u                /* every entry this file names is in the store from the start */
+#define SEEDED 92u                /* every entry this file names is in the store from the start */
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
 enum { NAT = 3, INT = 4, LIST = 16,
        NO = 32, YES, QUOTE, ARG, RECIPE, CALL, SELF, SEQ, CHOICE, FAIL, CUT, ALL, NEED, RECOVER,
@@ -32,7 +32,8 @@ enum { NAT = 3, INT = 4, LIST = 16,
        DIV, MOD,                              /* 83, 84: integer division and its remainder */
        RAISE,                                 /* 85, fault: a program breaks off with a reason, as the walker does */
        LAYER,                                 /* 86: the bindings made inside it are one layer and see each other */
-       ENCODE, DECODE, LAST = DECODE };       /* 87, 88: a node's canonical bytes, and the node such bytes are */
+       ENCODE, DECODE,                        /* 87, 88: a node's canonical bytes, and the node such bytes are */
+       HOLD, HELD, TRAIL, LAST = TRAIL };     /* 89, 90: a cell is given a node, and asked for it; 91: the kind of a trail record */
 
 typedef struct { H bp, by; uint32_t n, off; uint8_t comp, hasid, pad[2]; uint8_t id[32]; } Node;
 enum { F_SEQ = 1, F_ARGS, F_CUT, F_FAILR, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUT, F_LAYER };
@@ -40,10 +41,11 @@ typedef struct { H bp, by; uint32_t t; H node; uint32_t i, env, cut, vals, k, au
 typedef struct { H bp, by; H v; uint32_t next; } Link;
 typedef struct { H bp, by; H recipe; uint32_t off, n, lim, up, cut; } Act;   /* lim: how many bindings it
                  runs on; up, cut: the activation and the cut scope of whoever used the implementation it belongs to */
-typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll, mbind; } Choice;
+typedef struct { H bp, by; uint32_t all; H node; uint32_t i, env, k, mfr, mlink, mact, marg, coll, mbind, mtrail; } Choice;
                  /* all: 0 a choice, 1 an all (coll names its gathering), 2 an outcome (coll is what was seen) */
 typedef struct { H bp, by; uint32_t id; H v; } Gathered;
 typedef struct { H bp, by; H leaf; uint32_t off; } Born;      /* a runnable copy of a code leaf */
+typedef struct { H bp, by; H key, old; } Trail;               /* what cell key held before it was given something else */
 typedef struct { H bp, by; H entry, impl; uint32_t prev, sees; } Bind;   /* entry is run by impl. prev: the
                  binding of the same entry made before this one, counted from 1. sees: how many bindings
                  impl runs on: those beneath its own, or all of the layer it was made in */
@@ -52,9 +54,9 @@ typedef struct { H bp, by; H entry, impl; uint32_t prev, sees; } Bind;   /* entr
  * "n" how many are in use and "cap" how many it can hold. "off" is where it starts. */
 typedef struct { H bp, by; H of; uint32_t size, cap, n; uint64_t off; } Area;
 enum { A_NODE, A_BYTES, A_KIDS, A_TAB, A_IDTAB, A_FRAME, A_LINK, A_ACT, A_ARG, A_CHOICE,
-       A_GATHER, A_BORN, A_BIND, A_BOUND, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_TEXT, A_STACK, A_COUNT };
+       A_GATHER, A_BORN, A_BIND, A_BOUND, A_HELD, A_TRAIL, A_OPEN, A_TK, A_TB, A_OUT, A_PNUM, A_TEXT, A_STACK, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", \
-  "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "reader-opened", \
+  "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "cells", "trail", "reader-opened", \
   "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack"
 
 /* The walker's registers. "at" is the program node being run: the writer stamped on

@@ -3,18 +3,18 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 44 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 46 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 88 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome and a fault. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 91 are the bootstrap's: control with backtracking, arithmetic, native code, the floor's own record kinds, a node's parts and bytes, binding and layers, reading and printing, the step, an outcome, a fault and cells. The page names each. From 128 up entries are named by modules written in form (5.15.1); 128 is compile (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
 conf: mid
-limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 44.
+limit: Operations that hold an offer or bind a cell are not named, and none works on the bits of a number. The count of about 25 in 5.1.5 is passed at 46.
 at: 2026-11-25
 
 n: 5.14.2
@@ -344,7 +344,7 @@ from: 5.13 5.14.7 7.21 7.13 5.11.4
 src: 2.30.7 2.30.6 2.30.3
 conf: mid
 why: What is an operation can be replaced and used by a program; what was a command could be neither. Each command taken out is C that no longer has to be right.
-limit: freeze keeps the nodes it has written in a list it searches, so its work grows with the square of their number. The two-process check is still one line of the Makefile's shell.
+limit: The two-process check is still one line of the Makefile's shell.
 at: 2026-11-25
 
 n: 5.14.33
@@ -356,4 +356,17 @@ from: 5.14.28 5.7.6 5.14.10
 src: 2.30.7 2.30.9 2.30.11
 conf: mid
 flip: A leaf that needs more of the region than these two places wants a table it is handed, as 5.10.9 describes, not more fixed bytes.
+at: 2026-11-25
+
+n: 5.14.34
+name: a-cell-holds-a-node-and-has-a-trail
+kind: decision
+is: Entries 89 and 90, hold and held, give a program memory it can change: any node is a cell, and it holds a node. While a choice is open, what a cell held before a change goes on the trail, and a fail, the end of an all or of an outcome puts it back; with no choice open nothing is trailed. Observed on 2026-11-25: with its words found through cells the lens's round trip of 59 files fell from 0.37 s to 0.20 s, and freezing the lens from 0.18 s to 0.04 s with the same file. An index built lazily inside an option was undone and rebuilt at every use, 11.7 s, until it was built when the lens loads.
+status: inferred
+from: 5.4.8 5.4.9 5.4.2 5.1.3 7.6 5.14.21
+src: 2.30.7 2.30.6
+conf: mid
+why: Fail undoes every change (5.4.2), so memory that changes needs its trail from the first day. A program written in form had no table it could update, so every lookup was a search.
+flip: 5.4.9 trails only cells older than the choice point; this trail records every change while a choice is open.
+limit: A cell is only a holder. The declared blueprint, access and constructor recipes of 5.1.3, views, and state exempt from undo are not built.
 at: 2026-11-25

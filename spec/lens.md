@@ -96,7 +96,7 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
   words; since then its source is its own showing, and the rows and their matcher were written in
   it.
 - `ground/lens-round-trip.ck`, written in the lens, raises, shows, reads and lowers every file of
-  nodes in the repository: 52 files, none differs, 56 million walker steps in 0.3 s.
+  nodes in the repository: 59 files, none differs, 31 million walker steps in 0.2 s.
 
 ## Limits
 
@@ -104,9 +104,9 @@ node a text leaf shows, `(lens.show x)` the one-line text of x, and `(lens.lower
   table and no pattern over text, so nothing is written infix. A recipe's arguments are numbered,
   not named. Nothing names a part to use it twice, so a node with much sharing shows long.
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.
-- A word is looked up by reading the rows in order, and every row is tried at every node.
+- Every row is tried at every node. Words are found through cells, indexed once when the lens loads.
 - The observer prints words from a table of its own in C, not from these rows.
-- Entries 129 to 185 are the lens's and 186 to 193 the ice's by convention; no row yet says which numbers a
+- Entries 129 to 185, 194 and 195 are the lens's and 186 to 193 the ice's by convention; no row yet says which numbers a
   module may take.
 - Most stored programs were composed before the lens existed. They show through it; they were
   not rewritten in it.
