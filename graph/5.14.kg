@@ -85,7 +85,7 @@ at: 2026-11-24
 n: 5.14.8
 name: ice-file
 kind: decision
-is: An ice file is the eight bytes 'CKICE1', a line feed and a zero, and then records, each a 32-bit little-endian length and one node's canonical bytes. Freeze writes each node once: its blueprint, then its children in order, then the node, so the top node is last; only the root is left out. Thaw reads records in order, refuses a record whose blueprint or child it has not yet seen, and computes each id from the bytes it read. A write goes to a temporary file that is renamed.
+is: An ice file is the eight bytes 'CKICE1', a line feed and a zero, and then records, each a 32-bit little-endian length and one node's canonical bytes. Freeze writes each node once: its blueprint, then its children in order, then the node, so the top node is last. The root is left out unless it is the node frozen. Thaw reads records in order, refuses a record whose blueprint or child it has not yet seen, and computes each id from the bytes it read. A write goes to a temporary file that is renamed.
 status: inferred
 from: 5.7.1 5.13.1
 src: 2.30.7

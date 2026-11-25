@@ -46,9 +46,11 @@ reading in a separate node with `status: inferred`.
 - **Say how each claim is known.** An observation names a source and what was run; an inferred
   claim names its premises; a limit says what was not tested. A check counts once a planted fault
   has turned it red.
-- **New code is nodes.** Only the bootstrap is C (node 7.13). The C files under `tools/` stand
+- **New code is nodes.** Only the bootstrap is C (node 7.13). The two C files under `tools/` stand
   until generated code replaces them; add no other. When a program cannot be written as nodes the
   walker runs, the missing operation goes into the bootstrap and the program is written on it.
+- **Do the hard work.** No shortcut is committed (node 7.17). When the aligned way cannot run yet,
+  build what it needs first, or leave the piece in `FLOOR.md` under "Not there".
 - **No committed limits.** A number in code is the size of a run or a starting size that grows. A
   capacity that stops a run is a limit, and is named in `FLOOR.md` (node 7.14).
 - **Keep the floor small.** The bootstrap has a 2,000-line budget the build enforces. Only what

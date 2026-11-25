@@ -1,10 +1,9 @@
 # Node encoding, version 1
 
 This fixes what a node is as bytes, what its identity is, how it is written as text, and which
-nodes exist before any other. It is enough to write a reader from this page alone:
-`tools/second.c` was written that way, by a hand that had not seen the bootstrap.
-`spec/node-vectors.tsv` holds the conformance vectors. Where the page, the vectors and a reader
-disagree, this page is right and the others are wrong.
+nodes exist before any other. It is meant to be enough to write a reader from this page alone.
+`spec/node-vectors.tsv` holds the conformance vectors and the bootstrap's reader holds them. Where
+the page, the vectors and a reader disagree, this page is right and the others are wrong.
 
 Design nodes this stands on: 5.1.1, 5.1.4, 5.1.5, 5.2.2, 5.2.4, 5.3.4. Choices made here that
 those nodes left open are listed under "Choices" at the end.
@@ -171,12 +170,10 @@ Made here, not given by the owner or measured. Each can be reopened; changing an
 
 ## Limits
 
-- Two readers hold the vectors: the bootstrap's, by the hand that wrote this page, and
-  `tools/second.c`, written from this page. Both hands are sessions of one language model on one
-  machine, so they share habits a person or another model would not. No such reader exists.
-- The second hand read the vectors together with the page. Where the page was silent, it chose as
-  the first hand had: the order of the refusals, and a fault met before the text leaves the
-  grammar. Both are now written above; `unknown` was on no page and was found by running the two
-  readers on the same bytes.
+- One reader holds the vectors: the bootstrap's, by the hand that wrote this page. The ids in the
+  vectors were checked against the system's `shasum`.
+- A second reader is owed: one written from this page alone, in the grammar, kept as nodes (graph
+  nodes 7.2 and 7.13). The walker cannot run one yet: it has no operation that takes a node apart
+  or reads a leaf's bytes.
 - Definitions that refer to each other cannot be written as nodes yet (question 6.1.14).
 - The core operations are not named. That belongs to stage 2, with the walker's laws.

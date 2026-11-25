@@ -35,7 +35,7 @@ watched through the framebuffer.
 
 | Stage | Adds | Closes when |
 | --- | --- | --- |
-| 1 encoding | a second hand's reader | a reader written from the page alone holds the vectors, by a hand the owner takes as a second one (question 6.1.30) |
+| 1 encoding | a second hand's reader, kept as nodes | a reader written in the grammar from the page alone holds the vectors |
 | 2 floor | symbol lookup, the framework trampoline, threads, the clock | those four host functions are written |
 | 3 home lens | the home grammar as rows written in itself | the lens reads its own definition, prints it, and the reprint reads to the same nodes |
 | 4 self-compile | a one-pass emitter written in the grammar | the system regenerates its own seed byte for byte and the walker is off the running path |

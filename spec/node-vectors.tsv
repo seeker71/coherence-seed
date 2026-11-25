@@ -4,7 +4,7 @@
 #   bad-bytes  bytes   the refusal a reader names
 # An ok line holds when the print reads to those bytes and that id and prints back unchanged.
 # A reader keeps the nodes of the lines it accepts, so the lines of a file are read in order.
-# Run: ./ck vectors spec/node-vectors.tsv and ./second vectors spec/node-vectors.tsv
+# Run: ./ck vectors spec/node-vectors.tsv
 
 # the root and catalogue entries
 ok	#0	000000000000000000000000000000000000000000000000000000000000000000	7f9c9e31ac8256ca2f258583df262dbc7d6f68f2a03043d5c99a4ae5a7396ce9

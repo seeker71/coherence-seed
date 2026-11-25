@@ -3,9 +3,9 @@
 n: 7.2
 name: stage-1-answers-and-encoding
 kind: plan
-is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 142 conformance vectors, 93 of them malformed. A second reader written from the page holds them and agrees with the bootstrap's on ice and on 200,000 variations (5.13.8, 5.13.9). Both hands are sessions of one model (6.3.14). Stage 1 closes on the owner's answer to 6.1.30: whether that reader is the second hand, or one by a person or another model is still owed.
+is: The node encoding is fixed in writing (5.13): canonical bytes, the content id, the canonical print and the catalogue, with 142 conformance vectors, 93 of them malformed, which the bootstrap's reader holds. Stage 1 closes when a second hand has written a reader from the page alone, in the grammar and kept as nodes (7.13), and the vectors hold in it. The walker cannot run such a reader yet: it has no operation that takes a node apart or reads a leaf's bytes. Who counts as a second hand is question 6.1.30.
 status: inferred
-from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 5.13.8 5.13.9 6.3.14 6.1.30
+from: 5.13 5.2.2 5.3.4 5.1.5 5.11.4 7.13 6.1.30
 at: 2026-11-25
 
 n: 7.3
@@ -110,20 +110,29 @@ at: 2026-11-25
 n: 7.15
 name: c-outside-the-bootstrap-is-owed
 kind: decision
-is: A reading of 7.13. Three C files stand outside the bootstrap: tools/kg.c, tools/fb.c and tools/second.c. None can be written in the grammar today: there is no home lens (7.4), no operation that takes a node apart or reads its bytes, and no path from a specification to cached machine code (7.5). No further C is added outside the bootstrap. The next code is written as nodes the walker runs, and what it lacks is added to the bootstrap as an operation.
+is: A reading of 7.13 and 7.17. Two C files stand outside the bootstrap: tools/kg.c, which checks this graph, and tools/fb.c, the observer. Neither can be written in the grammar today: there is no home lens (7.4), no operation that takes a node apart or reads its bytes, and no path from a specification to cached machine code (7.5). Each is owed a generated counterpart and no further C is added. The next code is written as nodes the walker runs, and what it lacks is added to the bootstrap as an operation.
 status: inferred
-from: 7.13 7.4 7.5 5.14.1
+from: 7.13 7.17 7.4 7.5 5.14.1
 conf: mid
-flip: The owner may want tools/second.c, written on the day of the direction, taken out now and not kept until a generated reader stands in its place.
+flip: Fully aligned may mean the two are taken out before their counterparts exist. Then nothing checks the graph and nothing watches a run, which 7.10 asks for.
 at: 2026-11-25
 
 n: 7.16
 name: sizes-and-limits
 kind: decision
-is: A reading of 7.14. A number in code is the size of one run or a starting size that grows, or it is a committed limit: a run that passes it stops. Committed limits today are the capacities of the framebuffer's areas and the 1 MiB code region in bootstrap/ck.c, 16,384 nodes and 32 fields a node in tools/kg.c, and the 2,000-line budget, which is meant (5.9.2). The 200,000 in the Makefile is the size of the two-hands run and can be set on the command line.
+is: A reading of 7.14. A number in code is the size of one run or a starting size that grows, or it is a committed limit: a run that passes it stops. Committed limits today are the capacities of the framebuffer's areas and the 1 MiB code region in bootstrap/ck.c, 16,384 nodes and 32 fields a node in tools/kg.c, and the 2,000-line budget, which is meant (5.9.2).
 status: inferred
 from: 7.14 5.9.2 5.14.10
 src: 2.30.7 2.30.1
 conf: mid
+at: 2026-11-25
+
+n: 7.17
+name: do-the-hard-work
+kind: decision
+is: The owner's direction of 2026-11-25, asked whether C outside the bootstrap is taken out at once or kept until generated code replaces it: 'Yes, always do the hard work, never commit short cuts, keep the repo clean and fully aligned'.
+status: given
+by: owner
+see: 7.13 8.14
 at: 2026-11-25
 

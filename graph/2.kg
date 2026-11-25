@@ -74,15 +74,6 @@ date: 2026-11-25
 got: 2026-11-25
 at: 2026-11-25
 
-n: 2.30.13
-name: second.c
-kind: source
-is: The second reader: a reader, printer and store of the node encoding written from spec/node-encoding.md, sharing no line with the bootstrap. It holds vector files, freezes and thaws ice, and writes variations of a vector file with its verdict on each.
-path: coherence-seed/tools/second.c
-date: 2026-11-25
-got: 2026-11-25
-at: 2026-11-25
-
 n: 2.33
 name: Crypo-Coin-Coherency-Network
 kind: source

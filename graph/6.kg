@@ -25,9 +25,9 @@ at: 2026-11-24
 n: 6.1.30
 name: what-counts-as-a-second-hand
 kind: question
-is: Is a reader written from the page by another session of the same model the second hand that stage 1 asks for, or must the second hand be a person or a different model? The same answer decides who may write a review under hub 9: so far no claim is reviewed.
+is: What makes a reader of the encoding a second hand? New code is written in the grammar and kept as nodes (7.13), so a second reader runs on the first hand's walker and store. Is it a second hand when another session of the same model writes it from the page alone, or must a person or another model write it? The same answer decides who may write a review under hub 9: so far no claim is reviewed.
 status: open
-see: 7.2 5.13.8 6.3.14 8.8
+see: 7.2 7.13 8.8
 at: 2026-11-25
 
 n: 6.1.4
@@ -265,7 +265,7 @@ at: 2026-11-24
 n: 6.3
 name: limits
 kind: hub
-is: Limits of the evidence and of the floor. NUMS.Go executes nothing and the object model's hardest case has no recorded run. Web claims came through a summarising tool, no claim is confirmed by an independent reader, and the two readers of the encoding come from one model.
+is: Limits of the evidence and of the floor. NUMS.Go executes nothing and the object model's hardest case has no recorded run. Web claims came through a summarising tool, and no claim is confirmed by an independent reader.
 at: 2026-11-25
 
 n: 6.3.1
@@ -406,14 +406,5 @@ is: The owner's definition asks for recording with no impact at all. The floor a
 status: inferred
 from: 5.14.13 5.7.6
 conf: mid
-at: 2026-11-25
-
-n: 6.3.14
-name: two-hands-one-model
-kind: limit
-is: Both readers of the node encoding were written by sessions of one language model on one machine. The second session had the page, the vectors and the ice node 5.14.8, and had not opened the bootstrap. Where the page was silent it chose as the first had: the order of the refusals, and naming a fault met before the text leaves the grammar. Agreement on such points shows shared habit as much as a clear page.
-status: inferred
-from: 5.13.8 5.13.9
-conf: high
 at: 2026-11-25
 
