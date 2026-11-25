@@ -3,13 +3,13 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 37 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 38 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of seven host functions. Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-25
 
 n: 5.14.1
 name: operations-are-catalogue-entries
 kind: decision
-is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes and calls, control with backtracking, arithmetic, comparison, native and the blueprint of AArch64 code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 read, print, give the id, a file and the clock, 81 is the walker's step (5.14.24), and 82 is compile, in form only (5.14.26).
+is: An operation is a catalogue entry from 32 up, and a composite whose blueprint is that entry is executed; every other node answers itself. Entries 32 to 52 are yes and no, recipes, control with backtracking, arithmetic and native code. Entries 53 to 63 name the floor's own records (5.14.11), 64 to 70 take a node apart and build one (5.14.15), 71 to 75 let a program replace what runs (5.14.19), 76 to 80 are read, print, id, file and clock, 81 is the walker's step (5.14.24), 82 observes an outcome (5.14.29), and 83 is compile, in form only (5.14.26).
 status: inferred
 from: 5.13.3 5.4.6 5.1.2
 src: 2.30.6
@@ -268,7 +268,7 @@ at: 2026-11-25
 n: 5.14.26
 name: an-emitter-in-form
 kind: decision
-is: Entry 82, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
+is: Entry 83, compile, has no code in the bootstrap; form/compile.aarch64.ck binds it to an emitter written in form. One pass over a recipe's body gathers each node's instructions as bytes and packs them into one code leaf, which is bound to the recipe. It knows seven shapes: a small int leaf, arg, add, sub, mul, the condition written as choice, cut and need over lt or eq, and a call of self. For any other it emits a byte that pack refuses, so a recipe is compiled whole or stays on the walker.
 status: inferred
 from: 5.10.4 5.14.19 5.14.15 7.13 7.21
 src: 2.30.6
@@ -296,5 +296,17 @@ src: 2.30.7 2.30.6
 conf: mid
 why: Code that is faster must not be different. Where it cannot be sure, the answer, the reason and the fault are the walker's own, at the cost of doing the work twice. Declining a whole call is the hand-back that needs nothing new: the walker already runs what a binding declines.
 flip: Code that goes on computing while it unwinds wastes work in a branching recursion; a jump straight to the leaf's end would not.
+at: 2026-11-25
+
+n: 5.14.29
+name: a-program-observes-an-outcome
+kind: decision
+is: Entry 82, outcome, evaluates a node to its first outcome and answers a list of a word and a node: node and the answer, nothing and the reason, or fault and the reason. What the node did is undone as by a fail, bindings included. With it the check of the ground programs is a program: ground/check.ck reads each program's path and expected outcome from the node in ground/expect.ck, runs it, and answers those that ended otherwise. Observed on 2026-11-25: it answers the empty list over 32 programs in 0.8 s, and a wrong expectation planted for 42 named the three programs that answer 42.
+status: inferred
+from: 5.4.2 5.14.21 5.14.24 7.13 5.11.4
+src: 2.30.7 2.30.6
+conf: mid
+why: The reason beside a nothing could be printed by the bootstrap and read by no program, so only a shell loop over printed lines could judge a run. An outcome held as a node is compared by identity, and the table of expected lines becomes a node too.
+limit: The expectations are written in the canonical print, which nobody reads easily; ground/observe.ck answers the list as the programs stand now, to be read against the old one before it is stored. The check's own answer is still compared by one line of the Makefile.
 at: 2026-11-25
 

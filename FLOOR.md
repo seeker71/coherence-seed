@@ -8,14 +8,14 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written; the bootstrap's reader holds its 142 vectors |
-| Bootstrap | [`bootstrap/`](bootstrap) | 934 lines of C under a 2,000-line budget |
+| Bootstrap | [`bootstrap/`](bootstrap) | 951 lines of C under a 2,000-line budget |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 37 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, reading, printing, files and the clock, and the step itself |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 38 operations: control with backtracking, arithmetic, a node's parts, native code, replacing what runs, reading, printing, files and the clock, the step itself, and observing an outcome |
 | Swapping | [`form/`](form) | any operation, control included, any recipe, and the walker's step can be given another implementation while a program runs; add, sub, mul and lt exist in form and as machine code, the step as a marking one in form and a small one in machine code, and `compile` only in form: an emitter that writes a recipe's machine code |
-| Programs as nodes | [`ground/`](ground) | 32 programs that witness the above |
+| Programs as nodes | [`ground/`](ground) | 32 programs that witness the above; a 33rd, `check.ck`, runs them and compares how each ends with the outcomes kept as a node in `expect.ck` |
 | Ice | `ck freeze`, `ck thaw` | a node frozen in one process thaws in another to the same id |
 | Observer | [`tools/fb.c`](tools/fb.c) | shows a running region and what is bound in it, records it and replays it |
-| Claim graph | [`graph/`](graph) | 1,334 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,335 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -51,7 +51,7 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   does not know stays on the walker.
 - Keeping the walker's registers and each record's writer in the region costs about a quarter of
   its speed; recording every millisecond costs up to about 4%.
-- `./kg check`: no errors over 1,156 claims, none of them reviewed by a second reader.
+- `./kg check`: no errors over 1,157 claims, none of them reviewed by a second reader.
 
 ## Not there
 
@@ -60,17 +60,17 @@ What stands, as observed on **2026-11-25** on one Apple M4 Max running macOS.
   between nodes: the continuation, the choice points and the undo. A binding comes only from the
   running program and has no scope of its own.
 - **Form everywhere.** Most operations exist only in C. Stored here are the bootstrap (two C
-  files and an entitlements list) and 43 files of nodes in the canonical print, each of which
+  files and an entitlements list) and 46 files of nodes in the canonical print, each of which
   reads and prints back to itself. Everything else stored is neither: the observer and the graph's
-  checker (664 lines of C under `tools/`), the Makefile's 61 lines, eight pages, the claim graph
-  as 50 text files, two tables (the encoding's vectors and the programs' expected answers) and
-  the axioms' text.
+  checker (664 lines of C under `tools/`), the Makefile's 59 lines, eight pages, the claim graph
+  as 50 text files, the table of the encoding's vectors and the axioms' text.
 - **A compiler worth the name.** The emitter in form knows numbers, one shape of condition and
   calls of the recipe itself. It compiles a recipe whole or not at all, runs only when a program
   asks, and cannot hand a node back to the walker, so it compiles no call of another recipe, no
   backtracking and nothing that builds a node.
 - **A way to write form.** Programs are written by hand in the canonical print; there is no home
-  lens, and no check or observer written in form.
+  lens and no observer written in form. One check is in form, the ground programs'; the vectors,
+  the ice, the hardened run and the recording are still checked by C and the Makefile's shell.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30).
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
 - **Cells and the journal**, recipes that name each other, threads, symbol lookup.

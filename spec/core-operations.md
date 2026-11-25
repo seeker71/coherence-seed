@@ -3,10 +3,10 @@
 What the bootstrap's walker runs. Each operation is a catalogue entry (`spec/node-encoding.md`,
 section 4); a **composite** whose blueprint is one of these entries is executed, and every other
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
-it. This page names 51 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
+it. This page names 52 entries: 32 to 52 are operations and data, 53 to 63 and 72 are the kinds of
 the floor's own records, 64 to 70 take a node apart and build one, 71 to 75 let a program replace
-what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, and 82 is
-the first operation that exists only in form. It does
+what runs, 76 to 80 are what the bootstrap does for itself, 81 is the walker's step, 82 observes
+an outcome, and 83 is the first operation that exists only in form. It does
 not yet name operations that hold an offer or bind a cell; those come with the stage that first
 needs them.
 
@@ -215,11 +215,28 @@ region, answers the leaves itself and declines the rest to the step beneath.
 `form/step.traced.ck`, which leaves a mark for every node evaluated and changes no answer, and
 `form/step.leaf.aarch64.ck` are bindings for `ck run`.
 
-## Entry 82: compile, which exists only in form
+## Entry 82: an outcome, observed
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 82 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
+| 82 | outcome | x | evaluates x to its first outcome and answers it as a list of a word and a node |
+
+The answer is `node` and x's answer, `nothing` and the reason, or `fault` and the reason: what
+`ck run` prints, as a node a program can hold and compare. Everything x did is undone as by a
+fail, a binding it made included; only the outcome and the nodes it names remain. A `cut` inside
+x does not reach outside it, and a `recover` inside x still catches first.
+
+So a program can run another and judge how it ended. `ground/check.ck` does that for every
+program under `ground/`: it reads `ground/expect.ck`, a list of each program's path and expected
+outcome, runs each one, and answers the list of those that ended otherwise, which is empty when
+all is well. `ground/observe.ck` answers the same list filled with what the programs do now: the
+node to store when an expected outcome is meant to change.
+
+## Entry 83: compile, which exists only in form
+
+| N | name | children | what it does |
+| --- | --- | --- | --- |
+| 83 | compile | r | writes machine code for the recipe r, binds r to it and answers the code leaf; answers no, and binds nothing, when it cannot |
 
 The bootstrap has no code for this entry. `form/compile.aarch64.ck` binds it to an emitter written
 in form: one pass over the recipe's body, each node's instructions gathered as bytes by `all` and

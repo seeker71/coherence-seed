@@ -510,6 +510,8 @@ static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f]
 static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY; }
 static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
+/* What an outcome answers: a word and a node, as 'ck run' prints them. */
+static H seen_as(const char *word, H v) { const char *why; H p[2] = { txt(word), v }; return mk(1, E(LIST), p, 2, &why); }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs. */
 static int landed(void *fn, int64_t *arg) {
@@ -604,7 +606,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       lim = b - 1; b = 0;
     }
     if (given) break;
-    if (!b && (is_data(op) || op > STEP)) { answer(x); break; }       /* data, or an entry with no meaning yet */
+    if (!b && (is_data(op) || op > OUTCOME)) { answer(x); break; }    /* data, or an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
     case ARG: {
@@ -639,6 +641,11 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, 0, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
+    case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
+      if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
+      room(A_CHOICE, (uint64_t)ncp + 1); W->reason = 0;
+      cp[ncp] = (Choice){ E(CHOICEPT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind }; ncp++;
+      W->k = push(F_OUT, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8) { fault("arity"); break; }
       if (!c) {
@@ -670,6 +677,9 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
       W->mode = M_FAILED; break;
     case F_NEED: if (!W->v || W->v == E(NO)) W->mode = M_FAILED; break;
     case F_RECOVER: break;
+    case F_OUT:
+      cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
+      ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
     case F_HANDLER:
       if (!is_recipe(W->v)) { fault("not-a-recipe"); break; }
       a[0] = f.node; W->env = enter(W->v, a, 1, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(W->v, 0); W->mode = M_EVAL; break;
@@ -708,7 +718,7 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
         break;
       }
-      if (op > STEP) { fault("kind"); break; }       /* an entry only code ran, and the code declined these values */
+      if (op > OUTCOME) { fault("kind"); break; }    /* an entry only code ran, and the code declined these values */
       if (op >= BLUEPRINT) { parts(op, a, c); break; }
       if (c != 2) { fault("arity"); break; }
       if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); break; }
@@ -724,6 +734,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     if (!ncp) { if (!W->reason) W->reason = txt("no-path"); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     Choice *q = &cp[ncp-1]; W->at = q->node;
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; nbind = q->mbind; W->env = q->env; W->k = q->k;
+    if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
+      ncp--; W->v = q->coll ? q->coll : seen_as("nothing", W->reason ? W->reason : txt("no-path"));
+      W->reason = 0; W->mode = M_RET; break;
+    }
     if (q->all) {                         /* every answer has been gathered */
       uint32_t base = ntk, w = 0, id = q->coll;
       for (uint32_t i = 0; i < ncoll; i++) {
@@ -736,9 +750,10 @@ static void run(H top) {                  /* ends with mode M_DONE; outcome is '
     break; }
   case M_FAULT: {
     uint32_t j = W->k;                    /* an all's frame keeps the way out of it in vals; its own k is nothing */
-    while (j && fr[j].t != F_RECOVER) j = fr[j].t == F_ALL ? fr[j].vals : fr[j].k;
+    while (j && fr[j].t != F_RECOVER && fr[j].t != F_OUT) j = fr[j].t == F_ALL ? fr[j].vals : fr[j].k;
     if (!j) { W->v = 0; W->outcome = 'f'; W->mode = M_DONE; return; }
     Frame f = fr[j];
+    if (f.t == F_OUT) { cp[f.aux].coll = seen_as("fault", W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
     if (ncp > f.aux) ncp = f.aux;
     ncoll = f.vals;                       /* what the alls inside it had gathered goes with them */
     W->k = push(F_HANDLER, W->reason, 0, f.env, f.cut, 0, f.k, 0);

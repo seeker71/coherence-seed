@@ -53,8 +53,9 @@ CK_FB=/ck.demo ./ck run ground/recursion.ck
 make check
 ```
 
-Five lines: the 142 encoding vectors through the bootstrap's own reader, the 30 ground programs, a
-freeze and thaw across two processes, a machine-code leaf both unsigned and under the hardened
+Five lines: the 142 encoding vectors through the bootstrap's own reader, the ground programs run
+and judged by a program written in form (`ground/check.ck`), a freeze and thaw across two
+processes, a machine-code leaf both unsigned and under the hardened
 runtime, and a live run recorded from a second process.
 
 ## Replace an operation
@@ -117,7 +118,7 @@ A node is one block of `key: value` lines. Its address (`n`) is the handle other
 | `axioms/` | the five axioms, the only fixed thing |
 | `bootstrap/` | the C bootstrap and the framebuffer's layout |
 | `spec/` | the node encoding, the core operations, the framebuffer, and the vectors |
-| `ground/` | programs that witness the floor, with their expected answers |
+| `ground/` | programs that witness the floor; `check.ck` runs them against the outcomes in `expect.ck` |
 | `form/` | operations written in form and as machine code, each one `bind` node |
 | `tools/` | the graph checker `kg`, the observer `fb`; both are C until generated code replaces them |
 | `graph/` | the claims |

@@ -1,7 +1,6 @@
 # The bootstrap's build. The line budget is graph node 5.9.2; raising it is a change to that node.
 # Nothing here needs more than a C compiler: no part of the old kernel builds or runs this repository.
 BUDGET = 2000
-EXPECT = ground/expect.tsv
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h
@@ -35,10 +34,9 @@ watch: ck fb
 # a second process whose last frame holds the answer and names the node that wrote it.
 check: ck fb
 	./ck vectors spec/node-vectors.tsv
-	@bad=0; while IFS='	' read -r name want; do \
-	  got=$$(./ck run ground/$$name.ck); \
-	  if [ "$$got" != "$$want" ]; then echo "ground/$$name.ck: got '$$got', want '$$want'"; bad=1; fi; \
-	done < $(EXPECT); [ $$bad = 0 ] && echo "ground: every program answers as expected"
+	@got=$$(./ck run ground/check.ck); \
+	  if [ "$$got" = "node (#16)" ]; then echo "ground: every program ends as expected, checked by a program in form"; \
+	  else echo "ground: path and outcome of each program that ends otherwise: $$got"; exit 1; fi
 	@a=$$(./ck freeze ground/recursion.ck .ck-check.ice) && b=$$(./ck thaw .ck-check.ice) && rm -f .ck-check.ice && \
 	  if [ "$$b" = "$$(printf '%s\n%s' "$$a" "$$(cat ground/recursion.ck)")" ]; then echo "ice: thawed in a second process to the same id and print"; \
 	  else echo "ice: froze $$a, thawed $$b"; exit 1; fi
