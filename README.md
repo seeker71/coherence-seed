@@ -99,11 +99,12 @@ printf '/ck.demo\n(seq (step (read (file "form/compile.aarch64.ck"))) (step (rea
 make check
 ```
 
-Six lines: the header against the nodes it is made from; the ground programs, the encoding's 142
+Seven lines: the header against the nodes it is made from; the ground programs, the encoding's 142
 vectors among them, run and judged by a program written in form (`ground/check.ck`); a freeze and
 a thaw, both in form, across two processes; a machine-code leaf both unsigned and under the
-hardened runtime; a live run recorded from a second process; and a run asked from a second
-process to count its own additions while it goes on.
+hardened runtime; a live run recorded from a second process; a run asked from a second process
+to count its own additions while it goes on; and a search that writes a file only for the path
+that held.
 
 ## Replace an operation
 

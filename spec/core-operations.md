@@ -5,15 +5,15 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 72 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 73 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
-outside the run and 102 says what runs an entry. 128 is the first operation that exists only in
-form: entries below 128 are the bootstrap's to name, and from 128 up they are named by modules
-written in form.
+outside the run, 102 says what runs an entry and 103 holds a call back until a search has
+settled. 128 is the first operation that exists only in form: entries below 128 are the
+bootstrap's to name, and from 128 up they are named by modules written in form.
 
 The bootstrap's C is one implementation of each operation, the one a cold start runs. Any
 operation, and any recipe, can be given another while a program runs (entry 71): to add a
@@ -405,7 +405,7 @@ What the host does cannot be undone, so `host` is a fault, `irreversible`, while
 open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over
 them. With no choice open a program wrote a file through `creat`, `write` and `close`, and found
 the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
-refusal.
+refusal. A search that must act on the world holds the act back with `after`, entry 103.
 
 ## Entry 100: let, a part given a place
 
@@ -460,6 +460,26 @@ implementation runs on its own binding, as one made in a layer does, so that its
 it means itself. It is how a program reads what it or another has bound. The emitter takes an
 entry's recipe from it, and compiles a call of the recipe by its own name only when s is yes:
 outside a layer the name means what it meant before, and the code would not be the walker.
+
+## Entry 103: after, a call held back
+
+`(after f a..)` is a call of the recipe f with the values a.., made later: when every choice
+that is open now has been closed. It answers yes at once. If a fail returns past it first, the
+call is never made; so is it when a fault leaves the `recover` it stands in. With no choice open
+it is a call like any other.
+
+So a search can act on the world and only the path that held does: the values are taken when
+`after` is evaluated, and the act waits for the commit. Calls held back are made in the order
+they were asked, each with nothing but its values. When a run ends with an answer while a choice
+is still open, its choices are closed by that, and what waited is done before it ends. Inside an
+`all` or an `outcome` nothing held back is ever done, since both end by failing; a held call's
+own answer is not seen by anyone.
+
+`ground/held-back.ck` looks for a number among five, holding back a line to a file at each try:
+the file holds the one line of the try that held. A line held back before a fault is not written,
+a direct `host` inside the search is refused, and a line still held when the program ends is
+written before its outcome. It runs in the open, as a line of `make check`, since the checker's
+own `outcome` would end by failing over it.
 
 ## Entry 128: compile, which exists only in form
 

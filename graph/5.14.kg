@@ -434,8 +434,8 @@ status: inferred
 from: 5.8.1 5.8.3 5.4.8 5.9.3 7.3
 src: 2.30.7 2.30.6
 conf: mid
-why: 5.4.8 refuses an irreversible effect inside an open choice unless it is buffered until the commit. Nothing is buffered yet, so the rule is the refusal.
-flip: A program that must act on the world from inside a search needs the buffering 5.4.8 names: effects held until the choice is closed.
+why: 5.4.8 refuses an irreversible effect inside an open choice unless it is buffered until the commit. A direct call is refused; a call held back with after (5.14.50) is the buffering.
+flip: A host function's answer is not available to a search, since a call held back answers only that it was held.
 limit: Arguments go in registers only, so a function taking a varying number of them does not get those; nothing but integers comes back.
 at: 2026-11-25
 
@@ -545,4 +545,17 @@ conf: mid
 why: Without it a program could bind and release but not look, and the emitter had to be handed the recipe again.
 flip: It answers the top's view and not the asker's layer. An implementation asking about its own entry gets itself.
 limit: Code bound for an entry lies above its recipe as any binding does, so definitions bound earlier, its own layer's among them, still run the recipe on the walker.
+at: 2026-11-26
+
+n: 5.14.50
+name: a-call-held-back-until-the-search-has-settled
+kind: decision
+is: Entry 103, after, takes a recipe and values and makes the call when every choice open at that moment has been closed; a fail that returns past it first, or a fault that leaves the recover it stands in, drops it. Calls held back are words in the region with a mark in each choice point, and are made between two steps as soon as no choice is open, or when the run ends with an answer. Observed on 2026-11-26: of five tries in a search, each holding back a line to a file, the file held the one line of the try that held; a line held before a fault was not written.
+status: inferred
+from: 5.4.8 5.4.2 5.14.40 5.14.6 7.13
+src: 2.30.7 2.30.6 2.30.11
+conf: mid
+why: 5.4.8 names buffering until the commit as the way an irreversible effect may stand inside a choice. Taking the values at once and making the call later keeps strict order of evaluation (5.4.12) and needs no activation kept.
+flip: The rule is absolute, no choice open at all, and not relative to the choices open when it was held back; under an all or an outcome a held call is never made. A held call cannot give its answer to the search.
+limit: Witnessed by ground/held-back.ck, run in the open by make check and turned red by two planted faults. Question 6.1.15 stays the guide's: this builds one of its three answers beside the refusal.
 at: 2026-11-26

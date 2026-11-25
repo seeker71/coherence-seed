@@ -36,7 +36,8 @@ watch: ck fb
 # What the floor must show: the encoding's vectors, the ground programs, freeze and thaw in two
 # processes, native code unsigned and under the hardened runtime, a live run recorded from a
 # second process whose last frame holds the answer and names the node that wrote it, and a run
-# asked from a second process to count its own additions while it goes on.
+# asked from a second process to count its own additions while it goes on, and a search that
+# writes a file only for the path that held.
 check: ck fb
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
@@ -69,6 +70,10 @@ check: ck fb
 	  if [ $$ok = 1 ] && [ "$$on" = 'list "node" yes' ] && [ "$$off" = "$$on" ] && [ "$${n1:-0}" -gt 0 ] && [ "$${n2:-0}" -gt "$$n1" ] && [ "$$three" = "$$four" ]; \
 	  then echo "asked: a second process put a counter on add in a running program, read $$n1 and then $$n2, took it off, and the program answered as before"; \
 	  else echo "asked: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', the run's '$$last'"; exit 1; fi
+	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
+	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a]) " ]; \
+	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing"; \
+	  else echo "held back: '$$got'"; exit 1; fi
 
 clean:
 	rm -f ck fb kg .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened

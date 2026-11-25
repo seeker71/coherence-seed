@@ -39,7 +39,7 @@ reads any other place is tied to one layout version.
 | frames | frame | the walker's continuations |
 | links | link | values gathered for an operation that takes several |
 | activations, arguments | activation, words | each running recipe and its arguments; for an implementation, the limit it runs under, which counts the program's own bindings and those made from outside, and the activation and cut scope of whoever used it |
-| choice-points | choice-point | each open choice and the marks it returns to |
+| choice-points | choice-point | each open choice and the marks it returns to, among them how many calls were held back |
 | gathered | gathered | answers collected by `all` |
 | born-code | code | which code leaves have a runnable copy, and where |
 | bindings | binding | which entries a program has given a new implementation, oldest first, each naming the one before it for the same entry |
@@ -50,6 +50,7 @@ reads any other place is tied to one layout version.
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
 | stack | bytes | the machine stack of the C code and of code leaves |
 | asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
+| after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 
 ## Rules
 
