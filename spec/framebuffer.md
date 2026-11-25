@@ -154,7 +154,9 @@ printf /ck.demo | ./ck text region/warm.ck
 ```
 
 It asks the run to load the emitter, looks at it three hundred times, and asks it to compile the
-three recipes it was in most, saying what became of each. Nothing is put on the run's calls: what
+three recipes it was in most, saying what became of each. Where a recipe is what an entry is
+bound to, it asks for the entry by name, so the code becomes that binding's faster form and
+every definition that calls the entry runs it. Nothing is put on the run's calls: what
 is hot is seen from outside, and the run is only asked to do what the looking found. The same
 recursion, looked at from half a second in, ended at 1.3 s.
 

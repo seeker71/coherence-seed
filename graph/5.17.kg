@@ -56,5 +56,5 @@ kind: observation
 is: Observed on 2026-11-26. region/warm.ck, a program in form in a second process, asked a running recursion to load the emitter, looked at it three hundred times a millisecond apart, found it in one recipe every time, and asked it to compile that recipe. The run, which takes 14.3 s on the walker, ended at 1.3 s with the same answer. Nothing was put on the run's calls: the counting was done by the process that looked.
 status: observed
 src: 2.30.7 2.30.11 2.30.6
-limit: The recipe was one the emitter can compile and called itself by self, so its code is found wherever it is called. A recipe reached only as an entry's implementation is compiled where the entry is bound, which the run has to be asked for by name.
+limit: The recipes were ones the emitter can compile: one called by self, and one bound to an entry and reached through another definition of its layer, for which the entry was asked for by name. One machine.
 at: 2026-11-26
