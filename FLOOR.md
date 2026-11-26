@@ -117,9 +117,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
   into a syntax tree with the BML reader. Python's parser takes the Python and ruff finds no
-  undefined name in it; Deno parses the TypeScript, and its strict checker, against a loose stub
-  of the runtime, still reports 86 errors, most of them a value the package types as any used as
-  a record. The C# and Java are not compiled here, which has no JDK and no C# project. The old
+  undefined name in it. Against loose stubs of the runtime, the hosts' own checkers still refuse
+  parts of the typed renderings: TypeScript's strict checker 77 errors, javac 137 and Roslyn 36
+  distinct messages, all of them a value typed loosely in the package (any, a list of any) used
+  where a host wants a narrower type. A member read is cast to the shape it reads, and a value
+  of unknown type to the type its place declares. The old
   kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
   BML rows do not yet keep a search's meaning where a choice is a search.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
