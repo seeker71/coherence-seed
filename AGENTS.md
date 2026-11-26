@@ -25,6 +25,11 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
   words through the lens and read stored nodes through it ([`spec/lens.md`](spec/lens.md)); what
   is stored is the canonical print. A new operation, area or field is added in a node
   (`lens/words.ck`, `region/layout.ck`) and `make header` writes the C header from them.
+- **Components first.** New code is a component package: interfaces, classes with their
+  members and methods, templates and functions (`bmf/items.ck`, `nums/write.ck`), written with
+  names (`write.named`) and resolved by `nums/resolve.ck`, so the names stay beside the nodes.
+  `nums/write-text.ck` shows a package in Python, C#, TypeScript, Java or BML; read it there, as
+  a colleague in that language would, before it is committed.
 - **Meaning in the nodes.** What is stored is neutral: nodes in the numeric space, with words
   and names in a table beside them that changes no meaning. This engine is not written for a
   person to read; a lens can always show it. What a thing is, takes and gives is itself a node

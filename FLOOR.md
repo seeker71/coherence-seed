@@ -16,6 +16,7 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions and what they call, casts included, from rows of instructions |
+| Writer | [`spec/nums.md`](spec/nums.md), [`nums/write.ck`](nums/write.ck) | a component package that writes any component package as Python, C#, TypeScript, Java or BML from rows per language, with names kept beside the nodes and methods called on their receivers |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
@@ -111,6 +112,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   In `ground/bml-captures.ck`, a BML expression grammar captures the operators in
   `12*3/4` under one numeric label and the digits of each term under an anonymous label.
   Renaming the tags produces identical linked rules.
+- **A package reads in five languages.** `nums/write.ck` is written as components and writes
+  itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
+  `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
+  `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
+  into a syntax tree with the BML reader. Python's parser takes the Python and Deno's the
+  TypeScript; the C# and Java are not compiled here, which has no JDK and no C# project.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and

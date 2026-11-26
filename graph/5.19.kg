@@ -340,3 +340,26 @@ conf: high
 why: Each side had its own rule, and they disagreed where a value changes class. Observed on 2026-11-26: yes passed to a u8 became 33, its catalogue number, on frames and 1 in code; an i8 holding -1 passed to an i32 became 255 on frames and in compiled calls between declarations, and -1 in code entered from frames. With one recipe, and the compiled conversion extending by the source's sign, the 1,323 cases that pass each kind of value to each class agree.
 flip: A value that no slot of its layout takes could be converted by a rule of the language instead of failing; C converts a float to an integer by truncation.
 at: 2026-11-26
+
+n: 5.19.33
+name: a-package-is-written-in-each-language-from-the-same-nodes
+kind: decision
+is: A component package is shown in a language by one writer and the language's rows, never written by hand: a template with numbered places for each operation, declaration and statement, the spelling of each blueprint, a case for each kind of name and how the language answers a search. The writer finds how often each function answers, exactly once, at most once or many times, and writes a function that answers once as statements that return, any other as the language's own search: generators, LINQ, streams, or BML's choice.
+status: observed
+from: 5.19.29 7.24
+src: 2.30.20
+conf: mid
+why: Text is a view, so the only text worth reading is the one the nodes give. Observed on 2026-11-27: the writer, itself a component package of about 150 declarations, wrote its own nodes as Python, C#, TypeScript, Java and BML with nothing left out; Python's parser and Deno's took the Python and the TypeScript, and the BML read back into a syntax tree with the BML reader. Reading the first output closely found five places where the text did not mean what the nodes mean (a local named like a function under Python's scoping, a search inside an argument left inline, an empty table of constants, an if on a search losing its else, and Form's truth, where 0 holds), each fixed in the writer.
+flip: Java and C# were not compiled here; a rendering that parses can still fail to type-check or answer otherwise when run.
+at: 2026-11-27
+
+n: 5.19.34
+name: a-method-is-called-on-its-receiver
+kind: decision
+is: Each method a package declares is bound, before the package loads, to a recipe that calls the receiver's own method found by its blueprint, so a call names the method and its receiver and the writer shows it as receiver.method(arguments). A receiver with no such method faults.
+status: observed
+from: 5.19.33
+src: 2.30.20
+conf: mid
+why: A binding made after a package's layer is not seen by the package's code, so dispatch is bound before it. Observed on 2026-11-27: a call of the same method on two classes answered by each class's own body, and on an int it faulted.
+at: 2026-11-27

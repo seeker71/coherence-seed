@@ -669,3 +669,46 @@ The public lens also reads a thesis expression from stdin.
 ```sh
 printf 'nums/bml.ck\n10 - 3 - 2\n' | ./ck text nums/read.ck
 ```
+
+## Writing a package in a language
+
+A component package is shown in a language by one writer and that language's rows. The writer
+is itself a component package, `nums/write.ck`: classes for its context, rows and template
+parts, and functions that answer the pieces of text in order. Each language is a file of rows,
+`nums/lang-python.ck`, `nums/lang-csharp.ck`, `nums/lang-typescript.ck`, `nums/lang-java.ck`
+and `nums/lang-bml.ck`: a template with numbered places for each operation, declaration and
+statement, the spelling of each blueprint, a case for each kind of name, the reserved words and
+how the language answers a search.
+
+```sh
+printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
+```
+
+- **Names are beside.** A package is written with names (`write.named`, parameters and locals by
+  name); `nums/resolve.ck` turns them into places and gives the names as rows keyed by declaration
+  and method, kept in `nums/names.ck`. Resolving the named sources of `nums/resolve.ck` and
+  `nums/part.ck` gives exactly their stored nodes. A member's name is its `b.member` entry, or the
+  part names the lexicon gives an entry (`r.type` has a name and a shape). A local that would take
+  the name of a function of the package gets a suffix, as does a reserved word.
+- **How often a recipe answers.** The writer finds for each function and method whether it answers
+  exactly once, at most once, at least once or any number of times, two bits joined over the
+  package until they stand. A function that answers exactly once is written as statements that
+  return; any other is written as the language's search: generators in Python, C# and TypeScript
+  (`yield`, `yield from`, `foreach … yield return`, `function*`), `Stream` with `flatMap` in Java,
+  and Form's own choice in BML. `all` over a search is a comprehension in Python, a LINQ query in
+  C#, a generator in TypeScript and a stream chain in Java. A first answer is `next(…, fallback)`,
+  `FirstOrDefault`, `findFirst().orElseGet(…)`. An `if-else` commits to its condition's first
+  truth; a condition that is not a comparison is tested by Form's truth, where only no and nothing
+  are false.
+- **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
+  b }`, `fail`, a blueprint for a class's data and a class for its methods. The writer's own package
+  written as BML reads back into a syntax tree with the BML reader.
+- **A method is called on its receiver.** `nums/part.ck` binds each method a package declares to a
+  recipe that calls the receiver's own method (`nums.method-key`), before the package loads, so a
+  call `(r.call M receiver …)` dispatches by the receiver's blueprint and is written
+  `receiver.m(…)`.
+
+`ground/lens-round-trip.ck` writes the writer's package in all five languages and reads the BML
+back. On this machine the Python parses with Python's own parser and the TypeScript with Deno's;
+the C# and Java were not compiled here. A record of more than five fields is not yet made, since
+`call` takes at most six arguments (`bootstrap/ck.c`).

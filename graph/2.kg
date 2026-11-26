@@ -305,3 +305,12 @@ path: coherence-seed/ground/gives-back.ck
 date: 2026-11-26
 got: 2026-11-26
 at: 2026-11-26
+
+n: 2.30.20
+name: lens-round-trip.ck
+kind: source
+is: The ground program that prints every stored file through the lens and reads it back to the same bytes, writes the writer's own package in Python, C#, TypeScript, Java and BML, and reads the BML back with the BML reader.
+path: coherence-seed/ground/lens-round-trip.ck
+date: 2026-11-27
+got: 2026-11-27
+at: 2026-11-27
