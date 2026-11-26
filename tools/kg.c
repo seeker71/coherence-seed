@@ -269,9 +269,8 @@ static void check_node(Node *x) {
     if (!strcmp(st, "answered")) need(x, "ans");
   } else if (!strcmp(x->kind, "assumption")) {
     if (strcmp(st, "assumed")) err(x, "an assumption has status assumed, not ", st);
-  } else {                                              /* term finding decision limit plan */
+  } else {                                              /* term finding decision limit plan; given is guidance held together */
     if (!one_of(st, "given|observed|relayed|inferred|assumed")) err(x, "status is given, observed, relayed, inferred or assumed, not ", st);
-    else if (!strcmp(st, "given")) need(x, "by");       /* the owner's word, named */
     else if (!strcmp(st, "inferred")) need(x, "from");
     else if (!strcmp(st, "observed") || !strcmp(st, "relayed")) need(x, "src");
   }

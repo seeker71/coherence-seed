@@ -1,7 +1,7 @@
 n: 3.7
 name: lessons
 kind: hub
-is: The old body at b8ff978c9: 4,775 commits in five months, 2,572 files, 308,944 lines of .fk and .bml, and a C seed that went from 160 to 34,149 lines under a written rule that it shrinks. An 89% cut of files regrew by 55 to 58% in eight weeks. The reading ranks twelve root causes, led by hand-kept copies of one meaning, meaning that changed with heat, value kinds read from number ranges, and failure recovered silently into a value. Urs's asks stayed constant from July. Evidence is git counts and dated notes; the old runtime was not run.
+is: The old body at b8ff978c9: 4,775 commits in five months, 2,572 files, 308,944 lines of .fk and .bml, and a C seed that went from 160 to 34,149 lines under a written rule that it shrinks. An 89% cut of files regrew by 55 to 58% in eight weeks. The reading ranks twelve root causes, led by hand-kept copies of one meaning, meaning that changed with heat, value kinds read from number ranges, and failure recovered silently into a value. Evidence is git counts and dated notes; the old runtime was not run.
 at: 2026-11-24
 
 n: 3.7.1
@@ -99,16 +99,15 @@ at: 2026-11-24
 n: 3.7.2.10
 name: verification-became-bulk
 kind: observation
-is: Of 2,079 .fk and .bml files at b8ff978c9, 584 are band files and 220 are run doors; 686 tracked files sit under a tests/ directory and receipts/ holds 148 .md documents. Urs asked for fewer bands, gates, doors or guards at least five times between 2026-09-29 and 2026-11-17; a note of 2026-11-17 says each fix added a new check while the cause was generic.
+is: Of 2,079 .fk and .bml files at b8ff978c9, 584 are band files and 220 are run doors; 686 tracked files sit under a tests/ directory and receipts/ holds 148 .md documents. A note of 2026-11-17 says each fix added a new check while the cause was generic.
 status: observed
 src: 2.1 2.1.4#100-105
-limit: The five dated asks are of 2026-09-29, 10-05, 11-12, 11-16 and 11-17. The reading counts a sixth, of 2026-11-20; the two notes it cites for that day speak of refusals and of .jsonl, not of bands or gates.
 at: 2026-11-24
 
 n: 3.7.2.11
 name: text-and-processes-inside
 kind: observation
-is: The old body passed JSON text between its parts and spawned itself as child processes, parsing stdout, stderr and exit code. Urs asked on 2026-10-08 and 2026-10-12 to remove JSON inside the system; on 2026-11-20 removal stood at layer 2a of 4 and 73 .jsonl files are tracked; str_find has 1,596 call sites in form-stdlib alone.
+is: The old body passed JSON text between its parts and spawned itself as child processes, parsing stdout, stderr and exit code. On 2026-11-20 the removal of JSON inside the system stood at layer 2a of 4 and 73 .jsonl files are tracked; str_find has 1,596 call sites in form-stdlib alone.
 status: observed
 src: 2.10.4#3-4 2.10.2#8-9
 at: 2026-11-24
@@ -131,18 +130,18 @@ limit: Commit ec801f4c8 of 2026-09-15 deletes '#define FK_CLOSURE_CAP_MAX 8' and
 at: 2026-11-24
 
 n: 3.7.3
-name: asks
+name: direction
 kind: hub
-is: What Urs asked for between 2026-07-02 and 2026-11-20 as recorded in dated notes, and how the reading reads that record: one constant direction, pursued as layered migrations while seed lines, band files and tracked files kept rising, and one tension between a system that does not refuse and a system that never recovers silently.
+is: The direction the old body's notes set, and how the reading reads it: one constant direction, pursued as layered migrations while seed lines, band files and tracked files kept rising, and one tension between a system that does not refuse and a system that never recovers silently.
 at: 2026-11-24
 
 n: 3.7.3.1
-name: urs-direction
+name: one-direction
 kind: observation
-is: Dated notes record Urs's asks: core recipes in the language over a minimal C bootstrap (2026-09-12); one runtime, and repair the language instead of its use (09-15); node ids instead of serialising, and no child processes (10-04); no JSON inside (10-08, 10-12); rented tokens down 10 to 100 times (10-13); design the architecture once (11-12).
+is: The old body's notes set one direction: core recipes in the language over a minimal C bootstrap; one runtime, repairing the language instead of its use; node ids instead of serialising, and no child processes; no JSON inside; rented tokens down 10 to 100 times; the architecture designed once.
 status: observed
 src: 2.10.4#3-4
-limit: Each ask is as a note records it. The reading's table has 35 rows from 2026-07-02 to 2026-11-20; the rows outside the dates named here were not re-opened for this node.
+limit: The reading's table has 35 rows; the rows not named here were not re-opened for this node.
 at: 2026-11-24
 
 n: 3.7.3.2
@@ -159,7 +158,7 @@ at: 2026-11-24
 n: 3.7.3.3
 name: refusal-against-silent-recovery
 kind: finding
-is: Urs's direction of 2026-09-09, 'form native does not refuse, it heals and integrates or releases', and the lesson that failure was recovered silently into a value, the reading's fourth-ranked cause, are compatible only if a fault is a loud, named signal carrying its repair, which the running flow answers with another choice. A fault must never turn into a number.
+is: That form does not refuse but heals, integrates or releases, and the lesson that failure was recovered silently into a value, the reading's fourth-ranked cause, are compatible only if a fault is a loud, named signal carrying its repair, which the running flow answers with another choice. A fault must never turn into a number.
 status: inferred
 conf: mid
 from: 3.7.2.5 3.7.2.6 1.1
@@ -305,7 +304,7 @@ is: Drop kinds read from the magnitude or parity of a word, hand-picked small in
 status: inferred
 conf: high
 from: 3.7.2.4 3.7.2.14
-limit: The integer model Urs wants is not stated in anything the reading read.
+limit: No integer model is stated in anything the reading read.
 at: 2026-11-24
 
 n: 3.7.9.4

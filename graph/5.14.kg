@@ -219,7 +219,7 @@ at: 2026-11-25
 n: 5.14.21
 name: a-binding-is-undone-by-fail
 kind: decision
-is: A choice point keeps the number of bindings beside its other marks, and a fail that returns to it takes away every binding made since. A program can therefore try an implementation inside an option and lose it when the option fails, as the guide's definition of fail asks for every change.
+is: A choice point keeps the number of bindings beside its other marks, and a fail that returns to it takes away every binding made since. A program can therefore try an implementation inside an option and lose it when the option fails, as the definition of fail (5.4.2) asks for every change.
 status: inferred
 from: 5.4.2 5.14.6 5.14.19
 src: 2.30.7
@@ -488,7 +488,7 @@ src: 2.30.7 2.30.6 2.30.11
 conf: mid
 why: 5.4.8 names buffering until the commit as the way an irreversible effect may stand inside a choice. Taking the values at once and making the call later keeps strict order of evaluation (5.4.12) and needs no activation kept.
 flip: The rule is absolute, no choice open at all, and not relative to the choices open when it was held back; under an all or an outcome a held call is never made. A held call cannot give its answer to the search.
-limit: Witnessed by ground/held-back.ck, run in the open by make check and turned red by two planted faults. Question 6.1.15 stays the guide's: this builds one of its three answers beside the refusal.
+limit: Witnessed by ground/held-back.ck, run in the open by make check and turned red by two planted faults. Question 6.1.15 stays open: this builds one of its three answers beside the refusal.
 at: 2026-11-26
 
 n: 5.14.51

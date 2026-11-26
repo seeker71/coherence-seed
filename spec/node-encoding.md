@@ -156,7 +156,7 @@ text is never `unknown`, because its blueprint and children are written before i
 
 ## Choices
 
-Made here, not given by the guide or measured. Each can be reopened; changing any changes ids.
+Made here, neither held as guidance nor measured. Each can be reopened; changing any changes ids.
 
 - **SHA-256 as the content id.** Nobody asked for it. Any function that gives each node's
   canonical bytes one id would serve this page; which function, how many bits, and whether the id

@@ -21,7 +21,7 @@ at: 2026-11-24
 n: 3.8.1.2
 name: authorship-evidence
 kind: observation
-is: Both commits on the folder nums-go-2023 have Urs's account as git author and GitHub as committer. The sub-commits of 02dd37592 that created the files end with a Co-Authored-By line for an AI assistant. The prose speaks as the assistant: 'If a test fails, my understanding of NUMS is wrong at exactly that point'.
+is: Both commits on the folder nums-go-2023 were made with the repository's git account and GitHub as committer. The sub-commits of 02dd37592 that created the files end with a Co-Authored-By line for an AI assistant, and the prose speaks in the assistant's first person.
 status: observed
 src: 2.3#commit-02dd37592 2.3#commit-5fd7b8a0b 2.16.2#3 2.16.2#186 2.16.7#4 2.16.8#67 2.16.4#245
 at: 2026-11-24
@@ -29,12 +29,12 @@ at: 2026-11-24
 n: 3.8.1.3
 name: assistant-authored
 kind: finding
-is: The prose of the folder nums-go-2023 was written by an AI assistant on 2026-05-08; the folder is not a 2023 document and not Urs's own prose. Urs's own material in the folder is only the Go code quoted from NUMS.Go, and the README adds comments to the quoted NamedCell_t struct that the Go source does not have.
+is: The prose of the folder nums-go-2023 was written by an AI assistant on 2026-05-08; the folder is not a 2023 document. Its other material is only the Go code quoted from NUMS.Go, and the README adds comments to the quoted NamedCell_t struct that the Go source does not have.
 status: inferred
 conf: high
 src: 2.16.2#27-38 2.16.9#497-502
 from: 3.8.1.1 3.8.1.2
-limit: Authorship is judged from co-author lines and first-person voice, which is strong evidence and not a signature; Urs may have dictated or approved any sentence.
+limit: Authorship is judged from co-author lines and first-person voice, which is strong evidence and not a signature.
 at: 2026-11-24
 
 n: 3.8.2
@@ -93,10 +93,10 @@ at: 2026-11-24
 n: 3.8.3.3
 name: earlier-persistence-meaning
 kind: observation
-is: Before 2026-05-08 ice, water and gas named a persistence state of a node. The first commit of the Living-Codex-CSharp checkout, 5fc24ba of 2025-09-09 (FRACTAL_UNFOLDING_SPEC.md line 24): 'Ice = essential persisted facts (atoms, deltas). Water = materialized caches/prototypes. Gas = derivable/transient.' Its specification gained on 2025-10-07 (commit f1c4647, lines 572-575): Ice persistent in SQLite or PostgreSQL, Water semi-persistent materialized views, Gas transient and derivable. Commit 4304a9856 of 2026-03-23 in the parent repository: 'Ice/Water/Gas determines persistence.'
+is: Before 2026-05-08 ice, water and gas named a persistence state of a node. The first commit of the Living-Codex-CSharp checkout, 5fc24ba of 2025-09-09 (FRACTAL_UNFOLDING_SPEC.md line 24), has ice as essential persisted facts (atoms, deltas), water as materialized caches and prototypes, gas as derivable and transient. Its specification gained on 2025-10-07 (commit f1c4647, lines 572-575): ice persistent in SQLite or PostgreSQL, water semi-persistent materialized views, gas transient and derivable. Commit 4304a9856 of 2026-03-23 in the parent repository has the three states determine persistence.
 status: observed
 src: 2.16.21#571-574 2.3#commit-4304a9856
-limit: Both texts are authored under Urs's name; whether Urs or an assistant typed them is unknown. Commit d91ddded2 of 2026-04-26, a spec of ice, water and gas phase states with a breath cycle, is an ancestor of main at 7eecf4da5 and was not read.
+limit: Commit d91ddded2 of 2026-04-26, a spec of ice, water and gas phase states with a breath cycle, is an ancestor of main at 7eecf4da5 and was not read.
 at: 2026-11-24
 
 n: 3.8.3.4
@@ -114,7 +114,7 @@ is: The mapping of the three kinds (blueprint, recipe, cell) onto the three stat
 status: inferred
 conf: mid
 from: 3.8.3.1 3.8.3.2 3.8.3.3 3.8.3.4 3.8.1.3
-limit: No file read shows whether Urs ever stated the kind-to-state mapping in Urs's own words; the derivation of living-equation.fk from the folder is reasoned, not traced through commits.
+limit: The derivation of living-equation.fk from the folder is reasoned, not traced through commits.
 at: 2026-11-24
 
 n: 3.8.4
@@ -149,7 +149,7 @@ at: 2026-11-24
 n: 3.8.8.7
 name: runtime-cell-as-blueprint-plus-value
 kind: finding
-is: Take Urs's unused Cell_t {*Blueprint_t; Value any} from NUMS.Go as the starting form of a run-time cell: a blueprint plus a value. Neither the folder nums-go-2023 nor mini-nums mentions that record, and nothing else in NUMS.Go lets a cell hold a value.
+is: Take NUMS.Go's unused Cell_t {*Blueprint_t; Value any} from NUMS.Go as the starting form of a run-time cell: a blueprint plus a value. Neither the folder nums-go-2023 nor mini-nums mentions that record, and nothing else in NUMS.Go lets a cell hold a value.
 status: inferred
 conf: mid
 from: 3.8.4.5

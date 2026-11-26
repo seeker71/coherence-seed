@@ -110,9 +110,8 @@ at: 2026-11-24
 n: 8.14
 name: only-what-is
 kind: decision
-is: The guide's direction of 2026-11-25: 'do not track history or corrections in documents, only keep what is, history shall only be in git, the git content shall always be like a green field, clean sheet without any trail on how we got here. we can keep a north star as direction, and we can keep a floor with observation date, and everything that is not aligned with what is now, shall be released and composted'. And: 'we just keep what is needed to close the gap to the north star from the now floor. everything else can be composted.'
+is: Pages and nodes keep only what is. History and corrections live in git, and the tree reads like a clean sheet with no trail of how it came to be. A north star gives the direction and a floor with its observation date says what stands; what no longer matches is released and composted. What is kept is what closes the gap from the floor to the north star.
 status: given
-by: guide
 see: 8.7 7.10
 at: 2026-11-25
 

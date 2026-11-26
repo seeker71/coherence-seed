@@ -176,7 +176,7 @@ carries its source, its date and how it is known. `make` builds its checker, `kg
 | 9 reviews | independent readings that confirm single claims; none at present |
 
 A node is one block of `key: value` lines. Its address (`n`) is the handle other nodes cite.
-`status` says how the claim is known: `given` (the guide's word), `observed`, `relayed`, `inferred`,
+`status` says how the claim is known: `given` (guidance we hold together, or an axiom), `observed`, `relayed`, `inferred`,
 `assumed` or `open`.
 
 | Command | Does |

@@ -66,7 +66,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 
 ## Fail, choice and cut
 
-The guide's definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
+The definition (graph node 5.4.2): fail means backtrack, undo and reverse all changes
 until a new choice is tried.
 
 - `choice` remembers where it stands before running an option.

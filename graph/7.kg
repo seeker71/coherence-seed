@@ -69,7 +69,6 @@ name: flows-first
 kind: decision
 is: The work follows end-to-end flows that really run, watched live through the framebuffer of 5.7.6. Ceremony around the work, the old body's doors, gates, receipts and bands, is left out.
 status: given
-by: guide
 see: 5.7.6
 at: 2026-11-25
 
@@ -78,7 +77,6 @@ name: built-with-a-c-compiler-alone
 kind: decision
 is: This is a new repository and builds with a C compiler alone. The old body appears only as evidence that was read (hubs 2 and 3), never as a tool, a dependency or a step.
 status: given
-by: guide
 see: 5.9.1 2.1
 at: 2026-11-25
 
@@ -95,7 +93,6 @@ name: guidance
 kind: decision
 is: Guidance we hold together, in short form. New code is written in form and kept as nodes; C is the bootstrap only, and no other language is written or stored. Every part can be replaced while the system runs, by a recipe, by machine code, by what comes next. The real work is preferred to a shortcut, and a running flow to a check. Guidance orients and is not enforced: what is aligned needs no permission, and what serves visibility, trust and sovereignty is done.
 status: given
-by: guide
 see: 7.10 7.11 8.14
 at: 2026-11-25
 
@@ -110,9 +107,8 @@ at: 2026-11-25
 n: 7.22
 name: prelude-is-held-to-a-budget
 kind: decision
-is: Form written by position, with raw constants or as one long ladder is prelude. The guide's word of 2026-11-26: prelude code is like bootstrap code, only allowed until it can be replaced, very limited, and not to grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number in the stored nodes, whatever names lie beside them, and make check fails when the count is over the budget in the Makefile, 475 on this day. The budget is lowered as code is rewritten and never raised.
+is: Form written by position, with raw constants or as one long ladder is prelude. Prelude, like bootstrap code, stands only until it can be replaced, stays very limited and does not grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number in the stored nodes, whatever names lie beside them, and make check fails when the count is over the budget in the Makefile, 475 on this day. The budget is lowered as code is rewritten and never raised.
 status: given
-by: guide
 see: 5.15.8 5.18.14 7.13
 at: 2026-11-26
 

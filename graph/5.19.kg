@@ -9,18 +9,16 @@ at: 2026-11-26
 n: 5.19.1
 name: stored-is-meaning-at-language-altitude
 kind: decision
-is: The guide's word of 2026-11-26: what is stored is numeric and language neutral, like NUMS nodes with a separate symbol table; blueprints can be classes, structs, lists, maps, unions, generics and templates; recipes can be generic or templates and operators are just special recipes; any language translates in without losing its semantics and out without being low level; the objects are executed directly with no lowering.
+is: What is stored is numeric and language neutral, NUMS nodes with a separate symbol table. Blueprints can be classes, structs, lists, maps, unions, generics and templates; recipes can be generic or templates, and operators are special recipes. Any language translates in without losing its semantics and out without becoming low level, and objects run directly, with no lowering.
 status: given
-by: guide
 see: 3.1 3.2 5.1.1 5.2.4
 at: 2026-11-26
 
 n: 5.19.2
-name: full-engine-asked
+name: a-full-engine
 kind: decision
-is: The guide's word of 2026-11-26: build a full engine that creates cells from blueprints with constructor recipes and executes any recipe on any cells; cells boxed and unboxed with an implicit blueprint link; value casting and conversions among all native and model layouts of integers and floats; full struct, class, template, generic and genetic support; design first, then the implementation as nodes, which a lens shows in BML, Go or any language, the text cached locally and not stored.
+is: The engine makes cells from blueprints with constructor recipes and runs any recipe on any cells. Cells are boxed and unboxed with an implicit blueprint link; values cast and convert among all native and model layouts of integers and floats; structs, classes, templates, generics and genetics are supported in full. The design comes first, then the implementation as nodes, which a lens shows in BML, Go or any language, its text cached locally and not stored.
 status: given
-by: guide
 see: 5.19.1
 at: 2026-11-26
 
@@ -64,7 +62,7 @@ is: A value whose blueprint has a fixed layout is held as its bytes in its place
 status: inferred
 from: 5.7.6 5.7.7 5.5.1 5.19.2
 conf: mid
-why: The guide asks for cells both fully boxed and fully unboxed with an implicit blueprint link. In ground/nums-cells.ck the constructor and two views read one room, and a failed field write restores its bytes.
+why: Cells are both fully boxed and fully unboxed with an implicit blueprint link (5.19.2). In ground/nums-cells.ck the constructor and two views read one room, and a failed field write restores its bytes.
 flip: Reading a part needs the holder's blueprint in hand; a value passed as Any is boxed on the way.
 at: 2026-11-26
 
@@ -85,7 +83,7 @@ is: The engine runs a recipe node by what its category says, on cells laid out b
 status: inferred
 from: 5.4.1 5.4.2 5.4.6 5.1.2 5.19.1
 conf: mid
-why: The guide's word is direct execution with no lowering. The seed had stored an if as four core nodes and run those.
+why: Objects run directly, with no lowering (5.19.1). The seed had stored an if as four core nodes and run those.
 flip: What form cannot yet do, such as writing bytes in place, becomes an operation of the bootstrap; if that grows past its budget, the line moves.
 at: 2026-11-26
 
@@ -127,7 +125,6 @@ name: genetic-algorithms
 kind: decision
 is: Genetic support begins with research into how genetic code is modelled, before any operators are written.
 status: given
-by: Urs
 see: 5.19.10
 at: 2026-11-26
 
@@ -136,7 +133,6 @@ name: the-runtime-reads-no-words
 kind: decision
 is: The runtime needs no words: it loads nodes as numeric payloads and runs them by the ids of blueprints, recipes and cells, all already resolved; text appears only where something is shown to a person.
 status: given
-by: Urs
 see: 5.19.1 5.19.8
 at: 2026-11-26
 
@@ -156,7 +152,6 @@ name: one-recipe-on-many-targets
 kind: decision
 is: A recipe runs on a generic runtime, or becomes machine code for the CPU or the GPU with or without tracking, tracing, boxing and unrolling, from the same nodes.
 status: given
-by: Urs
 see: 5.19.13 5.19.14
 at: 2026-11-26
 
@@ -165,7 +160,6 @@ name: parts-that-evolve-together
 kind: decision
 is: Code is made of reusable parts that interlock and can be tried against one another and evolved, not of low-level prelude as too much of the old kernel was.
 status: given
-by: Urs
 see: 5.19.4 5.19.10
 at: 2026-11-26
 
@@ -174,7 +168,6 @@ name: recipes-between-predictions
 kind: decision
 is: Code can observe, adapt and evolve itself; a recipe can stand as a token in a model's stream; blueprints are whole structures, classes, templates and generics; recipes are generic algorithms over many blueprints and cells that write code as they run.
 status: given
-by: Urs
 see: 5.19.1 5.19.16
 at: 2026-11-26
 
@@ -195,7 +188,6 @@ name: the-kernel-solved-it-in-text
 kind: decision
 is: Most technical problems were solved in the coherence-kernel, which stored text where this body stores numeric nodes; its solutions are carried over as nodes.
 status: given
-by: Urs
 see: 5.19.1 5.19.15
 at: 2026-11-26
 
@@ -204,7 +196,6 @@ name: only-final-numeric-code
 kind: decision
 is: Only final, end-to-end numeric node code is committed, with no bands, doors, gates or checks added as static code.
 status: given
-by: Urs
 see: 5.19.16 5.19.17 7.13
 at: 2026-11-26
 

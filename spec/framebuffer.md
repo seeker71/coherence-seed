@@ -1,6 +1,6 @@
 # The framebuffer, floor version
 
-The guide's definition (graph nodes 5.7.6 and 5.7.7): all memory of every object, node and stack
+The definition (graph nodes 5.7.6 and 5.7.7): all memory of every object, node and stack
 is read and written in one shared memory space, which can be recorded like video with no cost to
 the runtime and played back to see what happened, when and where. The blueprint is stored next to
 each object, and a record can name who last wrote it.
