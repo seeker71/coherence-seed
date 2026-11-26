@@ -321,7 +321,7 @@ at: 2026-11-26
 n: 5.19.31
 name: the-target-and-the-families-are-rows
 kind: decision
-is: The target is rows: each instruction an entry with its base word and its fields, each field a position, a width and a kind the packer checks; the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and what a family admits, which operators and which relations, is rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.
+is: The target is rows: each instruction an entry with its base word and its fields, each field an offset, a width and a kind by which it says what fits (5.19.35); the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and what a family admits, which operators and which relations, is rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.
 status: inferred
 from: 5.19.22 7.24
 conf: mid
@@ -356,10 +356,22 @@ at: 2026-11-27
 n: 5.19.34
 name: a-method-is-called-on-its-receiver
 kind: decision
-is: Each method a package declares is bound, before the package loads, to a recipe that calls the receiver's own method found by its blueprint, so a call names the method and its receiver and the writer shows it as receiver.method(arguments). A receiver with no such method faults.
+is: Each method a package declares is bound, in one layer with the package's own declarations, to a recipe that calls the receiver's own method found by its blueprint, so a call names the method and its receiver and the writer shows it as receiver.method(arguments). A receiver with no such method faults.
 status: observed
 from: 5.19.33
-src: 2.30.20
+src: 2.30.20 2.30.18
 conf: mid
-why: A binding made after a package's layer is not seen by the package's code, so dispatch is bound before it. Observed on 2026-11-27: a call of the same method on two classes answered by each class's own body, and on an int it faulted.
+why: A binding is seen only by what is bound after it or with it in a layer. Observed on 2026-11-27: a call of the same method on two classes answered by each class's own body, and on an int it faulted; with dispatch bound before the package and outside its layer, the encoder's Format.pack, a method calling the package's own function, answered that call as data; bound in one layer, it packs.
+at: 2026-11-27
+
+n: 5.19.35
+name: the-encoder-is-components
+kind: decision
+is: The AArch64 encoder is a component package. A Field is an offset, a width and a kind and says whether a value fits and where it goes; a Format packs operands into a base word by its fields; an Encoding is an opcode, a base word and a format; a Condition is a name, a number and its inverse; a Fact is a role of the target and its value. The fields and formats the rows share are named, the rows keep themselves where the compiler reads them, encode, bytes and pieces are functions, and a word is kept under its encoding and instruction.
+status: observed
+from: 5.19.31 5.19.33 5.19.34 7.24
+src: 2.30.18
+conf: mid
+why: Tuples read by position were knowledge only their author could name; as classes with named parts the same rows read in five languages from their own nodes, and the sizes the bodies use are named. Observed on 2026-11-27, against the rows and recipe it replaced, kept in the sweep as its reference: 3,742 encodings at the edges of every field of the 60 rows agree, 2,436 giving the same word, 1,145 refused and 161 faulting in both, and so do inversions, pieces, bytes and the target's facts; twelve planted faults each made cases differ. Unkept, an encoding took about 1,660 walker steps against 585 and the sweep 976.4 million steps against 919.8 million; kept, the sweep's 44,877 encodings are of 343 instructions and it took 900.2 million, 8.00 s of CPU against 8.13.
+flip: A word kept under its encoding and its instruction is not kept under the conditions' rows, so a condition kept again after the word is not seen by it.
 at: 2026-11-27

@@ -15,12 +15,12 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
-| Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions and what they call, casts included, from rows of instructions |
+| Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions and what they call, casts included, through an encoder written as components over rows of instructions |
 | Writer | [`spec/nums.md`](spec/nums.md), [`nums/write.ck`](nums/write.ck) | a component package that writes any component package as Python, C#, TypeScript, Java or BML from rows per language, with names kept beside the nodes and methods called on their receivers |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,438 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,442 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -41,13 +41,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A fail gives back what it returns past.** As a backtracking machine gives back its heap,
   every node made since a choice point goes when a fail returns to it, except what no fail
   undoes and what that holds, which moves down in the order it was made, its id with it. The
-  sweep of compiled code against frames, of 37,822 cases, ends holding 36,865 nodes, and runs
-  with the other ground programs in one process. `ground/gives-back.ck` makes more than four
+  sweep of compiled code against frames, of 37,822 cases and 3,742 encodings, ends holding
+  53,490 nodes, and runs with the other ground programs in one process. `ground/gives-back.ck` makes more than four
   million nodes in forty thousand outcomes and ends with a note from a failed branch, an all's
   answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
   percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 11,871 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 13,513 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
@@ -95,6 +95,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   boundaries of a call. None differ. 30,269 compiled; the machine code answered 27,108 itself
   and declined the rest, where the hardware's answer would not be the runtime's. What a slot
   holds for a value is one recipe on both sides.
+- **The encoder is components, held to the one it replaced.** `nums/arm.ck` is a package of
+  fields, formats, encodings, conditions and target facts, with the shared fields and formats
+  named. The same sweep keeps the rows and recipe it replaced as its reference and runs every
+  instruction row with each field at its edges, one past them, every condition and four
+  operands that are no field's number: 3,742 encodings, 2,436 the same word, 1,145 refused by
+  both and 161 faulting in both on an operand beyond 64 bits, none differing; inversions,
+  pieces, bytes and the target's facts agree too. Twelve faults planted in the package, from a
+  base word to a byte order, each made cases differ. A word is kept under its encoding and its
+  instruction: the sweep asks for 44,877 encodings of 343 instructions. The sweep as it stood
+  before the change takes 919.8 million walker steps on the rows and recipe, 900.2 million on
+  the package and 976.4 million on the package keeping no words; under `/usr/bin/time -l`, five
+  interleaved runs of each took 8.13, 8.00 and 8.42 s of CPU.
 - **A language can produce the graph.** Go and BML byte literals round-trip through frozen
   nodes, preserving composite blueprints and shared children (`ground/nums-portable.ck`).
 - **BML runs on a BMF character cursor.** In `ground/nums-lenses.ck` an alternative retries
@@ -117,7 +129,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
   into a syntax tree with the BML reader. Python's parser takes the Python and Deno's the
-  TypeScript; the C# and Java are not compiled here, which has no JDK and no C# project.
+  TypeScript; the C# and Java are not compiled here, which has no JDK and no C# project. The
+  encoder's package, written the same way, parsed with Python's parser, formatted with Deno, met
+  the C# compiler of .NET 9 with no error but the Form runtime's missing types, and read back
+  as BML, where a method's receiver is `this`.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and
@@ -216,7 +231,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,255 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,259 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -230,6 +245,11 @@ running compiled code against frames all the way down).
   between declarations. A function the compiler refuses keeps a note of the construct no rule
   takes; refused for another reason, it notes only that it was refused. The ground programs and supported
   layouts are listed in [the engine specification](spec/nums.md).
+  Component code is slow where it reads a part: a member is a checked access and a method call
+  looks up the receiver's key, so an encoding the package has not kept costs about 1,660 walker
+  steps where the rows and recipe took 585. A kept word is keyed by its encoding and its
+  instruction and not by the conditions' rows, so a condition kept again later is not seen by a
+  word kept before.
 - **A store bounded by what is live.** A run with no choice open keeps every node it makes until
   a fail returns past it, so a loop that counts long enough spends the machine's memory. A handle
   kept as a number across a fail back past where its node was made can name another node

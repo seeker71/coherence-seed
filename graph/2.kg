@@ -291,11 +291,11 @@ at: 2026-11-26
 n: 2.30.18
 name: nums-compiled-agrees.ck
 kind: source
-is: The ground program that runs every case as machine code and on frames all the way down and answers the cases whose outcomes differ, with how many compiled and how many the machine code answered itself.
+is: The ground program that runs every case as machine code and on frames all the way down and answers the cases whose outcomes differ, with how many compiled and how many the machine code answered itself, and that holds the encoder's package to the rows and recipe it replaced over the edges of every field.
 path: coherence-seed/ground/nums-compiled-agrees.ck
-date: 2026-11-26
-got: 2026-11-26
-at: 2026-11-26
+date: 2026-11-27
+got: 2026-11-27
+at: 2026-11-27
 
 n: 2.30.19
 name: gives-back.ck
