@@ -33,8 +33,8 @@ section names is built; the rest is the design the work follows.
 child is a list that keeps the public recipes, blueprints and constants reachable. The packer
 expands module imports once per image and freezes the resulting graph in dependency order.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
-authoring lens. The generic NUMS library, its AArch64 compiler and the example exports pack
-together as 7,178 nodes containing zero text leaves.
+authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
+exports pack together as 9,865 nodes containing zero text leaves.
 
 ```sh
 make
@@ -225,6 +225,16 @@ that constructs it.
 - A cast of a reference changes the view: up to a parent or an interface always, down to a
   shape only if the cell is one, and otherwise the answer is nothing.
 - A cast to `Any` boxes; a cast from it unboxes if the blueprint is the one asked for.
+- Arithmetic on floats is one recipe over the layouts' parameters, the same for every layout:
+  the operands are taken apart into sign, significand, power and special, the result is
+  computed exactly, kept to 62 bits with every bit beyond folded into the last one, and put
+  together by the layout's encoder rounding to nearest even. An invalid operation answers the
+  layout's quiet NaN, and a NaN operand passes on quieted, a signalling one first, as AArch64
+  does. A comparison is the exact order of the two values; a NaN makes every comparison false
+  but not-equal.
+- An untyped number beside a typed one takes the typed one's blueprint, and an integer beside a
+  float is converted by value. A value written to a typed place or returned from a typed
+  function is converted the same way.
 
 ## Running
 
@@ -242,11 +252,16 @@ that constructs it.
   an instance is bound to the instance node; with no binding it is data. Each binding can be
   replaced while the system runs, by machine code written from rows keyed by the instance.
   What form cannot yet do becomes an operation of the bootstrap.
+- The engine is one layer. A recipe handed to a definition runs on the bindings that
+  definition sees (`spec/core-operations.md`), so the parts that hand recipes to one another,
+  the runtime, the float definition, the machine's rows and the compiler, are bound together.
+  Each part's tables are written once the layer stands.
 
 ## Words and lenses
 
 - The engine's own definitions are entries of package 16, numbered in the order they are
-  named; 16.0.0.1 is the catalogue.
+  named; 16.0.0.1 is the catalogue. The float definition is at 16.0.1, the machine's rows at
+  16.0.2 and the compiler at 16.0.3.
 - A symbol table is rows keyed by node and lens: the name of a nominal blueprint, of a member
   (blueprint and place), of a function, of a global, of a local or parameter (function and
   place).
@@ -348,7 +363,41 @@ The following paths run on that catalogue. The ground programs with the prefix
   node, and an integer of any Bits or TwosComplement width wraps at that width.
   `ground/nums-runs-as-written.ck` runs four functions written as nodes, a sum in a for loop, a
   recursion through Callee, a while that writes its parameters and a loop left by break, and two
-  numbers that wrap. Its nodes hold no word and no text.
+  numbers that wrap. Its nodes hold no word and no text. An unsigned layout divides, shifts and
+  compares as unsigned.
+- `nums/float.ck` is the float definition above, over the magnitudes of `nums/magnitude.ck`
+  and the encoder of `nums/numbers.ck`. Run in a session sweep over zeros, subnormals, the
+  largest numbers, infinities and NaNs in both signs, it matched this machine's hardware bit
+  for bit: 3,600 sums, differences, products and quotients each in binary16, 32 and 64, and
+  6,264 comparisons. For bfloat16, E5M2, E4M3 and E4M3 with an unsigned zero it matched the
+  hardware's binary32 result rounded back, except that it keeps a NaN's payload and names an
+  overflow `range`.
+- `nums/arm.ck` is the AArch64 instruction set as rows: each instruction an entry, its base
+  word and where each field lies. One recipe packs any of them; a field takes its value modulo
+  its width, so a branch back is the same as a branch forward.
+- `nums/compile.ck` writes AArch64 for a whole declared function from the same nodes the
+  generic runtime runs. Each category has one code rule, kept under the category: places,
+  writes, the compound writes and the steps by one, blocks, if, the ternary, the three loops,
+  return, break, continue, and, or, not, and a call of the function itself. The operators take
+  their list from the runtime's own table, and what each is in machine words is a row of
+  templates, one for signed, one for unsigned and one for floats, whose holes the compiler
+  fills with registers. Parameters and locals stay unboxed in registers for the whole call,
+  integers in x19 to x27 and hardware floats in d8 to d15; values being computed are in x9 to
+  x15 and v16 to v23, saved beside the frame across a call. Integers are kept at their width
+  after every operation. Where the runtime would answer nothing or fault, a division by zero or
+  by −1, a shift outside 0 to 63, a callee that declined, the code declines and the whole call
+  runs on frames, so the machine's answer is the runtime's or there is none. A function's first
+  call asks the compiler held in `run.compiler` and keeps what it gives, the code leaf or the
+  frames, under the declaration. A float instance's machine form is the compiler applied to
+  the function that returns the operator on its two parameters.
+  `ground/nums-compiled.ck` runs fib on frames to 15 and as machine code to 30, Newton's root
+  of 2 in binary64 and a harmonic sum to 1,000 in binary32 compiled and on frames, which give
+  the same bits. In a session sweep, every integer operator on 8, 32 and 64 bits signed and
+  unsigned over seventeen values on both sides, 27,744 cases, answered the same compiled and
+  on frames.
 
 Full-language declaration and statement grammars, execution of the rest of the recipe
-catalogue and regeneration of the bootstrap remain open.
+catalogue and regeneration of the bootstrap remain open. The compiler does not yet take calls
+of other declarations, members, objects, casts or more than six parameters, nor write GPU
+code, unroll loops or trace compiled code; a function it refuses runs on frames. A return of a
+value that is nothing answers 1.

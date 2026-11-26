@@ -159,3 +159,72 @@ status: given
 by: owner
 see: 5.19.13 5.19.14
 at: 2026-11-26
+
+n: 5.19.16
+name: the-kernel-solved-it-in-text
+kind: decision
+is: you know that most if not all technical problems were already solved in the previous coherence-kernel repo, it was just not as cleanly implemented and it was storing text source code instead of numeric nodes with symbols.
+status: given
+by: owner
+see: 5.19.1 5.19.15
+at: 2026-11-26
+
+n: 5.19.17
+name: parts-that-evolve-not-prelude
+kind: decision
+is: one big difference was that the old coherence-kernel wrote way too much code in prelude low level code, instead of using reusable blocks, components, parts, that can evolve and interlock and be A/B tested including with genetic evolution, so this time around we want to be much, much smarter when we write code.
+status: given
+by: owner
+see: 5.19.10 5.19.16
+at: 2026-11-26
+
+n: 5.19.18
+name: generic-parts-that-observe-themselves
+kind: decision
+is: how can we make reusable, adaptable, self modifyable, self observable, self evolving code that has micro thoughts (tokens in an LLM stream that can resolve a recipe as token for instance), and the forms NUMS blueprints can be complex structures, classes, templates, generics, not just simple primitives, and recipes can be generic algorithms that can be applied on multiple types and cells and generate code at runtime.
+status: given
+by: owner
+see: 5.19.1 5.19.17
+at: 2026-11-26
+
+n: 5.19.19
+name: only-final-numeric-code
+kind: decision
+is: we are only commiting end-to-end final highest quality numeric node code, right? we don't add bands, doors, gates, checks as static code, right?
+status: given
+by: owner
+see: 5.19.17 5.19.18 7.13
+at: 2026-11-26
+
+n: 5.19.20
+name: floats-are-one-recipe
+kind: decision
+is: Arithmetic on floats is one recipe for every layout: the operands are taken apart into sign, significand, power and special, the result is computed exactly, kept to 62 bits with every bit beyond folded into the last one, and rounded to nearest even by the layout's own encoder. Hardware is a faster form of that recipe for the layouts a processor has, and never its meaning.
+status: inferred
+from: 5.19.2 5.19.5 5.19.18
+conf: mid
+why: Rounding a result kept to odd at two bits more than the target gives the result rounded once, so one exact path serves binary64 and E4M3 alike. It matched the M4's binary16, 32 and 64 hardware bit for bit in a sweep, and the layouts the M4 lacks have no other meaning to stand on.
+flip: An exact path over byte magnitudes is slow, and a layout used in bulk without hardware needs a faster form of its own, a table or code written for it.
+at: 2026-11-26
+
+n: 5.19.21
+name: machine-code-from-rules-and-rows
+kind: decision
+is: The compiler is a code rule for each category of the catalogue, kept under the category as the runtime's binding is, over the instruction set as rows: each instruction an entry with its base word and its fields. What an operator is in machine words is a row of templates whose holes take registers. Places stay unboxed in registers; where the runtime would answer nothing the code declines and the call runs on frames.
+status: inferred
+from: 5.19.15 5.19.16 5.19.17 5.19.14
+conf: mid
+why: The kernel's encoder was a table of base words and field multipliers, and every word it wrote was byte-verified; here the table is nodes, so a new instruction or a new operator is a row and not a definition. A rule per category is the runtime's own dispatch, so the two cannot drift apart in what they cover.
+flip: Registers are given in order and a call saves every value in flight; a search over allocations and unrolling factors, scored by time, would choose better than one fixed rule.
+at: 2026-11-26
+
+n: 5.19.22
+name: the-engine-is-one-layer
+kind: decision
+is: The runtime, the float definition, the machine's rows and the compiler are bound in one layer, and each writes its tables once the layer stands.
+status: inferred
+from: 5.19.14 5.19.21
+conf: high
+why: A recipe handed to a definition runs on the bindings that definition sees. Observed: a recipe given to an older helper answered its own body as data, because the newer definition it named was not there for it.
+flip: A helper that ran what it is handed where it was asked would let the parts be layers of their own.
+at: 2026-11-26
