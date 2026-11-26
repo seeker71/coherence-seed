@@ -543,7 +543,7 @@ status: observed
 from: 5.14.56 5.14.41 5.7.6
 src: 2.30.19
 conf: high
-why: Nodes made in a branch that failed were kept until the process ended, so a sweep of 30,771 cases made 2.57 million nodes and all ground programs in one process overflowed the 4,194,304 the area holds. Observed on 2026-11-26: the sweep ends holding 24,139 nodes; all 74 ground programs, the sweep among them, run in one process and end at 204,255; ground/gives-back.ck runs forty thousand outcomes that make more nodes than the area holds, which faults the earlier bootstrap with a full area; giving back costs 2 to 4 percent of the time.
+why: Nodes made in a branch that failed were kept until the process ended, so a sweep of 30,771 cases made 2.57 million nodes and all ground programs in one process overflowed the 4,194,304 the area holds. Observed on 2026-11-26: the sweep, since widened to 37,822 cases, ends holding 36,839 nodes; all 74 ground programs, the sweep among them, run in one process and end at 215,342; ground/gives-back.ck runs forty thousand outcomes that make more nodes than the area holds, which faults the earlier bootstrap with a full area; giving back costs 2 to 4 percent of the time.
 flip: A handle kept as a number across a fail back past where its node was made can name another node afterwards; a collector over what is reachable would also free what a run with no choice open no longer needs.
 limit: A run with no choice open still keeps every node it makes. One machine.
 at: 2026-11-26

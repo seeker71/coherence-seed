@@ -19,7 +19,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,435 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,436 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -41,13 +41,14 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **A fail gives back what it returns past.** As a backtracking machine gives back its heap,
   every node made since a choice point goes when a fail returns to it, except what no fail
   undoes and what that holds, which moves down in the order it was made. The sweep of compiled
-  code against frames ends holding 24,139 nodes where it held 2,569,489, and all 74 ground
-  programs, the sweep among them, run in one process and end at 204,255, of the 4,194,304 the
+  code against frames, of 30,771 cases then, ended holding 24,139 nodes where it had held
+  2,569,489; widened since to 37,822 cases it ends at 36,839, and all 74 ground programs, the
+  sweep among them, run in one process and end at 215,342, of the 4,194,304 the
   area holds. `ground/gives-back.ck` makes more nodes than that in forty thousand outcomes and
   ends with a note from a failed branch, an all's answers and an outcome's answer standing; the
   bootstrap before faults it with a full area. Giving back costs 2 to 4 percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 11,769 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 11,871 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
@@ -87,12 +88,14 @@ Each line here is held by a program that runs under `make check`, or names how i
   the leaves compiled before it compile again at their next call. The area under x² by a
   million rectangles, a call of a second declaration each, took about 1 ms on this M4 beyond
   loading and compiling; a thousand took 159 ms on frames, with the same answer.
-- **Compiled code answers as frames do.** `ground/nums-compiled-agrees.ck` runs 30,771 cases
-  as machine code and on frames all the way down: every operator on six integer and two float
-  layouts through a call, every cast between nine layouts by all five rules, over fourteen
-  boundary values, and thirteen edges at the boundaries of a call. None differ. 27,699
-  compiled; the machine code answered 24,853 itself and declined the rest, where the
-  hardware's answer would not be the runtime's.
+- **Compiled code answers as frames do.** `ground/nums-compiled-agrees.ck` runs 37,822 cases
+  as machine code and on frames all the way down: every class, int and Bool among them, as
+  result and as parameter over six shapes; each kind of value passed to each class; literal
+  operands of every size, NaN, the infinities and −0; every operator on eight layouts through
+  a call; every cast between nine layouts by all five rules; and thirteen edges at the
+  boundaries of a call. None differ. 30,269 compiled; the machine code answered 27,108 itself
+  and declined the rest, where the hardware's answer would not be the runtime's. What a slot
+  holds for a value is one recipe on both sides.
 - **A language can produce the graph.** Go and BML byte literals round-trip through frozen
   nodes, preserving composite blueprints and shared children (`ground/nums-portable.ck`).
 - **BML runs on a BMF character cursor.** In `ground/nums-lenses.ck` an alternative retries
@@ -189,7 +192,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,252 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,253 claims, none reviewed by a second reader.
 
 ## Not there
 

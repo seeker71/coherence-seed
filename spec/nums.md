@@ -34,7 +34,7 @@ child is a list that keeps the public recipes, blueprints and constants reachabl
 expands module imports once per image and freezes the resulting graph in dependency order.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
 authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 11,769 nodes containing zero text leaves.
+exports pack together as 11,871 nodes containing zero text leaves.
 
 ```sh
 make
@@ -383,9 +383,11 @@ The following paths run on that catalogue. The ground programs with the prefix
   so a recipe node runs as it stands and the walker is at that node. A call of `(FunctionDecl
   signature locals body)` makes its frame, a room under the declaration laid out by the
   blueprints of its parameters and locals: a number of fixed layout as its bytes, a Bool as one
-  byte, anything else as the handle of its node. An argument is written into its slot as a
-  store writes it: an integer keeps the low bits of the slot's width, a float is converted by
-  value. Block, if, the loops, return, break and continue run as written; a jump answers the
+  byte, anything else as the handle of its node. What a slot holds for a value is one recipe,
+  `run.slot-value`, which the machine's entry uses too: an integer slot holds the value's
+  number, yes as 1, no as 0 and a typed integer by its own sign, kept to the slot's width; a
+  Bool holds 0 or 1; a float slot holds the value converted by value. A value no slot of that
+  layout takes fails the call. Block, if, the loops, return, break and continue run as written; a jump answers the
   node that says it, and a continue in a do loop goes to its test. An operator takes its
   instance from its operands' blueprint, makes the recipe for it once and keeps it under the
   instance node, and an integer of any Bits or TwosComplement width wraps at that width. An
@@ -414,17 +416,19 @@ The following paths run on that catalogue. The ground programs with the prefix
   generic runtime runs. Its knowledge is rows, its choices are choices:
   - Each category has one code rule, kept under the category. Each family of values, whole,
     real and truth, is a row of templates whose holes are named roles; an operator is a row of
-    its templates and the guards that make the code decline. The relations a family admits are
-    rows as well, so a truth compares only by equal and not equal.
+    its templates and the guards that make the code decline. What a family admits is a row as
+    well: whole numbers every operator, reals the four sums and the relations, truths only
+    equal and not equal.
   - Records have named parts. A rule binds every part it builds before it puts them together,
     so a part that does not lower fails the whole function and never leaves a gap in its code.
   - Code is laid out with fresh labels and jumps that name them; an if, a loop and the door
     by which the runtime enters are templates of labels, resolved once the words stand.
   - Where there is more than one way, ordered choice takes the first that holds: a constant is
     one move, an inverted move, or a move and up to three keeps; an immediate is tried before
-    a register.
-  - A word that cannot be encoded, a part a record lacks, a target fact or a label not found
-    is the fault `jit.broken`, a mistake of the compiler. A construct it does not take fails.
+    a register. An operand is compiled once and both forms are chosen over its code, so the
+    time to compile grows with the size of a function and not with the depth of its nesting.
+  - A word that cannot be encoded, a part a record lacks, a target fact, a label or a template
+    item that does not expand is the fault `jit.broken`, a mistake of the compiler. A construct it does not take fails.
     Under `(run.refused declaration)` the runtime notes that the function was refused, or the
     fault's reason when compiling faulted; which construct was refused is not recorded.
   Parameters and locals stay unboxed in registers for the whole call, integers and hardware
@@ -435,13 +439,15 @@ The following paths run on that catalogue. The ground programs with the prefix
   the runtime's or there is none. A function's first call asks the compiler held in
   `run.compiler` and keeps what it gives under the declaration; a fault while compiling is
   caught, noted and answered by frames. A float instance's machine form is the compiler applied
-  to the function that returns the operator on its two parameters.
+  to the function that returns the operator on its two parameters, and it is given only what
+  its form would take: numbers of its layout, ints and integer layouts.
 - A function compiles together with every declaration it calls into one leaf: the callee is
   the running function (`r.callee`), a declaration written in the call, or an entry given one
   by `run.declare`. Each has its own frame, and a call is a branch with its arguments in x0 to
   x7 and its answer in x0 and x1, so two declarations that call each other stay in machine
-  code. Between declarations an argument is converted to the callee's parameter as a store
-  converts it; a return between two different integer layouts is not compiled. A callee that
+  code. Between declarations an argument is converted to the callee's parameter as a slot
+  converts it, a whole number extended by its own sign; a return between two different integer
+  layouts, and a conversion into int, which frames keep as a node, are not compiled. A callee that
   does not compile fails the whole leaf. `run.declare` counts the declarations of entries, and
   code compiled before the newest one is compiled again at its next call.
 - `(r.cast value B rule)` compiles between integer layouts and the hardware float layouts. Each
@@ -454,15 +460,23 @@ The following paths run on that catalogue. The ground programs with the prefix
   of the integer layout, do not compile.
 - With `run.reference` held, every call and every float operator runs on frames all the way
   down. `ground/nums-compiled-agrees.ck` runs each of its cases that way and as machine code
-  and answers the cases whose outcomes differ: every operator on six integer and two float
-  layouts through a call of a second function that takes its arguments swapped, over fourteen
-  boundary values on both sides; every cast between nine layouts by each rule over the same
-  values; and thirteen edges, among them an argument outside its parameter's layout, an int
-  where a float is wanted, returns between widths, bools ordered and mixed with numbers, a
-  continue in a do loop, a literal beyond 64 bits, an argument that changes a local, and a
-  nothing as a condition and as an argument. Of 30,771 cases none differ; 27,699 compiled and
-  24,853 were answered by the machine code, the rest declined. It runs with the other ground
-  programs and ends holding 24,139 nodes, since a fail gives back what it returns past.
+  and answers the cases whose outcomes differ:
+  - every class, int and Bool among them, as result and as parameter, over six shapes: the
+    parameter, a sum, an equality, a bit and, a ternary, and a local of the result's class;
+  - each kind of value, a number, yes, no, a typed integer, a float and a NaN, passed to each
+    class;
+  - a literal right operand of every size for each operator, NaN, the infinities and −0, and a
+    product nested twenty deep;
+  - every operator on six integer and two float layouts through a call of a second function
+    that takes its arguments swapped, over fourteen boundary values on both sides;
+  - every cast between nine layouts by each rule over the same values;
+  - thirteen edges, among them returns between widths, a continue in a do loop, a literal
+    beyond 64 bits, an argument that changes a local, and a nothing as a condition and as an
+    argument.
+  Its expectation holds that none differ and that some compiled and some were answered by the
+  machine; on 2026-11-26 that was 37,822 cases, 30,269 compiled and 27,108 answered by the
+  machine code, the rest declined. It runs with the other ground programs and ends holding
+  36,839 nodes, since a fail gives back what it returns past.
   `ground/nums-compiled.ck` runs fib on frames
   to 15 and as machine code to 30, Newton's root of 2 in binary64, a harmonic sum to 1,000 in
   binary32, and the area under x² by 1,000 rectangles, each a call of a second declaration,

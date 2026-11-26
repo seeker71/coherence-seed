@@ -293,7 +293,7 @@ status: observed
 from: 5.19.22 5.19.24 5.19.25 5.19.26
 src: 2.30.18
 conf: high
-why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it runs with the other ground programs in one process and ends holding 24,139 nodes, since a fail gives back what it returns past (5.14.57). Running it found two defects in the reference itself (5.19.30).
+why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: a sweep that varied values only inside their own class answered none differing while a lattice over the classes, int and Bool among them, found 398 of 3,556 cases differing; widened along the classes, every value kind and the literal forms, it runs 37,822 cases, none differ, 30,269 compiled and 27,108 were answered by the machine code. Running it found two defects in the reference itself (5.19.30) and one in the compiler, a whole number zero-extended whatever its sign.
 flip: A defect the reference and the compiler share would agree with itself; a third reading, the hardware's own answer or a definition from outside, would see it.
 at: 2026-11-26
 
@@ -312,10 +312,22 @@ at: 2026-11-26
 n: 5.19.31
 name: the-target-and-the-families-are-rows
 kind: decision
-is: The target is rows: each instruction an entry with its base word and its fields, each field a position, a width and a kind the packer checks; the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and the relations a family admits are rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.
+is: The target is rows: each instruction an entry with its base word and its fields, each field a position, a width and a kind the packer checks; the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and what a family admits, which operators and which relations, is rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.
 status: inferred
 from: 5.19.22 7.24
 conf: mid
 why: A fact written once cannot disagree with itself. Observed: the frame, the door and the result kinds had stood as raw numbers in several definitions and branches were counted by hand; as rows and labels, nothing but the rows says them.
 flip: Rows chosen for one processor may hide what another needs, a register pair or a condition the first lacks.
+at: 2026-11-26
+
+n: 5.19.32
+name: one-recipe-says-what-a-slot-holds
+kind: decision
+is: What a slot of a layout holds for a value is one recipe, and both sides use it: frames when they write a parameter or a local, the machine's entry when it hands an argument to code. An integer slot holds the value's number, yes as 1, no as 0 and a typed integer by its own sign, kept to the slot's width; a Bool holds 0 or 1; a float slot holds the value converted by value; what no slot of that layout takes fails the call.
+status: observed
+from: 5.19.29 5.19.30 7.24
+src: 2.30.18
+conf: high
+why: Each side had its own rule, and they disagreed where a value changes class. Observed on 2026-11-26: yes passed to a u8 became 33, its catalogue number, on frames and 1 in code; an i8 holding -1 passed to an i32 became 255 on frames and in compiled calls between declarations, and -1 in code entered from frames. With one recipe, and the compiled conversion extending by the source's sign, the 1,323 cases that pass each kind of value to each class agree.
+flip: A value that no slot of its layout takes could be converted by a rule of the language instead of failing; C converts a float to an integer by truncation.
 at: 2026-11-26
