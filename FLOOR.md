@@ -139,6 +139,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
   BML rows do not yet keep a search's meaning where a choice is a search. The encoder's package,
   `nums/arm.ck`, is written by the same writer in all five.
+- **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
+  the projected predicates. The BML view parsed with Seed's grammar and its declarations
+  ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
+  64-bit endpoints. A standalone image with zero text leaves answered five calls to those
+  predicates by id. The BML blueprint reader reconstructed the range fields and constructor
+  from parsed syntax. See [the component projection](spec/nums.md#viewing-a-component-declaration).
+- **BML methods run on their receiver.** The class linker resolves field reads, typed
+  arguments and sequential local bindings into NUMS methods. The portable ground extends
+  the BMF range with a BML predicate, compares it with the existing range predicate on all
+  128 ASCII values, and parses with the extended range in both search evaluators. The
+  general BML writer and reader recover the same class declaration, including qualified
+  receiver fields, method-local bindings and nested applied types.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and

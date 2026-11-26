@@ -301,6 +301,33 @@ that constructs it.
 - The first lens that reads is the bracket notation of `spec/lens.md`, with the catalogue's
   words.
 
+### Viewing a component declaration
+
+The BML lexer calls the typed predicates in `nums/bml-alphabet.ck`. Both the lexer and
+the BMF range matcher use `bmf.in-range` from `bmf/items.ck`. The interval has two
+declared members and a positional constructor. The alphabet declares its three constant
+intervals and composes the start and continuation predicates from them.
+
+`lens/identifier.ck` prints this part of the installed model. Select Java, C#, TypeScript,
+Python or BML with 0, 1, 2, 3 or 4 respectively. For example, this prints Python:
+
+```sh
+printf '3\n' | ./ck text lens/identifier.ck
+```
+
+`lens/identifier-model.ck` selects the range fields and constructor and the six function
+declarations. The terminal's search method has a separate contract. In
+`lens/identifier-views.ck` each row pairs a NUMS template with its five surface spellings.
+The renderer in `nums/view-patterns.ck` extracts the template arguments and reapplies the
+template to confirm the entire node matches. Reading the emitted spelling rebuilds the
+declarations, including field order, types, formal positions and scoped template holes.
+This inverse reads the emitted layouts. Each host's compiler or interpreter can also run the
+host view. The TypeScript view uses `bigint` for Seed's signed integer arguments.
+
+`ground/nums-portable.ck` round-trips the live declarations and a variant with a wider
+uppercase range through all five views. It installs the variant read from BML, observes the
+changed answer for U+005B, then observes the original answer after the trial.
+
 ## Templates, generics and variation
 
 - A template is filled by putting blueprints or recipes in its holes. The result is a node, the
@@ -632,9 +659,44 @@ example on pp. 23–25 and evaluates to 9. In a `form.bml` definition it evaluat
 Reading a source file returns a syntax tree with numbered productions and typed token leaves.
 Showing it emits normalized spacing. Reading that spelling reconstructs the tree.
 `bml.recipe` turns an untyped, expression-bodied `form.bml` definition in the supported
-operator subset into a recipe, resolving parameters to argument positions. Class declarations
-and statement bodies currently have a syntax representation. Whole-package name resolution,
-type checking and code generation for those declarations remain open.
+operator subset into a recipe, resolving parameters to argument positions.
+
+For a parsed `form.bml` blueprint, `bml.blueprint-decl(syntax, resolve)` produces an
+`r.type` containing the ordered `b.member` declarations and a `b.template` constructor.
+The resolver receives a scope and a spelling. Type names resolve at the root and members
+resolve under their owner. Qualified names and nested type applications are supported.
+An unresolved or ambiguous name, duplicate member identity or array suffix produces a
+link fault. The runtime receives the resolved declaration.
+
+`bml.class-decl(grammar, syntax, blueprint, resolve)` extends a resolved object declaration
+with the methods of a parsed `class`. Existing members, interfaces, methods and the
+constructor keep their order. For example, a class can add this method to the BMF
+range blueprint and keep using the same range in a grammar.
+
+```bml
+class ScalarRange {
+  def fits(n: Int): Bool = low <= n && n <= high;
+}
+```
+
+A method declares its parameter and result types. Its body is an expression or a block
+with sequential `let` bindings and a final expression, with an optional semicolon. A local can infer its type or
+declare it. A use resolves first to a local, then a parameter, then a receiver field.
+The result is a `b.method` with a typed `r.function`. The receiver occupies parameter zero.
+`self.high` selects the receiver's field even when a parameter is also named `high`.
+A parameter of the enclosing class type can supply the receiver as in `other.high`.
+Field reads carry the resolved owner and field slot. Consistently renaming parameters and
+locals gives the same numeric declaration. Applied types such as `Box<Int>` retain their
+type arguments through linking and execution.
+
+The method linker covers integer addition, subtraction, multiplication, bitwise AND and OR,
+right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
+`ground/nums-portable.ck` runs the resulting methods directly and after specialization.
+It projects linked classes through `write.text` with `nums/lang-bml.ck`, parses the output
+and compares the entire linked declaration. The comparison includes a nominal receiver and
+`Pair<Box<Int>, Int>`. Source spellings live beside the declarations.
+Class type parameters, inheritance clauses, method calls in BML bodies and automatic
+whole-package linking remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
@@ -726,7 +788,7 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   are false.
 - **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
   b }`, `fail`, a blueprint for a class's data and a class for its methods, whose receiver is
-  `this` and no parameter. The writer's own package and the encoder's, written as BML, read back
+  `self` and no parameter. The writer's own package and the encoder's, written as BML, read back
   into syntax trees with the BML reader. In that dialect `choice` takes the first option that is
   not nothing, so where a node's choice is a search the BML does not yet mean what the node
   means; the thesis's choice statement, which backtracks, would.
