@@ -717,8 +717,14 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   recipe that calls the receiver's own method (`nums.method-key`), before the package loads, so a
   call `(r.call M receiver …)` dispatches by the receiver's blueprint and is written
   `receiver.m(…)`.
+- **Constants and layout.** A function without parameters whose body is a literal is written as a
+  constant, and a number it names is written by that name (`LOWER_A <= letter`). Each function
+  numbers its own fresh names, and a loop over a list named in the plural takes the singular
+  when it is free. A call or list whose flat text passes the language's width (`write.width`)
+  puts its arguments one per line.
 
 `ground/lens-round-trip.ck` writes the writer's package in all five languages and reads the BML
-back. On this machine the Python parses with Python's own parser and the TypeScript with Deno's;
-the C# and Java were not compiled here. A record of more than five fields is not yet made, since
-`call` takes at most six arguments (`bootstrap/ck.c`).
+back. On this machine the Python parses with Python's own parser; Deno, javac and Roslyn check
+the TypeScript, Java and C# against stubs of the runtime and still refuse parts of them. A
+record of more than five fields is not yet made, since `call` takes at most six arguments
+(`bootstrap/ck.c`).
