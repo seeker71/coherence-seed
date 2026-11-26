@@ -34,7 +34,7 @@ child is a list that keeps the public recipes, blueprints and constants reachabl
 expands module imports once per image and freezes the resulting graph in dependency order.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
 authoring lens. The generic NUMS library, its AArch64 compiler and the example exports pack
-together as 7,178 nodes containing zero text leaves.
+together as 7,260 nodes containing zero text leaves.
 
 ```sh
 make
@@ -75,6 +75,28 @@ It yields 42 both times. The compiler returns a 244-byte code leaf on the observ
 The generic recipe runs through a separate process in `make check`; the native portion runs
 on Darwin arm64. GPU execution, general stack and loop unrolling, and measured target-specific
 selection across those variants are design work.
+
+The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
+recipe reads the operands and packs the result at its own width. The word recipe works on the
+64 bits in between. On the M4 Max the same call by instance id took 18 walker steps, then 5
+with the 252-byte code leaf attached. Both returned the id of the maximum signed word for the
+minimum signed word minus one.
+
+### Recipe tokens and live variants
+
+`nums.token-request` takes a vocabulary, a token number and the argument ids. A vocabulary is
+a list of target ids with `no` in ordinary token slots. A mapped token produces the same binary
+request as a direct call. An ordinary token or an index outside the vocabulary answers nothing
+with `e.unbound`. The vocabulary has its own content id, so two models can give the same token
+number different meanings. In the image example, token 1 calls the word instance of subtraction.
+A model decoder feeding the reply to its next prediction is still to be connected.
+
+A recipe body has an immutable id. Its instance has a binding that a trial can replace.
+A candidate genome can therefore hold recipes or typed subtrees. Development fills a template,
+the evaluator calls the candidate on the task's cells, and `outcome` restores the cells and
+bindings covered by the choice. The evaluator can compare the returned observations and select
+a body for that instance. A compiled body runs under the same binding. For a stateful method,
+the comparison includes the resulting cell state observed inside the trial.
 
 ## Coordinates
 

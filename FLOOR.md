@@ -16,9 +16,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 72 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 71 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,407 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,416 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -26,20 +26,25 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, nine lines: the header against its nodes; 72 ground programs and the
-  146 vectors, judged by a program in form; ice across two processes; native code unsigned and
-  hardened; a run recorded from a second process; a run asked from one; a search that writes
-  a file only for the path that held; and the reads by a bare number against their budget.
+- **`make check` passes.** It compares the header with its nodes and exercises 71 ground
+  programs and 146 encoding vectors. It checks ice across processes, unsigned and hardened
+  native execution, recording and querying a live run, a deferred write on the chosen path,
+  the budget for bare numeric reads and a resolved image run by id in a separate process.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
   the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine plus the compiler packs as 7,178 nodes with zero text leaves.
+  ids. The generic engine plus the compiler packs as 7,260 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
   requests and checked replies are in `ground/nums-image.ck`, `ground/nums-requests.ck`,
   `ground/nums-native-requests.ck` and `ground/nums-replies.ck`.
+- **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
+  attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
+  steps for the direct call and 5 after compilation, with the same result id at overflow.
+  The image also ran that instance through a numeric token and through signed and unsigned
+  eight-bit callers. Token input came from the example vocabulary.
 - **A cell can hold its bytes alone.** `take` makes a room in the region under a blueprint, and
   `load` and `store` read and change 1, 2, 4 or 8 of its bytes in place; the room's head names
   its blueprint and its last writer. Constructed object views share one room. Its fixed-width
@@ -126,7 +131,7 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,228 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,233 claims, none reviewed by a second reader.
 
 ## Not there
 

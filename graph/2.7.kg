@@ -222,3 +222,20 @@ rev: b8ff978c9
 got: 2026-11-24
 at: 2026-11-24
 
+n: 2.7.36
+name: jit-page.bml
+kind: source
+is: The old kernel reads a resident definition, emits AArch64 words and attaches the result to the definition for its existing callers.
+path: coherence-kernel/form/form-stdlib/bml/jit-page.bml
+rev: 14b1c8661
+got: 2026-11-26
+at: 2026-11-26
+
+n: 2.7.37
+name: form-cli-microthought.bml
+kind: source
+is: The old kernel accepts control tokens between predictions in a model session, keeps recipe addresses in that session and returns execution observations to the stream.
+path: coherence-kernel/form/form-stdlib/bml/form-cli-microthought.bml
+rev: 14b1c8661
+got: 2026-11-26
+at: 2026-11-26
