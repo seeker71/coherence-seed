@@ -122,6 +122,11 @@ the resulting nodes, runs a packed image by content id, and changes a binding in
 while observing its answer. Each flow also runs on its own with `make check-bml`,
 `make check-image`, or `make check-live`.
 
+`make test-inventory` reports usage against the shared ceiling of **86 maintained tests**.
+Each entry in `ground/expect.ck` and each named Makefile check occupies one place.
+A property sweep occupies one place across all generated inputs and both ground runners.
+At the ceiling, replace or consolidate an existing test when adding coverage.
+
 `make check-full` also runs the complete ground catalogue, reference sweeps, and bootstrap and
 framebuffer checks. To compare a single ground program with its stored expectation:
 

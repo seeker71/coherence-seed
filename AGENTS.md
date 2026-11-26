@@ -70,7 +70,8 @@ Written this way, code holds the first time and is not written again (graph node
 
 ## Before a commit
 
-`make check` covers at most three end-to-end flows. Improve a flow in place. Run the relevant
-ground comparison when its path changes. The complete catalogue runs with `make check-full`.
+`make check` covers at most three end-to-end flows. The whole suite has room for 86 maintained
+tests, one place per ground expectation or named Makefile check. Improve or replace a test in
+place. Run the affected comparison directly or the complete catalogue with `make check-full`.
 `make check`, the affected comparisons and `./kg check` pass, and
 `git log --format=%ae | sort -u` shows only the address the existing commits carry.

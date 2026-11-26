@@ -43,10 +43,19 @@ watch: ck fb
 
 # Three end-to-end flows at most. The ground catalogue is exercised by check-full.
 CHECK_FLOWS := check-bml check-image check-live
+FULL_ONLY := check-header check-ice check-native check-replay check-held-back check-bare
+TEST_LIMIT := 86
 ifneq ($(word 4,$(CHECK_FLOWS)),)
 $(error make check has room for three flows)
 endif
-check: $(CHECK_FLOWS)
+check: test-inventory $(CHECK_FLOWS)
+
+# One slot per ground expectation or named Makefile check, including host-specific checks.
+test-inventory: ck
+	@set -e; paths=$$(./ck text ground/paths.ck); ground=$$(printf '%s' "$$paths" | awk 'END {print NR}'); \
+	  flows=$(words $(sort $(CHECK_FLOWS) $(FULL_ONLY))); total=$$((ground + flows)); \
+	  echo "maintained tests: $$total/$(TEST_LIMIT) ($$ground ground, $$flows Makefile)"; \
+	  [ "$$total" -le "$(TEST_LIMIT)" ] || { echo "replace or consolidate an existing test"; exit 1; }
 
 check-bml: ck
 	@got=$$(printf 'nums/bml.ck\n10 - 3 - 2\n' | ./ck text nums/read.ck | ./ck run /dev/stdin nums/run.ck) && \
@@ -77,44 +86,58 @@ check-live: ck fb
 	  then echo "live: a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
 	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last'"; exit 1; fi
 
-FAILED = .ck-failed
 check-full: check
-	@rm -f $(FAILED)
+	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
+
+check-header: ck
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
-	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; echo header >> $(FAILED); }
-	@./ck text ground/paths.ck | xargs -n 1 -P 8 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > .ck-ground; \
-	  n=$$(./ck text ground/paths.ck | wc -l | tr -d ' '); \
-	  if [ -s .ck-ground ]; then echo "ground: of $$n programs, each in a process of its own, these end otherwise:"; cat .ck-ground; echo ground >> $(FAILED); \
-	  else echo "ground: each of $$n programs, in a process of its own, ends as expected, checked by a program in form"; fi; rm -f .ck-ground
+	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
+
+ground-isolated: ck
+	@set -e; paths=$$(./ck text ground/paths.ck); \
+	  differences=$$(printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 8 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"'); \
+	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \
+	  echo "ground: each program ends as expected in its own process"
+
+ground-together: ck
 	@got=$$(./ck run ground/check.ck 2>&1); \
 	  if [ "$$got" = "node (#16)" ]; then echo "one run: all of them in one process end as expected, since a fail gives back what it returns past"; \
-	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got"; echo one-run >> $(FAILED); fi
+	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got"; exit 1; fi
+
+check-ice: ck
 	@./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$(./ck run ice/thaw.ck lens/all.ck ice/ice.ck < .ck-check.ice); rm -f .ck-check.ice; \
 	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \
-	  else echo "ice: thawed '$$b'"; echo ice >> $(FAILED); fi
+	  else echo "ice: thawed '$$b'"; exit 1; fi
+
+check-native: ck
 	@if [ "$$(uname -sm)" = "Darwin arm64" ]; then \
 	  cp ck .ck-hardened && codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements .ck-hardened 2>/dev/null && \
 	  got=$$(./.ck-hardened run ground/native-add.ck); rm -f .ck-hardened; \
 	  if [ "$$got" = "node [#4 2a]" ]; then echo "native: a code leaf runs unsigned and under the hardened runtime"; \
-	  else echo "native under the hardened runtime: got '$$got'"; echo native >> $(FAILED); fi; \
+	  else echo "native under the hardened runtime: got '$$got'"; exit 1; fi; \
 	else echo "native: not Apple silicon; the hardened-runtime witness did not run"; fi
+
+check-replay: ck fb
 	@name=/ck.check.$$$$; (CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); ./fb record $$name .ck-check.rec 5 > /dev/null; \
 	  frames=$$(./fb play .ck-check.rec | grep -c moving); last=$$(./fb play .ck-check.rec -1 | grep '^outcome'); \
 	  ./fb drop $$name; rm -f .ck-check.rec; \
 	  case "$$last" in "outcome  node 2178309 "*"written by (add (call (self)"*) ok=1;; *) ok=0;; esac; \
 	  if [ $$ok = 1 ] && [ $$frames -ge 2 ]; then echo "framebuffer: a second process recorded $$frames frames of a run in motion; the last holds the answer and its writer"; \
-	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; echo framebuffer >> $(FAILED); fi
+	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
+
+check-held-back: ck
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
 	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a]) " ]; \
 	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing"; \
-	  else echo "held back: '$$got'"; echo held-back >> $(FAILED); fi
+	  else echo "held back: '$$got'"; exit 1; fi
+
+check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
 	  if [ "$${n:-99999}" -le $(BARE) ]; then echo "parts by name: $$n reads by a bare number are left in the stored form, within the budget of $(BARE)"; \
-	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; echo parts-by-name >> $(FAILED); fi
-	@if [ -s $(FAILED) ]; then echo "failed: $$(tr '\n' ' ' < $(FAILED))"; rm -f $(FAILED); exit 1; fi
+	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; exit 1; fi
 
 clean:
-	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened .ck-failed .ck-ground
+	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
-.PHONY: all check $(CHECK_FLOWS) check-full watch clean header
+.PHONY: all check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header

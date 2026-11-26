@@ -122,7 +122,7 @@ at: 2026-11-26
 n: 7.26
 name: checks-hold-meaning
 kind: decision
-is: make check follows at most three end-to-end flows from public input to observable answer. A stronger flow can replace an existing one. With make check-full each ground program runs in a process of its own and all run together. An expectation holds an answer, agreement between two ways or an invariant.
+is: make check follows at most three end-to-end flows. The full suite has room for 86 maintained tests. Each ground expectation or named Makefile check counts once across generated inputs and repeat runs. A stronger test can replace an existing one. An expectation holds an answer, agreement between two ways or an invariant.
 status: inferred
 from: 7.13 7.25 5.14.57
 conf: mid
