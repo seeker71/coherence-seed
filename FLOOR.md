@@ -28,7 +28,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **The walker**
 
 - **`make check` passes.** Every check runs and the failed ones are named together at the end.
-  It compares the header with its nodes, runs each of 74 ground programs in a process of its own
+  It compares the header with its nodes, runs each of 75 ground programs in a process of its own
   and then all of them in one process, and exercises 146 encoding vectors. It checks ice across
   processes, unsigned and hardened native execution, recording and querying a live run, a
   deferred write on the chosen path, the budget for bare numeric reads and a resolved image run
@@ -42,9 +42,8 @@ Each line here is held by a program that runs under `make check`, or names how i
   every node made since a choice point goes when a fail returns to it, except what no fail
   undoes and what that holds, which moves down in the order it was made. The sweep of compiled
   code against frames, of 30,771 cases then, ended holding 24,139 nodes where it had held
-  2,569,489; widened since to 37,822 cases it ends at 36,839, and all 74 ground programs, the
-  sweep among them, run in one process and end at 215,342, of the 4,194,304 the
-  area holds. `ground/gives-back.ck` makes more nodes than that in forty thousand outcomes and
+  2,569,489; widened since to 37,822 cases it ends at 36,839, of the 4,194,304 nodes the area holds. The sweep runs with the other
+  ground programs in one process. `ground/gives-back.ck` makes more nodes than that in forty thousand outcomes and
   ends with a note from a failed branch, an all's answers and an outcome's answer standing; the
   bootstrap before faults it with a full area. Giving back costs 2 to 4 percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
@@ -109,6 +108,12 @@ Each line here is held by a program that runs under `make check`, or names how i
   `bml-*.bml` fixtures. One additional Angelic file with a BML extension contains Java.
   A separate enumerator agreed on the captures, their order and the cursor positions for 92
   small patterns on all 15 strings of length zero through three over `a` and `b`.
+- **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
+  immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
+  defines another item and a capture action in a separate package. Direct execution and
+  specialization give the same ordered answers and restore the action's write on a failed
+  branch. The numeric port runs a grammar with a bounded repetition by id.
+  On arm64 it compiles the cursor's UTF-8 width recipe and calls it again through the same id.
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).

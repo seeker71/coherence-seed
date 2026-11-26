@@ -278,11 +278,20 @@ name: bml-reads-by-running-bmf
 kind: decision
 is: The thesis and original JBML grammar supply the BML productions. A form.bml section selects the later kernel's productions. The same BMF matcher runs both the BML grammar and the grammar a BML program defines. A character cursor and native Form choices carry the search across lines. Fail resumes a branch, crossing Cut ends the search and Stop ends it on entry. Rule and argument references are numbers when the linked grammar runs.
 status: inferred
-from: 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
+from: 5.19.28.1 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
 src: 2.3.1 2.8.6 2.8.12 2.8.14 2.30.17
 conf: high
-why: A pattern kind selects a recipe in a trailed cell. A grammar can vary one matcher and keep the rest of the rules intact. Active rule calls carry the cursor and the resolved invocation, so a branch can decline a cycle without consuming the alternatives. Sequence and repetition share captured groups until an answer is requested. ground/nums-lenses.ck runs these choices.
-limit: The language lens reads more syntax than it lowers to executable recipes. The running subset and the source round trips are described in spec/nums.md and FLOOR.md.
+why: bmf/items.ck declares an item interface, member blueprints, constructor templates and search methods. ground/bmf-items.ck installs an independent class and a capture action. Failure restores the action's write. ground/nums-lenses.ck runs the same methods on BML, and the numeric port runs a generic rule by id. The same methods run directly and specialized from their NUMS declarations.
+limit: The BML linker expresses a subset of the syntax it can read. Tagged captures and capture actions run through the numeric API. A Java view of the range class has been compiled and compared with Seed. Projection of the whole search package is open.
+at: 2026-11-26
+
+n: 5.19.28.1
+name: bmf-as-the-shared-parser
+kind: decision
+is: Please reimplements similar to original java and improve what you can, until we have a fully reusable BMF implementation, that is the cornerstone of all grammar parsers, so having that solid and generic is the highest priority
+status: given
+by: owner
+see: 5.19.27
 at: 2026-11-26
 
 n: 5.19.29

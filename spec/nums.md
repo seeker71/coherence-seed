@@ -513,6 +513,56 @@ productions by number. The character matcher in `bmf/cursor.ck` serves both thos
 and the rules a BML program declares inside `syntax { … }`. The language-specific terminals
 and the translation to NUMS live in `nums/bml-reader.ck`.
 
+### Parse items and the search protocol
+
+`bmf/items.ck` is a NUMS package of declarations. `bmf/cursor.ck` loads the package and
+its execution support. The package runs independently of BML. The JBMF `ParseItem.match`,
+`next` and `undo` protocol appears as one method, `bmf.match-item`. Its receiver is the
+item. Its other parameters are the parser, the scalar vector, the cursor position and the
+active rule path. Each answer is a pair of captured nodes and an end position. Asking for
+the next answer resumes Form's choice point. Failing back over the answer restores trailed
+writes. `bmf.match` exposes those ordered answers. `bmf.run-stream` selects the first
+complete rule result.
+
+A bounded repetition declares three members, an element and two integer bounds. Its
+three-hole constructor template builds the value `(bmf.between element lower upper)`.
+Its method invokes the repetition algorithm shared with unbounded repetition. The algorithm
+visits a child's longer matches first and carries its captures into the recursive call.
+The range terminal declares its bounds and implements its own method. A range reads one
+scalar and emits that scalar only when it falls within the closed interval.
+
+A grammar can declare its own `b.object` with `(b.interface bmf.item)` and a typed
+`b.method` for `bmf.match-item`. `nums.construct-value` constructs the immutable value
+from the declared fields and constructor. Sequence, branch and exact-string nodes take
+variadic fields. An operand can be an item, rule number, terminal word, literal or formal
+slot. `bmf.external` passes an application's terminal value to the parser's lexer.
+`ground/bmf-items.ck` gives a complete example of a grammar-owned class.
+
+### Execution of a search declaration
+
+A package has the blueprint `(b.instance b.package r.search)`. Each `r.type` associates
+a resolved identity with its declaration. Loading declares the whole package before
+installing methods, so one declaration can refer to another by id. `nums.load-search` takes
+the package and the evaluator for its methods. With `nums.search-direct`, the body stays
+as NUMS. Form visits the selected expression at the point of use with the caller's slots
+and cut scope. With `nums.search-function`, the loader specializes the same operations for
+the whole body once. This is the default for a package loaded by `step`. Both modes share
+the operation table in `nums/search.ck`. The signature and locals determine
+the places available to `r.parameter` and `r.local`. A scoped `r.local-decl` binds a
+value for its body. `r.choice`, `r.fail`, `r.commit` and `r.all` use Form's search.
+`r.make` evaluates its fields as call arguments and constructs a value for each combination.
+The grammar package and the class installer in `nums/classes.ck` use this same representation.
+The ordinary NUMS frame engine serves procedural functions.
+
+`nums/classes.ck` derives constructors and method dispatch from the declared shape.
+A method must have the result and argument types of its interface with the concrete
+receiver in the first parameter position. The declaration stays available for a lens after
+installation. In a local Java projection, the range declaration produced a two-field record
+implementing the projected interface. Its compiled method and Seed agreed on the capture
+and end position for eleven boundary cases, including EOF, U+FFFF and U+1F600. That
+projection covers the scalar terminal and its cursor accessor. A Java backend for the
+whole search package remains open.
+
 The cursor is a position between Unicode scalar values. The first position is zero. A choice
 saves that position. Failure can return to it across a token, a comment or a newline. BML
 terminals skip whitespace and comments, including nested block comments. An embedded BMF
@@ -564,22 +614,27 @@ type checking and code generation for those declarations remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
-and a formal parameter carries its argument slot. Repeated formal names have no unique slot
+and a formal parameter is a NUMS template hole. A generic rule stores a
+`b.template` over its production. Invocation applies the shared `nums.apply-template`. Repeated formal names have no unique slot
 and produce a link fault. Given a start rule and source text, `bmf.run` executes the result.
 For example,
 `List(item, separator) ::= item { separator item };` accepts another rule and a literal as
 arguments. The count syntax follows `Java/JBMF/library/BMFBasis.BMF` in the Angelic archive.
 `2{ Blank }3` takes two to three matches. Either bound can be omitted. Character ranges,
 literal strings, grouping and the control elements above execute.
-BMF method callbacks, tagged captures and whitespace annotations on individual literals
-remain open. `ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
+At the numeric API, `bmf.negated` performs zero-width negative lookahead,
+`bmf.tagged` groups a match under a numeric label, and `bmf.action` calls a resolved
+function from capture list to capture list. A transformation can offer several answers.
+The BML linker still needs source notation for tagged captures, capture actions and
+literal whitespace annotations. `ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
 process as a BML definition.
 
 The numeric entry `bmf.run-stream` takes linked rules, a start rule and a vector of Unicode
-scalars. In an isolated `seed-run` process, a binary request with those three ids parsed
-`Alpha,B_e,C` with the thesis's parameterized list. A call by id to the BML-authored
-subtraction recipe in the same image returned 5. Both returned ids matched the authoring
-process. The image contained 11,149 records and zero text leaves.
+scalars. A standalone image of the BMF package parsed `Alpha,B_e,C` with a parameterized
+list in a directory containing only the image. Its reply carried the same tree id as the
+authoring process. The image contains 1,747 records and zero text leaves. Under `make check` the numeric port constructs a two-digit capture
+through a rule template. The arm64 requests also call the UTF-8 width function by id,
+compile its recipe and call the same id on a four-byte lead.
 
 The public lens also reads a thesis expression from stdin.
 

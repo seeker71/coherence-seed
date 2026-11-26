@@ -7,7 +7,9 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
 - **Only the axioms are fixed.** The five axioms in [`axioms/core-axioms.form`](axioms/core-axioms.form)
   are the ground. Everything else can move, and says how it is known.
 - **One numeric space.** Blueprints, recipes and cells are immutable nodes identified by their
-  content. This space is the root of every language; symbols are attached to it, never part of it.
+  content. Symbols attach to nodes and live beside them. A stored component declares its members,
+  constructor, methods and generic parameters. Each language lens reads those declarations from
+  the same nodes.
 - **Execution by identity.** The engine receives resolved numeric nodes. The ids of a
   blueprint, recipe and cell suffice to construct a value, execute a call and observe its
   result. The walker and the compiler consume the same nodes. A language lens supplies words
