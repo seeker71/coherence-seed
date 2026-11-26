@@ -64,7 +64,7 @@ is: A value whose blueprint has a fixed layout is held as its bytes in its place
 status: inferred
 from: 5.7.6 5.7.7 5.5.1 5.19.2
 conf: mid
-why: The guide asks for cells both fully boxed and fully unboxed with an implicit blueprint link. The link is implicit exactly where the holder's blueprint already says it.
+why: The guide asks for cells both fully boxed and fully unboxed with an implicit blueprint link. In ground/nums-cells.ck the constructor and two views read one room, and a failed field write restores its bytes.
 flip: Reading a part needs the holder's blueprint in hand; a value passed as Any is boxed on the way.
 at: 2026-11-26
 
