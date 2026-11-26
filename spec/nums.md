@@ -630,18 +630,38 @@ For example,
 arguments. The count syntax follows `Java/JBMF/library/BMFBasis.BMF` in the Angelic archive.
 `2{ Blank }3` takes two to three matches. Either bound can be omitted. Character ranges,
 literal strings, grouping and the control elements above execute.
+`nums/bml-link.ck` resolves capture names while it links a syntax block. Each distinct
+name gets its ordinal at first occurrence. Thus `$name:item` wraps the item's captures
+under `(bmf.label k)`, and `:item` wraps them under `(bmf.label)`. An anonymous tag
+uses no ordinal. Tags have their own scope alongside rule names and formal parameters.
+Consistently renaming the tags gives identical linked rules.
+
+```bml
+syntax {
+  Expr ::= Term { $op:('*' | '/') Term };
+  Term ::= :< '0'..'9' >;
+}
+```
+
+On `12*3/4`, the captures for `*` and `/` share label zero. The first term's anonymous
+capture contains both digits of `12`. `ground/bml-captures.ck` runs this example and
+compares the linked grammar with independently written numeric rules.
+
 At the numeric API, `bmf.negated` performs zero-width negative lookahead,
 `bmf.tagged` groups a match under a numeric label, and `bmf.action` calls a resolved
 function from capture list to capture list. A transformation can offer several answers.
-The BML linker still needs source notation for tagged captures, capture actions and
-literal whitespace annotations. `ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
+Source linking for capture actions and literal whitespace annotations remains open.
+`ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
 process as a BML definition.
 
 The numeric entry `bmf.run-stream` takes linked rules, a start rule and a vector of Unicode
 scalars. A standalone image of the BMF package parsed `Alpha,B_e,C` with a parameterized
 list in a directory containing only the image. Its reply carried the same tree id as the
-authoring process. The image contains 1,747 records and zero text leaves. Under `make check` the numeric port constructs a two-digit capture
-through a rule template. The arm64 requests also call the UTF-8 width function by id,
+authoring process. The image contains 1,747 records and zero text leaves.
+A separate image linked from BML matched `aa` through a tagged, parameterized rule.
+Its 1,727 records contained zero text leaves, and invoking `bmf.run-stream` by id returned
+the tree id predicted by the numeric grammar. Under `make check` the numeric port constructs
+a two-digit capture through a rule template. The arm64 requests also call the UTF-8 width function by id,
 compile its recipe and call the same id on a four-byte lead.
 
 The public lens also reads a thesis expression from stdin.

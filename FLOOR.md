@@ -28,7 +28,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **The walker**
 
 - **`make check` passes.** Every check runs and the failed ones are named together at the end.
-  It compares the header with its nodes, runs each of 76 ground programs in a process of its own
+  It compares the header with its nodes, runs each of 77 ground programs in a process of its own
   and then all of them in one process, and exercises 146 encoding vectors. It checks ice across
   processes, unsigned and hardened native execution, recording and querying a live run, a
   deferred write on the chosen path, the budget for bare numeric reads and a resolved image run
@@ -109,6 +109,9 @@ Each line here is held by a program that runs under `make check`, or names how i
   In `make check`, both BMF evaluators match an independent enumeration of spellings and
   capture trees at every scalar boundary of the sample inputs. Reversing the order of
   alternatives in an isolated matcher made the sweep report the two answers in reverse order.
+  In `ground/bml-captures.ck`, a BML expression grammar captures the operators in
+  `12*3/4` under one numeric label and the digits of each term under an anonymous label.
+  Renaming the tags produces identical linked rules.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and
