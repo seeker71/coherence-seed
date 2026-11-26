@@ -103,11 +103,11 @@ at: 2026-11-26
 n: 5.19.10
 name: variation-on-typed-nodes
 kind: decision
-is: A template is filled by putting blueprints or recipes in its holes, and the result is the same node wherever it is made. Variation needs no text: replace a part by another of the same blueprint, exchange parts of the same blueprint, keep what a fitness recipe prefers. Every part has a blueprint, so what comes out is well formed, and the store's count of how often a shape is made is where candidates are drawn from.
+is: A population holds immutable genomes. Development produces a phenotype and a recipe evaluates its fitness. Selection and variation operate on those observations. A candidate may occur several times even when its content is shared. A seed and the same deterministic recipes reproduce the generation.
 status: inferred
 from: 5.5.5 3.1.8.2 5.12.7 5.19.4
-conf: low
-why: The guide asks for generic and genetic support. A typed tree with content identity is the form on which both are closed operations.
+conf: mid
+why: The generation in ground/nums-evolution.ck develops and runs recipe trees. The separate genetic representation and typed variation are grounded in the sources in spec/nums.md.
 at: 2026-11-26
 
 n: 5.19.11
@@ -119,4 +119,14 @@ from: 5.19.8 7.22
 conf: mid
 why: What stands still runs and is how the next thing is read and stored; it is not what a language translates into.
 flip: For a time the repository holds two catalogues.
+at: 2026-11-26
+
+
+n: 5.19.12
+name: genetic-algorithms
+kind: decision
+is: no, to support genetic algorithms, do some proper research about genetic code modeling
+status: given
+by: owner
+see: 5.19.10
 at: 2026-11-26

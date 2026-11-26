@@ -205,10 +205,24 @@ that constructs it.
 
 - A template is filled by putting blueprints or recipes in its holes. The result is a node, the
   same node wherever it is made, and code specialised for it is kept under its id.
-- Variation works on nodes and needs no text: replace a part by another of the same blueprint,
-  exchange parts of the same blueprint between two recipes, keep what a fitness recipe prefers.
-  Because every part has a blueprint, what comes out is well formed. The store counts how often
-  each shape is made, and that count is where candidates are drawn from.
+- Genetic algorithms run on a population of immutable genomes. A genome may be a sequence of
+  alleles or a recipe tree. A development recipe maps a genome to the value or recipe to be
+  evaluated. A fitness recipe observes that phenotype on a particular task. A score belongs to
+  the genome, evaluator and task together. Occurrence in the store alone gives no fitness.
+- A generation selects parents, applies crossover and mutation, evaluates the offspring and
+  chooses survivors. Random choices are explicit inputs so replay of the same generation gives
+  the same offspring. Parent nodes persist. A typed replacement uses the required blueprint
+  at the destination. A recipe with local references also needs a compatible scope.
+- Selection, development, fitness and variation are ordinary replaceable recipes. A population
+  can contain repeated references to one genome. This preserves selection pressure even when
+  equal content shares one node.
+
+The distinction between chromosome and expression tree follows Ferreira's gene expression
+programming. DEAP's genetic programming model supplies the typed argument constraint. Its
+variation operators also distinguish a changed individual from its parent's fitness.
+[Ferreira](https://arxiv.org/abs/cs/0102027) ·
+[Typed trees](https://deap.readthedocs.io/en/stable/tutorials/advanced/gp.html) ·
+[Variation operators](https://deap.readthedocs.io/en/stable/api/tools.html)
 
 ## The bootstrap's earlier catalogue
 
@@ -225,4 +239,31 @@ entry's number and makes the entry of a number. `ground/catalogue-at-coordinates
 every family to one package, level and type with instances from 0, the families in order, seven
 entries to the coordinates `nums_consts.go` gives them, and every entry to its number and back.
 `ground/instance-runs-its-binding.ck` binds `(Instance Plus (Integer (TwosComplement 32)))` and
-runs a node of it; an instance with no binding answers itself. The rest is not built.
+runs a node of it. An instance with no binding answers itself.
+
+The following paths run on that catalogue. The six ground programs with the prefix
+`ground/nums-` observe their results.
+
+- `nums/objects.ck` creates an object from its parents, members, methods and constructor.
+  A field with a fixed layout occupies aligned bytes in one trailed payload. Its declaration
+  supplies the blueprint when read. An Any field holds the complete node. A cell reference
+  carries both the actual declaration and the visible view. Method calls, explicit parent
+  calls, structural views and recipe specialization all operate on that reference.
+- `nums/numbers.ck` implements the five cast policies in Form. It converts signed and unsigned
+  integer layouts of 1 to 64 bits, the native fixed-width leaves and binary floating layouts
+  specified by exponent width, fraction width and special-value convention. The witnesses
+  include binary16/32/64, bfloat16, FP4, FP8, and unsigned E8M0. Exact casts can answer
+  nothing. Integer wrap uses the target width. NaN payloads are canonicalized.
+- `nums/genetics.ck` develops each genome and scores the resulting phenotype. A generation
+  carries its specimens, random seed, development recipe and fitness recipe. Changing either
+  recipe rescores the parents. The default is two-way tournament selection, a supplied
+  variation recipe and generational replacement. A path can select a subtree for typed
+  replacement. The caller supplies the type judgment for its program representation.
+- `nums/go.ck` and `nums/bml.ck` are rows for one reader and printer. Arithmetic has a direct
+  spelling. The constructor spelling covers entries, leaves and composites, including a
+  composite category. To run the reader, supply a row-file path on the first line of stdin
+  and an expression on the following lines to `./ck text nums/read.ck`. The corresponding
+  writer is `./ck text nums/show.ck`. Both return their output directly to the caller.
+
+Full-language declaration and statement grammars, execution of the rest of the recipe
+catalogue and regeneration of the bootstrap remain open.
