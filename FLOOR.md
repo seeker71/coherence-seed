@@ -18,7 +18,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 58 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,394 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,407 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -110,10 +110,15 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,212 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,224 claims, none reviewed by a second reader.
 
 ## Not there
 
+- **The engine of blueprints, recipes and cells.** What the seed is to store and run is fixed
+  in writing ([`spec/nums.md`](spec/nums.md), graph hub 5.19): typed blueprints, recipes and
+  cells at the altitude of programming languages, as NUMS has them, run as they stand. None of
+  it is built; graph node 7.23 gives the order. Everything below this line is written on the
+  bootstrap's earlier catalogue, which that design names package 0.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 65 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
@@ -140,8 +145,8 @@ helper could not see the code (found by planting faults that nothing noticed).
   no more, with no precedence, and there is no pattern over text.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 101
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile's 81 lines, ten pages, the claim
-  graph as 54 text files, and the axioms' text. Five of the checks are still lines of the
+  graph's checker (662 lines of C under `tools/`), the Makefile's 88 lines, eleven pages, the claim
+  graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
   Makefile's shell.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.

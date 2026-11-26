@@ -1,0 +1,122 @@
+# Design: the engine of blueprints, recipes and cells. The page spec/nums.md is the authority; these nodes say what it chose and why.
+
+n: 5.19
+name: the-engine
+kind: hub
+is: What the seed stores and runs: blueprints, recipes and cells in one numeric space at the altitude of programming languages, as NUMS has them, executed as they stand. Words and names are tables beside the nodes, and a language is a lens that writes text from them.
+at: 2026-11-26
+
+n: 5.19.1
+name: stored-is-meaning-at-language-altitude
+kind: decision
+is: The guide's word of 2026-11-26: what is stored is numeric and language neutral, like NUMS nodes with a separate symbol table; blueprints can be classes, structs, lists, maps, unions, generics and templates; recipes can be generic or templates and operators are just special recipes; any language translates in without losing its semantics and out without being low level; the objects are executed directly with no lowering.
+status: given
+by: guide
+see: 3.1 3.2 5.1.1 5.2.4
+at: 2026-11-26
+
+n: 5.19.2
+name: full-engine-asked
+kind: decision
+is: The guide's word of 2026-11-26: build a full engine that creates cells from blueprints with constructor recipes and executes any recipe on any cells; cells boxed and unboxed with an implicit blueprint link; value casting and conversions among all native and model layouts of integers and floats; full struct, class, template, generic and genetic support; design first, then the implementation as nodes, which a lens shows in BML, Go or any language, the text cached locally and not stored.
+status: given
+by: guide
+see: 5.19.1
+at: 2026-11-26
+
+n: 5.19.3
+name: the-root-is-the-package
+kind: decision
+is: A catalogue entry is package.level.type.instance packed in one number: instance in bits 0 to 31, type 32 to 47, level 48 to 55, package 56 to 63. Package 0 is the bootstrap's own kinds, 1 blueprints, 2 recipes, 3 cells, 16 and up a language or module. A composite has no coordinate: its identity is its content id and its level is computed.
+status: inferred
+from: 5.2.1 5.2.6 3.1.2 3.1.9.1 5.19.1
+conf: mid
+why: Axiom 2 names the four parts. NUMS tells blueprint ids from recipe ids only by a Go type and mints composites by arrival order, which two parties cannot share; one number that says its root, and content for everything made, keeps the shape and drops both faults.
+flip: Eight bits of package and of level are narrower than NUMS's sixteen.
+at: 2026-11-26
+
+n: 5.19.4
+name: the-category-is-the-recipe-applied
+kind: decision
+is: The category of a recipe node is the recipe that is applied: a catalogue entry, an instance of one for given blueprints, or a declared function. Plus on two signed 32-bit integers is a node under (Instance Plus i32); a call is a node under the function's declaration. So an operator is a recipe like any other, a generic recipe is a template with holes, and the blueprint of every use follows from the node without running it.
+status: inferred
+from: 5.19.1 5.5.5 5.1.1 3.2.8.3
+conf: mid
+why: NUMS's newest model holds a recipe template for each operator and makes every use an instance of it. With the node shape of 5.1.1 that is a category which is itself a node.
+flip: An operator used without its blueprints must be resolved when it runs.
+at: 2026-11-26
+
+n: 5.19.5
+name: a-number-is-a-kind-and-a-layout
+kind: decision
+is: A numeric blueprint is its kind and how it is held: (Integer (TwosComplement 32)), (Decimal (Ieee 64)), (Decimal (Brain 16)), (Decimal (Float8E4M3)), (Decimal (Affine (Integer (TwosComplement 8)) scale zero)). Layout is a family of the blueprint catalogue. A cast names one of five rules: exact, round, truncate, saturate, wrap. The kind without a layout is the number of a language that does not say its width.
+status: inferred
+from: 5.1.4 3.1.4.2 5.19.2
+conf: mid
+why: NUMS has one Integer and one Decimal, which cannot drive machine code or hold a model's weights. Keeping the kind and adding the layout loses nothing a language says and names every native and model format.
+flip: Two layouts of one kind are different blueprints and need a cast between them.
+at: 2026-11-26
+
+n: 5.19.6
+name: a-cell-is-unboxed-where-its-place-says-what-it-is
+kind: decision
+is: A value whose blueprint has a fixed layout is held as its bytes in its place, a local's in a frame, a member's in an object, an element's in a list, and the blueprint is that of the place, not stored again. A value whose place does not fix its blueprint, Any, an interface, a union, is held as a blueprint and a payload. An allocated object is a record of the region and starts with its blueprint and writer.
+status: inferred
+from: 5.7.6 5.7.7 5.5.1 5.19.2
+conf: mid
+why: The guide asks for cells both fully boxed and fully unboxed with an implicit blueprint link. The link is implicit exactly where the holder's blueprint already says it.
+flip: Reading a part needs the holder's blueprint in hand; a value passed as Any is boxed on the way.
+at: 2026-11-26
+
+n: 5.19.7
+name: a-blueprint-makes-its-cells
+kind: decision
+is: An object blueprint is its parts: members, each a blueprint with attributes on the reference and an init recipe, and methods, each a signature and a body. Its layout is computed from it, the parents' members composed in. new takes room for the layout, runs each member's init, then the constructor with the arguments. A member is read by (Member B k), the blueprint and the place, so the node says of which shape it reads a part.
+status: inferred
+from: 5.5.4 5.5.7 3.1.2.8 3.1.8.4 5.19.1
+conf: mid
+why: NUMS's named cell is an access recipe, a base blueprint and a constructor recipe, and its member ids pair a blueprint with a place. The seed had read parts by bare numbers.
+at: 2026-11-26
+
+n: 5.19.8
+name: run-as-written
+kind: decision
+is: The engine runs a recipe node by what its category says, on cells laid out by their blueprints. An if chooses, a loop repeats, a return leaves the frame; nothing is turned into another form first. The answer to any node is nothing, 0, 1 or a node. The bootstrap holds one implementation of each catalogue entry for a cold start, and each can be replaced by code written from rows keyed by the operator instance. Choice, fail, commit and all are entries of the catalogue.
+status: inferred
+from: 5.4.1 5.4.2 5.4.6 5.1.2 5.19.1
+conf: mid
+why: The guide's word is direct execution with no lowering. The seed had stored an if as four core nodes and run those.
+flip: The bootstrap grows by the catalogue's entries before code replaces them; its budget may have to move.
+at: 2026-11-26
+
+n: 5.19.9
+name: a-language-is-rows-and-its-text-is-not-stored
+kind: decision
+is: A lens for a language is rows: a template with numbered places for each catalogue entry, a spelling for each blueprint, the forms of a declaration. One engine fills them to write text; the same rows run the other way read it. Names come from symbol tables keyed by node and lens. The text a lens writes may be cached on the machine and is never in the repository.
+status: inferred
+from: 5.3.2 5.2.4 3.2.8.3 3.1.4.3 5.19.2
+conf: mid
+why: NUMS's label tree already carries such templates and one table per language. Writing comes first because it needs no grammar.
+flip: Until a lens reads a language, programs enter through the bracket notation.
+at: 2026-11-26
+
+n: 5.19.10
+name: variation-on-typed-nodes
+kind: decision
+is: A template is filled by putting blueprints or recipes in its holes, and the result is the same node wherever it is made. Variation needs no text: replace a part by another of the same blueprint, exchange parts of the same blueprint, keep what a fitness recipe prefers. Every part has a blueprint, so what comes out is well formed, and the store's count of how often a shape is made is where candidates are drawn from.
+status: inferred
+from: 5.5.5 3.1.8.2 5.12.7 5.19.4
+conf: low
+why: The guide asks for generic and genetic support. A typed tree with content identity is the form on which both are closed operations.
+at: 2026-11-26
+
+n: 5.19.11
+name: the-earlier-catalogue-is-package-zero
+kind: decision
+is: The 66 operations the bootstrap runs today, choice, seq, child, join and the rest, are package 0. The lens, the emitter and the tools are written on them. They stay while those are written again as recipes of the new catalogue and go when nothing is left on them.
+status: inferred
+from: 5.19.8 7.22
+conf: mid
+why: What stands still runs and is how the next thing is read and stored; it is not what a language translates into.
+flip: For a time the repository holds two catalogues.
+at: 2026-11-26

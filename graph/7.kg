@@ -115,3 +115,11 @@ status: given
 by: guide
 see: 5.15.8 5.18.14 7.13
 at: 2026-11-26
+
+n: 7.23
+name: the-engine-in-order
+kind: plan
+is: The order in which spec/nums.md is built, each step a real run. One: the catalogue as a node with its coordinates. Two: numbers with layouts, objects, frames, new, and the core recipes run as written: literals, locals, writes, math, compare, if, loops, return, call, member. Three: classes, parents, methods, interfaces; lists, dictionaries, strings. Four: templates. Five: exceptions, defer, and choice, fail and all with the trail. Six: lenses that write Go and BML. Seven: a lens that reads. Eight: code from rows. Nine: variation. Ten: package 0 retired.
+status: inferred
+from: 5.19 7.5 7.22
+at: 2026-11-26
