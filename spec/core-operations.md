@@ -581,6 +581,24 @@ The code steps aside while something bound from outside sits on an operation of 
 on an entry the program defines: a counter put on `add` from outside sees every addition, the
 compiled ones too, and when it is taken off the code runs again.
 
+## Entries 113 to 117: rooms, bytes changed in place
+
+| Entry | Name | Takes | Answers |
+| --- | --- | --- | --- |
+| 113 | room | | data: the kind of a room record, and the blueprint of the leaf that refers to one |
+| 114 | room-trail | | data: the kind of a room-trail record |
+| 115 | take | b, n | a new room of n bytes, all zero, under the blueprint b: a leaf of the room's place in the area `rooms`; n from 0 to 2^24, otherwise nothing, `range` |
+| 116 | load | r, o, w | the w bytes from byte o of the room r as an unsigned integer, little-endian; w is 1, 2, 4 or 8, and eight bytes give the integer's 64 bits; nothing, `range`, outside the room |
+| 117 | store | r, o, w, v | writes the low w bytes of the integer v at byte o of the room r, and answers v |
+
+A room is a record in the area `rooms`: its blueprint, the node that last stored into it, its
+size and how many stores it has had, then its bytes. It is how a cell holds a value whose
+blueprint the place fixes, as its bytes alone, with the blueprint once in the room's head
+(`spec/nums.md`). While a choice is open a store first puts each four bytes it changes on the
+room trail, and a fail puts them back; with no choice open nothing is kept. A room is never
+given back: like a node, it stays until the run ends. `ground/rooms.ck` stores, loads, has two
+stores undone by a fail and is refused outside a room and for a width of three.
+
 ## The operations describe themselves
 
 `form/operations.ck` binds `operations` to a list with one node for each operation: the entry,
@@ -593,7 +611,7 @@ be done again), `op.builds` (it makes a node; doing it again makes the same node
 `op.faults` and `op.controls`. `(op.of e)` is an entry's description, and `op.takes`,
 `op.gives` and `op.effect` its parts.
 
-`ground/operations-as-described.ck` holds the descriptions to the bootstrap for the 30
+`ground/operations-as-described.ck` holds the descriptions to the bootstrap for the 31
 operations that read or build with a fixed number of parts: each takes the number its
 description says and refuses one more. Two wrong descriptions planted were both named. The kinds
 are not checked, and neither the walker nor the bootstrap reads the descriptions.

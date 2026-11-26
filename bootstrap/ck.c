@@ -119,7 +119,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
 static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted; static uint32_t *pnum, *bykey; static H *held;
-static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail;
+static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
 #define nn N(A_NODES)
@@ -139,6 +139,7 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nafter N(A_AFTER)
 #define nnoted N(A_NOTED)
 #define ntrail N(A_TRAIL)
+#define nrtrail N(A_ROOM_TRAIL)
 #define nopen N(A_READER_OPENED)
 #define ntk N(A_GATHERING_CHILDREN)
 #define ntb N(A_GATHERING_BYTES)
@@ -172,7 +173,8 @@ static void fb_open(void) {
     [A_PRINT_NUMBERS] = { WORD_TABLE, 4, (1u << 22) + 8 },     /* one for each node, and one more */
     [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
     [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 },
-    [A_AFTER] = { WORD_TABLE, 4, 1u << 20 },            [A_NOTED] = { WORD_TABLE, 4, 1u << 16 } };
+    [A_AFTER] = { WORD_TABLE, 4, 1u << 20 },            [A_NOTED] = { WORD_TABLE, 4, 1u << 16 },
+    [A_ROOMS] = { BYTE_TABLE, 1, 1u << 28 },            [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 1u << 22 } };
   uint64_t off[A_COUNT], at = FB_PAGE;
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
@@ -183,11 +185,11 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 14; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 15; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
-  lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL);
+  lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
   opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT);
   nn = 1;
 }
@@ -591,7 +593,7 @@ static H due(void) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
-static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED; }
+static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED || e == ROOM || e == ROOM_TRAIL; }
 /* What is called is a recipe, or a recipe closed over values: those come first among its arguments.
  * Answers the recipe, with the n values in a made ready for it, or nothing. */
 #define MOST 40
@@ -739,6 +741,30 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (c != 1) { fault("arity"); return; }
     W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; return;
   }
+  if (op >= TAKE && op <= STORE) {    /* a room: bytes in the region under a blueprint, read and changed in place. While */
+    int64_t o = 0, w = 0, v = 0; uint32_t at = 0; Room *h;   /* a choice is open a store puts what it changes on the */
+    if (c != (uint32_t)(op - TAKE + 2)) { fault("arity"); return; }   /* room trail, and a fail puts it back */
+    if (!a[0] || !a[1] || (op == STORE && !a[3])) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v))) { fault("kind"); return; }
+    if (op == TAKE) {
+      if (o < 0 || o > (1 << 24)) { W->v = 0; W->reason = txt("range"); return; }
+      at = N(A_ROOMS); uint32_t len = 16 + (((uint32_t)o + 7) & ~7u); room(A_ROOMS, (uint64_t)at + len);
+      memset(rooms + at, 0, len); *(Room *)(rooms + at) = (Room){ a[0], W->at, (uint32_t)o, 0 }; N(A_ROOMS) = at + len;
+      uint8_t b[4] = { (uint8_t)at, (uint8_t)(at >> 8), (uint8_t)(at >> 16), (uint8_t)(at >> 24) };
+      W->v = mk(0, E(ROOM), b, 4, &why); return;
+    }
+    if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 4) { fault("kind"); return; }
+    memcpy(&at, bytes + nd[a[0]].off, 4); h = (Room *)(rooms + at);
+    if (at % 8 || (uint64_t)at + 16 > N(A_ROOMS) || (w != 1 && w != 2 && w != 4 && w != 8) || o < 0 || (uint64_t)o + (uint64_t)w > h->size) {
+      W->v = 0; W->reason = txt("range"); return; }
+    uint8_t *p = rooms + at + 16 + o; uint32_t from = (uint32_t)(p - rooms);
+    if (op == LOAD) { uint64_t u = 0; for (int64_t i = w; i > 0; i--) u = u << 8 | p[i-1]; W->v = mki((int64_t)u); return; }
+    if (!ncp) nrtrail = 0;
+    else for (uint32_t g = from & ~3u; g < from + (uint32_t)w; g += 4) {
+      room(A_ROOM_TRAIL, (uint64_t)nrtrail + 1); RoomTrail t = { E(ROOM_TRAIL), W->at, g, 0 }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; }
+    for (int64_t i = 0; i < w; i++) p[i] = (uint8_t)((uint64_t)v >> (8 * i));
+    h->by = W->at; h->writes++; W->v = a[3]; return;
+  }
   if (op >= BLUEPRINT && op < DIV) { parts(op, a, c, act[env].lim >> 31); return; }
   if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
     if (c != 1) { fault("arity"); return; }
@@ -845,7 +871,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
     if (m >= n) { W->mode = M_FAILED; return; }
     if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, mki(m + 1), env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter }; ncp++; }
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, mki(m + 1), env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter, nrtrail }; ncp++; }
     W->v = a[0]; return;
   }
   if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
@@ -968,7 +994,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (!c) { W->mode = M_FAILED; break; }
       W->cut = ncp;
       if (c > 1) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-        cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter }; ncp++; }
+        cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
       if (c > 1) { fault("arity"); break; }
@@ -981,7 +1007,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case ALL:
       if (c != 1) { fault("arity"); break; }
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter }; ncp++;
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter, nrtrail }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, nafter, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
@@ -992,7 +1018,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1); W->reason = 0;
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter }; ncp++;
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++;
       W->k = push(F_OUTCOME, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8) { fault("arity"); break; }
@@ -1104,7 +1130,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node;
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
-    while (ntrail > q->mtrail) { ntrail--; held[trail[ntrail].key] = trail[ntrail].old; } /* and cells hold what they held */
+    while (ntrail > q->mtrail) { ntrail--; held[trail[ntrail].key] = trail[ntrail].old; } /* and cells hold what they held, */
+    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); }   /* rooms too */
     if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
       int64_t m = 0, n = 0; geti((H)q->i, &m); geti((H)q->coll, &n);
       W->v = (H)q->i; if (m + 1 < n) q->i = mki(m + 1); else ncp--;

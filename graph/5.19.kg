@@ -113,7 +113,7 @@ at: 2026-11-26
 n: 5.19.11
 name: the-earlier-catalogue-is-package-zero
 kind: decision
-is: The 66 operations the bootstrap runs today, choice, seq, child, join and the rest, are package 0. The lens, the emitter and the tools are written on them. They stay while those are written again as recipes of the new catalogue and go when nothing is left on them.
+is: The 69 operations the bootstrap runs today, choice, seq, child, join and the rest, are package 0. The lens, the emitter and the tools are written on them. They stay while those are written again as recipes of the new catalogue and go when nothing is left on them.
 status: inferred
 from: 5.19.8 7.22
 conf: mid

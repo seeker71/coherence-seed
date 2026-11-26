@@ -226,7 +226,7 @@ variation operators also distinguish a changed individual from its parent's fitn
 
 ## The bootstrap's earlier catalogue
 
-The 66 operations of `spec/core-operations.md` are package 0. They are how the present lens,
+The 69 operations of `spec/core-operations.md` are package 0. They are how the present lens,
 emitter and tools are written. They stay while those are written again as recipes of this
 catalogue, and go when nothing is left on them.
 

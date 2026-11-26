@@ -54,13 +54,15 @@ to one layout version.
 | asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 | noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
+| rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, its size and how many stores it has had, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
+| room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, so a fail puts them back |
 
 ## Rules
 
 1. **Every record starts with two handles**: its blueprint, and the program node that last wrote it.
    A writer of nothing means the bootstrap's own reader wrote it, before any program ran.
 2. **A record names its kind in the system's own numbers.** The kinds of the floor's records are
-   catalogue entries 53 to 63 and 72 (`spec/core-operations.md`), so a reader needs no table that
+   catalogue entries 53 to 63, 72, 91, 113 and 114 (`spec/core-operations.md`), so a reader needs no table that
    is not itself in the catalogue.
 3. **A reference is a handle or an offset from the region's first byte, never an address.** A copy
    of the region reads the same in another process and at a later time.
