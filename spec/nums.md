@@ -34,7 +34,7 @@ child is a list that keeps the public recipes, blueprints and constants reachabl
 expands module imports once per image and freezes the resulting graph in dependency order.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
 authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 10,596 nodes containing zero text leaves.
+exports pack together as 10,609 nodes containing zero text leaves.
 
 ```sh
 make
@@ -81,6 +81,11 @@ recipe reads the operands and packs the result at its own width. The word recipe
 64 bits in between. On the M4 Max the same call by instance id took 18 walker steps, then 5
 with the 252-byte code leaf attached. Both returned the id of the maximum signed word for the
 minimum signed word minus one.
+
+The generic runtime shares one word instance across unsigned `<`, `>`, `<=` and `>=`.
+Operand order and Boolean negation express the four relations. In the resolved image,
+`r.gt` places 2⁶³ above 2⁶³ − 1 through that instance. Calling the instance by its own id
+on the M4 Max took 21 walker steps, then 5 after Seed attached its 296-byte AArch64 body.
 
 ### Recipe tokens and live variants
 

@@ -381,7 +381,8 @@ bootstrap once did as commands is written in form:
 - **Ice.** `ice/ice.ck` binds `ice.freeze`, which answers a bytes leaf holding a node and
   everything under it, each node once and children before parents, every record four bytes of
   length and the canonical bytes; and `ice.thaw`, which decodes such bytes record by record and
-  answers the last node. `ice/freeze.ck` and `ice/thaw.ck` run them on standard input. A file
+  answers the last node, including `no`. A header without a record yields the `short` fault.
+  `ice/freeze.ck` and `ice/thaw.ck` run them on standard input. A file
   frozen by one process thaws in another to the same node.
 
 `ck` itself has two commands, `run` and `text`. Everything else is a program they run.
@@ -620,6 +621,11 @@ The recipe computes the complement of the wrapping sum of the complemented left 
 and the right word. Resolved integer subtraction calls that instance directly. The
 compiler can attach machine code to its binding while callers keep the same id.
 The C implementation supplies subtraction during cold execution.
+
+Entry 121 uses the same binary binding. Its instance `(b.instance ult int)` flips the
+high bit of each operand and compares the resulting signed words. This maps the unsigned
+sequence from zero through 2⁶⁴ − 1 onto signed order from −2⁶³ through 2⁶³ − 1.
+The recipe returns a Boolean node. The C implementation serves cold callers.
 
 ## The operations describe themselves
 
