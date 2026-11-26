@@ -474,7 +474,7 @@ from: 5.14.6 5.14.43 5.4.9 7.13
 src: 2.30.7 2.30.6
 conf: mid
 why: Loops are written as recursions here. Without this every round of one stayed until the loop returned, and a let made it worse.
-flip: Nodes a run made are still never given back, so the store is the bound a long loop meets next.
+flip: A loop with no choice open keeps every node it makes until a fail returns past it (5.14.57), so the store is the bound such a loop meets next.
 limit: Witnessed by ground/loop-in-place.ck and ground/user-kept.ck, each turned red by a planted fault. One machine.
 at: 2026-11-26
 
@@ -509,7 +509,7 @@ from: 5.1.1 5.2.4 5.14.43 5.3.5 7.13
 src: 2.30.7 2.30.6
 conf: mid
 why: A recipe is a node and holds no values (5.1.1), so what an inner recipe needs from outside has to be given to it; a node that pairs the recipe with those values keeps both immutable and needs no new kind of activation.
-flip: Each closing makes a node that is never given back, so a closing inside a long loop fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
+flip: Each closing makes a node that only a fail back past it gives back, so a closing inside a long loop with no choice open fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
 limit: Witnessed by ground/closes-over.ck, turned red by two planted faults. At most forty arguments in all.
 at: 2026-11-26
 
@@ -531,6 +531,19 @@ from: 5.4.5 5.14.41 5.9.3 7.13
 src: 2.30.7 2.30.6 2.30.11
 conf: mid
 why: A program that runs away should cost a fault and not the process, most of all when something from outside is watching it or asking it.
-flip: Nodes are never given back, so a full store stays full and what catches that can do little. A full area while a fault is being handled still ends the process.
+flip: A recover gives back no nodes, since the body's cells, bindings and rooms stand, so a full store stays full until a fail returns past where its nodes were made, and what catches that can do little. A full area while a fault is being handled still ends the process.
 limit: Witnessed by ground/full-is-a-fault.ck. Frames grew by a word to hold the mark for values.
+at: 2026-11-26
+
+n: 5.14.57
+name: a-fail-gives-back-what-it-returns-past
+kind: decision
+is: A choice point marks where the nodes, their parts, what was gathered and the rooms stood, and a fail back to it gives back every node and room made since, as a machine for a backtracking language gives back its heap. What no fail undoes stays, with what it holds: what an all has gathered, the answer and reason in hand, an outcome's answer, a range's numbers, notes and their cells, faster forms, born code and the nodes it names by id, bindings made from outside. What stays moves down in the order it was made.
+status: observed
+from: 5.14.56 5.14.41 5.7.6
+src: 2.30.19
+conf: high
+why: Nodes made in a branch that failed were kept until the process ended, so a sweep of 30,771 cases made 2.57 million nodes and all ground programs in one process overflowed the 4,194,304 the area holds. Observed on 2026-11-26: the sweep ends holding 24,139 nodes; all 74 ground programs, the sweep among them, run in one process and end at 204,255; ground/gives-back.ck runs forty thousand outcomes that make more nodes than the area holds, which faults the earlier bootstrap with a full area; giving back costs 2 to 4 percent of the time.
+flip: A handle kept as a number across a fail back past where its node was made can name another node afterwards; a collector over what is reachable would also free what a run with no choice open no longer needs.
+limit: A run with no choice open still keeps every node it makes. One machine.
 at: 2026-11-26

@@ -293,7 +293,7 @@ status: observed
 from: 5.19.22 5.19.24 5.19.25 5.19.26
 src: 2.30.18
 conf: high
-why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it makes 2.57 million nodes, so make check runs it in a process of its own. Running it found two defects in the reference itself (5.19.30).
+why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it runs with the other ground programs in one process and ends holding 24,139 nodes, since a fail gives back what it returns past (5.14.57). Running it found two defects in the reference itself (5.19.30).
 flip: A defect the reference and the compiler share would agree with itself; a third reading, the hardware's own answer or a definition from outside, would see it.
 at: 2026-11-26
 

@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,462 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,564 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -19,7 +19,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,432 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,435 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -27,14 +27,25 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes.** It compares the header with its nodes and exercises 73 ground
-  programs, the sweep of compiled code against frames in a process of its own, and 146
-  encoding vectors. It checks ice across processes, unsigned and hardened
-  native execution, recording and querying a live run, a deferred write on the chosen path,
-  the budget for bare numeric reads and a resolved image run by id in a separate process.
+- **`make check` passes.** Every check runs and the failed ones are named together at the end.
+  It compares the header with its nodes, runs each of 74 ground programs in a process of its own
+  and then all of them in one process, and exercises 146 encoding vectors. It checks ice across
+  processes, unsigned and hardened native execution, recording and querying a live run, a
+  deferred write on the chosen path, the budget for bare numeric reads and a resolved image run
+  by id. Its shared memory is named for one run, and a process that watches another waits until
+  it stands.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
-  the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
+  the bytes of rooms, and give back the nodes and rooms made since; a note is kept, with what it
+  holds. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
+- **A fail gives back what it returns past.** As a backtracking machine gives back its heap,
+  every node made since a choice point goes when a fail returns to it, except what no fail
+  undoes and what that holds, which moves down in the order it was made. The sweep of compiled
+  code against frames ends holding 24,139 nodes where it held 2,569,489, and all 74 ground
+  programs, the sweep among them, run in one process and end at 204,255, of the 4,194,304 the
+  area holds. `ground/gives-back.ck` makes more nodes than that in forty thousand outcomes and
+  ends with a note from a failed branch, an all's answers and an outcome's answer standing; the
+  bootstrap before faults it with a full area. Giving back costs 2 to 4 percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
   ids. The generic engine with its float definition and both compilers packs as 11,769 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
@@ -160,7 +171,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 149 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 152 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -178,7 +189,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,249 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,252 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -192,6 +203,12 @@ running compiled code against frames all the way down).
   between declarations. A function the compiler refuses keeps a note that it was refused, not
   which construct refused it. The ground programs and supported
   layouts are listed in [the engine specification](spec/nums.md).
+- **A store bounded by what is live.** A run with no choice open keeps every node it makes until
+  a fail returns past it: a loop that counts to ten million fills the store. A handle kept as a
+  number across a fail back past where its node was made can name another node afterwards.
+- **Expectations of meaning only.** Some ground programs still answer values that move without a
+  change of meaning: sizes of compiled code, counts of definitions and of a lens's nodes, labels
+  of what the emitter compiles, step thresholds and two comparisons of clock time.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 74 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
@@ -216,9 +233,9 @@ running compiled code against frames all the way down).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 148
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile's 98 lines, eleven pages, the claim
+  graph's checker (662 lines of C under `tools/`), the Makefile's 111 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
   Makefile's shell.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a

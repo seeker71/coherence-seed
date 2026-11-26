@@ -123,7 +123,7 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
 static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted; static uint32_t *pnum, *bykey; static H *held;
-static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail;
+static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
 #define nn N(A_NODES)
@@ -178,7 +178,8 @@ static void fb_open(void) {
     [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
     [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 },
     [A_AFTER] = { WORD_TABLE, 4, 1u << 20 },            [A_NOTED] = { WORD_TABLE, 4, 1u << 16 },
-    [A_ROOMS] = { BYTE_TABLE, 1, 1u << 28 },            [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 1u << 22 } };
+    [A_ROOMS] = { BYTE_TABLE, 1, 1u << 28 },            [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 1u << 22 },
+    [A_GIVES] = { WORD_TABLE, 4, 4 } };   /* how often nodes were given back, and the choice, mark and top of the last time */
   uint64_t off[A_COUNT], at = FB_PAGE;
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
@@ -189,18 +190,24 @@ static void fb_open(void) {
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 15; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 16; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
   lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
-  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT);
+  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES);
   nn = 1;
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
 static void *talloc(size_t n) {
   room(A_TEXT, (uint64_t)ntext + n + 16); void *p = text + ntext;
   memset(p, 0, n); ntext += (uint32_t)((n + 7) & ~(size_t)7); return p;
+}
+/* What no fail undoes, done while a choice is open, goes on the trail as kept: a note and its cell,
+ * a faster form, code that was born. A fail back past it keeps what it holds (reclaim, below). */
+static void kept(H kind, uint32_t key, H v) {
+  if (!ncp) return;
+  room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ kind, W->at, key, v };
 }
 static uint8_t *load(const char *path, size_t *len) {      /* a file read straight into the region, a zero after it */
   room(A_TEXT, (uint64_t)ntext + 32); uint8_t *b = text + ntext; uint64_t cap = fb->a[A_TEXT].cap - ntext - 16;
@@ -404,9 +411,10 @@ static H mk(int comp, H bp, const void *payload, uint32_t n, Status *why) {
   tab[i] = nn; return nn++;
 }
 #define KID(x, i) (kids[nd[x].off + (i)])
+#define TOMB 0xffffffffu                  /* a place in the table by id whose node was given back */
 static uint32_t idslot(const uint8_t *id) {
   uint32_t i = ((uint32_t)id[0] | (uint32_t)id[1] << 8 | (uint32_t)id[2] << 16 | (uint32_t)id[3] << 24) & (icap - 1);
-  while (idtab[i] && memcmp(nd[idtab[i]].id, id, 32)) i = (i + 1) & (icap - 1);
+  while (idtab[i] && (idtab[i] == TOMB || memcmp(nd[idtab[i]].id, id, 32))) i = (i + 1) & (icap - 1);
   return i;
 }
 /* Section 2: canonical bytes of h, in working bytes the caller gives back. */
@@ -420,13 +428,17 @@ static uint8_t *cbytes(H h, size_t *len) {
   else memcpy(b + 33, bytes + nd[h].off, n);
   return b;
 }
+static void idmake(H skip) {              /* made again with only live places, larger while half would be taken */
+  uint32_t live = 0, c = icap ? icap : 4096;
+  for (H x = 1; x < nn; x++) live += nd[x].hasid && x != skip;
+  while ((live + 1) * 2 >= c) c *= 2;
+  room(A_BY_ID, c); memset(idtab, 0, (size_t)c * sizeof *idtab); icap = c; W->ids = live;
+  for (H x = 1; x < nn; x++) if (nd[x].hasid && x != skip) idtab[idslot(nd[x].id)] = x;
+}
 static void setid(H h, const uint8_t *id) {
   if (nd[h].hasid) return;
   memcpy(nd[h].id, id, 32); nd[h].hasid = 1;
-  if (!icap || W->ids * 2 >= icap) {
-    uint32_t c = icap ? icap * 2 : 4096; room(A_BY_ID, c); memset(idtab, 0, (size_t)c * sizeof *idtab); icap = c;
-    for (H x = 1; x < nn; x++) if (nd[x].hasid && x != h) idtab[idslot(nd[x].id)] = x;
-  }
+  if (!icap || W->ids * 2 >= icap) idmake(h);                /* ids counts the places taken, given back ones too */
   idtab[idslot(id)] = h; W->ids++;
 }
 static const uint8_t *idof(H h) {         /* section 3 */
@@ -565,7 +577,7 @@ static void *birth(H leaf) {              /* the leaf's instructions, runnable; 
   void *fn = code + W->ncode;
   host.code_write(1); memcpy(fn, bytes + nd[leaf].off, n); host.code_write(0);
   host.code_flush(fn, n);
-  room(A_BORN_CODE, (uint64_t)nborn + 1); born[nborn] = (Code){ E(CODE), W->at, leaf, W->ncode }; nborn++;
+  room(A_BORN_CODE, (uint64_t)nborn + 1); born[nborn] = (Code){ E(CODE), W->at, leaf, W->ncode }; kept(E(CODE), nborn, leaf); nborn++;
   W->ncode += (n + 15u) & ~15u;
   return fn;
 }
@@ -667,6 +679,86 @@ static void fault(Status w) { W->reason = notice(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* What an outcome answers: a word and a node, as 'ck run' prints them. */
 static H seen_as(Status tag, H v) { Status why; H p[2] = { notice(tag), v }; return mk(1, E(LIST), p, 2, &why); }
+/* ---- what a fail gives back ---------------------------------------------------------------------
+ * A choice point marks where the nodes, their parts, what was gathered and the rooms stood when it
+ * was made. A fail back to it gives back every node made since, as a backtracking machine gives
+ * back its heap, except what no fail undoes and what that holds: what was gathered, the answer and
+ * the reason in hand, an outcome's answer, a range's numbers, what the kept trail holds (notes and
+ * their cells, faster forms, born code), bindings made from outside, and the rooms a kept node
+ * names. Those move down in the order they were made. A node is always newer than its parts, so one
+ * pass from the newest finds what is kept and one from the oldest moves it; a kept node whose
+ * writer is given back is written by the choice that kept it. */
+#define MARKS nn, nkids, nbytes, ncoll, N(A_ROOMS)
+static uint32_t *fw; static H fm, ftop, fnode;
+static void root(H h) { if (h >= fm && h < ftop) fw[h - fm] = 1; }
+static H fwd(H h) { return h >= fm && h < ftop ? fw[h - fm] : h; }
+static H byfwd(H h) { return h >= fm && h < ftop ? (fw[h - fm] ? fw[h - fm] : fnode) : h; }
+static uint32_t roomlen(uint32_t at) { return 16 + ((((Room *)(rooms + at))->size + 7) & ~7u); }
+static void reclaim(ChoicePoint *q) {
+  fm = q->mnode; ftop = nn; fnode = q->node;
+  if (ftop <= fm || (uint64_t)ntext + (uint64_t)(ftop - fm) * 4 + 64 > fb->a[A_TEXT].cap) return;
+  uint32_t mark = ntext, rtop = q->mtake, k = q->mkids, b = q->mbytes; fw = talloc((size_t)(ftop - fm) * 4);
+  if (q->all == 2) root(q->coll);
+  if (q->all == 3) { root(q->i); root(q->coll); }
+  root(W->v); root(W->reason);
+  for (uint32_t i = q->mcoll; i < ncoll; i++) root(coll[i].v);
+  for (uint32_t i = q->mtrail; i < ntrail; i++) { root(trail[i].old); if (trail[i].bp == E(NOTE)) root(trail[i].key); }
+  for (uint32_t i = 0; i < nout; i++) { root(out[i].entry); root(out[i].impl); root(out[i].fast); }
+  for (H h = ftop; h-- > fm; ) {          /* what is kept holds its blueprint, its parts, the room it names */
+    if (!fw[h - fm]) continue;            /* and, for code, the nodes its bytes name by id */
+    root(nd[h].bp);
+    if (nd[h].comp) for (uint32_t i = 0; i < nd[h].n; i++) root(KID(h, i));
+    else if (nd[h].bp == E(ROOM) && nd[h].n == 4) {
+      uint32_t at; memcpy(&at, bytes + nd[h].off, 4);
+      if (at >= q->mtake && at < N(A_ROOMS)) { root(((Room *)(rooms + at))->bp); if (at + roomlen(at) > rtop) rtop = at + roomlen(at); }
+    }
+    else if (nd[h].bp == E(CODE) && icap) for (uint32_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
+  }
+  for (H h = ftop; h-- > fm; ) {          /* the tables forget them all, the newest first as linear probing needs */
+    uint32_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
+    while (tab[i] && tab[i] != h) i = (i + 1) & (tcap - 1);
+    if (tab[i] == h) tab[i] = 0;
+    if (nd[h].hasid) { const uint8_t *d = nd[h].id;
+      for (i = ((uint32_t)d[0] | (uint32_t)d[1] << 8 | (uint32_t)d[2] << 16 | (uint32_t)d[3] << 24) & (icap - 1); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+      if (idtab[i] == h) idtab[i] = TOMB; }
+    if (h < N(A_CELLS) && !fw[h - fm]) held[h] = 0;
+    if (h < N(A_BOUND_BY_NODE)) bykey[h] = 0;
+    pnum[h] = 0;
+  }
+  H to = fm;
+  for (H h = fm; h < ftop; h++) if (fw[h - fm]) fw[h - fm] = to++;
+  gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
+  nn = fm;                                /* a watcher sees that places were given back, and none half moved */
+  for (H h = fm; h < ftop; h++) {         /* each kept node moves down, its parts and cell with it */
+    H n = fw[h - fm]; if (!n) continue;
+    Node x = nd[h]; x.bp = fwd(x.bp); x.by = byfwd(x.by);
+    if (x.comp) { for (uint32_t i = 0; i < x.n; i++) kids[k + i] = fwd(kids[x.off + i]); x.off = k; k += x.n; }
+    else { memmove(bytes + b, bytes + x.off, x.n); x.off = b; b += x.n; }
+    nd[n] = x;
+    if (h < N(A_CELLS)) { H v = held[h]; held[h] = 0; held[n] = fwd(v); }
+  }
+  nn = to; nkids = k; nbytes = b;
+  for (H h = fm; h < nn; h++) { tab_put(h); if (nd[h].hasid) { idtab[idslot(nd[h].id)] = h; W->ids++; } }
+  if (icap && W->ids * 2 >= icap) idmake(0);
+  if (q->all == 2) q->coll = fwd(q->coll);
+  if (q->all == 3) { q->i = fwd(q->i); q->coll = fwd(q->coll); }
+  W->v = fwd(W->v); W->reason = fwd(W->reason);
+  for (uint32_t i = q->mcoll; i < ncoll; i++) { coll[i].v = fwd(coll[i].v); coll[i].by = byfwd(coll[i].by); }
+  for (uint32_t i = q->mtrail; i < ntrail; i++) {
+    Trail *e = &trail[i]; e->old = fwd(e->old); e->by = byfwd(e->by);
+    if (e->bp == E(NOTE)) e->key = fwd(e->key);
+    else if (e->bp == E(FAST)) B(e->key)->fast = e->old;
+    else { born[e->key].leaf = e->old; born[e->key].by = byfwd(born[e->key].by); }
+  }
+  for (uint32_t i = 0; i < nout; i++) {
+    out[i].entry = fwd(out[i].entry); out[i].impl = fwd(out[i].impl); out[i].fast = fwd(out[i].fast); out[i].by = byfwd(out[i].by); }
+  for (uint32_t at = q->mtake; at < rtop; at += roomlen(at)) {          /* rooms made since: the kept and those under them */
+    Room *r = (Room *)(rooms + at); r->bp = fwd(r->bp); r->by = byfwd(r->by); }
+  N(A_ROOMS) = rtop; ntext = mark;
+}
+/* A choice that stays open after a fail back to it begins again where things stand now. */
+static void rise(ChoicePoint *q) {
+  q->mnode = nn; q->mkids = nkids; q->mbytes = nbytes; q->mcoll = ncoll; q->mtrail = ntrail; q->mtake = N(A_ROOMS); }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
  * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
@@ -685,7 +777,7 @@ static int landed(void *fn, int64_t *arg) {
   if (r.k == 3 || (r.k == 4 && !r.v)) { nnoted = 0; return 0; }    /* and the notes of code that declined are dropped: the walker */
   for (uint32_t j = 0; j < nnoted; j += 2) {                       /* writes them itself. Code that answered has them written now */
     room(A_CELLS, (uint64_t)noted[j] + 1); if (N(A_CELLS) <= noted[j]) N(A_CELLS) = noted[j] + 1;
-    held[noted[j]] = noted[j+1];
+    held[noted[j]] = noted[j+1]; kept(E(NOTE), noted[j], noted[j+1]);
   }
   nnoted = 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
@@ -819,8 +911,10 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     uint8_t *p = rooms + at + 16 + o; uint32_t from = (uint32_t)(p - rooms);
     if (op == LOAD) { uint64_t u = 0; for (int64_t i = w; i > 0; i--) u = u << 8 | p[i-1]; W->v = mki((int64_t)u); return; }
     if (!ncp) nrtrail = 0;
-    else for (uint32_t g = from & ~3u; g < from + (uint32_t)w; g += 4) {
-      room(A_ROOM_TRAIL, (uint64_t)nrtrail + 1); RoomTrail t = { E(ROOM_TRAIL), W->at, g, 0 }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; }
+    else {                                /* the bytes it changes, and the room's writer and count */
+      uint32_t g0 = from & ~3u, n4 = (from + (uint32_t)w - g0 + 3) / 4; room(A_ROOM_TRAIL, (uint64_t)nrtrail + n4 + 2);
+      for (uint32_t j = 0; j < n4 + 2; j++) { uint32_t g = j == 0 ? at + 4 : j == 1 ? at + 12 : g0 + 4 * (j - 2);
+        RoomTrail t = { E(ROOM_TRAIL), W->at, g, 0 }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; } }
     for (int64_t i = 0; i < w; i++) p[i] = (uint8_t)((uint64_t)v >> (8 * i));
     h->by = W->at; h->writes++; W->v = a[3]; return;
   }
@@ -869,7 +963,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
       void *p = host.watch(s); ntext = mark;
       if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = notice(S_NO_REGION); return; }
-      W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0];
+      W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0]; kept(E(NOTE), E(LOOK), a[0]);
     }
     const Head *far = (const Head *)(uintptr_t)W->watch;
     if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = notice(S_RANGE); return; }
@@ -897,7 +991,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
     if (!r || !a[1]) { W->v = 0; W->reason = notice(r ? S_NOTHING_IN : S_UNBOUND); return; }
     if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault(S_KIND); return; }
-    B(r)->fast = a[1]; W->v = E(YES); return;
+    B(r)->fast = a[1]; kept(E(FAST), r, a[1]); W->v = E(YES); return;
   }
   if (op == BOUND) {                  /* what runs an entry or a recipe: its newest binding as a node, the entry, the */
     if (c < 1 || c > 2) { fault(S_ARITY); return; }     /* implementation and whether that runs on its own binding, as one made */
@@ -927,7 +1021,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
     room(A_CELLS, (uint64_t)key + 1); if (N(A_CELLS) <= key) N(A_CELLS) = key + 1;
-    if (op == NOTE) ;                 /* a note is what was seen of a run, not part of it: no fail undoes it */
+    if (op == NOTE) kept(E(NOTE), key, a[1]);      /* a note is what was seen of a run, not part of it: no fail undoes it */
     else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
     W->v = held[key] = a[1]; return;
   }
@@ -939,7 +1033,8 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
     if (m >= n) { W->mode = M_FAILED; return; }
     if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, mki(m + 1), env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter, nrtrail }; ncp++; }
+      H next = mki(m + 1);
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, next, env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter, nrtrail, MARKS }; ncp++; }
     W->v = a[0]; return;
   }
   if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
@@ -1069,7 +1164,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (!c) { W->mode = M_FAILED; break; }
       W->cut = ncp;
       if (c > 1) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-        cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++; }
+        cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
       if (c > 1) { fault(S_ARITY); break; }
@@ -1082,7 +1177,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case ALL:
       if (c != 1) { fault(S_ARITY); break; }
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter, nrtrail }; ncp++;
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault(S_ARITY); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case RECOVER: if (c != 2) { fault(S_ARITY); break; } W->k = push(F_RECOVER, x, nafter, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
@@ -1093,7 +1188,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault(S_ARITY); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1); W->reason = 0;
-      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++;
+      cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++;
       W->k = push(F_OUTCOME, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (c > 8) { fault(S_ARITY); break; }
@@ -1207,11 +1302,18 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node;
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
-    while (ntrail > q->mtrail) { ntrail--; held[trail[ntrail].key] = trail[ntrail].old; } /* and cells hold what they held, */
-    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); }   /* rooms too */
+    for (uint32_t t = ntrail; t > q->mtrail; t--)                      /* and cells hold what they held, */
+      if (trail[t-1].bp == E(TRAIL)) held[trail[t-1].key] = trail[t-1].old;
+    uint32_t kw = q->mtrail;                                            /* while what no fail undoes is kept, */
+    for (uint32_t t = q->mtrail; t < ntrail; t++)                       /* a faster form as long as its binding */
+      if (trail[t].bp != E(TRAIL) && (trail[t].bp != E(FAST) || trail[t].key > OUT || trail[t].key <= nbind)) trail[kw++] = trail[t];
+    ntrail = kw;
+    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); }   /* rooms too; */
+    reclaim(q);                                                         /* the nodes made since are given back, */
+    for (uint32_t t = q->mtrail; t < ntrail; t++) if (trail[t].bp == E(NOTE)) held[trail[t].key] = trail[t].old;   /* notes stand */
     if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
       int64_t m = 0, n = 0; geti((H)q->i, &m); geti((H)q->coll, &n);
-      W->v = (H)q->i; if (m + 1 < n) q->i = mki(m + 1); else ncp--;
+      W->v = (H)q->i; if (m + 1 < n) { q->i = mki(m + 1); rise(q); } else ncp--;
       W->mode = M_RET; break;
     }
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
@@ -1226,7 +1328,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->v = mk(1, E(LIST), tk + base, ntk - base, &why); ntk = base; W->mode = M_RET; break;
     }
     W->x = KID(q->node, q->i); W->cut = ncp - 1; W->mode = M_EVAL;
-    if (q->i + 1 >= nd[q->node].n) ncp--; else { q->i++; q->by = W->at; }
+    if (q->i + 1 >= nd[q->node].n) ncp--; else { q->i++; q->by = W->at; rise(q); }
     break; }
   case M_FAULT: {
     uint32_t j = W->k;                    /* an all's frame keeps the way out of it in vals; its own k is nothing */

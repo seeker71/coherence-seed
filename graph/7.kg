@@ -119,6 +119,17 @@ why: One ground program with two comparisons could not see the seven disagreemen
 flip: A reference that shares the new path's defect agrees with it; a third reading would see it.
 at: 2026-11-26
 
+n: 7.26
+name: checks-hold-meaning
+kind: decision
+is: make check runs every check and names the ones that failed together at the end. Each ground program runs in a process of its own and then all of them in one; shared memory is named for one run; a process that watches another waits until it stands. An expectation holds what a program means: its answer, that two ways agree, an invariant; never a size of code, a count of definitions, a label of coverage or a time.
+status: inferred
+from: 7.13 7.25 5.14.57
+conf: mid
+why: Of 46 commits that changed ground/expect.ck, 17 recorded again 43 values that moved with no change of meaning, sizes and counts; no standing line caught a defect later, while each of the six defects on record was found by a new comparison of two ways; one stored value held a defect in place until it was fixed.
+flip: An expectation that holds only meaning can miss a fall in coverage; a count reported beside it, and read, keeps that in sight.
+at: 2026-11-26
+
 n: 7.21
 name: every-part-swappable
 kind: plan

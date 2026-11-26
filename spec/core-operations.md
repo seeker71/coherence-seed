@@ -156,8 +156,9 @@ fault of the processor anywhere else, in the bootstrap's own code, ends the proc
 `(list "full" name)`, the area's name beside it. A recursion that never returns ends this way
 and not with the process. Where a `recover` catches a fault, the frames, the gathered values and
 the activations of the body that faulted are given back, so a program that ran out of frames goes
-on (`ground/full-is-a-fault.ck` does it twice). Nodes are not given back: a store that is full
-stays full, and what catches that fault can do little.
+on (`ground/full-is-a-fault.ck` does it twice). A recover gives back no nodes, since the cells,
+bindings and rooms of the body that faulted still stand: a store that is full stays full until a
+fail returns past where its nodes were made, and what catches that fault can do little.
 
 ## Entries 53 to 63: the floor's own records
 
@@ -355,7 +356,8 @@ region, answers the leaves itself and declines the rest to the step beneath.
 
 The answer is `node` and x's answer, `nothing` and the reason, or `fault` and the reason: what
 `ck run` prints, as a node a program can hold and compare. Everything x did is undone as by a
-fail, a binding it made included; only the outcome and the nodes it names remain. A `cut` inside
+fail, a binding it made included, and the nodes it made are given back; only the outcome, the
+nodes it names and what no fail undoes remain (What a fail gives back, below). A `cut` inside
 x does not reach outside it, and a `recover` inside x still catches first.
 
 So a program can run another and judge how it ended. `ground/check.ck` does that for every
@@ -403,11 +405,34 @@ the lens keeps the entry for that word in. Holding costs one write.
 before each change goes on the trail, and a fail that returns to that choice puts it back; so do
 the end of an `all` and of an `outcome`. A program that wants to try something, look at the
 result and leave no trace wraps it in `outcome`. With no choice open there is nothing to return
-to and nothing is kept on the trail.
+to and nothing is kept on the trail. A note, and a note written by code, go on the trail as kept
+while a choice is open: a fail back past them leaves them standing, even where the same cell was
+held since, and keeps what they hold.
 
 What follows from that: a table built inside an option is gone when the option fails. A table
 meant to last is built before the choices that will use it, as the lens indexes its words when
 it loads. `ground/cells.ck` runs each kind of undo.
+
+### What a fail gives back
+
+A choice point marks where the nodes, their parts, what was gathered and the rooms stood when it
+was made. A fail that returns to it gives back every node made since, as a machine for a
+backtracking language gives back its heap, except what no fail undoes and what that holds:
+
+- what an `all` around it has gathered, the answer and the reason in hand, an outcome's answer
+  and a range's numbers;
+- what notes hold and the cells they hold it in, a faster form, code that was born and the nodes
+  its bytes name by id, and bindings made from outside;
+- the blueprint, the parts and the room of anything kept.
+
+What stays moves down in the order it was made, so its handle can change: a handle kept as a
+number across a fail back past where its node was made may name another node afterwards, while
+its id stays the same. A kept node whose writer was given back is written by the choice that
+kept it. A choice that stays open begins again from where things stand after the fail. The area
+`gives` counts the times nodes were given back and names the choice, the mark and the top of the
+last time (`spec/framebuffer.md`). `ground/gives-back.ck` runs forty thousand outcomes of 64
+lists each, more nodes than the area holds, and ends with a note made in a failed branch, the
+answers gathered and an outcome's answer standing.
 
 ## Entries 92 and 93: what is seen of a run, and a binding released
 
@@ -599,8 +624,9 @@ A room is a record in the area `rooms`: its blueprint, the node that last stored
 size and how many stores it has had, then its bytes. It is how a cell holds a value whose
 blueprint the place fixes, as its bytes alone, with the blueprint once in the room's head
 (`spec/nums.md`). While a choice is open a store first puts each four bytes it changes on the
-room trail, and a fail puts them back; with no choice open nothing is kept. A room is never
-given back: like a node, it stays until the run ends. `ground/rooms.ck` stores, loads, has two
+room trail, with the room's writer and count, and a fail puts them back; with no choice open
+nothing is kept. A room taken since a choice point is given back when a fail returns to it,
+unless a node that stays names it. `ground/rooms.ck` stores, loads, has two
 stores undone by a fail and is refused outside a room and for a width of three.
 
 ## Entries 118 to 123: integers as their 64 bits
@@ -805,8 +831,9 @@ not be what the walker does there.
 - A call or a `let` in the last position keeps no frame, and gives back the activations made
   since the frame it answers to unless an open choice, or the user of an implementation, could
   return to them. So a loop written as a recursion runs in the room of one round
-  (`ground/loop-in-place.ck`). The nodes a run makes are not given back: a loop that counts to
-  ten million fills the store with its integers.
+  (`ground/loop-in-place.ck`). The nodes a run makes are given back only by a fail that returns
+  past where they were made: a loop with no choice open that counts to ten million fills the
+  store with its integers.
 - A recipe cannot name another recipe that names it back (question 6.1.14); `self` covers direct
   recursion only.
 - A recipe node holds no values: one that uses the arguments around it is closed over them when

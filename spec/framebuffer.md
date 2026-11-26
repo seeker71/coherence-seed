@@ -48,14 +48,15 @@ to one layout version.
 | bound-by-node | words | for each node, its newest binding; it can be rebuilt from the bindings |
 | outside | binding | what was bound from outside the run: seen by every layer of the program, and not undone by a fail |
 | cells | words | for each node used as a cell, the node it holds |
-| trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back |
+| trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back; and, kept, each note, faster form and born code, so a fail leaves them and keeps what they hold |
 | reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
 | stack | bytes | the machine stack of the C code and of code leaves |
 | asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 | noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
 | rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, its size and how many stores it has had, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
-| room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, so a fail puts them back |
+| room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, and its writer and count, so a fail puts them back |
+| gives | words | how many times a fail gave nodes back, and the choice, the mark and the top of the last time |
 
 ## Rules
 
@@ -67,7 +68,10 @@ to one layout version.
 3. **A reference is a handle or an offset from the region's first byte, never an address.** A copy
    of the region reads the same in another process and at a later time.
 4. **A record is complete before the count that makes it reachable moves past it.** A reader that
-   takes the counts first never sees a record half made.
+   takes the counts first never sees a record half made. A count moves down before the records it
+   leaves are changed: when a fail gives nodes back, the nodes count drops to the mark, what stays
+   moves down, and the count rises past it. A place in the nodes can then hold another node, so a
+   reader that keeps nodes by handle reads the count in `gives` and keeps them under it.
 5. **The writer does nothing for a reader.** It makes no call, takes no lock and waits for no one.
    It cannot tell whether anyone is reading. What it does look at, once a step, is whether
    someone has asked it something (below).

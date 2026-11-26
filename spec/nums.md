@@ -461,8 +461,9 @@ The following paths run on that catalogue. The ground programs with the prefix
   where a float is wanted, returns between widths, bools ordered and mixed with numbers, a
   continue in a do loop, a literal beyond 64 bits, an argument that changes a local, and a
   nothing as a condition and as an argument. Of 30,771 cases none differ; 27,699 compiled and
-  24,853 were answered by the machine code, the rest declined. It needs a room of its own, so
-  `make check` runs it in a process of its own. `ground/nums-compiled.ck` runs fib on frames
+  24,853 were answered by the machine code, the rest declined. It runs with the other ground
+  programs and ends holding 24,139 nodes, since a fail gives back what it returns past.
+  `ground/nums-compiled.ck` runs fib on frames
   to 15 and as machine code to 30, Newton's root of 2 in binary64, a harmonic sum to 1,000 in
   binary32, and the area under x² by 1,000 rectangles, each a call of a second declaration,
   cast to an integer by nearest. Beyond the 9 ms that loading and compiling take, a million

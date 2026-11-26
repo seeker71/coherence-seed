@@ -296,3 +296,12 @@ path: coherence-seed/ground/nums-compiled-agrees.ck
 date: 2026-11-26
 got: 2026-11-26
 at: 2026-11-26
+
+n: 2.30.19
+name: gives-back.ck
+kind: source
+is: The ground program that runs forty thousand outcomes making more nodes than the store holds, and keeps a note made in a failed branch, an all's answers and an outcome's answer.
+path: coherence-seed/ground/gives-back.ck
+date: 2026-11-26
+got: 2026-11-26
+at: 2026-11-26

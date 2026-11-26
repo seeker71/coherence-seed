@@ -41,8 +41,8 @@ WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, LAST = 123 };
 [108] = "bor", [109] = "bxor", [110] = "shl", [111] = "shr", [112] = "fast", [113] = "room", \
 [114] = "room-trail", [115] = "take", [116] = "load", [117] = "store", [118] = "wadd", [119] = "wsub", \
 [120] = "wmul", [121] = "ult", [122] = "udiv", [123] = "umod", 
-enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_AFTER, A_NOTED, A_ROOMS, A_ROOM_TRAIL, A_COUNT };
-#define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", "after", "noted", "rooms", "room-trail", 
+enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_AFTER, A_NOTED, A_ROOMS, A_ROOM_TRAIL, A_GIVES, A_COUNT };
+#define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", "after", "noted", "rooms", "room-trail", "gives", 
 enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUTCOME, F_LAYER, F_LET, F_ASIDE, F_COUNT };
 #define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", "aside", 
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE, M_COUNT };
@@ -53,7 +53,7 @@ typedef struct { H bp; H by; uint32_t n; uint32_t off; uint8_t comp; uint8_t has
 typedef struct { H bp; H by; uint32_t t; H node; uint32_t i; uint32_t env; uint32_t cut; uint32_t vals; uint32_t k; uint32_t aux; uint32_t mact; uint32_t mlink; } Frame;
 typedef struct { H bp; H by; H v; uint32_t next; } Link;
 typedef struct { H bp; H by; H recipe; uint32_t off; uint32_t n; uint32_t lim; uint32_t up; uint32_t cut; } Activation;
-typedef struct { H bp; H by; uint32_t all; H node; uint32_t i; uint32_t env; uint32_t k; uint32_t mfr; uint32_t mlink; uint32_t mact; uint32_t marg; uint32_t coll; uint32_t mbind; uint32_t mtrail; uint32_t mafter; uint32_t mroom; } ChoicePoint;
+typedef struct { H bp; H by; uint32_t all; H node; uint32_t i; uint32_t env; uint32_t k; uint32_t mfr; uint32_t mlink; uint32_t mact; uint32_t marg; uint32_t coll; uint32_t mbind; uint32_t mtrail; uint32_t mafter; uint32_t mroom; uint32_t mnode; uint32_t mkids; uint32_t mbytes; uint32_t mcoll; uint32_t mtake; } ChoicePoint;
 typedef struct { H bp; H by; uint32_t id; H v; } Gathered;
 typedef struct { H bp; H by; H leaf; uint32_t off; } Code;
 typedef struct { H bp; H by; H entry; H impl; uint32_t prev; uint32_t sees; H fast; } Binding;

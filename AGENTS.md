@@ -59,6 +59,9 @@ Written this way, code holds the first time and is not written again (graph node
 - **Run it against its reference.** A new path comes with a ground program that runs it
   against its reference all the way down, over the boundaries of what it takes, and answers the
   cases that differ with counts of what it covered. A sweep run once in a session holds nothing.
+- **Pin meaning.** An expectation holds what a program means: its answer, that two ways agree,
+  an invariant. Never a size of code, a count of definitions, a label of coverage or a time:
+  those move without a defect and hold a wrong value in place (graph node 7.26).
 - **Mind two edges of the language.** A `let` takes the argument places after its recipe's
   own, so a recipe called with more arguments than it names cannot bind one. A node a
   definition steps sees only the bindings that definition sees, not those made after its layer.
