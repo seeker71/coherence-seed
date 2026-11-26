@@ -30,8 +30,11 @@ NUMS have it. Packed into one number, which is the bytes of the entry's leaf:
 | instance | 0 to 31 | the member of the family |
 | type | 32 to 47 | the family |
 | level | 48 to 55 | 1 trivial (a leaf), 2 basic (the fixed catalogue) |
-| package | 56 to 63 | 0 the bootstrap's own kinds, 1 blueprints, 2 recipes, 3 cells, 16 and up one per language or module |
+| package | 56 to 63 | 0 the bootstrap's own kinds, 1 blueprints, 2 recipes, 3 cells, 16 the engine's own definitions, 17 and up one per language or module |
 
+- The number is a catalogue entry (`spec/node-encoding.md`), which holds up to 2^63 − 1, so a
+  package is 0 to 127. Instance 0 of a family is the family itself, as NUMS's `Undefined`, and
+  the members follow from 1 in NUMS's order (`nums_consts.go`).
 - NUMS tells its blueprint space from its recipe space only by a type of the host language. Here
   the root is the package, so one number says which it is.
 - A composite has no coordinate of its own. Its identity is its content id; its level is one
@@ -41,7 +44,7 @@ NUMS have it. Packed into one number, which is the bytes of the entry's leaf:
 
 ## Blueprints (package 1)
 
-The families are NUMS's, with one added (Layout).
+The families are NUMS's, with three added (Layout, Part, FloatKind).
 
 | level.type | family | members |
 | --- | --- | --- |
@@ -55,15 +58,22 @@ The families are NUMS's, with one added (Layout).
 | 2.2 | Container | List, Dictionary, Object, Package, Interface, Any, Matrix, Location, Set, Template, Union, Tuple |
 | 2.3 | Recipe | Function, MemberFunction, Local, Parameter, Global |
 | 2.4 | Data | Channel, Event |
-| 2.5 | Layout | Bits, TwosComplement, Ieee, Brain, Float8E4M3, Float8E5M2, Fixed, Affine, Utf8, CodePoint |
+| 2.5 | Layout | Bits, TwosComplement, Float, Fixed, Affine, Block, Table, Utf8, CodePoint |
+| 2.6 | Part | Member, Method, Nominal, Hole, Instance |
+| 2.7 | FloatKind | Ieee, Fn, Fnuz, Finite, Scale |
 
 A blueprint in use is a node over these:
 
 - **A number with its layout.** `(Integer (TwosComplement 32))` is a signed 32-bit integer,
-  `(Integer (Bits 8))` an unsigned byte, `(Decimal (Ieee 64))` a double, `(Decimal (Brain 16))`
-  the bfloat16 of a model, `(Decimal (Float8E4M3))` an 8-bit float, `(Decimal (Affine (Integer
-  (TwosComplement 8)) scale zero))` a quantized weight. `Integer` or `Decimal` with no layout
-  is the number of a language that does not say its width.
+  `(Integer (Bits 8))` an unsigned byte. A float is `(Decimal (Float e m kind))`: a sign bit, e
+  bits of exponent and m of fraction, and a kind that says what the highest exponent means.
+  Ieee has infinities and NaN: binary16, 32 and 64, bfloat16 `(Float 8 7 Ieee)`, E5M2. Fn has
+  no infinity and NaN only at all ones: E4M3. Fnuz has no negative zero and NaN where it would
+  be. Finite makes every pattern a number: the 6- and 4-bit floats of microscaling. Scale is an
+  exponent alone: E8M0. `(Fixed B k)` is B with k fraction bits, `(Affine B scale zero)` a
+  quantized weight, `(Block B n scale)` n values sharing one scale, and `(Table B values)` a
+  value chosen from a list by an index, as NF4. `Integer` or `Decimal` with no layout is the
+  number of a language that does not say its width.
 - **References.** `(Pointer B)`, `(Reference B)`, `(Optional B)`.
 - **Containers.** `(List B)`, `(List B n)`, `(Tuple B..)`, `(Dictionary K V)`, `(Set B)`,
   `(Matrix B n..)`, `(Union B..)`, `Any`.
@@ -153,8 +163,9 @@ that constructs it.
 
 - `cast` between two numbers is one of five rules, named in the instance: exact, round to
   nearest even, truncate, saturate, wrap. A lens chooses the rule its language means.
-- The bootstrap converts among Bits and TwosComplement of 8, 16, 32 and 64, Ieee of 16, 32 and
-  64, Brain 16 and the two 8-bit floats. Fixed and Affine are recipes over those.
+- A conversion is one recipe over the layouts' parameters: the value is taken apart into sign,
+  significand, power and special, and put together in the target layout by the cast's rule.
+  Fixed, Affine, Block and Table are recipes over the layouts they name.
 - A cast of a reference changes the view: up to a parent or an interface always, down to a
   shape only if the cell is one, and otherwise the answer is nothing.
 - A cast to `Any` boxes; a cast from it unboxes if the blueprint is the one asked for.
@@ -170,12 +181,16 @@ that constructs it.
 - The answer to running any node is the acknowledgment of axiom 5: nothing, 0, 1 or a node. A
   typed value is a node. A statement that completes answers 1.
 - Choice, fail, commit and all are recipes of the catalogue and keep their meaning (graph 5.4).
-- The bootstrap holds one implementation of each catalogue entry, in C, for a cold start. Each
-  can be replaced while the system runs, by machine code written from rows keyed by the
-  operator instance.
+- Each catalogue entry is bound to a recipe in form that runs it. A node whose category is a
+  composite, such as an instance, runs that composite's own binding, so code specialised for
+  an instance is bound to the instance node; with no binding it is data. Each binding can be
+  replaced while the system runs, by machine code written from rows keyed by the instance.
+  What form cannot yet do becomes an operation of the bootstrap.
 
 ## Words and lenses
 
+- The engine's own definitions are entries of package 16, numbered in the order they are
+  named; 16.0.0.1 is the catalogue.
 - A symbol table is rows keyed by node and lens: the name of a nominal blueprint, of a member
   (blueprint and place), of a function, of a global, of a local or parameter (function and
   place).
@@ -203,4 +218,11 @@ catalogue, and go when nothing is left on them.
 
 ## What is built
 
-Nothing of this page yet. The order is in graph node 7.23.
+The first of the steps of graph node 7.23 stands. `nums/catalogue.ck` is the catalogue as one node: every
+entry of the tables above, family by family, as a catalogue entry whose number is its
+coordinate, 282 in 54 families, each with its word in the lexicon. `nums/coordinate.ck` reads an
+entry's number and makes the entry of a number. `ground/catalogue-at-coordinates.ck` holds
+every family to one package, level and type with instances from 0, the families in order, seven
+entries to the coordinates `nums_consts.go` gives them, and every entry to its number and back.
+`ground/instance-runs-its-binding.ck` binds `(Instance Plus (Integer (TwosComplement 32)))` and
+runs a node of it; an instance with no binding answers itself. The rest is not built.

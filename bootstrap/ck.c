@@ -286,7 +286,7 @@ static const char *rule(int comp, H bp, const void *payload, uint32_t n) {
   if (c == 16) return comp ? NULL : "composite-only";
   if (comp) return "leaf-only";
   switch (c) {
-  case 0: return (n >= 1 && n <= 4 && b[n-1] != 0) ? NULL : "ordinal";
+  case 0: return (n >= 1 && n <= 8 && b[n-1] != 0 && !(n == 8 && b[7] & 0x80)) ? NULL : "ordinal";
   case 2: return utf8_ok(b, n) ? NULL : "utf8";
   case 3: return (n == 0 || b[n-1] != 0) ? NULL : "minimal";
   case 4:
@@ -420,20 +420,20 @@ static H mki(int64_t v) {
 /* ---- section 6: the canonical print, read and written -------------------------------- */
 typedef struct { const char *p, *err; } Rd;               /* where the reader stands, and its first refusal */
 static H refuse(Rd *r, const char *w) { if (!r->err) r->err = w; return 0; }
-static int number(Rd *r, uint32_t *out) {
+static int number(Rd *r, uint64_t *out) {   /* at most 2^63 - 1, so one signed word holds any entry */
   const char *p = r->p;
   if (*p < '0' || *p > '9' || (*p == '0' && p[1] >= '0' && p[1] <= '9')) return 0;
   uint64_t v = 0;
-  for (; *p >= '0' && *p <= '9'; p++) { v = v * 10 + (unsigned)(*p - '0'); if (v > 4294967295ull) return 0; }
-  r->p = p; *out = (uint32_t)v; return 1;
+  for (; *p >= '0' && *p <= '9'; p++) { unsigned d = (unsigned)(*p - '0'); if (v > (INT64_MAX - d) / 10) return 0; v = v * 10 + d; }
+  r->p = p; *out = v; return 1;
 }
 static int hexval(char c) { return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1; }
 static H read_node(Rd *r) {
-  uint32_t n; const char *why;
+  uint64_t n; const char *why;
   if (*r->p == '#') {
     r->p++; if (!number(r, &n)) return refuse(r, "syntax");
     if (n < SEEDED) return E(n);
-    uint8_t b[4]; uint32_t len = 0; for (; n; n >>= 8) b[len++] = (uint8_t)n;
+    uint8_t b[8]; uint32_t len = 0; for (; n; n >>= 8) b[len++] = (uint8_t)n;
     return mk(0, ROOT, b, len, &why);
   }
   if (*r->p == '^') { r->p++; if (!number(r, &n)) return refuse(r, "syntax");
@@ -692,9 +692,9 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
       if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
     ntext = m; return;
   }
-  if (op == BIND) {                       /* x: an entry that is not data, or a recipe; l: a recipe, a lazy or a leaf */
-    long long e = catn(x);
-    if ((e >= 0 && is_data(e)) || (e < 0 && !is_recipe(x)) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
+  if (op == BIND) {                       /* x: an entry that is not data, or a composite such as a recipe or an */
+    long long e = catn(x);                /* instance of one; l: a recipe, a lazy or a leaf */
+    if ((e >= 0 && is_data(e)) || (e < 0 && !nd[x].comp) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
     if (!own) {                           /* bound from outside the run: seen at every limit, and no fail undoes it */
       if (nout == OMOST) { fault("full"); return; }
       out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout, 0 }; nout++; W->v = E(YES); return; }
@@ -941,9 +941,10 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n, b = 0; int given = 0;
     uint32_t lim = W->one ? W->one - 1 : act[W->env].lim; W->one = 0;
-    /* The newest binding that says what runs x: its blueprint's, or the step's, which is given
-     * every node. A step or a lazy gets x itself; when its code declines, what lies beneath runs. */
-    while ((nbind || nout) && (b = bound(op >= QUOTE ? nd[x].bp : 0, E(STEP), lim)) && (B(b)->entry == E(STEP) || is_lazy(B(b)->impl))) {
+    /* The newest binding that says what runs x: its blueprint's, which may be a composite such as
+     * an instance of a recipe, or the step's, which is given every node. A step or a lazy gets x
+     * itself; when its code declines, what lies beneath runs. */
+    while ((nbind || nout) && (b = bound(nd[x].comp && (op >= QUOTE || op < 0) ? nd[x].bp : 0, E(STEP), lim)) && (B(b)->entry == E(STEP) || is_lazy(B(b)->impl))) {
       a[0] = x; if ((given = apply(b, lim, a, 1, W->env, x))) break;
       lim = under(b, lim); b = 0;
     }

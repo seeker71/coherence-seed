@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,243 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,244 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 66 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -26,8 +26,8 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, eight lines: the header against its nodes; 58 ground programs and the
-  142 vectors, judged by a program in form; ice across two processes; native code unsigned and
+- **`make check` passes**, eight lines: the header against its nodes; 60 ground programs and the
+  146 vectors, judged by a program in form; ice across two processes; native code unsigned and
   hardened; a run recorded from a second process; a run asked from one; a search that writes
   a file only for the path that held; and the reads by a bare number against their budget.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells and bindings; a
@@ -95,7 +95,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 101 files of nodes here, in 0.8 s. Text it cannot read is a fault
+  for byte, as is each of the 105 files of nodes here, in 0.8 s. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -116,9 +116,13 @@ helper could not see the code (found by planting faults that nothing noticed).
 
 - **The engine of blueprints, recipes and cells.** What the seed is to store and run is fixed
   in writing ([`spec/nums.md`](spec/nums.md), graph hub 5.19): typed blueprints, recipes and
-  cells at the altitude of programming languages, as NUMS has them, run as they stand. None of
-  it is built; graph node 7.23 gives the order. Everything below this line is written on the
-  bootstrap's earlier catalogue, which that design names package 0.
+  cells at the altitude of programming languages, as NUMS has them, run as they stand. The first
+  of graph node 7.23's steps stands: the catalogue is one node (`nums/catalogue.ck`), 282
+  entries in 54 families, each a catalogue entry whose number is its NUMS coordinate and whose
+  word is in the lexicon, and a node whose category is an instance runs that instance's
+  binding (`ground/catalogue-at-coordinates.ck`, `ground/instance-runs-its-binding.ck`). Nothing
+  of the engine runs yet. Everything below this line is written on the bootstrap's earlier
+  catalogue, which that design names package 0.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 65 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
@@ -143,9 +147,9 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 101
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 105
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile's 88 lines, eleven pages, the claim
+  graph's checker (662 lines of C under `tools/`), the Makefile's 87 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
   Makefile's shell.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a

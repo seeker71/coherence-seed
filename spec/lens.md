@@ -161,7 +161,7 @@ the text of the file that stores x.
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 101 files, none differs in either line, in 0.8 s.
+  nodes in the repository: 105 files, none differs in either line, in 0.8 s.
 
 ## Limits
 
@@ -178,5 +178,5 @@ the text of the file that stores x.
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.
 - Every row is tried at every node. Words are found through cells, indexed once when the lens loads.
 - The observer prints words from a table of its own in C, not from these rows, and shows no names.
-- Which numbers a module's entries take is a convention of the lexicon; no row yet says which
-  numbers a module may take.
+- Which numbers a module's entries take is a convention of the lexicon: the engine's own
+  definitions take package 16 (`spec/nums.md`). No row yet says which numbers a module may take.

@@ -27,12 +27,12 @@ at: 2026-11-26
 n: 5.19.3
 name: the-root-is-the-package
 kind: decision
-is: A catalogue entry is package.level.type.instance packed in one number: instance in bits 0 to 31, type 32 to 47, level 48 to 55, package 56 to 63. Package 0 is the bootstrap's own kinds, 1 blueprints, 2 recipes, 3 cells, 16 and up a language or module. A composite has no coordinate: its identity is its content id and its level is computed.
+is: A catalogue entry is package.level.type.instance packed in one number: instance in bits 0 to 31, type 32 to 47, level 48 to 55, package 56 to 63. Package 0 is the bootstrap's own kinds, 1 blueprints, 2 recipes, 3 cells, 16 the engine's own definitions, 17 and up a language or module. The number is a catalogue entry, up to 2^63 - 1. A composite has no coordinate: its identity is its content id.
 status: inferred
 from: 5.2.1 5.2.6 3.1.2 3.1.9.1 5.19.1
 conf: mid
 why: Axiom 2 names the four parts. NUMS tells blueprint ids from recipe ids only by a Go type and mints composites by arrival order, which two parties cannot share; one number that says its root, and content for everything made, keeps the shape and drops both faults.
-flip: Eight bits of package and of level are narrower than NUMS's sixteen.
+flip: Seven bits of package and eight of level are narrower than NUMS's sixteen.
 at: 2026-11-26
 
 n: 5.19.4
@@ -81,12 +81,12 @@ at: 2026-11-26
 n: 5.19.8
 name: run-as-written
 kind: decision
-is: The engine runs a recipe node by what its category says, on cells laid out by their blueprints. An if chooses, a loop repeats, a return leaves the frame; nothing is turned into another form first. The answer to any node is nothing, 0, 1 or a node. The bootstrap holds one implementation of each catalogue entry for a cold start, and each can be replaced by code written from rows keyed by the operator instance. Choice, fail, commit and all are entries of the catalogue.
+is: The engine runs a recipe node by what its category says, on cells laid out by their blueprints. An if chooses, a loop repeats, a return leaves the frame; nothing is turned into another form first. The answer to any node is nothing, 0, 1 or a node. Each catalogue entry is bound to a recipe in form that runs it, and a node whose category is an instance runs the instance's binding; each can be replaced by code written from rows keyed by that instance. Choice, fail, commit and all are entries of the catalogue.
 status: inferred
 from: 5.4.1 5.4.2 5.4.6 5.1.2 5.19.1
 conf: mid
 why: The guide's word is direct execution with no lowering. The seed had stored an if as four core nodes and run those.
-flip: The bootstrap grows by the catalogue's entries before code replaces them; its budget may have to move.
+flip: What form cannot yet do, such as writing bytes in place, becomes an operation of the bootstrap; if that grows past its budget, the line moves.
 at: 2026-11-26
 
 n: 5.19.9

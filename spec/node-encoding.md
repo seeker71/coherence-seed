@@ -42,9 +42,9 @@ Two nodes are the same node exactly when their canonical bytes are equal.
 The **root** is the leaf with blueprint nothing and no bytes: the 33 bytes `00` then 32 zero
 bytes. It is catalogue entry 0.
 
-**Catalogue entry N**, for N from 1 to 4,294,967,295, is the leaf whose blueprint is the root and
-whose bytes are N as a `nat` (section 5), so one to four bytes. Any other leaf whose blueprint is
-the root is refused. The root is the blueprint of no composite.
+**Catalogue entry N**, for N from 1 to 9,223,372,036,854,775,807 (2^63 − 1), is the leaf whose
+blueprint is the root and whose bytes are N as a `nat` (section 5), so one to eight bytes. Any
+other leaf whose blueprint is the root is refused. The root is the blueprint of no composite.
 
 An entry's content is its number. Its name is a row in a lens table beside the nodes, so a name
 can change, and a new entry can be named, without changing any id. The names of version 1:
@@ -93,7 +93,7 @@ node = "#" number                  catalogue entry
      | "^" number                  the node opened k-th in this print, counting from 0
      | "[" node [ " " hex ] "]"    leaf: blueprint, then bytes
      | "(" node *( " " node ) ")"  composite: blueprint, then children
-number = "0" | a digit 1-9 followed by digits; at most 4294967295
+number = "0" | a digit 1-9 followed by digits; at most 9223372036854775807
 hex    = one or more pairs of 0-9 a-f
 ```
 
@@ -139,7 +139,7 @@ table. The vectors use these words:
 | `leaf-only` | a composite under the root or under entries 1 to 14 |
 | `composite-only` | a leaf under entry 16 |
 | `kept` | a node under entry 15 or 17 to 31 |
-| `ordinal` | a leaf under the root that is not a nat from 1 to 4,294,967,295 |
+| `ordinal` | a leaf under the root that is not a nat from 1 to 2^63 − 1 |
 | `width` | a fixed-width leaf of the wrong length |
 | `minimal` | a nat or int that is not the shortest form |
 | `utf8` | text that is not well-formed UTF-8 |
@@ -167,6 +167,9 @@ Made here, not given by the guide or measured. Each can be reopened; changing an
   check one node without its children.
 - **Catalogue entries are numbers under one root.** The numeric space is the root; a symbol is a
   row beside it. The numbers are fixed by this page, not by arrival order.
+- **Entries up to 2^63 − 1.** The catalogue of `spec/nums.md` packs a coordinate, package,
+  level, type and instance, into one number of 64 bits. Below 2^63 a signed machine word holds
+  every entry, so the walker, emitted code and integer arithmetic in form read one as a number.
 - **Little-endian throughout.** Both first targets are little-endian and frozen nodes are read
   where they lie (5.7.1).
 - **Both sized and unsized integers are seeded.** Which one arithmetic uses is question 6.1.11

@@ -32,7 +32,7 @@ at: 2026-11-24
 n: 5.13.3
 name: catalogue-is-numbers
 kind: decision
-is: Catalogue entry N, from 1 to 4,294,967,295, is the leaf under the root whose bytes are the number N. An entry's content is its number and its name is a lens row beside it, so naming or renaming an entry changes no id. Version 1 names entries 1 to 14 as leaf blueprints and 16 as list, keeps 15 and 17 to 31, and puts no rule on 32 and above, where the core operations will be named.
+is: Catalogue entry N, from 1 to 2^63 - 1, is the leaf under the root whose bytes are the number N, one to eight bytes, so one entry holds a packed coordinate of spec/nums.md. An entry's content is its number and its name is a lens row beside it, so naming or renaming an entry changes no id. Version 1 names entries 1 to 14 as leaf blueprints and 16 as list, keeps 15 and 17 to 31, and puts no rule on 32 and above, where the core operations will be named.
 status: inferred
 from: 5.1.5 5.2.4 1.9.2
 src: 2.30.3#4
