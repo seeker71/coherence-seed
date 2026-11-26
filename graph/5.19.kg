@@ -95,7 +95,7 @@ status: inferred
 from: 5.3.2 5.2.4 3.2.8.3 3.1.4.3 5.19.2
 conf: mid
 why: NUMS's label tree already carries such templates and one table per language. Writing comes first because it needs no grammar.
-flip: Until a lens reads a language, programs enter through the bracket notation.
+flip: The Go projection and the BML grammar read into nodes. The BML syntax tree can express declarations that the engine cannot yet execute (5.19.28).
 at: 2026-11-26
 
 n: 5.19.10
@@ -213,11 +213,11 @@ at: 2026-11-26
 n: 5.19.22
 name: machine-code-from-rules-and-rows
 kind: decision
-is: The compiler is a code rule for each category of the catalogue, kept under the category as the runtime's binding is, over the target as rows (5.19.29). What an operator is in machine words is a row of templates whose holes are named roles. Places stay unboxed in registers; where the runtime would answer nothing the code declines and the call runs on frames.
+is: The compiler is a code rule for each category of the catalogue, kept under the category as the runtime's binding is, over the target as rows (5.19.31). What an operator is in machine words is a row of templates whose holes are named roles. Places stay unboxed in registers; where the runtime would answer nothing the code declines and the call runs on frames.
 status: inferred
 from: 5.19.15 5.19.19 5.19.16 5.19.14
 conf: mid
-why: The kernel's encoder was a table of base words and field multipliers, and every word it wrote was byte-verified; here the table is nodes, so a new instruction, operator or register is a row and not a definition. A rule per category is the runtime's own dispatch, so the two cannot drift apart in what they cover. Observed: a review that found the frame and the door written as raw numbers in five places, and branches counted by hand, led to the target as rows and labels; the sweep of 5.19.27 holds the result.
+why: The kernel's encoder was a table of base words and field multipliers, and every word it wrote was byte-verified; here the table is nodes, so a new instruction, operator or register is a row and not a definition. A rule per category is the runtime's own dispatch, so the two cannot drift apart in what they cover. Observed: a review that found the frame and the door written as raw numbers in five places, and branches counted by hand, led to the target as rows and labels; the sweep of 5.19.29 holds the result.
 flip: Registers are given in order and a call saves every value in flight; a search over allocations and unrolling factors, scored by time, would choose better than one fixed rule.
 at: 2026-11-26
 
@@ -250,7 +250,7 @@ is: Each of the five cast rules is a row of how it rounds and what it does beyon
 status: inferred
 from: 5.19.21 5.19.22
 conf: mid
-why: Exact, nearest and truncate answer nothing beyond the range, saturate clamps and wrap keeps the low bits, in the runtime's own recipe for a cast. Binary64 holds ±2^63 and 2^64 exactly, so a float is bounded there before it becomes an integer. Observed: every cast between nine layouts by all five rules over fourteen boundary values answered the same compiled and on frames all the way down (5.19.27).
+why: Exact, nearest and truncate answer nothing beyond the range, saturate clamps and wrap keeps the low bits, in the runtime's own recipe for a cast. Binary64 holds ±2^63 and 2^64 exactly, so a float is bounded there before it becomes an integer. Observed: every cast between nine layouts by all five rules over fourteen boundary values answered the same compiled and on frames all the way down (5.19.29).
 flip: A conversion the hardware does otherwise, a NaN's payload or an infinity under saturate, could be done in machine code by more instructions instead of declining.
 at: 2026-11-26
 
@@ -266,30 +266,50 @@ flip: A builder of lists that failed with any part would let the rules build the
 at: 2026-11-26
 
 n: 5.19.27
+name: bmf-character-cursor-and-parser-control
+kind: decision
+is: The BML parser runs on BMF, and BMF's cursor moves over characters, not lines. The parser is written with choice, cut and stop, as the thesis wrote it; those primitives were made for it.
+status: given
+see: 3.5.4.1 3.5.4.2
+at: 2026-11-26
+
+n: 5.19.28
+name: bml-reads-by-running-bmf
+kind: decision
+is: The thesis and original JBML grammar supply the BML productions. A form.bml section selects the later kernel's productions. The same BMF matcher runs both the BML grammar and the grammar a BML program defines. A character cursor and native Form choices carry the search across lines. Fail resumes a branch, crossing Cut ends the search and Stop ends it on entry. Rule and argument references are numbers when the linked grammar runs.
+status: inferred
+from: 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
+src: 2.3.1 2.8.6 2.8.12 2.8.14 2.30.17
+conf: high
+why: A pattern kind selects a recipe in a trailed cell. A grammar can vary one matcher and keep the rest of the rules intact. Active rule calls carry the cursor and the resolved invocation, so a branch can decline a cycle without consuming the alternatives. Sequence and repetition share captured groups until an answer is requested. ground/nums-lenses.ck runs these choices.
+limit: The language lens reads more syntax than it lowers to executable recipes. The running subset and the source round trips are described in spec/nums.md and FLOOR.md.
+at: 2026-11-26
+
+n: 5.19.29
 name: compiled-code-is-held-to-frames-all-the-way-down
 kind: decision
 is: Compiled code is held to the runtime by a ground program that runs each case both ways, the reference on frames all the way down, and answers the cases whose outcomes differ, with how many compiled and how many the machine code answered itself. The cases are every operator and cast over boundary values, through a call, and the edges of a call: arguments outside their layout, returns between widths, bools, a continue in a do loop, a literal beyond 64 bits, an argument that changes a local, a nothing as a condition and as an argument.
 status: observed
 from: 5.19.22 5.19.24 5.19.25 5.19.26
-src: 2.30.17
+src: 2.30.18
 conf: high
-why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it makes 2.57 million nodes, so make check runs it in a process of its own. Running it found two defects in the reference itself (5.19.28).
+why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it makes 2.57 million nodes, so make check runs it in a process of its own. Running it found two defects in the reference itself (5.19.30).
 flip: A defect the reference and the compiler share would agree with itself; a third reading, the hardware's own answer or a definition from outside, would see it.
 at: 2026-11-26
 
-n: 5.19.28
+n: 5.19.30
 name: on-frames-a-nothing-ends-the-call
 kind: decision
 is: On frames a nothing ends the call with no answer, wherever it stands: returned, passed, written, tested or left as a statement. A call's arguments are evaluated one after another, and each keeps what it changed.
 status: observed
-from: 5.19.14 5.19.26 5.19.27
-src: 2.30.17
+from: 5.19.14 5.19.26 5.19.29
+src: 2.30.18
 conf: high
 why: all keeps only answers that are something and undoes what was done inside it. Observed on 2026-11-26: a return built with a tuple of a nothing answered yes, so 5/0 returned yes on frames; and arguments evaluated under all lost their changes, so g(i++) left i where it was on frames and one higher in machine code. With one check that fails on a nothing and keeps its reason, a division by zero now answers nothing with the reason zero both ways.
 flip: A nothing carried out as a value, as a NaN is, would let a caller decide what it means; C leaves such a program undefined.
 at: 2026-11-26
 
-n: 5.19.29
+n: 5.19.31
 name: the-target-and-the-families-are-rows
 kind: decision
 is: The target is rows: each instruction an entry with its base word and its fields, each field a position, a width and a kind the packer checks; the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and the relations a family admits are rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.

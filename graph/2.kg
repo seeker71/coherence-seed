@@ -280,6 +280,15 @@ got: 2026-11-25
 at: 2026-11-25
 
 n: 2.30.17
+name: bml-and-bmf-running-together
+kind: source
+is: A Form program runs the thesis and form.bml readings of subtraction, links a parameterized BMF grammar and exercises cursor restore, cut, stop and bounded retries on whole character streams.
+path: coherence-seed/ground/nums-lenses.ck
+date: 2026-11-26
+got: 2026-11-26
+at: 2026-11-26
+
+n: 2.30.18
 name: nums-compiled-agrees.ck
 kind: source
 is: The ground program that runs every case as machine code and on frames all the way down and answers the cases whose outcomes differ, with how many compiled and how many the machine code answered itself.

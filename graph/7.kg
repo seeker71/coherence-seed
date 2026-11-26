@@ -104,7 +104,7 @@ status: inferred
 from: 7.13 7.22 5.19.22 5.19.26
 see: 7.25
 conf: mid
-why: Three readers who ran the compiler graded it B- and found seven disagreements with frames. Each was a fact written twice, a part dropped without a word, or a jump counted by hand. Rewritten to these rules, the compiler agrees with frames over every case of 5.19.27.
+why: Three readers who ran the compiler graded it B- and found seven disagreements with frames. Each was a fact written twice, a part dropped without a word, or a jump counted by hand. Rewritten to these rules, the compiler agrees with frames over every case of 5.19.29.
 flip: A standard held by reading alone drifts; read against it before a commit by someone who runs the code, it holds.
 at: 2026-11-26
 
@@ -113,9 +113,9 @@ name: a-new-path-comes-with-its-sweep
 kind: decision
 is: A new path comes with a ground program that runs it against its reference, the reference all the way down, over the boundaries of what it takes, and counts what it covered: how many cases, how many took the new path, how many it answered itself. The program is committed and runs in make check; a sweep run once in a session holds nothing.
 status: inferred
-from: 7.24 5.19.27 5.19.28
+from: 7.24 5.19.29 5.19.30
 conf: mid
-why: One ground program with two comparisons could not see the seven disagreements; the committed sweep of 5.19.27 saw them, and found two defects in the reference itself on its first run.
+why: One ground program with two comparisons could not see the seven disagreements; the committed sweep of 5.19.29 saw them, and found two defects in the reference itself on its first run.
 flip: A reference that shares the new path's defect agrees with it; a third reading would see it.
 at: 2026-11-26
 

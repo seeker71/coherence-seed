@@ -19,7 +19,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,429 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,432 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -84,6 +84,17 @@ Each line here is held by a program that runs under `make check`, or names how i
   hardware's answer would not be the runtime's.
 - **A language can produce the graph.** Go and BML byte literals round-trip through frozen
   nodes, preserving composite blueprints and shared children (`ground/nums-portable.ck`).
+- **BML runs on a BMF character cursor.** In `ground/nums-lenses.ck` an alternative retries
+  across an emoji and newline. Crossing a cut reports position 2, immediate stop reports 1,
+  and a parameterized BMF list reads two words. The thesis expression `10 - 3 - 2` gives 9.
+  A `form.bml` method with the same subtraction gives 5. The same ground program takes the
+  base branch of two mutually recursive rules and returns both captures from a bounded
+  repetition of an empty rule. It also varies one range matcher for a trial and observes the
+  original matcher on return. Reading, printing and rereading
+  produced identical syntax trees for 124 Angelic BML sources and all 28 previous-kernel
+  `bml-*.bml` fixtures. One additional Angelic file with a BML extension contains Java.
+  A separate enumerator agreed on the captures, their order and the cursor positions for 92
+  small patterns on all 15 strings of length zero through three over `a` and `b`.
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).
@@ -149,7 +160,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 147 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 149 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -167,7 +178,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,246 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,249 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -175,8 +186,8 @@ running compiled code against frames all the way down).
   layouts, typed method dispatch and specialization, a genetic population and two expression
   lenses run, and so does a generic runtime for declared functions: frames in rooms, control as
   written, integer arithmetic of every width, arithmetic on every float layout, and machine
-  code for whole functions. The recipes for switch, foreach, try, defer and go, full-language
-  grammars, and GPU code are open. Members and objects run neither on frames nor in compiled
+  code for whole functions. Whole-package BML lowering, the full Go grammar, GPU code and
+  the recipes for switch, foreach, try, defer and go are open. Members and objects run neither on frames nor in compiled
   code, and the compiler takes no more than six parameters at a call from outside and eight
   between declarations. A function the compiler refuses keeps a note that it was refused, not
   which construct refused it. The ground programs and supported
@@ -204,8 +215,8 @@ running compiled code against frames all the way down).
   is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
-  no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 146
+  no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 148
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 98 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the

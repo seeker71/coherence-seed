@@ -161,12 +161,13 @@ the text of the file that stores x.
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 147 files, none differs in either line, in 2.7 s.
+  nodes in the repository: 149 files, none differs in either line, in 3.0 s.
 
 ## Limits
 
 - It is not yet the surface of graph node 5.3.5. Every form is in brackets: a sign stands between
-  two and no more, there is no precedence and no pattern over text.
+  two operands. The BML lens uses BMF character patterns and precedence as described in
+  [the NUMS specification](nums.md#bml-and-its-bmf-character-cursor).
 - A part is read by name only from a name, not from an expression, and only where the shape's
   constructor was read before in the same reading. Nothing checks that what a name is given
   has the shape it says.
