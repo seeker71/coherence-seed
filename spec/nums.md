@@ -710,7 +710,9 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   are false.
 - **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
   b }`, `fail`, a blueprint for a class's data and a class for its methods. The writer's own package
-  written as BML reads back into a syntax tree with the BML reader.
+  written as BML reads back into a syntax tree with the BML reader. In that dialect `choice` takes
+  the first option that is not nothing, so where a node's choice is a search the BML does not yet
+  mean what the node means; the thesis's choice statement, which backtracks, would.
 - **A method is called on its receiver.** `nums/part.ck` binds each method a package declares to a
   recipe that calls the receiver's own method (`nums.method-key`), before the package loads, so a
   call `(r.call M receiver …)` dispatches by the receiver's blueprint and is written
