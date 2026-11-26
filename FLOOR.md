@@ -124,6 +124,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   64-bit endpoints. A standalone image with zero text leaves answered five calls to those
   predicates by id. The BML blueprint reader reconstructed the range fields and constructor
   from parsed syntax. See [the component projection](spec/nums.md#viewing-a-component-declaration).
+- **BML methods run on their receiver.** The class linker resolves field reads, typed
+  arguments and sequential local bindings into NUMS methods. The portable ground extends
+  the BMF range with a BML predicate, compares it with the existing range predicate on all
+  128 ASCII values, and parses with the extended range in both search evaluators.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and

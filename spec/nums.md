@@ -643,9 +643,7 @@ example on pp. 23–25 and evaluates to 9. In a `form.bml` definition it evaluat
 Reading a source file returns a syntax tree with numbered productions and typed token leaves.
 Showing it emits normalized spacing. Reading that spelling reconstructs the tree.
 `bml.recipe` turns an untyped, expression-bodied `form.bml` definition in the supported
-operator subset into a recipe, resolving parameters to argument positions. Class declarations
-and statement bodies currently have a syntax representation. Whole-package name resolution,
-type checking and code generation for those declarations remain open.
+operator subset into a recipe, resolving parameters to argument positions.
 
 For a parsed `form.bml` blueprint, `bml.blueprint-decl(syntax, resolve)` produces an
 `r.type` containing the ordered `b.member` declarations and a `b.template` constructor.
@@ -653,6 +651,31 @@ The resolver receives a scope and a spelling. Type names resolve at the root and
 resolve under their owner. Qualified names and nested type applications are supported.
 An unresolved or ambiguous name, duplicate member identity or array suffix produces a
 link fault. The runtime receives the resolved declaration.
+
+`bml.class-decl(grammar, syntax, blueprint, resolve)` extends a resolved object declaration
+with the methods of a parsed `class`. Existing members, interfaces, methods and the
+constructor keep their order. For example, a class can add this method to the BMF
+range blueprint and keep using the same range in a grammar.
+
+```bml
+class ScalarRange {
+  def fits(n: Int): Bool = low <= n && n <= high;
+}
+```
+
+A method declares its parameter and result types. Its body is an expression or a block
+with sequential `let` bindings and a final expression. A local can infer its type or
+declare it. A use resolves first to a local, then a parameter, then a receiver field.
+The result is a `b.method` with a typed `r.function`. The receiver occupies parameter zero.
+Field reads carry the resolved owner and field slot. Consistently renaming parameters and
+locals gives the same numeric declaration. Applied types such as `Box<Int>` retain their
+type arguments through linking and execution.
+
+The method linker covers integer addition, subtraction, multiplication, bitwise AND and OR,
+right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
+`ground/nums-portable.ck` runs the resulting methods directly and after specialization.
+Class type parameters, inheritance clauses, method calls in BML bodies and automatic
+whole-package linking remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
