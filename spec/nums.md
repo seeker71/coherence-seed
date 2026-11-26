@@ -527,7 +527,8 @@ complete rule result.
 A bounded repetition declares three members, an element and two integer bounds. Its
 three-hole constructor template builds the value `(bmf.between element lower upper)`.
 Its method invokes the repetition algorithm shared with unbounded repetition. The algorithm
-visits a child's longer matches first and carries its captures into the recursive call.
+tries another repetition before yielding the current match. It visits the child's answers
+in their declared order and carries each answer's captures into the recursive call.
 The range terminal declares its bounds and implements its own method. A range reads one
 scalar and emits that scalar only when it falls within the closed interval.
 
@@ -537,6 +538,13 @@ from the declared fields and constructor. Sequence, branch and exact-string node
 variadic fields. An operand can be an item, rule number, terminal word, literal or formal
 slot. `bmf.external` passes an application's terminal value to the parser's lexer.
 `ground/bmf-items.ck` gives a complete example of a grammar-owned class.
+
+The NUMS reference in `ground/bmf-reference.ck` pairs a spelling with its capture tree.
+For two items, sequence takes the ordered product of their paths and branch appends their
+path lists. Filtering those spellings against an input prefix gives the expected captures
+and end positions, including duplicate answers. `./ck run ground/bmf-sweep.ck` reports the
+planned count, the count each evaluator completed, and each differing case with its expected
+and actual answers. `make check` requires complete agreement for the generated cases.
 
 ### Execution of a search declaration
 
@@ -572,7 +580,7 @@ two cursor positions. `EndOfFile` succeeds at the end of the character stream.
 | BMF element | What the matcher does |
 | --- | --- |
 | Sequence and ordered choice | Continue each match into the following element. Try the next alternative when a later element fails. |
-| Optional and repetition | Try the longest match first. Give back characters until the suffix matches or the minimum is reached. An empty match counts toward the minimum, carries its captures, and ends that path when the minimum is satisfied. |
+| Optional and repetition | Optional offers the child's answers before the empty answer. Repetition extends each path first and can give characters back until the suffix matches or the minimum is reached. An empty match counts toward the minimum, carries its captures, and ends that path when the minimum is satisfied. |
 | `Fail` | Resume the nearest available choice. Form restores trailed cell writes on that path. |
 | `Cut` | Succeed going forward. A retry across this position ends the parse with the numeric cut reason and the saved position. |
 | `Stop` | End the parse immediately with the numeric stop reason and the current position. |
