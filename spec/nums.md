@@ -664,9 +664,11 @@ class ScalarRange {
 ```
 
 A method declares its parameter and result types. Its body is an expression or a block
-with sequential `let` bindings and a final expression. A local can infer its type or
+with sequential `let` bindings and a final expression, with an optional semicolon. A local can infer its type or
 declare it. A use resolves first to a local, then a parameter, then a receiver field.
 The result is a `b.method` with a typed `r.function`. The receiver occupies parameter zero.
+`self.high` selects the receiver's field even when a parameter is also named `high`.
+A parameter of the enclosing class type can supply the receiver as in `other.high`.
 Field reads carry the resolved owner and field slot. Consistently renaming parameters and
 locals gives the same numeric declaration. Applied types such as `Box<Int>` retain their
 type arguments through linking and execution.
@@ -674,6 +676,9 @@ type arguments through linking and execution.
 The method linker covers integer addition, subtraction, multiplication, bitwise AND and OR,
 right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
 `ground/nums-portable.ck` runs the resulting methods directly and after specialization.
+It projects linked classes through `write.text` with `nums/lang-bml.ck`, parses the output
+and compares the entire linked declaration. The comparison includes a nominal receiver and
+`Pair<Box<Int>, Int>`. Source spellings live beside the declarations.
 Class type parameters, inheritance clauses, method calls in BML bodies and automatic
 whole-package linking remain open.
 

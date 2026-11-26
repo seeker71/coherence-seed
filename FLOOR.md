@@ -116,8 +116,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. Python's parser takes the Python and Deno's the
-  TypeScript; the C# and Java are not compiled here, which has no JDK and no C# project.
+  into a syntax tree with the BML reader. Python's parser accepts the writer's Python and
+  Deno's accepts its TypeScript. Compiling the entire writer in Java and C# remains open.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -127,7 +127,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **BML methods run on their receiver.** The class linker resolves field reads, typed
   arguments and sequential local bindings into NUMS methods. The portable ground extends
   the BMF range with a BML predicate, compares it with the existing range predicate on all
-  128 ASCII values, and parses with the extended range in both search evaluators.
+  128 ASCII values, and parses with the extended range in both search evaluators. The
+  general BML writer and reader recover the same class declaration, including qualified
+  receiver fields, method-local bindings and nested applied types.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and
