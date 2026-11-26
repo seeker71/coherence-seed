@@ -39,7 +39,8 @@ watch: ck fb
 	@./fb play .ck-watch.rec -1 | grep '^outcome'
 	@./fb drop /ck.watch; rm -f .ck-watch.rec
 
-# What the floor must show: the encoding's vectors, the ground programs, freeze and thaw in two
+# What the floor must show: the encoding's vectors, the ground programs, compiled code against
+# frames in a process of its own (the sweep needs a room of its own), freeze and thaw in two
 # processes, native code unsigned and under the hardened runtime, a live run recorded from a
 # second process whose last frame holds the answer and names the node that wrote it, and a run
 # asked from a second process to count its own additions while it goes on, and a search that
@@ -50,6 +51,9 @@ check: ck fb seed-run
 	@got=$$(./ck run ground/check.ck); \
 	  if [ "$$got" = "node (#16)" ]; then echo "ground: every program ends as expected, checked by a program in form"; \
 	  else echo "ground: path and outcome of each program that ends otherwise: $$got"; exit 1; fi
+	@got=$$(./ck run ground/nums-compiled-agrees.ck); \
+	  if [ "$$got" = "node (#16 (#16) [#4 3378] [#4 336c] [#4 1561])" ]; then echo "compiled: 30771 cases answer on machine code as on frames all the way down; 27699 compiled, 24853 answered by the machine, the rest declined"; \
+	  else echo "compiled against frames: '$$got'"; exit 1; fi
 	@./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$(./ck run ice/thaw.ck lens/all.ck ice/ice.ck < .ck-check.ice); rm -f .ck-check.ice; \
 	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \

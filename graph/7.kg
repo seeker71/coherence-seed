@@ -96,6 +96,29 @@ status: given
 see: 7.10 7.11 8.14
 at: 2026-11-25
 
+n: 7.24
+name: code-that-holds
+kind: decision
+is: How code is written here so that it holds the first time. Facts are rows and choices are choices: a target, a template, a rule or a relation is a row, and where there is more than one way, ordered choice takes the first that holds. Records have named parts. A part that can fail or answer nothing is bound before it is used, since a list built with all keeps neither. A mistake of the code faults; a refusal fails and leaves a note. Jumps name labels, not offsets.
+status: inferred
+from: 7.13 7.22 5.19.22 5.19.26
+see: 7.25
+conf: mid
+why: Three readers who ran the compiler graded it B- and found seven disagreements with frames. Each was a fact written twice, a part dropped without a word, or a jump counted by hand. Rewritten to these rules, the compiler agrees with frames over every case of 5.19.27.
+flip: A standard held by reading alone drifts; read against it before a commit by someone who runs the code, it holds.
+at: 2026-11-26
+
+n: 7.25
+name: a-new-path-comes-with-its-sweep
+kind: decision
+is: A new path comes with a ground program that runs it against its reference, the reference all the way down, over the boundaries of what it takes, and counts what it covered: how many cases, how many took the new path, how many it answered itself. The program is committed and runs in make check; a sweep run once in a session holds nothing.
+status: inferred
+from: 7.24 5.19.27 5.19.28
+conf: mid
+why: One ground program with two comparisons could not see the seven disagreements; the committed sweep of 5.19.27 saw them, and found two defects in the reference itself on its first run.
+flip: A reference that shares the new path's defect agrees with it; a third reading would see it.
+at: 2026-11-26
+
 n: 7.21
 name: every-part-swappable
 kind: plan

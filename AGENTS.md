@@ -44,7 +44,28 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
   or say plainly in `FLOOR.md` that it is not there.
 - **Say how a thing is known**, in plain words someone outside the session can follow.
 
+## Code that holds
+
+Written this way, code holds the first time and is not written again (graph nodes 7.24, 7.25).
+
+- **Facts are rows, choices are choices.** A target, a template, a rule or a relation is a row
+  that code reads, written once. Where there is more than one way, ordered choice takes the
+  first that holds.
+- **Name the parts.** A record's parts are read by name; a jump names its label.
+- **Bind before use.** A part that can fail or answer nothing is bound in a `let` before it is
+  used: `all`, and so `tuple`, keeps neither and puts back what was done inside it.
+- **Fault or fail, never guess.** A mistake of the code faults; a case it does not take fails
+  and leaves a note.
+- **Run it against its reference.** A new path comes with a ground program that runs it
+  against its reference all the way down, over the boundaries of what it takes, and answers the
+  cases that differ with counts of what it covered. A sweep run once in a session holds nothing.
+- **Mind two edges of the language.** A `let` takes the argument places after its recipe's
+  own, so a recipe called with more arguments than it names cannot bind one. A node a
+  definition steps sees only the bindings that definition sees, not those made after its layer.
+- **Read it as a second reader would**, against these points, before it is committed: by
+  running it, not only by reading it.
+
 ## Before a commit
 
-`make check` and `./kg check` pass, and `git log --format=%ae | sort -u` shows only the address
-the existing commits carry.
+`make check` and `./kg check` pass, a new path has its sweep among them, and
+`git log --format=%ae | sort -u` shows only the address the existing commits carry.

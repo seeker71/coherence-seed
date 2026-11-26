@@ -213,11 +213,11 @@ at: 2026-11-26
 n: 5.19.22
 name: machine-code-from-rules-and-rows
 kind: decision
-is: The compiler is a code rule for each category of the catalogue, kept under the category as the runtime's binding is, over the instruction set as rows: each instruction an entry with its base word and its fields. What an operator is in machine words is a row of templates whose holes take registers. Places stay unboxed in registers; where the runtime would answer nothing the code declines and the call runs on frames.
+is: The compiler is a code rule for each category of the catalogue, kept under the category as the runtime's binding is, over the target as rows (5.19.29). What an operator is in machine words is a row of templates whose holes are named roles. Places stay unboxed in registers; where the runtime would answer nothing the code declines and the call runs on frames.
 status: inferred
 from: 5.19.15 5.19.19 5.19.16 5.19.14
 conf: mid
-why: The kernel's encoder was a table of base words and field multipliers, and every word it wrote was byte-verified; here the table is nodes, so a new instruction or a new operator is a row and not a definition. A rule per category is the runtime's own dispatch, so the two cannot drift apart in what they cover.
+why: The kernel's encoder was a table of base words and field multipliers, and every word it wrote was byte-verified; here the table is nodes, so a new instruction, operator or register is a row and not a definition. A rule per category is the runtime's own dispatch, so the two cannot drift apart in what they cover. Observed: a review that found the frame and the door written as raw numbers in five places, and branches counted by hand, led to the target as rows and labels; the sweep of 5.19.27 holds the result.
 flip: Registers are given in order and a call saves every value in flight; a search over allocations and unrolling factors, scored by time, would choose better than one fixed rule.
 at: 2026-11-26
 
@@ -239,7 +239,7 @@ is: A declaration is compiled together with every declaration it calls into one 
 status: inferred
 from: 5.19.15 5.19.22
 conf: mid
-why: Each code leaf is copied into the code region on its own, so one leaf cannot branch into another; a leaf that holds what it calls needs no address resolved while it runs, and recursion through two declarations stays in machine code. The kernel's emitter compiled a module of definitions with what they call to one leaf. Observed: even and odd through two entries made one 356-byte leaf, and a million calls of a second declaration in a loop took 5.9 ms.
+why: Each code leaf is copied into the code region on its own, so one leaf cannot branch into another; a leaf that holds what it calls needs no address resolved while it runs, and recursion through two declarations stays in machine code. The kernel's emitter compiled a module of definitions with what they call to one leaf. Observed: even and odd through two entries stay in one leaf, and a million calls of a second declaration in a loop took about 1 ms beyond loading and compiling.
 flip: A leaf per declaration, called through a table the runtime keeps, would share code between callers and let a declaration be replaced without compiling its callers again.
 at: 2026-11-26
 
@@ -250,7 +250,7 @@ is: Each of the five cast rules is a row of how it rounds and what it does beyon
 status: inferred
 from: 5.19.21 5.19.22
 conf: mid
-why: Exact, nearest and truncate answer nothing beyond the range, saturate clamps and wrap keeps the low bits, in the runtime's own recipe for a cast. Binary64 holds ±2^63 and 2^64 exactly, so a float is bounded there before it becomes an integer. Observed: 12,690 casts between nine layouts by all five rules answered the same compiled and on frames in a session sweep.
+why: Exact, nearest and truncate answer nothing beyond the range, saturate clamps and wrap keeps the low bits, in the runtime's own recipe for a cast. Binary64 holds ±2^63 and 2^64 exactly, so a float is bounded there before it becomes an integer. Observed: every cast between nine layouts by all five rules over fourteen boundary values answered the same compiled and on frames all the way down (5.19.27).
 flip: A conversion the hardware does otherwise, a NaN's payload or an infinity under saturate, could be done in machine code by more instructions instead of declining.
 at: 2026-11-26
 
@@ -261,6 +261,41 @@ is: A code rule binds every part it builds before it puts the words together, so
 status: inferred
 from: 5.19.22
 conf: high
-why: A tuple gathers the answers of its parts, and a part that fails gives none. Observed in a cast sweep: a conversion the compiler could not write dropped out of the code and the function returned the wrong register. The same shape stood in reading a deep temporary, storing, returning, passing arguments and taking a callee's answer.
+why: A tuple gathers the answers of its parts with all, which keeps only answers that are something: a part that fails or answers nothing gives none. Observed in a cast sweep: a conversion the compiler could not write dropped out of the code and the function returned the wrong register. The same shape stood in reading a deep temporary, storing, returning, passing arguments and taking a callee's answer.
 flip: A builder of lists that failed with any part would let the rules build their words in place.
+at: 2026-11-26
+
+n: 5.19.27
+name: compiled-code-is-held-to-frames-all-the-way-down
+kind: decision
+is: Compiled code is held to the runtime by a ground program that runs each case both ways, the reference on frames all the way down, and answers the cases whose outcomes differ, with how many compiled and how many the machine code answered itself. The cases are every operator and cast over boundary values, through a call, and the edges of a call: arguments outside their layout, returns between widths, bools, a continue in a do loop, a literal beyond 64 bits, an argument that changes a local, a nothing as a condition and as an argument.
+status: observed
+from: 5.19.22 5.19.24 5.19.25 5.19.26
+src: 2.30.17
+conf: high
+why: A reference that runs its callees compiled cannot see a callee's defect, and a sweep that is not committed holds nothing. Counting what compiled and what the machine answered shows the comparison did not pass by declining. Observed on 2026-11-26: of 30,771 cases none differ, 27,699 compiled and 24,853 were answered by the machine code; it makes 2.57 million nodes, so make check runs it in a process of its own. Running it found two defects in the reference itself (5.19.28).
+flip: A defect the reference and the compiler share would agree with itself; a third reading, the hardware's own answer or a definition from outside, would see it.
+at: 2026-11-26
+
+n: 5.19.28
+name: on-frames-a-nothing-ends-the-call
+kind: decision
+is: On frames a nothing ends the call with no answer, wherever it stands: returned, passed, written, tested or left as a statement. A call's arguments are evaluated one after another, and each keeps what it changed.
+status: observed
+from: 5.19.14 5.19.26 5.19.27
+src: 2.30.17
+conf: high
+why: all keeps only answers that are something and undoes what was done inside it. Observed on 2026-11-26: a return built with a tuple of a nothing answered yes, so 5/0 returned yes on frames; and arguments evaluated under all lost their changes, so g(i++) left i where it was on frames and one higher in machine code. With one check that fails on a nothing and keeps its reason, a division by zero now answers nothing with the reason zero both ways.
+flip: A nothing carried out as a value, as a NaN is, would let a caller decide what it means; C leaves such a program undefined.
+at: 2026-11-26
+
+n: 5.19.29
+name: the-target-and-the-families-are-rows
+kind: decision
+is: The target is rows: each instruction an entry with its base word and its fields, each field a position, a width and a kind the packer checks; the condition codes with their inverses; which register does what. Each family of values, whole, real and truth, is a row of templates, and the relations a family admits are rows. Code is laid out with fresh labels and jumps that name them. Where there is more than one way, ordered choice takes the first that holds.
+status: inferred
+from: 5.19.22 7.24
+conf: mid
+why: A fact written once cannot disagree with itself. Observed: the frame, the door and the result kinds had stood as raw numbers in several definitions and branches were counted by hand; as rows and labels, nothing but the rows says them.
+flip: Rows chosen for one processor may hide what another needs, a register pair or a condition the first lacks.
 at: 2026-11-26

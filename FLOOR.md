@@ -19,7 +19,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,423 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,429 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -27,15 +27,16 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes.** It compares the header with its nodes and exercises 72 ground
-  programs and 146 encoding vectors. It checks ice across processes, unsigned and hardened
+- **`make check` passes.** It compares the header with its nodes and exercises 73 ground
+  programs, the sweep of compiled code against frames in a process of its own, and 146
+  encoding vectors. It checks ice across processes, unsigned and hardened
   native execution, recording and querying a live run, a deferred write on the chosen path,
   the budget for bare numeric reads and a resolved image run by id in a separate process.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
   the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 10,609 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 11,769 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
@@ -61,21 +62,26 @@ Each line here is held by a program that runs under `make check`, or names how i
   in 10,800 binary16, 32 and 64 cases and 6,264 comparisons. bfloat16, E5M2 and both E4M3
   kinds matched the hardware's binary32 result rounded back.
 - **A declared function becomes machine code as it runs.** At a function's first call the
-  runtime asks the compiler, which writes AArch64 for the whole function from rows of
-  instructions: parameters and locals unboxed in registers, integers kept at their width,
-  floats in their own registers. Where the runtime would answer nothing, the code declines and
-  the call runs on frames. fib to 30 took 3.4 ms with its compiling, Newton's root of 2 and
-  a harmonic sum in binary32 gave the frames' own bits (`ground/nums-compiled.ck`); 27,744
-  integer cases answered the same both ways in a session sweep.
+  runtime asks the compiler, which writes AArch64 for the whole function. What it knows is
+  rows: the instructions and their fields, the target's registers, each family's templates,
+  the relations a family admits, the cast rules. Parameters and locals stay unboxed in
+  registers, integers at their width, floats in their own registers. Where the runtime would
+  answer nothing, the code declines and the call runs on frames; a construct the compiler does
+  not take, or a fault while compiling, leaves the function on frames with a note of it. fib
+  to 30 took 3.6 ms with its compiling, and Newton's root of 2 and a harmonic sum in binary32
+  gave the frames' own bits (`ground/nums-compiled.ck`).
 - **A function and what it calls are one leaf.** A declaration compiles together with every
   declaration it calls, and a call is a branch between them; two declarations that call each
   other through declared entries stay in machine code, and a new declaration of an entry makes
   the leaves compiled before it compile again at their next call. The area under x² by a
-  million rectangles, a call of a second declaration each, took 5.9 ms on this M4; a thousand
-  took 156 ms on frames, with the same answer (`ground/nums-compiled.ck`). In session sweeps,
-  11,520 operator cases through a call and 12,690 casts between nine layouts by all five rules
-  answered the same compiled and on frames; the machine code answered 8,354 of the casts
-  itself and declined the rest, where the hardware's answer would not be the runtime's.
+  million rectangles, a call of a second declaration each, took about 1 ms on this M4 beyond
+  loading and compiling; a thousand took 159 ms on frames, with the same answer.
+- **Compiled code answers as frames do.** `ground/nums-compiled-agrees.ck` runs 30,771 cases
+  as machine code and on frames all the way down: every operator on six integer and two float
+  layouts through a call, every cast between nine layouts by all five rules, over fourteen
+  boundary values, and thirteen edges at the boundaries of a call. None differ. 27,699
+  compiled; the machine code answered 24,853 itself and declined the rest, where the
+  hardware's answer would not be the runtime's.
 - **A language can produce the graph.** Go and BML byte literals round-trip through frozen
   nodes, preserving composite blueprints and shared children (`ground/nums-portable.ck`).
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
@@ -143,7 +149,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 146 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 147 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -156,9 +162,12 @@ operation's arguments were being evaluated was handed their answers (found by as
 program); `step` evaluated its node in the activation of whatever computed it (found by running
 everything on the reader in form); the emitter trusted a recipe's own name where it did not mean
 the recipe (found reading it back); a witness compared the walker with the walker because its
-helper could not see the code (found by planting faults that nothing noticed).
+helper could not see the code (found by planting faults that nothing noticed); on frames a
+return whose value was nothing answered yes, and a call's arguments lost what they changed,
+because a list built with `all` drops a nothing and undoes what was done inside it (found by
+running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,240 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,246 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -169,9 +178,8 @@ helper could not see the code (found by planting faults that nothing noticed).
   code for whole functions. The recipes for switch, foreach, try, defer and go, full-language
   grammars, and GPU code are open. Members and objects run neither on frames nor in compiled
   code, and the compiler takes no more than six parameters at a call from outside and eight
-  between declarations. A nothing inside a declared function is not carried out of it on
-  frames: returned, a division by zero answers 1; written to a place, it faults `arity`.
-  Compiled code declines there, so both ways end alike. The ground programs and supported
+  between declarations. A function the compiler refuses keeps a note that it was refused, not
+  which construct refused it. The ground programs and supported
   layouts are listed in [the engine specification](spec/nums.md).
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 74 operations describe themselves as nodes, what each
