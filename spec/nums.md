@@ -27,6 +27,55 @@ section names is built; the rest is the design the work follows.
   or without tracking and tracing, boxed or unboxed, its stack and loops unrolled as the
   hardware wants. Either can stand in for the other while the system runs.
 
+## Loading and calling a resolved image
+
+`nums.image` is the entry at 16.2.4.1. Its first child initializes the bindings. Its second
+child is a list that keeps the public recipes, blueprints and constants reachable. The packer
+expands module imports once per image and freezes the resulting graph in dependency order.
+The export list can carry arbitrary user data. Argument names and the lexicon live in the
+authoring lens. The generic NUMS library, its AArch64 compiler and the example exports pack
+together as 7,178 nodes containing zero text leaves.
+
+```sh
+make
+./ck text nums/pack.ck < ground/nums-image.ck > /tmp/nums.ice
+./ck text ground/nums-requests.ck | ./seed-run /tmp/nums.ice | ./ck run ground/nums-replies.ck
+```
+
+`seed-run` loads the canonical binary records from the image. Its input and output are byte
+streams. It initializes once. Each request consists of one unsigned byte giving the number
+of arguments, a 32-byte target id, and one 32-byte id per argument. The direct port accepts
+zero to seven arguments. A list node can carry a longer argument vector. A bound operation
+receives its arguments as values. A recipe is called. A closed executable expression runs.
+Each reply has a one-byte outcome (0 nothing, 1 node, 2 fault), the 32-byte id of its value
+or reason, a four-byte little-endian archive length and that many bytes of frozen graph.
+Further requests in the session can refer to returned ids, including a constructed cell with
+mutable room storage. The returned graph preserves immutable structure. Resuming a live room
+across processes also needs the state of its framebuffer.
+
+Bootstrap status nodes belong to 16.2.3. The words `e.arity`, `e.range` and their peers
+belong to the display lens. A numeric host call dispatches a bound capability by id. The
+numeric observer submits and receives content ids. The `ck run` and `ck text` tools retain
+their text-facing diagnostic convention.
+
+## Execution and specialization
+
+The generic evaluator defines the observable result, including the writes restored by a
+failed choice. A machine implementation uses the same recipe id. A target specialization
+also depends on the processor and instruction set, input layouts, calling convention and the
+observations requested by the caller. A bare machine-code leaf is meaningful for the target
+that produced it. The choice of boxed or unboxed values belongs to the calling convention.
+Stack expansion and loop unrolling belong to a compilation decision for a particular shape
+and target. A variant that omits observation points can run where those observations are
+optional. The walker supplies the common, observable execution path.
+
+On Apple silicon the numeric image can call the Form AArch64 compiler by id while the session
+is live. The same recipe for `x + 2*y` is called with 20 and 11 before and after compilation.
+It yields 42 both times. The compiler returns a 244-byte code leaf on the observed target.
+The generic recipe runs through a separate process in `make check`; the native portion runs
+on Darwin arm64. GPU execution, general stack and loop unrolling, and measured target-specific
+selection across those variants are design work.
+
 ## Coordinates
 
 A catalogue entry is addressed by four numbers, `package.level.type.instance`, as axiom 2 and

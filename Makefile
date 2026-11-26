@@ -9,12 +9,15 @@ CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
-all: ck fb kg
+all: ck fb kg seed-run
 
 ck: $(BOOT)
 	@n=$$(cat $(BOOT) | wc -l); if [ $$n -gt $(BUDGET) ]; then \
 	  echo "the bootstrap has $$n lines; its budget is $(BUDGET)"; exit 1; fi
 	$(CC) $(CFLAGS) -o ck bootstrap/ck.c
+
+seed-run: ck $(BOOT)
+	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c
 
 # The observer: a second process that shows, records and replays a framebuffer.
 fb: tools/fb.c bootstrap/fb.h
@@ -41,7 +44,7 @@ watch: ck fb
 # second process whose last frame holds the answer and names the node that wrote it, and a run
 # asked from a second process to count its own additions while it goes on, and a search that
 # writes a file only for the path that held.
-check: ck fb
+check: ck fb seed-run
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
 	@got=$$(./ck run ground/check.ck); \
@@ -81,7 +84,15 @@ check: ck fb
 	  if [ "$${n:-99999}" -le $(BARE) ]; then echo "parts by name: $$n reads by a bare number are left in the stored form, within the budget of $(BARE)"; \
 	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; exit 1; fi
 
+	@set -e; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; runner="$(CURDIR)/seed-run"; \
+	  ./ck text nums/pack.ck < ground/nums-image.ck > "$$work/image"; \
+	  ./ck text ground/nums-requests.ck > "$$work/requests"; \
+	  case "$$(uname -sm)" in "Darwin arm64") ./ck text ground/nums-native-requests.ck >> "$$work/requests";; esac; \
+	  (cd "$$work" && "$$runner" image < requests > replies); \
+	  test "$$(./ck run ground/nums-replies.ck < "$$work/replies")" = 'node #33'; \
+	  echo "id execution: a numeric image ran by content id from an isolated directory"
+
 clean:
-	rm -f ck fb kg .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
+	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
 .PHONY: all check watch clean header

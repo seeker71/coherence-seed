@@ -7,8 +7,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,282 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,462 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -16,7 +16,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 70 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 72 that witness the above; one more runs them and judges how each ends |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
 | Claim graph | [`graph/`](graph) | 1,407 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
@@ -26,13 +26,20 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, eight lines: the header against its nodes; 71 ground programs and the
+- **`make check` passes**, nine lines: the header against its nodes; 72 ground programs and the
   146 vectors, judged by a program in form; ice across two processes; native code unsigned and
   hardened; a run recorded from a second process; a run asked from one; a search that writes
   a file only for the path that held; and the reads by a bare number against their budget.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
   the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
+- **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
+  ids. The generic engine plus the compiler packs as 7,178 nodes with zero text leaves.
+  In a single process a constructor returned a cell id, a reader returned zero, and a writer
+  and reader used that id to store and recover 42. On this machine the AArch64 compiler
+  returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
+  requests and checked replies are in `ground/nums-image.ck`, `ground/nums-requests.ck`,
+  `ground/nums-native-requests.ck` and `ground/nums-replies.ck`.
 - **A cell can hold its bytes alone.** `take` makes a room in the region under a blueprint, and
   `load` and `store` read and change 1, 2, 4 or 8 of its bytes in place; the room's head names
   its blueprint and its last writer. Constructed object views share one room. Its fixed-width
@@ -104,7 +111,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 131 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 139 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -119,7 +126,7 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,225 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,228 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -127,13 +134,8 @@ helper could not see the code (found by planting faults that nothing noticed).
   layouts, typed method dispatch and specialization, a genetic population and two expression
   lenses run, and so does a generic runtime for declared functions: frames in rooms, control as
   written and integer arithmetic of every width. Arithmetic on floats, the recipes for switch,
-  foreach, try, defer and go, full-language grammars, and a compiler from these nodes to
-  machine code are open. The ground programs and supported layouts are listed in [the engine
+  foreach, try, defer and go, full-language grammars, and complete CPU and GPU code generation are open. The ground programs and supported layouts are listed in [the engine
   specification](spec/nums.md).
-- **Reasons as nodes.** The bootstrap names a refusal or a fault with a text leaf in English
-  (`range`, `arity`), and `outcome` answers with the words `node`, `nothing` and `fault`; the
-  runtime is to hold no text but what it shows (graph node 5.19.13), so these are still to
-  become nodes.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 74 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
@@ -158,9 +160,9 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 131
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 139
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile's 87 lines, eleven pages, the claim
+  graph's checker (662 lines of C under `tools/`), the Makefile's 98 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
   Makefile's shell.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a

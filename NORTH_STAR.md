@@ -8,6 +8,10 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
   are the ground. Everything else can move, and says how it is known.
 - **One numeric space.** Blueprints, recipes and cells are immutable nodes identified by their
   content. This space is the root of every language; symbols are attached to it, never part of it.
+- **Execution by identity.** The engine receives resolved numeric nodes. The ids of a
+  blueprint, recipe and cell suffice to construct a value, execute a call and observe its
+  result. The walker and the compiler consume the same nodes. A language lens supplies words
+  when a person reads or writes a program.
 - **One grammar, one dialect.** A language, human or machine, is a lens that reads text into nodes
   and prints nodes back. There is one home grammar and no second dialect of it.
 - **States, not kinds.** Ice is the small essential part that must persist, water a held working

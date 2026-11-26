@@ -134,9 +134,9 @@ at: 2026-11-26
 n: 5.19.13
 name: the-runtime-reads-no-words
 kind: decision
-is: The guide's word of 2026-11-26: the runtime needs no language symbols and holds no English except what it prints to a screen; it loads nodes as numeric payloads and runs them by their ids alone, blueprint, recipe and cell, with nothing left to resolve. It is a generic runtime, or one that turns any recipe into CPU or GPU code, with or without tracking, tracing and boxing, its stack and loops unrolled, as the hardware wants.
+is: the form runtime execution engine should not need any language symbols, just nodes as constants, it should have the absolute minimum of strings, and I don't see any reason it should contain any english unless it is printing something on the screen, the engine and runtime should only load nodes as numeric payloads and should be able to execute them with just node-ids (blueprint-ids, recipe-ids, cell-ids), with no need for symbols to glue it all together or resolve, all is already resolved,
 status: given
-by: guide
+by: owner
 see: 5.19.1 5.19.8
 at: 2026-11-26
 
@@ -149,4 +149,13 @@ from: 5.19.8 5.19.13 5.7.6
 conf: mid
 why: The walker already looks a node's recipe up by number and shows where it stands; a second loop written over it would hide the node that runs behind its own.
 flip: A lazy recipe takes its parts through a call built for them, which costs a node per shape and several steps per use; the walker could give the parts itself.
+at: 2026-11-26
+
+n: 5.19.15
+name: one-recipe-on-many-targets
+kind: decision
+is: and we can either have a generic runtime, or a JIT runtime that can turn any recipe into CPU or GPU machine code with and without tracking, tracing, boxing, unboxed, stack unrolling, loop unrolling and all the other fancy optimizations that can produce hardware optimal code from the generic description in the NUMS (numeric space) as form nodes.
+status: given
+by: owner
+see: 5.19.13 5.19.14
 at: 2026-11-26

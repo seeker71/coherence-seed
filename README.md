@@ -23,8 +23,10 @@ make
 `ck` is the bootstrap: [`bootstrap/ck.c`](bootstrap/ck.c) with the memory layout
 [`bootstrap/fb.h`](bootstrap/fb.h), under a budget of 2,000 lines that the build enforces. It holds
 a node store, a reader and printer of the canonical print, a walker over the operations in
-[`spec/core-operations.md`](spec/core-operations.md), and the birth of machine-code pages. It has
-two commands, `run` and `text`; everything else is a program they run.
+[`spec/core-operations.md`](spec/core-operations.md), and the birth of machine-code pages. The authoring commands are
+`ck run` and `ck text`. The standalone `seed-run` executable and `ck execute` accept a frozen
+image and calls by content id. A client can reuse a returned cell id or invoke the compiler
+in the same session. The wire format and a runnable example are in [the NUMS specification](spec/nums.md).
 
 ## Read it and write it
 

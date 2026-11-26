@@ -33,7 +33,10 @@ Evaluating a node is an offer. It ends in exactly one of:
   children or arithmetic on something that is not a number. A fault unwinds to the nearest
   `recover`, or ends the run.
 
-A reason is a node, most often a text leaf. It is exempt from undo. `(fault r)`, entry 85, is a
+A reason is a node and is exempt from undo. On the numeric port the bootstrap's reasons and
+the tags returned by `outcome` are catalogue entries in 16.2.3. The text-facing commands
+supply the original text labels for their callers. The wire representation and image loader
+are specified in [the NUMS specification](nums.md). `(fault r)`, entry 85, is a
 program's own fault: it breaks off with the reason r exactly as the walker's faults do, through
 every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 

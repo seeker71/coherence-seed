@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -45,7 +46,10 @@ static void put(int fd, const char *s) {
   for (size_t n = strlen(s); n; ) { ssize_t w = write(fd, s, n); if (w <= 0) exit(2); s += w; n -= (size_t)w; }
 }
 static void die(const char *m) { put(2, "ck: "); put(2, m); put(2, "\n"); exit(2); }
+#ifndef NUMERIC_PORT
 static void say(const char *a, const char *b) { put(1, a); put(1, b); put(1, "\n"); }
+
+#endif
 
 /* ---- the host: every capability the floor takes from it, one function each ------- */
 typedef struct { int64_t v, k; } Ret;              /* what code answers: v, and k saying what v is */
@@ -278,39 +282,94 @@ static int utf8_ok(const uint8_t *s, size_t n) {
   return 1;
 }
 /* spec/node-encoding.md sections 4 and 5: the rule a node with this blueprint breaks, or NULL. */
-static const char *rule(int comp, H bp, const void *payload, uint32_t n) {
+#define STATUS_ROWS(X) \
+  X(S_OK, 0, "") \
+  X(S_ARG, 1, "arg") \
+  X(S_ARITY, 2, "arity") \
+  X(S_CHILD_LENGTH, 3, "child-length") \
+  X(S_COMPOSITE_ONLY, 4, "composite-only") \
+  X(S_CRASH, 5, "crash") \
+  X(S_DECLINED, 6, "declined") \
+  X(S_EMPTY, 7, "empty") \
+  X(S_FAULT, 8, "fault") \
+  X(S_FORWARD, 9, "forward") \
+  X(S_FULL, 10, "full") \
+  X(S_ID, 11, "id") \
+  X(S_IMAGE, 12, "image") \
+  X(S_IRREVERSIBLE, 13, "irreversible") \
+  X(S_KEPT, 14, "kept") \
+  X(S_KIND, 15, "kind") \
+  X(S_LEAF_ONLY, 16, "leaf-only") \
+  X(S_MINIMAL, 17, "minimal") \
+  X(S_NAN, 18, "nan") \
+  X(S_NO_ANSWER, 19, "no-answer") \
+  X(S_NO_FILE, 20, "no-file") \
+  X(S_NO_NATIVE, 21, "no-native") \
+  X(S_NO_NODE, 22, "no-node") \
+  X(S_NO_PATH, 23, "no-path") \
+  X(S_NO_RECIPE, 24, "no-recipe") \
+  X(S_NO_REGION, 25, "no-region") \
+  X(S_NO_SYMBOL, 26, "no-symbol") \
+  X(S_NODE, 27, "node") \
+  X(S_NOT_A_RECIPE, 28, "not-a-recipe") \
+  X(S_NOT_CANONICAL, 29, "not-canonical") \
+  X(S_NOTHING, 30, "nothing") \
+  X(S_NOTHING_BLUEPRINT, 31, "nothing-blueprint") \
+  X(S_NOTHING_CHILD, 32, "nothing-child") \
+  X(S_NOTHING_IN, 33, "nothing-in") \
+  X(S_ORDINAL, 34, "ordinal") \
+  X(S_RANGE, 35, "range") \
+  X(S_ROOT, 36, "root") \
+  X(S_SHORT, 37, "short") \
+  X(S_SYNTAX, 38, "syntax") \
+  X(S_TRAILING, 39, "trailing") \
+  X(S_UNBOUND, 40, "unbound") \
+  X(S_UNKNOWN, 41, "unknown") \
+  X(S_UTF8, 42, "utf8") \
+  X(S_WIDTH, 43, "width") \
+  X(S_ZERO, 44, "zero")
+#define STATUS_VALUE(key, value, label) key = value,
+typedef enum { STATUS_ROWS(STATUS_VALUE) } Status;
+#undef STATUS_VALUE
+#ifdef NUMERIC_PORT
+#define numeric_io 1
+#else
+static int numeric_io;
+#endif
+static H notice(Status status);
+static Status rule(int comp, H bp, const void *payload, uint32_t n) {
   const uint8_t *b = payload;
-  if (!bp) return "nothing-blueprint";
-  if (comp) for (uint32_t i = 0; i < n; i++) if (!((const H *)payload)[i]) return "nothing-child";
+  if (!bp) return S_NOTHING_BLUEPRINT;
+  if (comp) for (uint32_t i = 0; i < n; i++) if (!((const H *)payload)[i]) return S_NOTHING_CHILD;
   long long c = catn(bp);
-  if (c < 0 || c >= 32) return NULL;
-  if (c == 15 || c >= 17) return "kept";
-  if (c == 16) return comp ? NULL : "composite-only";
-  if (comp) return "leaf-only";
+  if (c < 0 || c >= 32) return S_OK;
+  if (c == 15 || c >= 17) return S_KEPT;
+  if (c == 16) return comp ? S_OK : S_COMPOSITE_ONLY;
+  if (comp) return S_LEAF_ONLY;
   switch (c) {
-  case 0: return (n >= 1 && n <= 8 && b[n-1] != 0 && !(n == 8 && b[7] & 0x80)) ? NULL : "ordinal";
-  case 2: return utf8_ok(b, n) ? NULL : "utf8";
-  case 3: return (n == 0 || b[n-1] != 0) ? NULL : "minimal";
+  case 0: return (n >= 1 && n <= 8 && b[n-1] != 0 && !(n == 8 && b[7] & 0x80)) ? S_OK : S_ORDINAL;
+  case 2: return utf8_ok(b, n) ? S_OK : S_UTF8;
+  case 3: return (n == 0 || b[n-1] != 0) ? S_OK : S_MINIMAL;
   case 4:
-    if (n == 0) return NULL;
-    if (b[n-1] == 0x00 && (n == 1 || !(b[n-2] & 0x80))) return "minimal";
-    if (b[n-1] == 0xff && n >= 2 && (b[n-2] & 0x80)) return "minimal";
-    return NULL;
-  case 5: case 9:  return n == 1 ? NULL : "width";
-  case 6: case 10: return n == 2 ? NULL : "width";
-  case 7: case 11: return n == 4 ? NULL : "width";
-  case 8: case 12: return n == 8 ? NULL : "width";
+    if (n == 0) return S_OK;
+    if (b[n-1] == 0x00 && (n == 1 || !(b[n-2] & 0x80))) return S_MINIMAL;
+    if (b[n-1] == 0xff && n >= 2 && (b[n-2] & 0x80)) return S_MINIMAL;
+    return S_OK;
+  case 5: case 9:  return n == 1 ? S_OK : S_WIDTH;
+  case 6: case 10: return n == 2 ? S_OK : S_WIDTH;
+  case 7: case 11: return n == 4 ? S_OK : S_WIDTH;
+  case 8: case 12: return n == 8 ? S_OK : S_WIDTH;
   case 13: {
-    if (n != 4) return "width";
+    if (n != 4) return S_WIDTH;
     uint32_t u = (uint32_t)b[0] | (uint32_t)b[1] << 8 | (uint32_t)b[2] << 16 | (uint32_t)b[3] << 24;
-    return ((u & 0x7f800000u) == 0x7f800000u && (u & 0x007fffffu) && u != 0x7fc00000u) ? "nan" : NULL; }
+    return ((u & 0x7f800000u) == 0x7f800000u && (u & 0x007fffffu) && u != 0x7fc00000u) ? S_NAN : S_OK; }
   case 14: {
-    if (n != 8) return "width";
+    if (n != 8) return S_WIDTH;
     uint64_t u = 0; for (int i = 7; i >= 0; i--) u = u << 8 | b[i];
     return ((u & 0x7ff0000000000000ull) == 0x7ff0000000000000ull && (u & 0x000fffffffffffffull)
-            && u != 0x7ff8000000000000ull) ? "nan" : NULL; }
+            && u != 0x7ff8000000000000ull) ? S_NAN : S_OK; }
   }
-  return NULL;
+  return S_OK;
 }
 static uint32_t hash(int comp, H bp, const void *payload, uint32_t n) {
   uint32_t h = 2166136261u ^ (uint32_t)comp; const uint8_t *p = payload;
@@ -326,7 +385,7 @@ static void tab_put(H h) {
 }
 /* The one node with this content. Refused content sets *why and answers nothing.
  * A new record is whole before nn moves past it; its writer is the node now running. */
-static H mk(int comp, H bp, const void *payload, uint32_t n, const char **why) {
+static H mk(int comp, H bp, const void *payload, uint32_t n, Status *why) {
   if (bp || nn > 1) { if ((*why = rule(comp, bp, payload, n))) return 0; }
   size_t sz = comp ? (size_t)n * sizeof(H) : n;
   if (!tcap || nn * 2 > tcap) {                 /* the table by content grows where it lies */
@@ -377,33 +436,33 @@ static const uint8_t *idof(H h) {         /* section 3 */
 static H byid(const uint8_t *id) { return icap ? idtab[idslot(id)] : 0; }
 static const uint8_t ZERO[32];
 /* Section 2 read backwards: the node these canonical bytes are, every part already known. */
-static H from_bytes(const uint8_t *b, size_t len, const char **why) {
-  *why = NULL;
-  if (len < 33) { *why = "short"; return 0; }
-  if (b[0] > 1) { *why = "kind"; return 0; }
+static H from_bytes(const uint8_t *b, size_t len, Status *why) {
+  *why = S_OK;
+  if (len < 33) { *why = S_SHORT; return 0; }
+  if (b[0] > 1) { *why = S_KIND; return 0; }
   size_t n = len - 33; int comp = b[0];
-  if (!memcmp(b + 1, ZERO, 32)) { if (!comp && !n) return ROOT; *why = "nothing-blueprint"; return 0; }
+  if (!memcmp(b + 1, ZERO, 32)) { if (!comp && !n) return ROOT; *why = S_NOTHING_BLUEPRINT; return 0; }
   if (comp) {
-    if (n % 32) { *why = "child-length"; return 0; }
-    for (size_t i = 0; i < n; i += 32) if (!memcmp(b + 33 + i, ZERO, 32)) { *why = "nothing-child"; return 0; }
+    if (n % 32) { *why = S_CHILD_LENGTH; return 0; }
+    for (size_t i = 0; i < n; i += 32) if (!memcmp(b + 33 + i, ZERO, 32)) { *why = S_NOTHING_CHILD; return 0; }
   }
-  H bp = byid(b + 1), h; if (!bp) { *why = "unknown"; return 0; }
+  H bp = byid(b + 1), h; if (!bp) { *why = S_UNKNOWN; return 0; }
   if (comp) {
     uint32_t m = (uint32_t)(n / 32), base = ntk; room(A_GATHERING_CHILDREN, (uint64_t)ntk + m);
-    for (uint32_t i = 0; i < m; i++) if (!(tk[base + i] = byid(b + 33 + 32 * (size_t)i))) { *why = "unknown"; return 0; }
+    for (uint32_t i = 0; i < m; i++) if (!(tk[base + i] = byid(b + 33 + 32 * (size_t)i))) { *why = S_UNKNOWN; return 0; }
     h = mk(1, bp, tk + base, m, why);
   } else h = mk(0, bp, b + 33, (uint32_t)n, why);
   if (h) { uint8_t id[32]; sha256(b, len, id); setid(h, id); }
   return h;
 }
 static void store_init(void) {
-  const char *why; uint8_t b[4];
+  Status why; uint8_t b[4];
   mk(0, 0, "", 0, &why);                                  /* the root: blueprint nothing, no bytes */
   for (uint32_t n = 1; n < SEEDED; n++) { b[0] = (uint8_t)n; mk(0, ROOT, b, 1, &why); }
   for (H h = 1; h <= SEEDED; h++) idof(h);
   memcpy(fb->magic, FB_MAGIC, 8);                         /* from here a reader can make sense of the region */
 }
-static H txt(const char *s) { const char *why; return mk(0, E(TEXT), s, (uint32_t)strlen(s), &why); }
+static H txt(const char *s) { Status why; return mk(0, E(TEXT), s, (uint32_t)strlen(s), &why); }
 static int geti(H h, int64_t *out) {
   if (!h || nd[h].comp || nd[h].bp != E(INT) || nd[h].n > 8) return 0;
   uint32_t n = nd[h].n; const uint8_t *b = bytes + nd[h].off;
@@ -412,7 +471,7 @@ static int geti(H h, int64_t *out) {
   *out = (int64_t)u; return 1;
 }
 static H mki(int64_t v) {
-  uint8_t b[8]; uint32_t n = 8; const char *why;
+  uint8_t b[8]; uint32_t n = 8; Status why;
   for (int i = 0; i < 8; i++) b[i] = (uint8_t)((uint64_t)v >> (8 * i));
   while (n > 1 && ((b[n-1] == 0x00 && !(b[n-2] & 0x80)) || (b[n-1] == 0xff && (b[n-2] & 0x80)))) n--;
   if (n == 1 && b[0] == 0) n = 0;
@@ -420,8 +479,8 @@ static H mki(int64_t v) {
 }
 
 /* ---- section 6: the canonical print, read and written -------------------------------- */
-typedef struct { const char *p, *err; } Rd;               /* where the reader stands, and its first refusal */
-static H refuse(Rd *r, const char *w) { if (!r->err) r->err = w; return 0; }
+typedef struct { const char *p; Status err; } Rd;               /* where the reader stands, and its first refusal */
+static H refuse(Rd *r, Status w) { if (!r->err) r->err = w; return 0; }
 static int number(Rd *r, uint64_t *out) {   /* at most 2^63 - 1, so one signed word holds any entry */
   const char *p = r->p;
   if (*p < '0' || *p > '9' || (*p == '0' && p[1] >= '0' && p[1] <= '9')) return 0;
@@ -431,16 +490,16 @@ static int number(Rd *r, uint64_t *out) {   /* at most 2^63 - 1, so one signed w
 }
 static int hexval(char c) { return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1; }
 static H read_node(Rd *r) {
-  uint64_t n; const char *why;
+  uint64_t n; Status why;
   if (*r->p == '#') {
-    r->p++; if (!number(r, &n)) return refuse(r, "syntax");
+    r->p++; if (!number(r, &n)) return refuse(r, S_SYNTAX);
     if (n < SEEDED) return E(n);
     uint8_t b[8]; uint32_t len = 0; for (; n; n >>= 8) b[len++] = (uint8_t)n;
     return mk(0, ROOT, b, len, &why);
   }
-  if (*r->p == '^') { r->p++; if (!number(r, &n)) return refuse(r, "syntax");
-    return (n < nopen && opened[n]) ? opened[n] : refuse(r, "forward"); }
-  if (*r->p != '[' && *r->p != '(') return refuse(r, "syntax");
+  if (*r->p == '^') { r->p++; if (!number(r, &n)) return refuse(r, S_SYNTAX);
+    return (n < nopen && opened[n]) ? opened[n] : refuse(r, S_FORWARD); }
+  if (*r->p != '[' && *r->p != '(') return refuse(r, S_SYNTAX);
   int comp = *r->p++ == '('; uint32_t me = nopen; H x;
   room(A_READER_OPENED, (uint64_t)nopen + 1); opened[nopen++] = 0;
   H bp = read_node(r); if (!bp) return 0;
@@ -448,29 +507,29 @@ static H read_node(Rd *r) {
     uint32_t base = ntk;
     while (*r->p == ' ') { r->p++; H k = read_node(r); if (!k) { ntk = base; return 0; }
       room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = k; }
-    if (*r->p++ != ')') { ntk = base; return refuse(r, "syntax"); }
+    if (*r->p++ != ')') { ntk = base; return refuse(r, S_SYNTAX); }
     x = mk(1, bp, tk + base, ntk - base, &why); ntk = base;
   } else {
     uint32_t base = ntb;
     if (*r->p == ' ') { r->p++;
-      if (hexval(*r->p) < 0) return refuse(r, "syntax");
+      if (hexval(*r->p) < 0) return refuse(r, S_SYNTAX);
       while (hexval(*r->p) >= 0) {
-        if (hexval(r->p[1]) < 0) { ntb = base; return refuse(r, "syntax"); }
+        if (hexval(r->p[1]) < 0) { ntb = base; return refuse(r, S_SYNTAX); }
         room(A_GATHERING_BYTES, (uint64_t)ntb + 1); tb[ntb++] = (uint8_t)(hexval(r->p[0]) << 4 | hexval(r->p[1])); r->p += 2; } }
-    if (*r->p++ != ']') { ntb = base; return refuse(r, "syntax"); }
+    if (*r->p++ != ']') { ntb = base; return refuse(r, S_SYNTAX); }
     x = mk(0, bp, tb + base, ntb - base, &why); ntb = base;
   }
   if (!x) return refuse(r, why);
-  if (catn(x) >= 0) return refuse(r, "not-canonical");                         /* rule 2 */
-  for (uint32_t j = 0; j < nopen; j++) if (opened[j] == x) return refuse(r, "not-canonical");     /* rule 4 */
+  if (catn(x) >= 0) return refuse(r, S_NOT_CANONICAL);                         /* rule 2 */
+  for (uint32_t j = 0; j < nopen; j++) if (opened[j] == x) return refuse(r, S_NOT_CANONICAL);     /* rule 4 */
   opened[me] = x; return x;
 }
 /* A print ends with the text or at a line end. What a file holds after that line lies beside
  * the node and is no part of it: a lens keeps the names it gave there. */
-static H read_print(const char *s, const char **why) {    /* s lies in the region */
-  Rd r = { s, NULL }; nopen = 0;
+static H read_print(const char *s, Status *why) {    /* s lies in the region */
+  Rd r = { s, S_OK }; nopen = 0;
   H x = read_node(&r);
-  if (x && *r.p && *r.p != '\n') x = refuse(&r, "syntax");
+  if (x && *r.p && *r.p != '\n') x = refuse(&r, S_SYNTAX);
   *why = r.err; return x;
 }
 static void oput(const char *s) { uint32_t l = (uint32_t)strlen(s); room(A_PRINT, (uint64_t)nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
@@ -581,7 +640,7 @@ static long long argn(H x) {              /* which argument a node (arg k) names
 }
 /* The calls held back by after, oldest first, as one node to run now that no choice is open. */
 static H due(void) {
-  H s[64], p[8]; uint32_t n = 0, at = 0; const char *why;
+  H s[64], p[8]; uint32_t n = 0, at = 0; Status why;
   while (at < nafter && n < 64) {
     uint32_t c = aft[at++]; p[0] = aft[at];
     for (uint32_t j = 1; j < c; j++) p[j] = mk(1, E(QUOTE), &aft[at + j], 1, &why);
@@ -604,10 +663,10 @@ static H callee(H v, H *a, uint32_t *n) {
   }
   return is_recipe(v) ? v : 0;
 }
-static void fault(const char *w) { W->reason = txt(w); W->mode = M_FAULT; }
+static void fault(Status w) { W->reason = notice(w); W->mode = M_FAULT; }
 static void answer(H v) { W->v = v; W->mode = M_RET; }
 /* What an outcome answers: a word and a node, as 'ck run' prints them. */
-static H seen_as(const char *word, H v) { const char *why; H p[2] = { txt(word), v }; return mk(1, E(LIST), p, 2, &why); }
+static H seen_as(Status tag, H v) { Status why; H p[2] = { notice(tag), v }; return mk(1, E(LIST), p, 2, &why); }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
  * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
@@ -620,7 +679,7 @@ static void crashed(int sig) {
 static uint32_t left;
 static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
 static int landed(void *fn, int64_t *arg) {
-  if (!fn) { W->v = 0; W->reason = txt("no-native"); return 1; }
+  if (!fn) { W->v = 0; W->reason = notice(S_NO_NATIVE); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address in its seventh register */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
   if (r.k == 3 || (r.k == 4 && !r.v)) { nnoted = 0; return 0; }    /* and the notes of code that declined are dropped: the walker */
@@ -630,7 +689,7 @@ static int landed(void *fn, int64_t *arg) {
   }
   nnoted = 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
-  else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = txt("range"); }
+  else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = notice(S_RANGE); }
   return 1;
 }
 /* The values code is given: an integer as the number it is, any other as its node's handle. The
@@ -656,7 +715,7 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
   H impl = B(b)->impl, t[9]; int64_t arg[8] = {0};
   if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
-    if (!r || !nd[B(r)->impl].comp || c > 8) { fault("kind"); return 1; }
+    if (!r || !nd[B(r)->impl].comp || c > 8) { fault(S_KIND); return 1; }
     t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
@@ -681,82 +740,82 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
 /* Entries 64 to 71: a node taken apart, a node built from parts, and an entry bound. A build
  * the encoding refuses answers nothing, and the reason is the refusal's word. */
 static void parts(long long op, const H *a, uint32_t c, int own) {
-  const char *why = NULL; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
-  if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault("arity"); return; }
-  if (!x || (c == 2 && !l)) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  Status why = S_OK; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
+  if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault(S_ARITY); return; }
+  if (!x || (c == 2 && !l)) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
   if (op == PRINT) { print(x); W->v = mk(0, E(TEXT), ob, nob, &why); return; }
   if (op == ID) { W->v = mk(0, E(BYTES), idof(x), 32, &why); return; }
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
-    if (nd[x].comp) { fault("kind"); return; }
+    if (nd[x].comp) { fault(S_KIND); return; }
     uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
-    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = txt(why); }
+    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = notice(why); }
     else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
-      if (got < 0) { W->v = 0; W->reason = txt("no-file"); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
+      if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
     ntext = m; return;
   }
   if (op == BIND) {                       /* x: an entry that is not data, or a composite such as a recipe or an */
     long long e = catn(x);                /* instance of one; l: a recipe, a lazy or a leaf */
-    if ((e >= 0 && is_data(e)) || (e < 0 && !nd[x].comp) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault("kind"); return; }
+    if ((e >= 0 && is_data(e)) || (e < 0 && !nd[x].comp) || (nd[l].comp && !is_recipe(l) && !is_lazy(l))) { fault(S_KIND); return; }
     if (!own) {                           /* bound from outside the run: seen at every limit, and no fail undoes it */
-      if (nout == OMOST) { fault("full"); return; }
+      if (nout == OMOST) { fault(S_FULL); return; }
       out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout, 0 }; nout++; W->v = E(YES); return; }
     room(A_BINDINGS, (uint64_t)nbind + 1); room(A_BOUND_BY_NODE, (uint64_t)x + 1); if (N(A_BOUND_BY_NODE) <= x) N(A_BOUND_BY_NODE) = x + 1;
     bd[nbind] = (Binding){ E(BINDING), W->at, x, l, bykey[x], nbind, 0 }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
-  if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = txt("root"); return; }
+  if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = notice(S_ROOT); return; }
   if (op == COUNT) { W->v = mki(nd[x].n); return; }
   if (op == LEAF) { W->v = nd[x].comp ? E(NO) : E(YES); return; }
   if (op == CHILD || op == BYTE) {
-    if (nd[x].comp != (op == CHILD) || !geti(l, &k)) { fault("kind"); return; }
-    if (k < 0 || (uint64_t)k >= nd[x].n) { W->v = 0; W->reason = txt("range"); return; }
+    if (nd[x].comp != (op == CHILD) || !geti(l, &k)) { fault(S_KIND); return; }
+    if (k < 0 || (uint64_t)k >= nd[x].n) { W->v = 0; W->reason = notice(S_RANGE); return; }
     W->v = op == CHILD ? KID(x, k) : mki(bytes[nd[x].off + k]); return;
   }
-  if (!nd[l].comp || nd[l].bp != E(LIST)) { fault("kind"); return; }
+  if (!nd[l].comp || nd[l].bp != E(LIST)) { fault(S_KIND); return; }
   uint32_t n = nd[l].n;
   if (op == JOIN) W->v = mk(1, x, kids + nd[l].off, n, &why);
   else {
     room(A_GATHERING_BYTES, (uint64_t)ntb + n);
     for (uint32_t i = 0; i < n; i++) {
-      if (!geti(KID(l, i), &k)) { fault("kind"); return; }
-      if (k < 0 || k > 255) { W->v = 0; W->reason = txt("range"); return; }
+      if (!geti(KID(l, i), &k)) { fault(S_KIND); return; }
+      if (k < 0 || k > 255) { W->v = 0; W->reason = notice(S_RANGE); return; }
       tb[ntb + i] = (uint8_t)k;
     }
     W->v = mk(0, x, tb + ntb, n, &why);
   }
-  if (!W->v) W->reason = txt(why);
+  if (!W->v) W->reason = notice(why);
 }
 
 /* The operations on values alone, the values in hand. env is the activation they are done in, and
  * node the node that asked, for a range. */
 static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
-  const char *why; int64_t m, n, r = 0;
+  Status why; int64_t m, n, r = 0;
   if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
     H none[MOST]; uint32_t n0 = 0;
-    if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); return; }
+    if (!callee(a[0], none, &n0)) { fault(S_NOT_A_RECIPE); return; }
     for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
-    if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     W->v = mk(1, E(CLOSED), a, c, &why); return;
   }
   if (op == FAULT) {                  /* the program's own fault: its reason is whatever node it gives */
-    if (c != 1) { fault("arity"); return; }
-    W->reason = a[0] ? a[0] : txt("nothing-in"); W->mode = M_FAULT; return;
+    if (c != 1) { fault(S_ARITY); return; }
+    W->reason = a[0] ? a[0] : notice(S_NOTHING_IN); W->mode = M_FAULT; return;
   }
   if (op >= TAKE && op <= STORE) {    /* a room: bytes in the region under a blueprint, read and changed in place. While */
     int64_t o = 0, w = 0, v = 0; uint32_t at = 0; Room *h;   /* a choice is open a store puts what it changes on the */
-    if (c != (uint32_t)(op - TAKE + 2)) { fault("arity"); return; }   /* room trail, and a fail puts it back */
-    if (!a[0] || !a[1] || (op == STORE && !a[3])) { W->v = 0; W->reason = txt("nothing-in"); return; }
-    if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v))) { fault("kind"); return; }
+    if (c != (uint32_t)(op - TAKE + 2)) { fault(S_ARITY); return; }   /* room trail, and a fail puts it back */
+    if (!a[0] || !a[1] || (op == STORE && !a[3])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
+    if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v))) { fault(S_KIND); return; }
     if (op == TAKE) {
-      if (o < 0 || o > (1 << 24)) { W->v = 0; W->reason = txt("range"); return; }
+      if (o < 0 || o > (1 << 24)) { W->v = 0; W->reason = notice(S_RANGE); return; }
       at = N(A_ROOMS); uint32_t len = 16 + (((uint32_t)o + 7) & ~7u); room(A_ROOMS, (uint64_t)at + len);
       memset(rooms + at, 0, len); *(Room *)(rooms + at) = (Room){ a[0], W->at, (uint32_t)o, 0 }; N(A_ROOMS) = at + len;
       uint8_t b[4] = { (uint8_t)at, (uint8_t)(at >> 8), (uint8_t)(at >> 16), (uint8_t)(at >> 24) };
       W->v = mk(0, E(ROOM), b, 4, &why); return;
     }
-    if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 4) { fault("kind"); return; }
+    if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 4) { fault(S_KIND); return; }
     memcpy(&at, bytes + nd[a[0]].off, 4); h = (Room *)(rooms + at);
     if (at % 8 || (uint64_t)at + 16 > N(A_ROOMS) || (w != 1 && w != 2 && w != 4 && w != 8) || o < 0 || (uint64_t)o + (uint64_t)w > h->size) {
-      W->v = 0; W->reason = txt("range"); return; }
+      W->v = 0; W->reason = notice(S_RANGE); return; }
     uint8_t *p = rooms + at + 16 + o; uint32_t from = (uint32_t)(p - rooms);
     if (op == LOAD) { uint64_t u = 0; for (int64_t i = w; i > 0; i--) u = u << 8 | p[i-1]; W->v = mki((int64_t)u); return; }
     if (!ncp) nrtrail = 0;
@@ -767,25 +826,34 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   }
   if (op >= BLUEPRINT && op < DIV) { parts(op, a, c, act[env].lim >> 31); return; }
   if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
-    if (c != 1) { fault("arity"); return; }
-    if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (c != 1) { fault(S_ARITY); return; }
+    if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, (uint32_t)len, &why); ntext = mark; return; }
-    if (nd[a[0]].comp) { fault("kind"); return; }
-    if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = txt(why);
+    if (nd[a[0]].comp) { fault(S_KIND); return; }
+    if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = notice(why);
     return;
   }
   if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
     int64_t arg[8] = {0}; uint32_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
-    if (c < 1 || c > 7) { fault("arity"); return; }
-    if (ncp) { fault("irreversible"); return; }        /* what cannot be undone is refused while a choice is open */
+    if (c < 1 || c > 7) { fault(S_ARITY); return; }
+    if (ncp) { fault(S_IRREVERSIBLE); return; }        /* what cannot be undone is refused while a choice is open */
+    if (numeric_io) {
+      H quoted[6], target = a[0];
+      if (!target || !bound(target, 0, act[env].lim)) { W->v = 0; W->reason = notice(S_UNBOUND); return; }
+      for (uint32_t j = 1; j < c; ++j) {
+        if (!a[j]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
+        quoted[j-1] = mk(1, E(QUOTE), a + j, 1, &why);
+      }
+      W->x = mk(1, target, quoted, c - 1, &why); W->mode = M_EVAL; return;
+    }
     for (uint32_t j = 0; j < c && W->mode != M_FAULT; j++) {
-      if (!a[j] || nd[a[j]].comp) { fault("kind"); return; }
+      if (!a[j] || nd[a[j]].comp) { fault(S_KIND); return; }
       if (j && geti(a[j], &arg[j-1])) continue;
       char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
       if (j) arg[j-1] = (int64_t)(intptr_t)s; else arg[7] = (int64_t)(intptr_t)host.symbol(s);
     }
     if (W->mode == M_FAULT) { ntext = mark; return; }
-    if (!arg[7]) { W->v = 0; W->reason = txt("no-symbol"); ntext = mark; return; }
+    if (!arg[7]) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
     void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0;
     ntext = mark;                     /* given back before the call, since a crash does not return here */
     r = called(fn, arg); W->v = mki(r.v);
@@ -793,57 +861,57 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   }
   if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
     int64_t o = 0, n = 0; uint32_t mark = ntext;
-    if (c != 3) { fault("arity"); return; }
-    if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = txt("nothing-in"); return; }
-    if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault("kind"); return; }
+    if (c != 3) { fault(S_ARITY); return; }
+    if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
+    if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault(S_KIND); return; }
     room(A_CELLS, (uint64_t)E(LOOK) + 1); if (N(A_CELLS) <= E(LOOK)) N(A_CELLS) = E(LOOK) + 1;
     if (held[E(LOOK)] != a[0]) {
       char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
       void *p = host.watch(s); ntext = mark;
-      if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = txt("no-region"); return; }
+      if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = notice(S_NO_REGION); return; }
       W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0];
     }
     const Head *far = (const Head *)(uintptr_t)W->watch;
-    if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = txt("range"); return; }
+    if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = notice(S_RANGE); return; }
     uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
     W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
   }
   if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
-    if (c != (op == PEEK ? 2u : 1u)) { fault("arity"); return; }
-    if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); return; }
+    if (c != (op == PEEK ? 2u : 1u)) { fault(S_ARITY); return; }
+    if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (op == HANDLE) { W->v = mki(a[0]); return; }
-    if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault("kind"); return; }
+    if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
     if (op == AT ? (o < 1 || o >= nn) : (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > fb->bytes
-                                          || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = txt("range"); return; }
+                                          || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = notice(S_RANGE); return; }
     if (op == AT) { W->v = (H)o; return; }
     uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
     W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
   }
   if (op == NOTHING) {                /* an answer of nothing, and the reason beside it */
-    if (c != 1) { fault("arity"); return; }
-    W->v = 0; W->reason = a[0] ? a[0] : txt("nothing-in"); return;
+    if (c != 1) { fault(S_ARITY); return; }
+    W->v = 0; W->reason = a[0] ? a[0] : notice(S_NOTHING_IN); return;
   }
   if (op == FAST) {                   /* code as a faster form of the newest binding of an entry or a recipe: tried first */
-    if (c != 2) { fault("arity"); return; }      /* wherever that binding runs. A form of what is there, it is not undone */
+    if (c != 2) { fault(S_ARITY); return; }      /* wherever that binding runs. A form of what is there, it is not undone */
     uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;
-    if (!r || !a[1]) { W->v = 0; W->reason = txt(r ? "nothing-in" : "unbound"); return; }
-    if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault("kind"); return; }
+    if (!r || !a[1]) { W->v = 0; W->reason = notice(r ? S_NOTHING_IN : S_UNBOUND); return; }
+    if (!is_recipe(B(r)->impl) || nd[a[1]].comp || nd[a[1]].bp != E(CODE)) { fault(S_KIND); return; }
     B(r)->fast = a[1]; W->v = E(YES); return;
   }
   if (op == BOUND) {                  /* what runs an entry or a recipe: its newest binding as a node, the entry, the */
-    if (c < 1 || c > 2) { fault("arity"); return; }     /* implementation and whether that runs on its own binding, as one made */
+    if (c < 1 || c > 2) { fault(S_ARITY); return; }     /* implementation and whether that runs on its own binding, as one made */
     uint32_t r = a[0] ? bound(a[0], 0, ~0u) : 0;       /* in a layer does. Seen from the top of the program, or, with a second */
     if (r && c == 2) {                /* entry, as that entry's own implementation sees it */
       uint32_t of = a[1] ? bound(a[1], 0, ~0u) : 0;
       r = of ? bound(a[0], 0, of > OUT ? (PM | out[of-OUT-1].sees << 24) : (OMOST << 24 | bd[of-1].sees)) : 0;
     }
-    if (!r) { W->v = 0; W->reason = txt("unbound"); return; }
+    if (!r) { W->v = 0; W->reason = notice(S_UNBOUND); return; }
     H p[3] = { a[0], B(r)->impl, (r > OUT ? B(r)->sees + OUT : B(r)->sees) >= r ? E(YES) : E(NO) };
     W->v = mk(1, E(BINDING), p, 3, &why); return;
   }
   if (op == UNBIND) {                 /* the newest binding of an entry is taken out of its chain; the record */
-    if (c != 1) { fault("arity"); return; }      /* that says so points back at it, so a fail restores it */
+    if (c != 1) { fault(S_ARITY); return; }      /* that says so points back at it, so a fail restores it */
     if (!(act[env].lim & OWN)) {    /* from outside: the newest one made there, which no fail brings back */
       uint32_t j = nout; while (j && out[j-1].entry != a[0]) j--;
       if (j && a[0]) { out[j-1].entry = 0; while (nout && !out[nout-1].entry) nout--; }
@@ -855,18 +923,18 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   }
   if (op == HOLD || op == HELD || op == NOTE) {   /* a cell is any node; what it holds is a node. While a choice is */
     H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
-    if (c != (op == HELD ? 1u : 2u)) { fault("arity"); return; }
-    if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = txt("nothing-in"); return; }
-    if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = txt("empty"); return; }
+    if (c != (op == HELD ? 1u : 2u)) { fault(S_ARITY); return; }
+    if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
+    if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
     room(A_CELLS, (uint64_t)key + 1); if (N(A_CELLS) <= key) N(A_CELLS) = key + 1;
     if (op == NOTE) ;                 /* a note is what was seen of a run, not part of it: no fail undoes it */
     else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
     W->v = held[key] = a[1]; return;
   }
-  if (c != 2) { fault("arity"); return; }
-  if (!a[0] || !a[1]) { W->v = 0; W->reason = txt("nothing-in"); return; }
+  if (c != 2) { fault(S_ARITY); return; }
+  if (!a[0] || !a[1]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
   if (op == EQ) { W->v = a[0] == a[1] ? E(YES) : E(NO); return; }
-  if (!geti(a[0], &m) || !geti(a[1], &n)) { fault("kind"); return; }
+  if (!geti(a[0], &m) || !geti(a[1], &n)) { fault(S_KIND); return; }
   if (op == LT) { W->v = m < n ? E(YES) : E(NO); return; }
   if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
     if (m >= n) { W->mode = M_FAILED; return; }
@@ -875,23 +943,23 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     W->v = a[0]; return;
   }
   if (op >= BAND && op <= SHR) {      /* the 64 bits of an integer: and, or, exclusive or, and shifts that fill with zero */
-    if (op >= SHL && (n < 0 || n > 63)) { W->v = 0; W->reason = txt("range"); return; }
+    if (op >= SHL && (n < 0 || n > 63)) { W->v = 0; W->reason = notice(S_RANGE); return; }
     uint64_t u = (uint64_t)m, w = (uint64_t)n;
     W->v = mki((int64_t)(op == BAND ? u & w : op == BOR ? u | w : op == BXOR ? u ^ w : op == SHL ? u << w : u >> w)); return;
   }
   if (op >= WADD && op <= UMOD) {     /* an integer as its 64 bits: sum, difference and product modulo 2^64, and */
     uint64_t u = (uint64_t)m, w = (uint64_t)n;        /* less-than, quotient and remainder read unsigned */
     if (op == ULT) { W->v = u < w ? E(YES) : E(NO); return; }
-    if (op >= UDIV && !w) { W->v = 0; W->reason = txt("zero"); return; }
+    if (op >= UDIV && !w) { W->v = 0; W->reason = notice(S_ZERO); return; }
     W->v = mki((int64_t)(op == WADD ? u + w : op == WSUB ? u - w : op == WMUL ? u * w : op == UDIV ? u / w : u % w)); return;
   }
   if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
-    if (!n) { W->v = 0; W->reason = txt("zero"); return; }
-    if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); return; }
+    if (!n) { W->v = 0; W->reason = notice(S_ZERO); return; }
+    if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = notice(S_RANGE); return; }
     W->v = mki(op == DIV ? m / n : m % n); return;
   }
   if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
-                : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = txt("range"); return; }
+                : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = notice(S_RANGE); return; }
   W->v = mki(r);
 }
 
@@ -911,7 +979,7 @@ static int basic(long long op) {
       && op != OUTCOME && op != LAYER && !(op >= RANGE && op <= OUTSIDE) && op != AFTER;
 }
 static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
-  int64_t v[6] = { a0, a1, a2, a3, a4, a5 }, m; H a[8] = {0}, x; uint32_t c = cm & 255, n = 0; int num = op >> 8 & 1; const char *why;
+  int64_t v[6] = { a0, a1, a2, a3, a4, a5 }, m; H a[8] = {0}, x; uint32_t c = cm & 255, n = 0; int num = op >> 8 & 1; Status why;
   op &= 255; if (c > 6) c = 6;
   if (op == GATHERED && c < 2) {
     if (!c) return (Ret){ ntk, num ? 0 : 3 };
@@ -920,7 +988,7 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
     return (Ret){ 0, 4 };
   }
   if (op == LIST) {
-    if (c != 1 || cm != 1 || a0 < 0 || a0 > ntk) { fault("kind"); siglongjmp(in_code, 3); }
+    if (c != 1 || cm != 1 || a0 < 0 || a0 > ntk) { fault(S_KIND); siglongjmp(in_code, 3); }
     x = mk(1, E(LIST), tk + a0, ntk - (uint32_t)a0, &why); ntk = (uint32_t)a0; return (Ret){ x, 4 };
   }
   if (op == NOTE || op == HELD) {
@@ -930,7 +998,7 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
       for (uint32_t j = nnoted; j > 0; j -= 2) if (noted[j-2] == key) return num ? (geti(noted[j-1], &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 }) : (Ret){ noted[j-1], 4 };
     }
   }
-  if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault("no-node"); siglongjmp(in_code, 3); }
+  if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault(S_NO_NODE); siglongjmp(in_code, 3); }
   for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
   x = a[0];                               /* what code reads most is answered without a number being built for it */
   if (x && op == COUNT && num && c == 1) return (Ret){ nd[x].n, 0 };
@@ -940,7 +1008,7 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
     for (uint32_t j = 0; j < c; j++) if (!(cm >> (8 + j) & 1)) a[j] = mki(v[j]);
     if (op == QUOTE) W->v = c == 1 ? a[0] : 0;
     else if (op == ALL) { for (uint32_t j = 0; j < c; j++) if (a[j]) a[n++] = a[j]; W->v = mk(1, E(LIST), a, n, &why); }
-    else if (!basic(op)) fault("kind"); else base(op, a, c, W->env, 0);
+    else if (!basic(op)) fault(S_KIND); else base(op, a, c, W->env, 0);
     if (W->mode == M_FAULT) siglongjmp(in_code, 3);
   }
   if (!num) return (Ret){ W->v, 4 };
@@ -948,11 +1016,11 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
 }
 
 static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
-  const char *why; H a[8];
+  Status why; H a[8];
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
-  case 1: coding = 0; ntk = left; nnoted = 0; fault("crash"); break;              /* the processor faulted inside code a program gave */
+  case 1: coding = 0; ntk = left; nnoted = 0; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
     coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
@@ -966,7 +1034,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       uint32_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
       if (n > fb->a[A_ASKED].cap) n = 0;
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
-      if (!(q = read_print(s, &why))) { p = txt(why); q = mk(1, E(FAULT), &p, 1, &why); }
+      why = S_ID; q = numeric_io ? (n == 32 ? byid((uint8_t *)s) : 0) : read_print(s, &why);
+      if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
       ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
       W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); W->x = q; W->env = W->one = 0; W->cut = ncp;
     }
@@ -983,14 +1052,14 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     if (given) break;
     if (!b && (is_data(op) || op > LAST)) { answer(x); break; }/* data, or an entry with no meaning yet */
     switch (b ? -1 : op) {
-    case QUOTE: if (c != 1) fault("arity"); else answer(KID(x, 0)); break;
+    case QUOTE: if (c != 1) fault(S_ARITY); else answer(KID(x, 0)); break;
     case ARG: {
       long long j = argn(x);
-      if (j < 0) fault("arity"); else if (j >= act[W->env].n) fault("arg"); else answer(argp[act[W->env].off + j]);
+      if (j < 0) fault(S_ARITY); else if (j >= act[W->env].n) fault(S_ARG); else answer(argp[act[W->env].off + j]);
       break; }
-    case SELF: if (!act[W->env].recipe) fault("no-recipe"); else answer(act[W->env].recipe); break;
+    case SELF: if (!act[W->env].recipe) fault(S_NO_RECIPE); else answer(act[W->env].recipe); break;
     case LET:                             /* (let $k v body): body runs on the same arguments, with argument k being v */
-      if (c != 3 || argn(KID(x, 0)) < 0) { fault("arity"); break; }
+      if (c != 3 || argn(KID(x, 0)) < 0) { fault(S_ARITY); break; }
       W->k = push(F_LET, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 1); break;
     case SEQ:
       if (!c) { answer(E(YES)); break; }
@@ -1003,34 +1072,34 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
-      if (c > 1) { fault("arity"); break; }
+      if (c > 1) { fault(S_ARITY); break; }
       if (!c) { W->mode = M_FAILED; break; }
       W->k = push(F_FAIL, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case CUT:
-      if (c > 1) { fault("arity"); break; }
+      if (c > 1) { fault(S_ARITY); break; }
       if (!c) { if (ncp > W->cut) ncp = W->cut; answer(E(YES)); break; }
       W->k = push(F_CUT, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case ALL:
-      if (c != 1) { fault("arity"); break; }
+      if (c != 1) { fault(S_ARITY); break; }
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter, nrtrail }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
-    case NEED: if (c != 1) { fault("arity"); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
-    case RECOVER: if (c != 2) { fault("arity"); break; } W->k = push(F_RECOVER, x, nafter, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
+    case NEED: if (c != 1) { fault(S_ARITY); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
+    case RECOVER: if (c != 2) { fault(S_ARITY); break; } W->k = push(F_RECOVER, x, nafter, W->env, W->cut, ncoll, W->k, ncp); W->x = KID(x, 0); break;
     case OUTSIDE:                         /* x runs as if asked from outside the run: what it binds is seen by every */
-      if (c != 1) { fault("arity"); break; }      /* layer of the program, and a fail does not take it away */
+      if (c != 1) { fault(S_ARITY); break; }      /* layer of the program, and a fail does not take it away */
       W->env = again(W->env, 0); act[W->env].lim &= ~OWN; W->x = KID(x, 0); break;
-    case LAYER: if (c != 1) { fault("arity"); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, nout, W->k, nbind); W->x = KID(x, 0); break;
+    case LAYER: if (c != 1) { fault(S_ARITY); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, nout, W->k, nbind); W->x = KID(x, 0); break;
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
-      if (c != 1) { fault("arity"); break; }      /* nothing x did stays, and the outcome is the answer */
+      if (c != 1) { fault(S_ARITY); break; }      /* nothing x did stays, and the outcome is the answer */
       room(A_CHOICE_POINTS, (uint64_t)ncp + 1); W->reason = 0;
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail }; ncp++;
       W->k = push(F_OUTCOME, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
-      if (c > 8) { fault("arity"); break; }
+      if (c > 8) { fault(S_ARITY); break; }
       if (!c) {
         while (b && !apply(b, lim, a, 0, W->env, 0)) b = bound(nd[x].bp, 0, lim = under(b, lim));
-        if (!b) { if (op == CLOCK) answer(mki(host.clock())); else fault("arity"); }
+        if (!b) { if (op == CLOCK) answer(mki(host.clock())); else fault(S_ARITY); }
         break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, lim); W->x = KID(x, 0); break;
     }
@@ -1040,7 +1109,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (W->v && nafter) {               /* the run ends with an answer: its choices are closed, and what waited is done */
         ncp = 0; H q = due(); W->k = push(F_ASIDE, W->v, 0, 0, 0, 0, 0, 2); W->x = q; W->env = W->cut = 0; W->mode = M_EVAL; break;
       }
-      if (W->v) W->reason = 0; else if (!W->reason) W->reason = txt("no-answer");
+      if (W->v) W->reason = 0; else if (!W->reason) W->reason = notice(S_NO_ANSWER);
       W->outcome = W->v ? 'n' : '0'; W->mode = M_DONE; return;
     }
     uint32_t k = W->k; Frame f = fr[k]; W->at = f.node;
@@ -1063,8 +1132,10 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
-        print(W->v); uint32_t n = nob < fb->a[A_ANSWERED].cap ? nob : (uint32_t)fb->a[A_ANSWERED].cap;
-        memcpy((uint8_t *)fb + fb->a[A_ANSWERED].off, ob, n); N(A_ANSWERED) = n; N(A_ASKED) = 0;
+        void *dst = (uint8_t *)fb + fb->a[A_ANSWERED].off;
+        if (numeric_io) { memcpy(dst, idof(W->v), 32); N(A_ANSWERED) = 32; }
+        else { print(W->v); uint32_t n = nob < fb->a[A_ANSWERED].cap ? nob : (uint32_t)fb->a[A_ANSWERED].cap;
+          memcpy(dst, ob, n); N(A_ANSWERED) = n; } N(A_ASKED) = 0;
       }
       W->env = f.env; W->cut = f.cut; W->x = f.node; W->one = f.i; W->reason = f.vals; W->mode = M_EVAL; break; }
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
@@ -1076,11 +1147,11 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       for (uint32_t i = f.vals; i < nout; i++) out[i].sees = nout;
       break;
     case F_OUTCOME:
-      cp[f.aux].coll = W->v ? seen_as("node", W->v) : seen_as("nothing", W->reason ? W->reason : txt("no-answer"));
+      cp[f.aux].coll = W->v ? seen_as(S_NODE, W->v) : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_ANSWER));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
     case F_HANDLER: {
       H full[MOST]; uint32_t n = 1; full[0] = f.node; H to = callee(W->v, full, &n);
-      if (!to) { fault("not-a-recipe"); break; }
+      if (!to) { fault(S_NOT_A_RECIPE); break; }
       W->env = enter(W->v, full, n, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break; }
     case F_ARGS: {
       room(A_LINKS, (uint64_t)nlink + 1); lk[nlink] = (Link){ E(LINK), W->at, W->v, f.vals }; uint32_t vals = nlink++;
@@ -1095,19 +1166,19 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       while ((nbind || nout) && (b = bound(op == STEP ? 0 : nd[f.node].bp, 0, lim)) && (is_lazy(B(b)->impl) || !apply(b, lim, a, c, f.env, 0))) { lim = under(b, lim); b = 0; }
       if (b) break;
       if (op == UP || op == BASE || op == STEP) {       /* a node in hand is evaluated: by step where this node */
-        if (c != 1) { fault("arity"); break; }           /* stands; by the others where the implementation's user */
-        if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
+        if (c != 1) { fault(S_ARITY); break; }           /* stands; by the others where the implementation's user */
+        if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); break; }
         W->one = op == BASE ? act[f.env].lim + 1 : 0;    /* stands, in that user's cut scope. base: the node's own */
         if (op != STEP) { W->cut = act[f.env].cut; W->env = act[f.env].up; }       /* entry means what it meant beneath */
         W->x = a[0]; W->mode = M_EVAL; break;
       }
       if (op == AFTER) {                  /* a call held back until every choice now open is closed; a fail that */
         H none[MOST]; uint32_t n0 = 0;
-        if (!callee(a[0], none, &n0)) { fault("not-a-recipe"); break; }        /* returns past here first drops it */
+        if (!callee(a[0], none, &n0)) { fault(S_NOT_A_RECIPE); break; }        /* returns past here first drops it */
         if (!ncp) op = CALL;
         else {
           for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
-          if (!a[0]) { W->v = 0; W->reason = txt("nothing-in"); break; }
+          if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); break; }
           room(A_AFTER, (uint64_t)nafter + c + 1); aft[nafter++] = c; memcpy(aft + nafter, a, sizeof(H) * c); nafter += c;
           W->v = E(YES); break;
         }
@@ -1115,7 +1186,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (op == CALL) {
         H full[MOST]; uint32_t n = c - 1, on = act[f.env].lim; memcpy(full, a + 1, sizeof(H) * n);
         H to = callee(a[0], full, &n);    /* a call its own code declined runs wholly on what lies beneath that code */
-        if (!to) { fault("not-a-recipe"); break; }
+        if (!to) { fault(S_NOT_A_RECIPE); break; }
         for (lim = f.aux; (nbind || nout) && (b = bound(to, 0, lim)) && !apply(b, lim, full, n, f.env, 0); b = 0) { lim = under(b, lim); on = (lim & ~OWN) | (on & OWN); }
         if (b) break;
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
@@ -1123,16 +1194,16 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       }
       if (op == NATIVE_OP) {
         int64_t arg[8] = {0};
-        if (!a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE) || !given(a + 1, c - 1, arg)) { fault("kind"); break; }
-        if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = txt("declined"); }
+        if (!a[0] || nd[a[0]].comp || nd[a[0]].bp != E(CODE) || !given(a + 1, c - 1, arg)) { fault(S_KIND); break; }
+        if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = notice(S_DECLINED); }
         break;
       }
-      if (op > LAST) { fault("kind"); break; }       /* an entry only code ran, and the code declined these values */
+      if (op > LAST) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
       base(op, a, c, f.env, f.node); break; }
     }
     break; }
   case M_FAILED: {
-    if (!ncp) { if (!W->reason) W->reason = txt("no-path"); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
+    if (!ncp) { if (!W->reason) W->reason = notice(S_NO_PATH); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node;
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
@@ -1144,7 +1215,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->mode = M_RET; break;
     }
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
-      ncp--; W->v = q->coll ? q->coll : seen_as("nothing", W->reason ? W->reason : txt("no-path"));
+      ncp--; W->v = q->coll ? q->coll : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_PATH));
       W->reason = 0; W->mode = M_RET; break;
     }
     if (q->all) {                         /* every answer has been gathered */
@@ -1162,7 +1233,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     while (j && fr[j].t != F_RECOVER && fr[j].t != F_OUTCOME) j = fr[j].t == F_ALL ? fr[j].vals : fr[j].k;
     if (!j) { W->v = 0; W->outcome = 'f'; W->mode = M_DONE; return; }
     Frame f = fr[j];
-    if (f.t == F_OUTCOME) { cp[f.aux].coll = seen_as("fault", W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
+    if (f.t == F_OUTCOME) { cp[f.aux].coll = seen_as(S_FAULT, W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
     if (ncp > f.aux) ncp = f.aux;
     nfr = j + 1; if (f.mlink < nlink) nlink = f.mlink;     /* the faulted body's frames, values and calls are given back */
     if (f.mact < nact) { nargp = act[f.mact].off; nact = f.mact; }
@@ -1177,16 +1248,124 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
 static void run(H top) { walking = 1; walk(top); walking = 0; }
 
 /* ---- commands: a program is run, and everything else is a program -------------------------- */
+#ifndef NUMERIC_PORT
+#define STATUS_LABEL(key, value, label) [key] = label,
+static const char *const status_words[] = { STATUS_ROWS(STATUS_LABEL) };
+#undef STATUS_LABEL
+#endif
+static H notice(Status status) {
+#ifndef NUMERIC_PORT
+  if (!numeric_io) return txt(status_words[status]);
+#endif
+  uint8_t ordinal[8] = { (uint8_t)status, 0, 0, 0, 3, 0, 2, 16 }; Status why;
+  return mk(0, ROOT, ordinal, sizeof ordinal, &why);
+}
+#ifndef NUMERIC_PORT
 static H file_node(const char *path) {      /* a print file: one node on its first line */
-  size_t len; const char *why;
+  size_t len; Status why;
   H x = read_print((char *)load(path, &len), &why);
-  if (!x) { say("refused ", why); exit(1); }
+  if (!x) { say("refused ", status_words[why]); exit(1); }
   return x;
 }
+#endif
+/* The numeric port accepts resolved content ids. A frozen graph already contains its links. */
+static const uint8_t ice_header[8] = { 67, 75, 73, 67, 69, 49, 10, 0 };
+static uint32_t little4(const uint8_t *p) {
+  return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+}
+static void put4(uint8_t *p, uint32_t value) {
+  for (int i = 0; i < 4; ++i) p[i] = (uint8_t)(value >> (8 * i));
+}
+static H open_image(const uint8_t *p, size_t n, Status *why) {
+  *why = S_IMAGE;
+  if (n < 8 || memcmp(p, ice_header, 8)) return 0;
+  H last = 0;
+  for (size_t i = 8; i < n;) {
+    if (n - i < 4) { *why = S_SHORT; return 0; }
+    size_t len = little4(p + i); i += 4;
+    if (len > n - i) { *why = S_SHORT; return 0; }
+    if (!(last = from_bytes(p + i, len, why))) return 0;
+    i += len;
+  }
+  if (!last || !nd[last].comp || catn(nd[last].bp) != INT64_C(0x1002000400000001)
+      || nd[last].n != 2 || nd[KID(last, 1)].bp != E(LIST)) { *why = S_IMAGE; return 0; }
+  return last;
+}
+static int send_bytes(const uint8_t *p, size_t n) {
+  while (n) { ssize_t sent = write(1, p, n); if (sent < 0 && errno == EINTR) continue;
+    if (sent <= 0) return 0;
+    p += sent; n -= (size_t)sent;
+  }
+  return 1;
+}
+static int recv_bytes(uint8_t *p, size_t n) {
+  while (n) { ssize_t got = read(0, p, n); if (got < 0 && errno == EINTR) continue;
+    if (got <= 0) return 0;
+    p += got; n -= (size_t)got;
+  }
+  return 1;
+}
+/* Every part precedes its holder in the store. Mark its closure backwards, emit it forwards. */
+static int send_answer(uint8_t status, H value) {
+  uint8_t header[37]; uint64_t size = sizeof ice_header;
+  room(A_PRINT_NUMBERS, (uint64_t)value + 1); N(A_PRINT_NUMBERS) = value + 1; pnum[value] = 1;
+  for (H h = value; h; --h) if (pnum[h]) {
+    Node *x = nd + h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n);
+    if (x->bp > ROOT) pnum[x->bp] = 1;
+    if (x->comp) for (uint32_t j = 0; j < x->n; ++j) if (KID(h,j) > ROOT) pnum[KID(h,j)] = 1;
+  }
+  if (size > UINT32_MAX) return 0;
+  header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
+  if (!send_bytes(header, sizeof header) || !send_bytes(ice_header, sizeof ice_header)) return 0;
+  for (H h = 1; h <= value; ++h) if (pnum[h]) {
+    uint32_t mark = ntext; size_t len; uint8_t *record = cbytes(h, &len); put4(header, (uint32_t)len);
+    int sent = send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[h] = 0;
+    if (!sent) return 0;
+  }
+  return 1;
+}
+static int send_outcome(void) {
+  return W->outcome == 'n' ? send_answer(1, W->v) : send_answer(W->outcome == 'f' ? 2 : 0, W->reason);
+}
+static int execute_image(const char *path) {
+  size_t len; Status why; uint8_t *raw = load(path, &len); H image = open_image(raw, len, &why);
+  if (!image) { send_answer(2, notice(why)); return 1; }
+  run(KID(image, 0));
+  if (W->outcome != 'n') { send_outcome(); return 1; }
+  for (;;) {
+    uint8_t count, id[32]; H refs[8], args[8]; ssize_t n = read(0, &count, 1);
+    if (!n) return 0;
+    if (n < 0 && errno == EINTR) continue;
+    if (n < 0 || count >= 8) { send_answer(2, notice(S_ARITY)); return 1; }
+    int missing = 0;
+    for (unsigned j = 0; j <= count; ++j) {
+      if (!recv_bytes(id, sizeof id)) { send_answer(2, notice(S_SHORT)); return 1; }
+      refs[j] = byid(id); if (!refs[j]) missing = 1;
+    }
+    if (missing) { if (!send_answer(2, notice(S_ID))) return 2; continue; }
+    H target = refs[0], top = target;
+    int call = is_recipe(target) || (nd[target].comp && nd[target].bp == E(CLOSED));
+    if (call || count || bound(target, 0, ~COOL)) {
+      uint32_t argc = call ? 1 : 0;
+      if (call) args[0] = mk(1, E(QUOTE), &target, 1, &why);
+      for (unsigned j = 1; j <= count; ++j) args[argc++] = mk(1, E(QUOTE), refs + j, 1, &why);
+      top = mk(1, call ? E(CALL) : target, args, argc, &why);
+      if (!top) { if (!send_answer(2, notice(why))) return 2; continue; }
+    }
+    run(top); if (!send_outcome()) return 2;
+  }
+}
 static int command(int argc, char **argv) {
+#ifndef NUMERIC_PORT
   const char *cmd = argc > 1 ? argv[1] : "";
+  numeric_io = argc == 3 && !strcmp(cmd, "execute");
+#endif
   store_init();
-  for (int i = 0; i < A_COUNT; i++) full_at[i] = seen_as("full", txt(AREA_NAME[i]));
+  for (int i = 0; i < A_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
+#ifdef NUMERIC_PORT
+  return argc == 2 ? execute_image(argv[1]) : 2;
+#else
+  if (numeric_io) return execute_image(argv[2]);
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
     for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
     run(file_node(argv[2]));
@@ -1197,8 +1376,9 @@ static int command(int argc, char **argv) {
     if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
     return W->outcome == 'f' || cmd[0] == 't';
   }
-  put(2, "usage: ck run F [B..] | text F [B..]\n");
+  put(2, "usage: ck execute IMAGE | run F [B..] | text F [B..]\n");
   return 2;
+#endif
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
