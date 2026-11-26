@@ -111,7 +111,7 @@ at: 2026-11-26
 n: 7.25
 name: a-new-path-comes-with-its-sweep
 kind: decision
-is: A new path comes with a ground program that runs it against its reference, the reference all the way down, over the boundaries of what it takes, and counts what it covered: how many cases, how many took the new path, how many it answered itself. The program is committed and runs in make check; a sweep run once in a session holds nothing.
+is: A new path comes with a ground program that runs it against its reference over the boundaries of what it takes. It reports the cases covered, taken and answered. The comparison runs when its path changes and belongs to the complete catalogue in make check-full.
 status: inferred
 from: 7.24 5.19.29 5.19.30
 conf: mid
@@ -122,7 +122,7 @@ at: 2026-11-26
 n: 7.26
 name: checks-hold-meaning
 kind: decision
-is: make check runs every check and names the ones that failed together at the end. Each ground program runs in a process of its own and then all of them in one; shared memory is named for one run; a process that watches another waits until it stands. An expectation holds what a program means: its answer, that two ways agree, an invariant; never a size of code, a count of definitions, a label of coverage or a time.
+is: make check follows at most three end-to-end flows from public input to observable answer. A stronger flow can replace an existing one. With make check-full each ground program runs in a process of its own and all run together. An expectation holds an answer, agreement between two ways or an invariant.
 status: inferred
 from: 7.13 7.25 5.14.57
 conf: mid
@@ -141,7 +141,7 @@ at: 2026-11-25
 n: 7.22
 name: prelude-is-held-to-a-budget
 kind: decision
-is: Form written by position, with raw constants or as one long ladder is prelude. Prelude, like bootstrap code, stands only until it can be replaced, stays very limited and does not grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number in the stored nodes, whatever names lie beside them, and make check fails when the count is over the budget in the Makefile, 475 on this day. The budget is lowered as code is rewritten and never raised.
+is: Form written by position, with raw constants or as one long ladder is prelude. Prelude, like bootstrap code, stands only until it can be replaced, stays very limited and does not grow past the minimum. What is held: ground/reads-by-number.ck counts every read of a node's part by a bare number in the stored nodes, whatever names lie beside them, and make check-full fails when the count is over the budget in the Makefile, 475 on this day. The budget is lowered as code is rewritten and never raised.
 status: given
 see: 5.15.8 5.18.14 7.13
 at: 2026-11-26

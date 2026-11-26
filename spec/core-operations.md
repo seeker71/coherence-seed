@@ -562,7 +562,7 @@ own answer is not seen by anyone.
 `ground/held-back.ck` looks for a number among five, holding back a line to a file at each try:
 the file holds the one line of the try that held. A line held back before a fault is not written,
 a direct `host` inside the search is refused, and a line still held when the program ends is
-written before its outcome. It runs in the open, as a line of `make check`, since the checker's
+written before its outcome. It runs in the open under `make check-full`, since the checker's
 own `outcome` would end by failing over it.
 
 ## Entry 104: nothing, with its reason

@@ -544,7 +544,7 @@ For two items, sequence takes the ordered product of their paths and branch appe
 path lists. Filtering those spellings against an input prefix gives the expected captures
 and end positions, including duplicate answers. `./ck run ground/bmf-sweep.ck` reports the
 planned count, the count each evaluator completed, and each differing case with its expected
-and actual answers. `make check` requires complete agreement for the generated cases.
+and actual answers. `make check-full` requires complete agreement for the generated cases.
 
 ### Execution of a search declaration
 

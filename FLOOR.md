@@ -17,23 +17,22 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions and what they call, casts included, from rows of instructions |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
+| Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
 | Claim graph | [`graph/`](graph) | 1,436 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
-Each line here is held by a program that runs under `make check`, or names how it was seen.
+Each line here is held by a program in `make check-full`, or names how it was seen.
 
 **The walker**
 
-- **`make check` passes.** Every check runs and the failed ones are named together at the end.
-  It compares the header with its nodes, runs each of 77 ground programs in a process of its own
-  and then all of them in one process, and exercises 146 encoding vectors. It checks ice across
-  processes, unsigned and hardened native execution, recording and querying a live run, a
-  deferred write on the chosen path, the budget for bare numeric reads and a resolved image run
-  by id. Its shared memory is named for one run, and a process that watches another waits until
-  it stands.
+- **`make check` runs three flows.** A BML expression passes through the source lens and the
+  runtime. A standalone process receives a packed image and answers requests by id. A live
+  recursion accepts an addition counter from another process and finishes with the expected answer.
+  `make check-full` also runs all 77 ground programs separately and together, compares the
+  generated header and checks encoding, freeze and thaw, hardened native execution, framebuffer
+  replay, deferred writes and the budget for bare numeric reads.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
   the bytes of rooms, and give back the nodes and rooms made since; a note is kept, with what it
   holds. A call held back with `after` is made when every choice open at the time is
@@ -106,7 +105,7 @@ Each line here is held by a program that runs under `make check`, or names how i
   original matcher on return. Reading, printing and rereading
   produced identical syntax trees for 124 Angelic BML sources and all 28 previous-kernel
   `bml-*.bml` fixtures. One additional Angelic file with a BML extension contains Java.
-  In `make check`, both BMF evaluators match an independent enumeration of spellings and
+  In `make check-full`, both BMF evaluators match an independent enumeration of spellings and
   capture trees at every scalar boundary of the sample inputs. Reversing the order of
   alternatives in an isolated matcher made the sweep report the two answers in reverse order.
   In `ground/bml-captures.ck`, a BML expression grammar captures the operators in
@@ -226,7 +225,7 @@ running compiled code against frames all the way down).
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
   a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
   instructions are rows of data. The rest is not there. The nodes read a part by a bare number
-  475 times, the budget `make check` holds: the shape of a part is said only in the name
+  475 times, the budget `make check-full` holds: the shape of a part is said only in the name
   beside the node, where the lens shows `mine.ints`, and not in the node. A definition is
   still an entry numbered by hand in one lexicon, not its content. The files store the
   lowered core, so an `if` is four nested nodes. The emitter's other cases, the lens and the
@@ -247,9 +246,8 @@ running compiled code against frames all the way down).
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile's 111 lines, eleven pages, the claim
-  graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
-  Makefile's shell.
+  graph's checker (662 lines of C under `tools/`), the Makefile, eleven pages, the claim
+  graph as 55 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
 - **Threads.** One walker runs on one thread.

@@ -30,7 +30,7 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
   person to read; a lens can always show it. What a thing is, takes and gives is itself a node
   that programs read (`form/operations.ck`), and knowledge is rows of data before it is code.
   A part read by a bare number, a raw constant inside a definition and a ladder of cases are
-  prelude: like the bootstrap they stand only until they can be replaced. `make check` counts
+  prelude: like the bootstrap they stand only until they can be replaced. `make check-full` counts
   the bare reads in the nodes against a budget that is lowered and never raised.
 - **Every part can be replaced.** The bootstrap's code is one implementation of each part; a
   recipe or machine code can take its place while the system runs.
@@ -70,5 +70,7 @@ Written this way, code holds the first time and is not written again (graph node
 
 ## Before a commit
 
-`make check` and `./kg check` pass, a new path has its sweep among them, and
+`make check` covers at most three end-to-end flows. Improve a flow in place. Run the relevant
+ground comparison when its path changes. The complete catalogue runs with `make check-full`.
+`make check`, the affected comparisons and `./kg check` pass, and
 `git log --format=%ae | sort -u` shows only the address the existing commits carry.

@@ -117,12 +117,19 @@ them.
 make check
 ```
 
-Eight lines: the header against the nodes it is made from; the ground programs, the encoding's 142
-vectors among them, run and judged by a program written in form (`ground/check.ck`); a freeze and
-a thaw, both in form, across two processes; a machine-code leaf both unsigned and under the
-hardened runtime; a live run recorded from a second process; a run asked from a second process
-to count its own additions while it goes on; a search that writes a file only for the path
-that held; and the count of reads by a bare number left in the stored form, against its budget.
+The default has room for three end-to-end flows. It reads a BML source expression and executes
+the resulting nodes, runs a packed image by content id, and changes a binding in a live process
+while observing its answer. Each flow also runs on its own with `make check-bml`,
+`make check-image`, or `make check-live`.
+
+`make check-full` also runs the complete ground catalogue, reference sweeps, and bootstrap and
+framebuffer checks. To compare a single ground program with its stored expectation:
+
+```sh
+printf %s ground/bmf-agrees.ck | ./ck run ground/check-one.ck
+```
+
+Agreement returns `node #33`. A difference reports the program and its outcome.
 
 ## Replace an operation
 
