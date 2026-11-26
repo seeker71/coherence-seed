@@ -147,7 +147,7 @@ is: The generic runtime is the catalogue's recipes bound to recipes in form, so 
 status: inferred
 from: 5.19.8 5.19.13 5.7.6
 conf: mid
-why: The walker already looks a node's recipe up by number and shows where it stands; a second loop written over it would hide the node that runs behind its own.
+why: The walker looks up a node's recipe by number and shows where it stands. The four unsigned order relations in nums/run.ck use one word instance. The resolved image calls that instance by id before and after attaching machine code.
 flip: A lazy recipe takes its parts through a call built for them, which costs a node per shape and several steps per use; the walker could give the parts itself.
 at: 2026-11-26
 

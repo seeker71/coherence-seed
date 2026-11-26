@@ -35,7 +35,7 @@ Each line here is held by a program that runs under `make check`, or names how i
   the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 10,596 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 10,609 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
@@ -46,6 +46,10 @@ Each line here is held by a program that runs under `make check`, or names how i
   steps for the direct call and 5 after compilation, with the same result id at overflow.
   The image also ran that instance through a numeric token and through signed and unsigned
   eight-bit callers. Token input came from the example vocabulary.
+- **Unsigned ordering runs by id.** The four unsigned order relations in the generic runtime
+  share one NUMS word comparison. On this host its result agreed with unsigned order on
+  1,296 operand pairs before and after compilation. The image run also compared two unsigned
+  64-bit values and placed 2⁶³ above 2⁶³ − 1.
 - **A cell can hold its bytes alone.** `take` makes a room in the region under a blueprint, and
   `load` and `store` read and change 1, 2, 4 or 8 of its bytes in place; the room's head names
   its blueprint and its last writer. Constructed object views share one room. Its fixed-width
@@ -139,7 +143,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 145 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 146 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -193,7 +197,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 145
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 146
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 98 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the
