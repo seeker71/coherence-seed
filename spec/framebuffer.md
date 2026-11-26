@@ -17,25 +17,32 @@ is the only writer, and `tools/fb.c` is the observer.
 - The bootstrap keeps no heap. Its tables, its working lists, the files it reads and its machine
   stack are all inside the region. It starts on the host's stack only long enough to move onto the
   region's.
-- Pages are taken from the host as they are first touched, so reserving costs nothing: the region
-  is about 2 GiB of addresses and a small run touches a few hundred kilobytes.
+- The region is sized by the machine's memory, which the host says (`hw.memsize` on macOS). Each
+  area has room for as many of its records as that memory holds, or as its count can number where
+  that is fewer: 32 bits for records named by a handle or an index of 32 bits, 64 for bytes,
+  children and the two indexes. Pages are taken from the host as they are first touched, so
+  reserving costs nothing: with 128 GiB of memory the region is 2.28 TiB of addresses, reserved in
+  a few microseconds, and a small run's whole process holds under two megabytes.
 
 ## What is in it
 
 The first page is the **head**: a magic word, the layout version, the writer's process id, the
 walker's registers (the **machine**), and one **area** entry per table. An area entry says what its
-records are, how large one is, how many are in use, how many fit, and where the table starts.
+records are, how large one is, the most it has held, where the table starts, how many fit and how
+many are in use; the last four are counted by 64 bits.
 
 Machine code reads the region too, and three places in the head are kept for it whatever else
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
 16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
 code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
-to one layout version.
+to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 17 lays it
+out.
 
 | Area | Records | Holds |
 | --- | --- | --- |
-| nodes | node | every node: blueprint, writer, child or byte count, where its payload is, its content id once asked for |
+| nodes | node | every node: blueprint, writer, where its content id lies once asked for, whether it is a composite, its child or byte count and where its payload is |
 | leaf-bytes, children | bytes, words | the payloads of leaves and composites |
 | by-content, by-id | words | the two indexes over nodes; they can be rebuilt from the nodes |
 | frames | frame | the walker's continuations |
@@ -54,9 +61,10 @@ to one layout version.
 | asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 | noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
-| rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, its size and how many stores it has had, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
+| rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, how many stores it has had and its size, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
 | room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, and its writer and count, so a fail puts them back |
 | gives | words | how many times a fail gave nodes back, and the choice, the mark and the top of the last time |
+| ids | bytes | each content id once asked for: the node's handle, then the id's 32 bytes; when a fail gives nodes back, the ids of those that stay move down with them |
 
 ## Rules
 
@@ -174,7 +182,8 @@ recursion, looked at from half a second in, ended at 1.3 s.
 A **frame** is a copy of the head page and of the used part of every area, taken by a second
 process that has mapped the region read-only.
 
-- `fb show NAME` takes one frame of a running or kept region and prints it.
+- `fb show NAME` takes one frame of a running or kept region and prints it: the machine, and for
+  each area how many records are in use, their bytes, and the most it has held.
 - `fb record NAME FILE MS` takes a frame every MS milliseconds until the writer is done. The file
   keeps, for each frame, only the 16 KiB pages that differ from the frame before.
 - `fb play FILE` prints one line per frame; `fb play FILE N` prints frame N in full; with a handle
@@ -184,17 +193,19 @@ A frame taken while the writer runs is marked `moving`: the step counter changed
 so its parts may belong to slightly different moments. The counts were read first, so every record
 in it was complete when its count was read.
 
-## Observed on the first machine, 2026-11-25
+## Observed on the first machine
 
-- A 2 GiB region is reserved in about 74 µs.
-- The long recursion in `ground/long-recursion.ck` (158.6 million walker steps) took 0.71 to
-  0.72 s alone in five runs.
-- Recorded by a second process every 5 ms it took 0.71 to 0.76 s in three runs, and every 1 ms
-  0.72 to 0.75 s in five. The 1 ms recording held 481 frames.
-- A recording of 117 frames was replayed. Its last frame holds the answer 2178309 and names the
-  `add` node of the recipe as its writer.
-- A build of the same walker with its registers in C locals and its tables on a private heap ran
-  the same program in 0.56 s in two of three runs.
+- 2026-11-27, version 17 against version 16, which had fixed capacities, in alternating runs under
+  `/usr/bin/time -l`: the region of 2.28 TiB is reserved in 1 to 6 µs, as the one of 2.5 GiB was.
+  The long recursion in `ground/long-recursion.ck` (158.6 million walker steps) took 0.99 s of CPU
+  against 0.97 s, with 1.2% more instructions, most of them the 64-bit hash's; its largest resident
+  set was the same, and its page tables grew from 433 KiB to 673 KiB (`footprint`).
+- 2026-11-25: recorded by a second process every 5 ms the long recursion took 0.71 to 0.76 s in
+  three runs, and every 1 ms 0.72 to 0.75 s in five. The 1 ms recording held 481 frames.
+- 2026-11-25: a recording of 117 frames was replayed. Its last frame holds the answer 2178309 and
+  names the `add` node of the recipe as its writer.
+- 2026-11-25: a build of the same walker with its registers in C locals and its tables on a private
+  heap ran the long recursion in 0.56 s in two of three runs, where the region's took 0.71 s.
 
 ## Limits
 
@@ -213,13 +224,26 @@ in it was complete when its count was read.
 - **A frame is a sample.** What a cell held between two frames is not kept, apart from its last
   writer. The journal that undo needs (stage 5) will keep old values inside the region.
 - **The stack is recorded as raw bytes**, its newest 256 KiB, and the observer does not yet read it.
-- **Areas have fixed sizes.** A program that outgrows one has a fault, `full`, with the area's
-  name; a `recover` that catches it gets the frames, values and activations back, and no nodes.
-  A process that is killed leaves its region behind until `fb drop NAME`.
+- **Only memory bounds an area, and nothing bounds them together.** Each area may take the
+  machine's memory, so a run that needs more than the machine has is paged by the host before any
+  area is full, and a recursion that never returns runs until memory is spent. The fault `full`,
+  with the area's name, is met by a request no area can hold or by a count of 32 bits that is
+  spent; a `recover` that catches it gets the frames, values and activations back, and no nodes.
+- **What is still counted by 32 bits or fewer**: a node's handle, so at most 2^32 − 1 nodes; the
+  indexes of frames, links, activations, arguments, choice points, gathered values, born code,
+  trails, room trails, held-back calls, notes, and the nodes the reader opened and the children it
+  gathers, so a composite has at most 2^32 − 1 children; the limit word, 2^23 − 1 of the program's
+  own bindings and 127 from outside; the offset of born code, 4 GiB of it; and the floor, pages of
+  16 KiB, so the stack lies within the region's first 64 TiB. On this machine 128 GiB of node
+  records hold 2^32 nodes, so memory and the handle bind together.
+- **The stack holds as much as memory.** Emitted code checks it against the floor and declines
+  when it has no room; a recursion in emitted code now fills memory before that, and no program
+  reaches the check.
+- A process that is killed leaves its region behind until `fb drop NAME`.
 - One hand wrote the layout, the writer and the observer, and only this Mac ran them.
 - **One asker at a time.** Two processes asking at once can overwrite each other's request. The
   asker waits by looking, not by an event. A request is answered between two steps of the walker,
   so code that runs long without returning to it, emitted or the host's, delays the answer; a
   program that has ended answers nothing, and the asker gives up after five seconds.
 - **Asking is not gated.** Any process that can map the region can ask it anything a program can
-  do. The region is the owner's alone, created with mode 0600.
+  do. Only the user that made the region can map it: it is created with mode 0600.

@@ -1,6 +1,6 @@
 # Floor
 
-What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
+What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -8,8 +8,8 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,564 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
-| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,604 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region sized by the machine's memory, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
@@ -19,7 +19,7 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,436 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,438 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -39,12 +39,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   closed, and never if a fail returns past it.
 - **A fail gives back what it returns past.** As a backtracking machine gives back its heap,
   every node made since a choice point goes when a fail returns to it, except what no fail
-  undoes and what that holds, which moves down in the order it was made. The sweep of compiled
-  code against frames, of 30,771 cases then, ended holding 24,139 nodes where it had held
-  2,569,489; widened since to 37,822 cases it ends at 36,839, of the 4,194,304 nodes the area holds. The sweep runs with the other
-  ground programs in one process. `ground/gives-back.ck` makes more nodes than that in forty thousand outcomes and
-  ends with a note from a failed branch, an all's answers and an outcome's answer standing; the
-  bootstrap before faults it with a full area. Giving back costs 2 to 4 percent of the time.
+  undoes and what that holds, which moves down in the order it was made, its id with it. The
+  sweep of compiled code against frames, of 37,822 cases, ends holding 36,865 nodes, and runs
+  with the other ground programs in one process. `ground/gives-back.ck` makes more than four
+  million nodes in forty thousand outcomes and ends with a note from a failed branch, an all's
+  answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
+  percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
   ids. The generic engine with its float definition and both compilers packs as 11,871 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
@@ -125,8 +125,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
   and a part a `let` named, over nine at once, through its own recursion, as a handler.
 - **The host is reached by name**, and a crash inside code or a host function is a fault the
-  program can catch. So is an area of the region that is full: a recursion that never returns
-  is caught, twice, and the program goes on.
+  program can catch, a recursion in machine code that falls off the stack among them. So is a
+  request no area of the region can hold: a room larger than memory, asked for a thousand calls
+  deep, is caught twice, the frames come back each time, and the program goes on.
 
 **Replacing what runs**
 
@@ -178,6 +179,14 @@ Each line here is held by a program in `make check-full`, or names how it was se
   one; gathering only its own took the lens's showing of itself from 0.28 s to 0.09 s.
 - **Being seen costs little.** Registers and writers kept in the region cost about a quarter of
   the walker's speed; being recorded every millisecond, up to about 4%.
+- **Only memory sizes the region.** Each area has room for as many records as the machine's
+  memory holds, or as its count of 32 bits numbers where that is fewer: with 128 GiB the region
+  is 2.28 TiB of addresses, reserved in a few microseconds, and an area's entry keeps the most it
+  has held. Against the same bootstrap with fixed capacities, under `/usr/bin/time -l`, the long
+  recursion took 0.99 s of CPU where it took 0.97, the sweep of compiled code 8.29 s where it took
+  8.15, and every ground program in one process 57.5 s where it took 56.7: the 64-bit hash and
+  counts. The sweep held 6.6 MB at most where it held 7.3, a node's record being 32 bytes where it
+  was 52; the page tables of the wider range of addresses add a quarter of a megabyte.
 
 **Writing**
 
@@ -200,7 +209,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,253 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,255 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -215,8 +224,9 @@ running compiled code against frames all the way down).
   takes; refused for another reason, it notes only that it was refused. The ground programs and supported
   layouts are listed in [the engine specification](spec/nums.md).
 - **A store bounded by what is live.** A run with no choice open keeps every node it makes until
-  a fail returns past it: a loop that counts to ten million fills the store. A handle kept as a
-  number across a fail back past where its node was made can name another node afterwards.
+  a fail returns past it, so a loop that counts long enough spends the machine's memory. A handle
+  kept as a number across a fail back past where its node was made can name another node
+  afterwards.
 - **Expectations of meaning only.** Some ground programs still answer values that move without a
   change of meaning: sizes of compiled code, counts of definitions and of a lens's nodes, labels
   of what the emitter compiles, step thresholds and two comparisons of clock time.
@@ -246,7 +256,7 @@ running compiled code against frames all the way down).
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (662 lines of C under `tools/`), the Makefile, eleven pages, the claim
+  graph's checker (663 lines of C under `tools/`), the Makefile, eleven pages, the claim
   graph as 55 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
@@ -255,9 +265,15 @@ running compiled code against frames all the way down).
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
-- **Bounds that give way.** The region's areas have fixed capacities. A program that fills one
-  has a fault it can catch, and gets its frames back; no node a run made is given back, so a
-  loop that counts to ten million fills the store, and that stays full.
+- **A bound on the region as a whole.** Each area may take the machine's memory and nothing counts
+  what they take together, so a run that needs more than the machine has is paged by the host
+  instead of meeting `full`, and a recursion that never returns runs until memory is spent. A
+  handle and the indexes of the walker's records are 32 bits, so at most 2^32 − 1 nodes and as
+  many frames or children; the limit word holds 2^23 − 1 bindings and 127 from outside; born code
+  is reached by a 32-bit offset, 4 GiB. The stack holds as much as memory, so no program reaches
+  emitted code's check of the floor. `region/asking.ck` writes a request's count as four bytes
+  of the eight the layout gives it, which holds for a request below 4 GiB, since the walker keeps
+  the high four at zero.
 
 ## Guidance
 

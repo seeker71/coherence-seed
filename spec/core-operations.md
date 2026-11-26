@@ -152,13 +152,15 @@ none, a recursion in machine code that runs off its stack: each is a fault like 
 caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is-a-fault.ck`). A
 fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
-`full` is the fault of an area of the region that has no room left; its reason is
-`(list "full" name)`, the area's name beside it. A recursion that never returns ends this way
-and not with the process. Where a `recover` catches a fault, the frames, the gathered values and
-the activations of the body that faulted are given back, so a program that ran out of frames goes
-on (`ground/full-is-a-fault.ck` does it twice). A recover gives back no nodes, since the cells,
-bindings and rooms of the body that faulted still stand: a store that is full stays full until a
-fail returns past where its nodes were made, and what catches that fault can do little.
+`full` is the fault of an area of the region that has no room for what is asked of it; its reason
+is `(list "full" name)`, the area's name beside it. An area has room for as much as the machine's
+memory holds, or as its count of 32 bits numbers (`spec/framebuffer.md`), so what ends this way
+is a request larger than that, and not the process. Where a `recover` catches a fault, the frames,
+the gathered values and the activations of the body that faulted are given back, so the program
+goes on (`ground/full-is-a-fault.ck` asks a thousand calls deep for a room larger than memory, twice,
+and finds its frames given back). A recover gives back no nodes, since the cells, bindings and
+rooms of the body that faulted still stand: a store that is full stays full until a fail returns
+past where its nodes were made, and what catches that fault can do little.
 
 ## Entries 53 to 63: the floor's own records
 
@@ -616,7 +618,7 @@ compiled ones too, and when it is taken off the code runs again.
 | --- | --- | --- | --- |
 | 113 | room | | data: the kind of a room record, and the blueprint of the leaf that refers to one |
 | 114 | room-trail | | data: the kind of a room-trail record |
-| 115 | take | b, n | a new room of n bytes, all zero, under the blueprint b: a leaf of the room's place in the area `rooms`; n from 0 to 2^24, otherwise nothing, `range` |
+| 115 | take | b, n | a new room of n bytes, all zero, under the blueprint b: a leaf of the room's place in the area `rooms`; nothing, `range`, for n below 0, and the fault `full` for more than the area can hold |
 | 116 | load | r, o, w | the w bytes from byte o of the room r as an unsigned integer, little-endian; w is 1, 2, 4 or 8, and eight bytes give the integer's 64 bits; nothing, `range`, outside the room |
 | 117 | store | r, o, w, v | writes the low w bytes of the integer v at byte o of the room r, and answers v |
 
@@ -883,5 +885,5 @@ not be what the walker does there.
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.
 - A binding has no name of its own: `unbind` takes the newest of an entry, not one in the middle.
-- Nothing bounds a run but the region's capacities: a wrong recipe under a recursion gives no
-  answer and goes on until an area is full, which is the fault `full`.
+- Nothing bounds a run but the machine's memory: a wrong recipe under a recursion gives no answer
+  and goes on until memory is spent, and nothing ends it with a fault before the host pages.

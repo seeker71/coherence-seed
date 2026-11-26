@@ -13,9 +13,9 @@
  * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
  * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
  * getenv getpid atexit exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
- * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp
+ * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp sysconf
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
- * pthread_jit_write_protect_np and sys_icache_invalidate.
+ * pthread_jit_write_protect_np and sys_icache_invalidate; on Apple, sysctlbyname.
  */
 #if !defined(__APPLE__)
 #define _GNU_SOURCE
@@ -29,6 +29,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/mman.h>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#endif
 #include <sys/stat.h>
 #include <time.h>
 #include <dlfcn.h>
@@ -42,9 +45,13 @@
 #define NATIVE 0
 #endif
 
-static void put(int fd, const char *s) {
-  for (size_t n = strlen(s); n; ) { ssize_t w = write(fd, s, n); if (w <= 0) exit(2); s += w; n -= (size_t)w; }
+static int send_fd(int fd, const uint8_t *p, uint64_t n) {   /* a write takes at most 2^31 - 1 bytes */
+  while (n) { ssize_t w = write(fd, p, n < (1u << 30) ? (size_t)n : (1u << 30)); if (w < 0 && errno == EINTR) continue;
+    if (w <= 0) return 0;
+    p += w; n -= (uint64_t)w; }
+  return 1;
 }
+static void put(int fd, const char *s) { if (!send_fd(fd, (const uint8_t *)s, strlen(s))) exit(2); }
 static void die(const char *m) { put(2, "ck: "); put(2, m); put(2, "\n"); exit(2); }
 #ifndef NUMERIC_PORT
 static void say(const char *a, const char *b) { put(1, a); put(1, b); put(1, "\n"); }
@@ -64,6 +71,7 @@ typedef struct {
   void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
   void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
+  uint64_t (*memory)(void);                        /* how many bytes of memory the machine has */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -98,7 +106,7 @@ static void h_code_flush(void *p, size_t n) {
 static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
   int fd = open(path, O_RDONLY); int64_t n = 0; ssize_t r = 0;
   if (fd < 0) return -1;
-  while ((uint64_t)n < cap && (r = read(fd, to + n, cap - (uint64_t)n)) > 0) n += r;
+  while ((uint64_t)n < cap && (r = read(fd, to + n, cap - (uint64_t)n < (1u << 30) ? cap - (uint64_t)n : (1u << 30))) > 0) n += r;   /* a read takes at most 2^31 - 1 */
   close(fd); return r < 0 ? -1 : n;
 }
 static Ret h_call(void *fn, const int64_t *a) {
@@ -116,14 +124,22 @@ static void h_guard(void (*on)(int), void *stack, size_t n) {
   ss.ss_sp = stack; ss.ss_size = n; sa.sa_handler = on; sa.sa_flags = SA_ONSTACK; sigemptyset(&sa.sa_mask);
   sigaltstack(&ss, NULL); sigaction(SIGSEGV, &sa, NULL); sigaction(SIGBUS, &sa, NULL); sigaction(SIGILL, &sa, NULL); sigaction(SIGFPE, &sa, NULL);
 }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard };
+static uint64_t h_memory(void) {
+#ifdef __APPLE__
+  uint64_t m = 0; size_t len = sizeof m;
+  if (!sysctlbyname("hw.memsize", &m, &len, NULL, 0) && m) return m;
+#endif
+  long pages = sysconf(_SC_PHYS_PAGES), size = sysconf(_SC_PAGESIZE);
+  return pages > 0 && size > 0 ? (uint64_t)pages * (uint64_t)size : 0;   /* 0: the host does not say */
+}
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
 static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted; static uint32_t *pnum, *bykey; static H *held;
-static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives;
+static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives; static uint8_t *ids;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
 #define nn N(A_NODES)
@@ -149,59 +165,81 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define ntb N(A_GATHERING_BYTES)
 #define nob N(A_PRINT)
 #define ntext N(A_TEXT)
+#define nids N(A_IDS)
+#define IDREC 36                          /* a node's id: whose it is, and its 32 bytes */
+#define NID(h) (ids + (uint64_t)nd[h].ida * IDREC + 4)
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
-/* An area that is full: while a program runs that is its fault, full and the area's name, which it can
+/* An area's peak is the most it has held, and room goes further only past it. An area that is
+ * full: while a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
 static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
-static void room(int a, uint64_t need) {
-  if (need <= fb->a[a].cap) return;
+static void further(int a, uint64_t need) {
+  if (need <= fb->a[a].cap) { fb->a[a].peak = need; return; }
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
 }
+static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) further(a, need); }
+/* The limit word an activation runs under counts bindings: 23 bits for the program's own, 7 for
+ * those made from outside (see bound, below). */
+#define PM 0x7fffffu
+#define COOL 0x800000u
+#define OUT 0x1000000u
+#define OMOST 127u
+#define OWN 0x80000000u
 static char fbname[64]; static int fbkeep;
 static void fb_close(void) { if (!fbkeep) shm_unlink(fbname); }
 static void fb_open(void) {
-  static const struct { uint32_t of, size, cap; } L[A_COUNT] = {
-    [A_NODES] = { NODE, sizeof(Node), 1u << 22 },   [A_LEAF_BYTES] = { BYTE_TABLE, 1, 1u << 28 },
-    [A_CHILDREN] = { WORD_TABLE, 4, 1u << 26 },             [A_BY_CONTENT] = { WORD_TABLE, 4, 1u << 23 },
-    [A_BY_ID] = { WORD_TABLE, 4, 1u << 23 },            [A_FRAMES] = { FRAME, sizeof(Frame), 1u << 22 },
-    [A_LINKS] = { LINK, sizeof(Link), 1u << 23 },   [A_ACTIVATIONS] = { ACTIVATION, sizeof(Activation), 1u << 23 },
-    [A_ARGUMENTS] = { WORD_TABLE, 4, 1u << 25 },              [A_CHOICE_POINTS] = { CHOICE_POINT, sizeof(ChoicePoint), 1u << 20 },
-    [A_GATHERED] = { GATHERED, sizeof(Gathered), 1u << 22 }, [A_BORN_CODE] = { CODE, sizeof(Code), 1u << 12 },
-    [A_BINDINGS] = { BINDING, sizeof(Binding), 1u << 16 },   [A_BOUND_BY_NODE] = { WORD_TABLE, 4, 1u << 22 },
-    [A_OUTSIDE] = { BINDING, sizeof(Binding), 127 },    /* OMOST, below */
-    [A_CELLS] = { WORD_TABLE, 4, 1u << 22 },                [A_TRAIL] = { TRAIL, sizeof(Trail), 1u << 22 },
-    [A_READER_OPENED] = { WORD_TABLE, 4, 1u << 22 },             [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 1u << 22 },
-    [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1u << 26 },               [A_PRINT] = { BYTE_TABLE, 1, 1u << 26 },
-    [A_PRINT_NUMBERS] = { WORD_TABLE, 4, (1u << 22) + 8 },     /* one for each node, and one more */
-    [A_TEXT] = { BYTE_TABLE, 1, 1u << 28 },             [A_STACK] = { BYTE_TABLE, 1, 1u << 26 },
-    [A_ASKED] = { BYTE_TABLE, 1, 1u << 16 },            [A_ANSWERED] = { BYTE_TABLE, 1, 1u << 20 },
-    [A_AFTER] = { WORD_TABLE, 4, 1u << 20 },            [A_NOTED] = { WORD_TABLE, 4, 1u << 16 },
-    [A_ROOMS] = { BYTE_TABLE, 1, 1u << 28 },            [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 1u << 22 },
-    [A_GIVES] = { WORD_TABLE, 4, 4 } };   /* how often nodes were given back, and the choice, mark and top of the last time */
-  uint64_t off[A_COUNT], at = FB_PAGE;
+  /* An area may grow until the machine's memory is spent: it has room for as many records as that
+   * memory holds, or as its count can number where that is fewer. Records named by a handle or an
+   * index of 32 bits are counted by 32 bits; bytes, children and the two indexes by 64. Pages are
+   * taken from the host only as they are first touched, so room not used costs nothing. */
+  static const struct { uint32_t of, size; uint8_t wide; } L[A_COUNT] = {
+    [A_NODES] = { NODE, sizeof(Node), 0 },          [A_LEAF_BYTES] = { BYTE_TABLE, 1, 1 },
+    [A_CHILDREN] = { WORD_TABLE, 4, 1 },            [A_BY_CONTENT] = { WORD_TABLE, 4, 1 },
+    [A_BY_ID] = { WORD_TABLE, 4, 1 },               [A_FRAMES] = { FRAME, sizeof(Frame), 0 },
+    [A_LINKS] = { LINK, sizeof(Link), 0 },          [A_ACTIVATIONS] = { ACTIVATION, sizeof(Activation), 0 },
+    [A_ARGUMENTS] = { WORD_TABLE, 4, 0 },           [A_CHOICE_POINTS] = { CHOICE_POINT, sizeof(ChoicePoint), 0 },
+    [A_GATHERED] = { GATHERED, sizeof(Gathered), 0 }, [A_BORN_CODE] = { CODE, sizeof(Code), 0 },
+    [A_BINDINGS] = { BINDING, sizeof(Binding), 0 }, [A_BOUND_BY_NODE] = { WORD_TABLE, 4, 0 },
+    [A_OUTSIDE] = { BINDING, sizeof(Binding), 0 },  [A_CELLS] = { WORD_TABLE, 4, 0 },
+    [A_TRAIL] = { TRAIL, sizeof(Trail), 0 },        [A_READER_OPENED] = { WORD_TABLE, 4, 0 },
+    [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 0 },  [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1 },
+    [A_PRINT] = { BYTE_TABLE, 1, 1 },               [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 0 },
+    [A_TEXT] = { BYTE_TABLE, 1, 1 },                [A_STACK] = { BYTE_TABLE, 1, 1 },
+    [A_ASKED] = { BYTE_TABLE, 1, 1 },               [A_ANSWERED] = { BYTE_TABLE, 1, 1 },
+    [A_AFTER] = { WORD_TABLE, 4, 0 },               [A_NOTED] = { WORD_TABLE, 4, 0 },
+    [A_ROOMS] = { BYTE_TABLE, 1, 1 },               [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 0 },
+    [A_GIVES] = { WORD_TABLE, 4, 0 },               [A_IDS] = { BYTE_TABLE, 1, 1 } };
+  uint64_t mem = host.memory(), cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
+  if (!mem) die("the host does not say how much memory it has");
+  for (int i = 0; i < A_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
+  if (cap[A_BY_ID] > (uint64_t)1 << 33) cap[A_BY_CONTENT] = cap[A_BY_ID] = (uint64_t)1 << 33;   /* twice the most nodes a handle names */
+  cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = cap[A_NODES] + 8;   /* one for each node */
+  cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* numbered inside a limit word: */
+  cap[A_OUTSIDE] = OMOST;                                       /* 23 bits for the program's, 7 from outside */
+  cap[A_GIVES] = 4;                                             /* a record, not a table */
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
-    off[i] = at; at += ((uint64_t)L[i].size * L[i].cap + FB_PAGE - 1) / FB_PAGE * FB_PAGE;
+    off[i] = at; at += (L[i].size * cap[i] + FB_PAGE - 1) / FB_PAGE * FB_PAGE;
   }
   const char *e = getenv("CK_FB");
   if (e) { fbkeep = 1; snprintf(fbname, sizeof fbname, "%s", e); } else snprintf(fbname, sizeof fbname, "/ck.%d", (int)getpid());
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
   atexit(fb_close);
-  for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, L[i].cap, 0, off[i] };
-  fb->bp = E(FRAMEBUFFER); fb->version = 16; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i], cap[i], 0 };
+  fb->bp = E(FRAMEBUFFER); fb->version = 17; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
   lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
-  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES);
-  nn = 1;
+  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS);
+  nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
 static void *talloc(size_t n) {
   room(A_TEXT, (uint64_t)ntext + n + 16); void *p = text + ntext;
-  memset(p, 0, n); ntext += (uint32_t)((n + 7) & ~(size_t)7); return p;
+  memset(p, 0, n); ntext += (n + 7) & ~(size_t)7; return p;
 }
 /* What no fail undoes, done while a choice is open, goes on the trail as kept: a note and its cell,
  * a faster form, code that was born. A fail back past it keeps what it holds (reclaim, below). */
@@ -213,7 +251,7 @@ static uint8_t *load(const char *path, size_t *len) {      /* a file read straig
   room(A_TEXT, (uint64_t)ntext + 32); uint8_t *b = text + ntext; uint64_t cap = fb->a[A_TEXT].cap - ntext - 16;
   int64_t n = host.file_read(path, b, cap);
   if (n < 0 || (uint64_t)n >= cap) { put(2, "ck: "); put(2, path); put(2, ": cannot read\n"); exit(2); }
-  b[n] = 0; ntext += (uint32_t)((n + 8) & ~7ll); *len = (size_t)n; return b;
+  b[n] = 0; room(A_TEXT, ntext + (uint64_t)n + 1); ntext += (uint64_t)(n + 8) & ~7ull; *len = (size_t)n; return b;
 }
 
 /* ---- SHA-256 (FIPS 180-4) ------------------------------------------------------- */
@@ -344,10 +382,10 @@ typedef enum { STATUS_ROWS(STATUS_VALUE) } Status;
 static int numeric_io;
 #endif
 static H notice(Status status);
-static Status rule(int comp, H bp, const void *payload, uint32_t n) {
+static Status rule(int comp, H bp, const void *payload, uint64_t n) {
   const uint8_t *b = payload;
   if (!bp) return S_NOTHING_BLUEPRINT;
-  if (comp) for (uint32_t i = 0; i < n; i++) if (!((const H *)payload)[i]) return S_NOTHING_CHILD;
+  if (comp) for (uint64_t i = 0; i < n; i++) if (!((const H *)payload)[i]) return S_NOTHING_CHILD;
   long long c = catn(bp);
   if (c < 0 || c >= 32) return S_OK;
   if (c == 15 || c >= 17) return S_KEPT;
@@ -378,72 +416,75 @@ static Status rule(int comp, H bp, const void *payload, uint32_t n) {
   }
   return S_OK;
 }
-static uint32_t hash(int comp, H bp, const void *payload, uint32_t n) {
-  uint32_t h = 2166136261u ^ (uint32_t)comp; const uint8_t *p = payload;
-  h = (h ^ bp) * 16777619u;
-  for (size_t i = 0, m = comp ? (size_t)n * sizeof(H) : n; i < m; i++) h = (h ^ p[i]) * 16777619u;
+static uint64_t hash(int comp, H bp, const void *payload, uint64_t n) {   /* FNV-1a over 64 bits */
+  uint64_t h = 14695981039346656037ull ^ (uint64_t)comp; const uint8_t *p = payload;
+  h = (h ^ bp) * 1099511628211ull;
+  for (uint64_t i = 0, m = comp ? n * sizeof(H) : n; i < m; i++) h = (h ^ p[i]) * 1099511628211ull;
   return h;
 }
 static const void *payload_of(H h) { return nd[h].comp ? (const void *)(kids + nd[h].off) : (const void *)(bytes + nd[h].off); }
 static void tab_put(H h) {
-  uint32_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
+  uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
   while (tab[i]) i = (i + 1) & (tcap - 1);
   tab[i] = h;
 }
 /* The one node with this content. Refused content sets *why and answers nothing.
  * A new record is whole before nn moves past it; its writer is the node now running. */
-static H mk(int comp, H bp, const void *payload, uint32_t n, Status *why) {
+static H mk(int comp, H bp, const void *payload, uint64_t n, Status *why) {
   if (bp || nn > 1) { if ((*why = rule(comp, bp, payload, n))) return 0; }
   size_t sz = comp ? (size_t)n * sizeof(H) : n;
   if (!tcap || nn * 2 > tcap) {                 /* the table by content grows where it lies */
-    uint32_t c = tcap ? tcap * 2 : 4096; room(A_BY_CONTENT, c); memset(tab, 0, (size_t)c * sizeof *tab); tcap = c;
+    uint64_t c = tcap ? tcap * 2 : 4096; room(A_BY_CONTENT, c); memset(tab, 0, (size_t)c * sizeof *tab); tcap = c;
     for (H h = 1; h < nn; h++) tab_put(h);
   }
-  uint32_t i = hash(comp, bp, payload, n) & (tcap - 1);
+  uint64_t i = hash(comp, bp, payload, n) & (tcap - 1);
   for (; tab[i]; i = (i + 1) & (tcap - 1)) {
     Node *x = &nd[tab[i]];
     if (x->comp == comp && x->bp == bp && x->n == n && !memcmp(payload_of(tab[i]), payload, sz)) return tab[i];
   }
-  room(A_NODES, (uint64_t)nn + 1); Node *x = &nd[nn]; memset(x, 0, sizeof *x);
+  room(A_NODES, nn + 1); Node *x = &nd[nn]; memset(x, 0, sizeof *x);
   x->bp = bp; x->by = W->at; x->comp = (uint8_t)comp; x->n = n;
-  if (comp) { room(A_CHILDREN, (uint64_t)nkids + n); x->off = nkids; memcpy(kids + nkids, payload, sz); nkids += n; }
-  else { room(A_LEAF_BYTES, (uint64_t)nbytes + n); x->off = nbytes; memcpy(bytes + nbytes, payload, sz); nbytes += n; }
-  tab[i] = nn; return nn++;
+  if (comp) { room(A_CHILDREN, nkids + n); x->off = nkids; memcpy(kids + nkids, payload, sz); nkids += n; }
+  else { room(A_LEAF_BYTES, nbytes + n); x->off = nbytes; memcpy(bytes + nbytes, payload, sz); nbytes += n; }
+  tab[i] = (H)nn; return (H)nn++;
 }
 #define KID(x, i) (kids[nd[x].off + (i)])
 #define TOMB 0xffffffffu                  /* a place in the table by id whose node was given back */
-static uint32_t idslot(const uint8_t *id) {
-  uint32_t i = ((uint32_t)id[0] | (uint32_t)id[1] << 8 | (uint32_t)id[2] << 16 | (uint32_t)id[3] << 24) & (icap - 1);
-  while (idtab[i] && (idtab[i] == TOMB || memcmp(nd[idtab[i]].id, id, 32))) i = (i + 1) & (icap - 1);
+static uint64_t idstart(const uint8_t *id) { uint64_t u; memcpy(&u, id, 8); return u & (icap - 1); }
+static uint64_t idslot(const uint8_t *id) {
+  uint64_t i = idstart(id);
+  while (idtab[i] && (idtab[i] == TOMB || memcmp(NID(idtab[i]), id, 32))) i = (i + 1) & (icap - 1);
   return i;
 }
 /* Section 2: canonical bytes of h, in working bytes the caller gives back. */
 static const uint8_t *idof(H h);
 static uint8_t *cbytes(H h, size_t *len) {
-  uint32_t n = nd[h].n; *len = 33 + (nd[h].comp ? (size_t)n * 32 : n);
+  uint64_t n = nd[h].n; *len = 33 + (nd[h].comp ? (size_t)n * 32 : n);
   uint8_t *b = talloc(*len);
   b[0] = nd[h].comp;
   if (nd[h].bp) memcpy(b + 1, idof(nd[h].bp), 32);
-  if (nd[h].comp) for (uint32_t i = 0; i < n; i++) memcpy(b + 33 + 32 * (size_t)i, idof(KID(h, i)), 32);
+  if (nd[h].comp) for (uint64_t i = 0; i < n; i++) memcpy(b + 33 + 32 * (size_t)i, idof(KID(h, i)), 32);
   else memcpy(b + 33, bytes + nd[h].off, n);
   return b;
 }
 static void idmake(H skip) {              /* made again with only live places, larger while half would be taken */
-  uint32_t live = 0, c = icap ? icap : 4096;
-  for (H x = 1; x < nn; x++) live += nd[x].hasid && x != skip;
+  uint64_t live = 0, c = icap ? icap : 4096;
+  for (H x = 1; x < nn; x++) live += nd[x].ida && x != skip;
   while ((live + 1) * 2 >= c) c *= 2;
-  room(A_BY_ID, c); memset(idtab, 0, (size_t)c * sizeof *idtab); icap = c; W->ids = live;
-  for (H x = 1; x < nn; x++) if (nd[x].hasid && x != skip) idtab[idslot(nd[x].id)] = x;
+  room(A_BY_ID, c); memset(idtab, 0, (size_t)c * sizeof *idtab); icap = c; W->ids = (uint32_t)live;
+  for (H x = 1; x < nn; x++) if (nd[x].ida && x != skip) idtab[idslot(NID(x))] = x;
 }
+/* A node's id lies beside it, in the area of ids, only once it is asked for. */
 static void setid(H h, const uint8_t *id) {
-  if (nd[h].hasid) return;
-  memcpy(nd[h].id, id, 32); nd[h].hasid = 1;
-  if (!icap || W->ids * 2 >= icap) idmake(h);                /* ids counts the places taken, given back ones too */
+  if (nd[h].ida) return;
+  room(A_IDS, nids + IDREC); memcpy(ids + nids, &h, 4); memcpy(ids + nids + 4, id, 32);
+  nd[h].ida = (uint32_t)(nids / IDREC); nids += IDREC;
+  if (!icap || (uint64_t)W->ids * 2 >= icap) idmake(h);     /* ids counts the places taken, given back ones too */
   idtab[idslot(id)] = h; W->ids++;
 }
 static const uint8_t *idof(H h) {         /* section 3 */
-  if (!nd[h].hasid) { uint32_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), id[32]; sha256(b, len, id); ntext = m; setid(h, id); }
-  return nd[h].id;
+  if (!nd[h].ida) { uint64_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), id[32]; sha256(b, len, id); ntext = m; setid(h, id); }
+  return NID(h);
 }
 static H byid(const uint8_t *id) { return icap ? idtab[idslot(id)] : 0; }
 static const uint8_t ZERO[32];
@@ -460,10 +501,10 @@ static H from_bytes(const uint8_t *b, size_t len, Status *why) {
   }
   H bp = byid(b + 1), h; if (!bp) { *why = S_UNKNOWN; return 0; }
   if (comp) {
-    uint32_t m = (uint32_t)(n / 32), base = ntk; room(A_GATHERING_CHILDREN, (uint64_t)ntk + m);
-    for (uint32_t i = 0; i < m; i++) if (!(tk[base + i] = byid(b + 33 + 32 * (size_t)i))) { *why = S_UNKNOWN; return 0; }
+    uint64_t m = n / 32, base = ntk; room(A_GATHERING_CHILDREN, ntk + m);
+    for (uint64_t i = 0; i < m; i++) if (!(tk[base + i] = byid(b + 33 + 32 * (size_t)i))) { *why = S_UNKNOWN; return 0; }
     h = mk(1, bp, tk + base, m, why);
-  } else h = mk(0, bp, b + 33, (uint32_t)n, why);
+  } else h = mk(0, bp, b + 33, n, why);
   if (h) { uint8_t id[32]; sha256(b, len, id); setid(h, id); }
   return h;
 }
@@ -474,10 +515,10 @@ static void store_init(void) {
   for (H h = 1; h <= SEEDED; h++) idof(h);
   memcpy(fb->magic, FB_MAGIC, 8);                         /* from here a reader can make sense of the region */
 }
-static H txt(const char *s) { Status why; return mk(0, E(TEXT), s, (uint32_t)strlen(s), &why); }
+static H txt(const char *s) { Status why; return mk(0, E(TEXT), s, strlen(s), &why); }
 static int geti(H h, int64_t *out) {
   if (!h || nd[h].comp || nd[h].bp != E(INT) || nd[h].n > 8) return 0;
-  uint32_t n = nd[h].n; const uint8_t *b = bytes + nd[h].off;
+  uint32_t n = (uint32_t)nd[h].n; const uint8_t *b = bytes + nd[h].off;
   uint64_t u = (n && (b[n-1] & 0x80)) ? ~0ull : 0;
   for (uint32_t i = n; i > 0; i--) u = u << 8 | b[i-1];
   *out = (int64_t)u; return 1;
@@ -522,7 +563,7 @@ static H read_node(Rd *r) {
     if (*r->p++ != ')') { ntk = base; return refuse(r, S_SYNTAX); }
     x = mk(1, bp, tk + base, ntk - base, &why); ntk = base;
   } else {
-    uint32_t base = ntb;
+    uint64_t base = ntb;
     if (*r->p == ' ') { r->p++;
       if (hexval(*r->p) < 0) return refuse(r, S_SYNTAX);
       while (hexval(*r->p) >= 0) {
@@ -544,7 +585,7 @@ static H read_print(const char *s, Status *why) {    /* s lies in the region */
   if (x && *r.p && *r.p != '\n') x = refuse(&r, S_SYNTAX);
   *why = r.err; return x;
 }
-static void oput(const char *s) { uint32_t l = (uint32_t)strlen(s); room(A_PRINT, (uint64_t)nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
+static void oput(const char *s) { size_t l = strlen(s); room(A_PRINT, nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
 static const char *dec(char t[24], uint64_t v) { char *e = t + 23; *e = 0; do *--e = (char)('0' + v % 10); while (v /= 10); return e; }
 static const char HEX[] = "0123456789abcdef";
 static void print_node(H x) {
@@ -553,14 +594,14 @@ static void print_node(H x) {
   if (pnum[x]) { oput("^"); oput(dec(t, pnum[x] - 1)); return; }
   pnum[x] = ++W->pcount; room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = x;
   oput(nd[x].comp ? "(" : "["); print_node(nd[x].bp);
-  if (nd[x].comp) for (uint32_t i = 0; i < nd[x].n; i++) { oput(" "); print_node(KID(x, i)); }
+  if (nd[x].comp) for (uint64_t i = 0; i < nd[x].n; i++) { oput(" "); print_node(KID(x, i)); }
   else if (nd[x].n) { oput(" "); t[2] = 0;
-    for (uint32_t i = 0; i < nd[x].n; i++) { uint8_t b = bytes[nd[x].off + i]; t[0] = HEX[b >> 4]; t[1] = HEX[b & 15]; oput(t); } }
+    for (uint64_t i = 0; i < nd[x].n; i++) { uint8_t b = bytes[nd[x].off + i]; t[0] = HEX[b >> 4]; t[1] = HEX[b & 15]; oput(t); } }
   oput(nd[x].comp ? ")" : "]");
 }
 static const char *print(H x) {
-  room(A_PRINT_NUMBERS, (uint64_t)nn + 1); N(A_PRINT_NUMBERS) = nn; W->pcount = 0; nob = 0; oput("");
-  uint32_t base = ntk; print_node(x);
+  room(A_PRINT_NUMBERS, nn + 1); N(A_PRINT_NUMBERS) = nn; W->pcount = 0; nob = 0; oput("");
+  uint64_t base = ntk; print_node(x);
   while (ntk > base) pnum[tk[--ntk]] = 0;         /* a print costs what it prints: only its own numbers are taken back */
   return ob;
 }
@@ -568,17 +609,17 @@ static const char *print(H x) {
 /* ---- code pages -----------------------------------------------------------------------
  * The host does not let executable pages be shared, so the runnable copy of a code leaf
  * lies outside the region. The leaf, where its copy starts and who asked for it are here. */
-#define CODE_REGION (1u << 20)
+#define CODE_REGION 0xfffff000u          /* as far as a 32-bit offset into it reaches; pages are taken as written */
 static void *birth(H leaf) {              /* the leaf's instructions, runnable; NULL if this host cannot */
-  uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint32_t n = nd[leaf].n;
+  uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint64_t n = nd[leaf].n;
   for (uint32_t i = 0; i < nborn; i++) if (born[i].leaf == leaf) return code + born[i].off;
   if (!code) { if (!(code = host.code_map(CODE_REGION))) return NULL; W->code = (uint64_t)(uintptr_t)code; }
-  if (!n || W->ncode + n > CODE_REGION) return NULL;
+  if (!n || (uint64_t)W->ncode + n > CODE_REGION) return NULL;
   void *fn = code + W->ncode;
   host.code_write(1); memcpy(fn, bytes + nd[leaf].off, n); host.code_write(0);
   host.code_flush(fn, n);
   room(A_BORN_CODE, (uint64_t)nborn + 1); born[nborn] = (Code){ E(CODE), W->at, leaf, W->ncode }; kept(E(CODE), nborn, leaf); nborn++;
-  W->ncode += (n + 15u) & ~15u;
+  W->ncode += (uint32_t)((n + 15u) & ~15ull);
   return fn;
 }
 
@@ -617,11 +658,6 @@ static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t u
  * lie above all of those, are seen at every limit and are counted from OUT + 1. A limit holds
  * both counts, OWN when what is bound under it is the program's own, and COOL when a faster form
  * has declined above it: beneath that, faster forms are not tried again. 0: the bootstrap's code. */
-#define PM 0x7fffffu
-#define COOL 0x800000u
-#define OUT 0x1000000u
-#define OMOST 127u
-#define OWN 0x80000000u
 #define B(b) ((b) > OUT ? &out[(b) - OUT - 1] : &bd[(b) - 1])
 static uint32_t newest(H e, uint32_t lim) {             /* down the chain of e's own bindings, newest first */
   uint32_t i = e < N(A_BOUND_BY_NODE) ? bykey[e] : 0;
@@ -670,7 +706,7 @@ static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE
 #define MOST 40
 static H callee(H v, H *a, uint32_t *n) {
   while (v && nd[v].comp && nd[v].bp == E(CLOSED) && nd[v].n) {
-    uint32_t m = nd[v].n - 1; if (*n + m > MOST) return 0;
+    uint64_t m = nd[v].n - 1; if (*n + m > MOST) return 0;
     memmove(a + m, a, sizeof(H) * *n); memcpy(a, kids + nd[v].off + 1, sizeof(H) * m); *n += m; v = KID(v, 0);
   }
   return is_recipe(v) ? v : 0;
@@ -688,16 +724,16 @@ static H seen_as(Status tag, H v) { Status why; H p[2] = { notice(tag), v }; ret
  * names. Those move down in the order they were made. A node is always newer than its parts, so one
  * pass from the newest finds what is kept and one from the oldest moves it; a kept node whose
  * writer is given back is written by the choice that kept it. */
-#define MARKS nn, nkids, nbytes, ncoll, N(A_ROOMS)
+#define MARKS (uint32_t)nn, (uint32_t)ncoll, nkids, nbytes, N(A_ROOMS), nids
 static uint32_t *fw; static H fm, ftop, fnode;
 static void root(H h) { if (h >= fm && h < ftop) fw[h - fm] = 1; }
 static H fwd(H h) { return h >= fm && h < ftop ? fw[h - fm] : h; }
 static H byfwd(H h) { return h >= fm && h < ftop ? (fw[h - fm] ? fw[h - fm] : fnode) : h; }
-static uint32_t roomlen(uint32_t at) { return 16 + ((((Room *)(rooms + at))->size + 7) & ~7u); }
+static uint64_t roomlen(uint64_t at) { return sizeof(Room) + ((((Room *)(rooms + at))->size + 7) & ~7ull); }
 static void reclaim(ChoicePoint *q) {
   fm = q->mnode; ftop = nn; fnode = q->node;
-  if (ftop <= fm || (uint64_t)ntext + (uint64_t)(ftop - fm) * 4 + 64 > fb->a[A_TEXT].cap) return;
-  uint32_t mark = ntext, rtop = q->mtake, k = q->mkids, b = q->mbytes; fw = talloc((size_t)(ftop - fm) * 4);
+  if (ftop <= fm || ntext + (uint64_t)(ftop - fm) * 4 + 64 > fb->a[A_TEXT].cap) return;
+  uint64_t mark = ntext, rtop = q->mtake, k = q->mkids, b = q->mbytes; fw = talloc((size_t)(ftop - fm) * 4);
   if (q->all == 2) root(q->coll);
   if (q->all == 3) { root(q->i); root(q->coll); }
   root(W->v); root(W->reason);
@@ -707,19 +743,19 @@ static void reclaim(ChoicePoint *q) {
   for (H h = ftop; h-- > fm; ) {          /* what is kept holds its blueprint, its parts, the room it names */
     if (!fw[h - fm]) continue;            /* and, for code, the nodes its bytes name by id */
     root(nd[h].bp);
-    if (nd[h].comp) for (uint32_t i = 0; i < nd[h].n; i++) root(KID(h, i));
-    else if (nd[h].bp == E(ROOM) && nd[h].n == 4) {
-      uint32_t at; memcpy(&at, bytes + nd[h].off, 4);
+    if (nd[h].comp) for (uint64_t i = 0; i < nd[h].n; i++) root(KID(h, i));
+    else if (nd[h].bp == E(ROOM) && nd[h].n == 8) {
+      uint64_t at; memcpy(&at, bytes + nd[h].off, 8);
       if (at >= q->mtake && at < N(A_ROOMS)) { root(((Room *)(rooms + at))->bp); if (at + roomlen(at) > rtop) rtop = at + roomlen(at); }
     }
-    else if (nd[h].bp == E(CODE) && icap) for (uint32_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
+    else if (nd[h].bp == E(CODE) && icap) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
   }
   for (H h = ftop; h-- > fm; ) {          /* the tables forget them all, the newest first as linear probing needs */
-    uint32_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
+    uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
     while (tab[i] && tab[i] != h) i = (i + 1) & (tcap - 1);
     if (tab[i] == h) tab[i] = 0;
-    if (nd[h].hasid) { const uint8_t *d = nd[h].id;
-      for (i = ((uint32_t)d[0] | (uint32_t)d[1] << 8 | (uint32_t)d[2] << 16 | (uint32_t)d[3] << 24) & (icap - 1); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+    if (nd[h].ida) {
+      for (i = idstart(NID(h)); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
       if (idtab[i] == h) idtab[i] = TOMB; }
     if (h < N(A_CELLS) && !fw[h - fm]) held[h] = 0;
     if (h < N(A_BOUND_BY_NODE)) bykey[h] = 0;
@@ -727,19 +763,27 @@ static void reclaim(ChoicePoint *q) {
   }
   H to = fm;
   for (H h = fm; h < ftop; h++) if (fw[h - fm]) fw[h - fm] = to++;
-  gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
+  room(A_GIVES, 4); gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
   nn = fm;                                /* a watcher sees that places were given back, and none half moved */
   for (H h = fm; h < ftop; h++) {         /* each kept node moves down, its parts and cell with it */
     H n = fw[h - fm]; if (!n) continue;
     Node x = nd[h]; x.bp = fwd(x.bp); x.by = byfwd(x.by);
-    if (x.comp) { for (uint32_t i = 0; i < x.n; i++) kids[k + i] = fwd(kids[x.off + i]); x.off = k; k += x.n; }
+    if (x.comp) { for (uint64_t i = 0; i < x.n; i++) kids[k + i] = fwd(kids[x.off + i]); x.off = k; k += x.n; }
     else { memmove(bytes + b, bytes + x.off, x.n); x.off = b; b += x.n; }
     nd[n] = x;
     if (h < N(A_CELLS)) { H v = held[h]; held[h] = 0; held[n] = fwd(v); }
   }
   nn = to; nkids = k; nbytes = b;
-  for (H h = fm; h < nn; h++) { tab_put(h); if (nd[h].hasid) { idtab[idslot(nd[h].id)] = h; W->ids++; } }
-  if (icap && W->ids * 2 >= icap) idmake(0);
+  uint64_t w = q->mids;                   /* ids made since stay for the nodes that stay, moved down with them */
+  for (uint64_t r = q->mids; r < nids; r += IDREC) {
+    H o; memcpy(&o, ids + r, 4); H n = fwd(o);
+    if (!n) continue;
+    if (w != r) memmove(ids + w, ids + r, IDREC);
+    memcpy(ids + w, &n, 4); nd[n].ida = (uint32_t)(w / IDREC); w += IDREC;
+  }
+  nids = w;
+  for (H h = fm; h < nn; h++) { tab_put(h); if (nd[h].ida) { idtab[idslot(NID(h))] = h; W->ids++; } }
+  if (icap && (uint64_t)W->ids * 2 >= icap) idmake(0);
   if (q->all == 2) q->coll = fwd(q->coll);
   if (q->all == 3) { q->i = fwd(q->i); q->coll = fwd(q->coll); }
   W->v = fwd(W->v); W->reason = fwd(W->reason);
@@ -752,13 +796,14 @@ static void reclaim(ChoicePoint *q) {
   }
   for (uint32_t i = 0; i < nout; i++) {
     out[i].entry = fwd(out[i].entry); out[i].impl = fwd(out[i].impl); out[i].fast = fwd(out[i].fast); out[i].by = byfwd(out[i].by); }
-  for (uint32_t at = q->mtake; at < rtop; at += roomlen(at)) {          /* rooms made since: the kept and those under them */
+  for (uint64_t at = q->mtake; at < rtop; at += roomlen(at)) {          /* rooms made since: the kept and those under them */
     Room *r = (Room *)(rooms + at); r->bp = fwd(r->bp); r->by = byfwd(r->by); }
   N(A_ROOMS) = rtop; ntext = mark;
 }
 /* A choice that stays open after a fail back to it begins again where things stand now. */
 static void rise(ChoicePoint *q) {
-  q->mnode = nn; q->mkids = nkids; q->mbytes = nbytes; q->mcoll = ncoll; q->mtrail = ntrail; q->mtake = N(A_ROOMS); }
+  q->mnode = (uint32_t)nn; q->mkids = nkids; q->mbytes = nbytes; q->mcoll = (uint32_t)ncoll; q->mtrail = (uint32_t)ntrail;
+  q->mtake = N(A_ROOMS); q->mids = nids; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
  * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
@@ -781,7 +826,7 @@ static int landed(void *fn, int64_t *arg) {
   }
   nnoted = 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
-  else if (r.k == 4 && r.v > 0 && r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = notice(S_RANGE); }
+  else if (r.k == 4 && r.v > 0 && (uint64_t)r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = notice(S_RANGE); }
   return 1;
 }
 /* The values code is given: an integer as the number it is, any other as its node's handle. The
@@ -839,10 +884,10 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
   if (op == ID) { W->v = mk(0, E(BYTES), idof(x), 32, &why); return; }
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
     if (nd[x].comp) { fault(S_KIND); return; }
-    uint32_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
+    uint64_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
     if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = notice(why); }
     else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
-      if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); } else W->v = mk(0, E(BYTES), text + ntext, (uint32_t)got, &why); }
+      if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); } }
     ntext = m; return;
   }
   if (op == BIND) {                       /* x: an entry that is not data, or a composite such as a recipe or an */
@@ -863,11 +908,11 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     W->v = op == CHILD ? KID(x, k) : mki(bytes[nd[x].off + k]); return;
   }
   if (!nd[l].comp || nd[l].bp != E(LIST)) { fault(S_KIND); return; }
-  uint32_t n = nd[l].n;
+  uint64_t n = nd[l].n;
   if (op == JOIN) W->v = mk(1, x, kids + nd[l].off, n, &why);
   else {
-    room(A_GATHERING_BYTES, (uint64_t)ntb + n);
-    for (uint32_t i = 0; i < n; i++) {
+    room(A_GATHERING_BYTES, ntb + n);
+    for (uint64_t i = 0; i < n; i++) {
       if (!geti(KID(l, i), &k)) { fault(S_KIND); return; }
       if (k < 0 || k > 255) { W->v = 0; W->reason = notice(S_RANGE); return; }
       tb[ntb + i] = (uint8_t)k;
@@ -893,28 +938,29 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     W->reason = a[0] ? a[0] : notice(S_NOTHING_IN); W->mode = M_FAULT; return;
   }
   if (op >= TAKE && op <= STORE) {    /* a room: bytes in the region under a blueprint, read and changed in place. While */
-    int64_t o = 0, w = 0, v = 0; uint32_t at = 0; Room *h;   /* a choice is open a store puts what it changes on the */
+    int64_t o = 0, w = 0, v = 0; uint64_t at = 0; Room *h;   /* a choice is open a store puts what it changes on the */
     if (c != (uint32_t)(op - TAKE + 2)) { fault(S_ARITY); return; }   /* room trail, and a fail puts it back */
     if (!a[0] || !a[1] || (op == STORE && !a[3])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v))) { fault(S_KIND); return; }
     if (op == TAKE) {
-      if (o < 0 || o > (1 << 24)) { W->v = 0; W->reason = notice(S_RANGE); return; }
-      at = N(A_ROOMS); uint32_t len = 16 + (((uint32_t)o + 7) & ~7u); room(A_ROOMS, (uint64_t)at + len);
-      memset(rooms + at, 0, len); *(Room *)(rooms + at) = (Room){ a[0], W->at, (uint32_t)o, 0 }; N(A_ROOMS) = at + len;
-      uint8_t b[4] = { (uint8_t)at, (uint8_t)(at >> 8), (uint8_t)(at >> 16), (uint8_t)(at >> 24) };
-      W->v = mk(0, E(ROOM), b, 4, &why); return;
+      if (o < 0) { W->v = 0; W->reason = notice(S_RANGE); return; }
+      at = N(A_ROOMS); uint64_t len = sizeof(Room) + (((uint64_t)o + 7) & ~7ull); room(A_ROOMS, at + len);
+      memset(rooms + at, 0, len); *(Room *)(rooms + at) = (Room){ a[0], W->at, 0, {0}, (uint64_t)o }; N(A_ROOMS) = at + len;
+      uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)(at >> (8 * i));
+      W->v = mk(0, E(ROOM), b, 8, &why); return;
     }
-    if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 4) { fault(S_KIND); return; }
-    memcpy(&at, bytes + nd[a[0]].off, 4); h = (Room *)(rooms + at);
-    if (at % 8 || (uint64_t)at + 16 > N(A_ROOMS) || (w != 1 && w != 2 && w != 4 && w != 8) || o < 0 || (uint64_t)o + (uint64_t)w > h->size) {
+    if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 8) { fault(S_KIND); return; }
+    memcpy(&at, bytes + nd[a[0]].off, 8); h = (Room *)(rooms + at);
+    if (at % 8 || at + sizeof(Room) > N(A_ROOMS) || (w != 1 && w != 2 && w != 4 && w != 8) || o < 0 || (uint64_t)o + (uint64_t)w > h->size) {
       W->v = 0; W->reason = notice(S_RANGE); return; }
-    uint8_t *p = rooms + at + 16 + o; uint32_t from = (uint32_t)(p - rooms);
+    uint8_t *p = rooms + at + sizeof(Room) + o; uint64_t from = (uint64_t)(p - rooms);
     if (op == LOAD) { uint64_t u = 0; for (int64_t i = w; i > 0; i--) u = u << 8 | p[i-1]; W->v = mki((int64_t)u); return; }
     if (!ncp) nrtrail = 0;
     else {                                /* the bytes it changes, and the room's writer and count */
-      uint32_t g0 = from & ~3u, n4 = (from + (uint32_t)w - g0 + 3) / 4; room(A_ROOM_TRAIL, (uint64_t)nrtrail + n4 + 2);
-      for (uint32_t j = 0; j < n4 + 2; j++) { uint32_t g = j == 0 ? at + 4 : j == 1 ? at + 12 : g0 + 4 * (j - 2);
-        RoomTrail t = { E(ROOM_TRAIL), W->at, g, 0 }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; } }
+      uint64_t g0 = from & ~3ull, n4 = (from + (uint64_t)w - g0 + 3) / 4; room(A_ROOM_TRAIL, nrtrail + n4 + 2);
+      for (uint64_t j = 0; j < n4 + 2; j++) {
+        uint64_t g = j == 0 ? at + offsetof(Room, by) : j == 1 ? at + offsetof(Room, writes) : g0 + 4 * (j - 2);
+        RoomTrail t = { E(ROOM_TRAIL), W->at, 0, {0}, g }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; } }
     for (int64_t i = 0; i < w; i++) p[i] = (uint8_t)((uint64_t)v >> (8 * i));
     h->by = W->at; h->writes++; W->v = a[3]; return;
   }
@@ -922,13 +968,13 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
     if (c != 1) { fault(S_ARITY); return; }
     if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == ENCODE) { uint32_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, (uint32_t)len, &why); ntext = mark; return; }
+    if (op == ENCODE) { uint64_t mark = ntext; size_t len; uint8_t *cb = cbytes(a[0], &len); W->v = mk(0, E(BYTES), cb, len, &why); ntext = mark; return; }
     if (nd[a[0]].comp) { fault(S_KIND); return; }
     if (!(W->v = from_bytes(bytes + nd[a[0]].off, nd[a[0]].n, &why))) W->reason = notice(why);
     return;
   }
   if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
-    int64_t arg[8] = {0}; uint32_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
+    int64_t arg[8] = {0}; uint64_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
     if (c < 1 || c > 7) { fault(S_ARITY); return; }
     if (ncp) { fault(S_IRREVERSIBLE); return; }        /* what cannot be undone is refused while a choice is open */
     if (numeric_io) {
@@ -954,7 +1000,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     return;
   }
   if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
-    int64_t o = 0, n = 0; uint32_t mark = ntext;
+    int64_t o = 0, n = 0; uint64_t mark = ntext;
     if (c != 3) { fault(S_ARITY); return; }
     if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault(S_KIND); return; }
@@ -966,9 +1012,9 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0]; kept(E(NOTE), E(LOOK), a[0]);
     }
     const Head *far = (const Head *)(uintptr_t)W->watch;
-    if (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = notice(S_RANGE); return; }
+    if (o < 0 || n < 0 || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = notice(S_RANGE); return; }
     uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
-    W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
+    W->v = mk(0, E(BYTES), copy, (uint64_t)n, &why); ntext = mark; return;
   }
   if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
@@ -976,11 +1022,11 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (op == HANDLE) { W->v = mki(a[0]); return; }
     if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
-    if (op == AT ? (o < 1 || o >= nn) : (o < 0 || n < 0 || n > (1 << 24) || (uint64_t)o + (uint64_t)n > fb->bytes
+    if (op == AT ? (o < 1 || (uint64_t)o >= nn) : (o < 0 || n < 0 || (uint64_t)o + (uint64_t)n > fb->bytes
                                           || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = notice(S_RANGE); return; }
     if (op == AT) { W->v = (H)o; return; }
-    uint32_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
-    W->v = mk(0, E(BYTES), copy, (uint32_t)n, &why); ntext = mark; return;
+    uint64_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
+    W->v = mk(0, E(BYTES), copy, (uint64_t)n, &why); ntext = mark; return;
   }
   if (op == NOTHING) {                /* an answer of nothing, and the reason beside it */
     if (c != 1) { fault(S_ARITY); return; }
@@ -1078,23 +1124,23 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   op &= 255; if (c > 6) c = 6;
   if (op == GATHERED && c < 2) {
     if (!c) return (Ret){ ntk, num ? 0 : 3 };
-    H g = cm >> 8 & 1 ? (a0 > 0 && a0 < nn ? (H)a0 : 0) : mki(a0);
+    H g = cm >> 8 & 1 ? (a0 > 0 && (uint64_t)a0 < nn ? (H)a0 : 0) : mki(a0);
     if (g) { room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = g; }
     return (Ret){ 0, 4 };
   }
   if (op == LIST) {
-    if (c != 1 || cm != 1 || a0 < 0 || a0 > ntk) { fault(S_KIND); siglongjmp(in_code, 3); }
+    if (c != 1 || cm != 1 || a0 < 0 || (uint64_t)a0 > ntk) { fault(S_KIND); siglongjmp(in_code, 3); }
     x = mk(1, E(LIST), tk + a0, ntk - (uint32_t)a0, &why); ntk = (uint32_t)a0; return (Ret){ x, 4 };
   }
   if (op == NOTE || op == HELD) {
-    H key = !c ? 0 : cm >> 8 & 1 ? (a0 > 0 && a0 < nn ? (H)a0 : 0) : mki(a0), v = c != 2 ? 0 : cm >> 9 & 1 ? (a1 > 0 && a1 < nn ? (H)a1 : 0) : mki(a1);
+    H key = !c ? 0 : cm >> 8 & 1 ? (a0 > 0 && (uint64_t)a0 < nn ? (H)a0 : 0) : mki(a0), v = c != 2 ? 0 : cm >> 9 & 1 ? (a1 > 0 && (uint64_t)a1 < nn ? (H)a1 : 0) : mki(a1);
     if (c == (op == NOTE ? 2u : 1u) && key && (op == HELD || v)) {
       if (op == NOTE) { room(A_NOTED, (uint64_t)nnoted + 2); noted[nnoted] = key; noted[nnoted+1] = v; nnoted += 2; return (Ret){ v, 4 }; }
       for (uint32_t j = nnoted; j > 0; j -= 2) if (noted[j-2] == key) return num ? (geti(noted[j-1], &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 }) : (Ret){ noted[j-1], 4 };
     }
   }
   if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault(S_NO_NODE); siglongjmp(in_code, 3); }
-  for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && v[j] < nn ? (H)v[j] : 0;
+  for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && (uint64_t)v[j] < nn ? (H)v[j] : 0;
   x = a[0];                               /* what code reads most is answered without a number being built for it */
   if (x && op == COUNT && num && c == 1) return (Ret){ nd[x].n, 0 };
   if (x && op == BYTE && num && c == 2 && !(cm >> 9 & 1) && !nd[x].comp && (uint64_t)v[1] < nd[x].n) return (Ret){ bytes[nd[x].off + v[1]], 0 };
@@ -1126,8 +1172,9 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
     }
     if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
-      uint32_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
+      uint64_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
       if (n > fb->a[A_ASKED].cap) n = 0;
+      room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
       why = S_ID; q = numeric_io ? (n == 32 ? byid((uint8_t *)s) : 0) : read_print(s, &why);
       if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
@@ -1228,9 +1275,9 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
         void *dst = (uint8_t *)fb + fb->a[A_ANSWERED].off;
-        if (numeric_io) { memcpy(dst, idof(W->v), 32); N(A_ANSWERED) = 32; }
-        else { print(W->v); uint32_t n = nob < fb->a[A_ANSWERED].cap ? nob : (uint32_t)fb->a[A_ANSWERED].cap;
-          memcpy(dst, ob, n); N(A_ANSWERED) = n; } N(A_ASKED) = 0;
+        if (numeric_io) { room(A_ANSWERED, 32); memcpy(dst, idof(W->v), 32); N(A_ANSWERED) = 32; }
+        else { print(W->v); uint64_t n = nob < fb->a[A_ANSWERED].cap ? nob : fb->a[A_ANSWERED].cap;
+          room(A_ANSWERED, n); memcpy(dst, ob, n); N(A_ANSWERED) = n; } N(A_ASKED) = 0;
       }
       W->env = f.env; W->cut = f.cut; W->x = f.node; W->one = f.i; W->reason = f.vals; W->mode = M_EVAL; break; }
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
@@ -1393,13 +1440,7 @@ static H open_image(const uint8_t *p, size_t n, Status *why) {
       || nd[last].n != 2 || nd[KID(last, 1)].bp != E(LIST)) { *why = S_IMAGE; return 0; }
   return last;
 }
-static int send_bytes(const uint8_t *p, size_t n) {
-  while (n) { ssize_t sent = write(1, p, n); if (sent < 0 && errno == EINTR) continue;
-    if (sent <= 0) return 0;
-    p += sent; n -= (size_t)sent;
-  }
-  return 1;
-}
+static int send_bytes(const uint8_t *p, size_t n) { return send_fd(1, p, n); }
 static int recv_bytes(uint8_t *p, size_t n) {
   while (n) { ssize_t got = read(0, p, n); if (got < 0 && errno == EINTR) continue;
     if (got <= 0) return 0;
@@ -1420,7 +1461,7 @@ static int send_answer(uint8_t status, H value) {
   header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
   if (!send_bytes(header, sizeof header) || !send_bytes(ice_header, sizeof ice_header)) return 0;
   for (H h = 1; h <= value; ++h) if (pnum[h]) {
-    uint32_t mark = ntext; size_t len; uint8_t *record = cbytes(h, &len); put4(header, (uint32_t)len);
+    uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(h, &len); put4(header, (uint32_t)len);
     int sent = send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[h] = 0;
     if (!sent) return 0;
   }
@@ -1472,8 +1513,7 @@ static int command(int argc, char **argv) {
     for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
     run(file_node(argv[2]));
     if (cmd[0] == 't' && W->outcome == 'n' && !nd[W->v].comp) {      /* a leaf answer leaves as its own bytes */
-      for (uint32_t at = 0, n = nd[W->v].n; at < n; ) { ssize_t w = write(1, bytes + nd[W->v].off + at, n - at); if (w <= 0) return 2; at += (uint32_t)w; }
-      return 0;
+      return send_fd(1, bytes + nd[W->v].off, nd[W->v].n) ? 0 : 2;
     }
     if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
     return W->outcome == 'f' || cmd[0] == 't';

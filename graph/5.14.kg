@@ -3,8 +3,8 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 75 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of ten host functions. Zero and one are catalogue entries and nothing is the absence of a node.
-at: 2026-11-25
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 75 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of eleven host functions. The region's areas are sized by the machine's memory (5.14.58). Zero and one are catalogue entries and nothing is the absence of a node.
+at: 2026-11-27
 
 n: 5.14.1
 name: operations-are-catalogue-entries
@@ -96,12 +96,12 @@ at: 2026-11-25
 n: 5.14.9
 name: host-functions-so-far
 kind: decision
-is: Ten host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, map another process's region to be read, look up a symbol, and hand a fault of the processor to a handler on its own stack. A program reaches the file, the clock and, by name, any function of the host as operations (5.14.40). Thread start in 5.8.1 is not written.
+is: Eleven host functions exist, each one entry in a table: reserve the shared region, reserve the code region, switch this thread between writing and running code, flush the instruction cache, read a file into the region, call a function, read a clock, map another process's region to be read, look up a symbol, hand a fault of the processor to a handler on its own stack, and say how much memory the machine has. A program reaches the file, the clock and, by name, any function of the host as operations (5.14.40). Thread start in 5.8.1 is not written.
 status: inferred
 from: 5.8.1 5.9.4
 src: 2.30.7
 conf: mid
-at: 2026-11-25
+at: 2026-11-27
 
 n: 5.14.10
 name: floor-is-a-framebuffer
@@ -338,13 +338,14 @@ at: 2026-11-25
 n: 5.14.33
 name: code-reads-fixed-places-of-the-head
 kind: decision
-is: Code that reads the region may count on three places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach; at byte 128 the address it calls to ask the bootstrap (5.18.6); and at byte 160 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. ground/deep-on-code.ck now runs a recursion 600,000 deep, more than the stack holds, on emitted code.
+is: Code that reads the region may count on three places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach; at byte 128 the address it calls to ask the bootstrap (5.18.6); and at byte 160 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. They stayed put when the area entry and the node record widened; the step leaf, which reads a node's record, was rewritten.
 status: inferred
 from: 5.14.28 5.7.6 5.14.10
 src: 2.30.7 2.30.9 2.30.11
 conf: mid
 flip: A leaf that needs more of the region than these places asks the bootstrap for it (5.18.6), as 5.10.9 describes, and wants no more fixed bytes.
-at: 2026-11-25
+limit: The stack now holds as much as memory, so ground/deep-on-code.ck's recursion 600,000 deep runs wholly on emitted code and no program reaches the check of the floor.
+at: 2026-11-27
 
 n: 5.14.34
 name: a-cell-holds-a-node-and-has-a-trail
@@ -525,15 +526,15 @@ at: 2026-11-26
 n: 5.14.56
 name: a-full-area-is-a-fault
 kind: decision
-is: When an area of the region has no room left while a program runs, the program has the fault full with the area's name; before, the process ended. The walker goes on from its loop, as after a crash in code, and a recover that catches a fault gives back the frames, gathered values and activations of the body that faulted. Observed on 2026-11-26: a recursion that never returns was caught at four million frames, twice in one program, which then went on.
+is: When an area of the region has no room for what a running program asks of it, the program has the fault full with the area's name, and the process goes on. The walker goes on from its loop, as after a crash in code, and a recover that catches a fault gives back the frames, gathered values and activations of the body that faulted. Observed on 2026-11-27: a room larger than memory, asked for a thousand calls deep, was caught twice in one program, the frames came back each time, and the program went on.
 status: inferred
-from: 5.4.5 5.14.41 5.9.3 7.13
+from: 5.4.5 5.14.41 5.9.3 7.13 5.14.58
 src: 2.30.7 2.30.6 2.30.11
 conf: mid
-why: A program that runs away should cost a fault and not the process, most of all when something from outside is watching it or asking it.
+why: A program that asks for more than there is should cost a fault and not the process, most of all when something from outside is watching it or asking it.
 flip: A recover gives back no nodes, since the body's cells, bindings and rooms stand, so a full store stays full until a fail returns past where its nodes were made, and what catches that can do little. A full area while a fault is being handled still ends the process.
-limit: Witnessed by ground/full-is-a-fault.ck. Frames grew by a word to hold the mark for values.
-at: 2026-11-26
+limit: Witnessed by ground/full-is-a-fault.ck, which a planted fault that kept the faulted body's frames turned red. Areas now hold as much as memory, so a recursion that never returns is paged by the host before an area is full (5.14.58).
+at: 2026-11-27
 
 n: 5.14.57
 name: a-fail-gives-back-what-it-returns-past
@@ -543,7 +544,20 @@ status: observed
 from: 5.14.56 5.14.41 5.7.6
 src: 2.30.19
 conf: high
-why: Nodes made in a branch that failed were kept until the process ended, so a sweep of 30,771 cases made 2.57 million nodes and all ground programs in one process overflowed the 4,194,304 the area holds. Observed on 2026-11-26: the sweep, since widened to 37,822 cases, ends holding 36,839 nodes; all 74 ground programs, the sweep among them, run in one process and end at 215,342; ground/gives-back.ck runs forty thousand outcomes that make more nodes than the area holds, which faults the earlier bootstrap with a full area; giving back costs 2 to 4 percent of the time.
+why: Nodes made in a branch that failed were kept until the process ended, so a sweep of 30,771 cases made 2.57 million nodes. Observed on 2026-11-26: the sweep, since widened to 37,822 cases, ends holding 36,839 nodes; all 74 ground programs, the sweep among them, run in one process and end at 215,342; ground/gives-back.ck runs forty thousand outcomes that make more than four million nodes; giving back costs 2 to 4 percent of the time. Observed on 2026-11-27: a node kept by an all keeps its own id when ids made since were given back, and a planted fault that left a moved node pointing at its id's old place turned ground/gives-back.ck red.
 flip: A handle kept as a number across a fail back past where its node was made can name another node afterwards; a collector over what is reachable would also free what a run with no choice open no longer needs.
 limit: A run with no choice open still keeps every node it makes. One machine.
-at: 2026-11-26
+at: 2026-11-27
+
+n: 5.14.58
+name: the-region-is-sized-by-memory
+kind: decision
+is: Each area of the region has room for as many records as the machine's memory holds, which the host says, or as the area's count can number where that is fewer: 32 bits for records named by a handle or an index of 32 bits, 64 for bytes, children and the two indexes. Counts, offsets, a node's size and a room's size are 64 bits, and a node's id lies in an area of its own, so a node's record is 32 bytes. Observed on 2026-11-27 with 128 GiB: the region is 2.28 TiB of addresses, reserved in a few microseconds, and every ground program ends as expected, alone and all in one process.
+status: inferred
+from: 5.14.10 5.14.56 5.14.57 7.13
+src: 2.30.7 2.30.9 2.30.11 2.30.19
+conf: mid
+why: No bound but the hardware's. A fixed capacity was a limit a program met long before the machine's, and pages are taken only as they are touched, so room that is not used costs nothing.
+flip: Nothing counts what the areas take together, so a run that needs more than the machine has is paged by the host before any area is full; a bound on the whole region, with a ground program that reaches it cheaply, would make that a fault too.
+limit: A handle, the indexes of the walker's records and the limit word are still 32 bits or fewer: at most 2^32 - 1 nodes, as many frames or children, 2^23 - 1 bindings and 127 from outside. Born code is reached by a 32-bit offset, 4 GiB, and the floor counts pages of 16 KiB in 32 bits, so the stack lies within the region's first 64 TiB. The asker writes a request's count as four bytes of eight. One machine.
+at: 2026-11-27

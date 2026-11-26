@@ -92,7 +92,7 @@ static void sp(const char *s) {           /* appends to the line being shown; a 
 static long long catn(H h) {
   if (h >= 1 && h <= SEEDED) return h - 1;
   if (!h || h >= hd->a[A_NODES].n || nd[h].comp || nd[h].bp != ROOT) return -1;
-  long long v = 0; for (uint32_t i = nd[h].n; i > 0; i--) v = v << 8 | bytes[nd[h].off + i - 1];
+  long long v = 0; for (uint64_t i = nd[h].n; i > 0; i--) v = v << 8 | bytes[nd[h].off + i - 1];
   return v;
 }
 static void shown(H h, int depth) {
@@ -104,18 +104,18 @@ static void shown(H h, int depth) {
   if (x->comp) {
     if (depth <= 0) { sp("(..)"); return; }
     sp("("); shown(x->bp, depth - 1);
-    for (uint32_t i = 0; i < x->n; i++) { sp(" "); shown(kids[x->off + i], depth - 1); }
+    for (uint64_t i = 0; i < x->n && !cut; i++) { sp(" "); shown(kids[x->off + i], depth - 1); }
     sp(")"); return;
   }
   if ((x->bp == E(INT) || x->bp == E(NAT)) && x->n <= 8) {
     uint64_t u = (x->bp == E(INT) && x->n && (b[x->n-1] & 0x80)) ? ~0ull : 0;
-    for (uint32_t i = x->n; i > 0; i--) u = u << 8 | b[i-1];
+    for (uint64_t i = x->n; i > 0; i--) u = u << 8 | b[i-1];
     if (x->bp == E(INT)) snprintf(t, sizeof t, "%lld", (long long)u); else snprintf(t, sizeof t, "%llun", (unsigned long long)u);
     sp(t); return;
   }
-  if (x->bp == E(2)) { sp("\""); for (uint32_t i = 0; i < x->n; i++) { t[0] = (char)b[i]; t[1] = 0; sp(t); } sp("\""); return; }
+  if (x->bp == E(2)) { sp("\""); for (uint64_t i = 0; i < x->n && !cut; i++) { t[0] = (char)b[i]; t[1] = 0; sp(t); } sp("\""); return; }
   sp("["); shown(x->bp, depth - 1); sp(" ");
-  for (uint32_t i = 0; i < x->n; i++) { snprintf(t, sizeof t, "%02x", b[i]); sp(t); }
+  for (uint64_t i = 0; i < x->n && !cut; i++) { snprintf(t, sizeof t, "%02x", b[i]); sp(t); }
   sp("]");
 }
 static const char *str(H h, size_t lim) { sn = 0; cut = 0; slim = lim < sizeof sb ? lim : sizeof sb; sb[0] = 0; shown(h, 8); return sb; }
@@ -123,15 +123,16 @@ static void writer(H by) { if (by) printf("%s", str(by, 90)); else printf("the b
 
 static void line(int i, double ms, uint64_t after, uint32_t pages) {
   const Machine *m = &hd->m;
-  printf("frame %4d  %9.2f ms  step %11llu%s  %-6s  nodes %-7u frames %-5u links %-5u activations %-8u choices %-3u pages %-5u at %s\n",
+  printf("frame %4d  %9.2f ms  step %11llu%s  %-6s  nodes %-7llu frames %-5llu links %-5llu activations %-8llu choices %-3llu pages %-5u at %s\n",
          i, ms, (unsigned long long)m->step, after != m->step ? " moving" : "       ", MODE[m->mode <= M_DONE ? m->mode : 0],
-         hd->a[A_NODES].n, hd->a[A_FRAMES].n, hd->a[A_LINKS].n, hd->a[A_ACTIVATIONS].n, hd->a[A_CHOICE_POINTS].n, pages, str(m->at, 70));
+         (unsigned long long)hd->a[A_NODES].n, (unsigned long long)hd->a[A_FRAMES].n, (unsigned long long)hd->a[A_LINKS].n,
+         (unsigned long long)hd->a[A_ACTIVATIONS].n, (unsigned long long)hd->a[A_CHOICE_POINTS].n, pages, str(m->at, 70));
 }
 static void node(H h) {
   if (!h || h >= hd->a[A_NODES].n) { printf("node %u: not in this frame\n", h); return; }
   printf("node %u\n  is         %s\n", h, str(h, 2000));
   printf("  blueprint  %s\n", str(nd[h].bp, 200));
-  printf("  %s, %u %s\n  written by ", nd[h].comp ? "composite" : "leaf", nd[h].n, nd[h].comp ? "children" : "bytes");
+  printf("  %s, %llu %s\n  written by ", nd[h].comp ? "composite" : "leaf", (unsigned long long)nd[h].n, nd[h].comp ? "children" : "bytes");
   writer(nd[h].by); printf("\n");
 }
 static void detail(void) {
@@ -149,7 +150,8 @@ static void detail(void) {
   }
   printf("areas\n");
   for (int i = 0; i < A_COUNT; i++) { const Area *a = &hd->a[i];
-    printf("  %-20s %-13s %10u in use %12llu bytes\n", AREA_NAME[i], str(a->of, 40), a->n, (unsigned long long)a->n * a->size); }
+    printf("  %-20s %-13s %10llu in use %12llu bytes %12llu at most\n", AREA_NAME[i], str(a->of, 40), (unsigned long long)a->n,
+           (unsigned long long)a->n * a->size, (unsigned long long)a->peak); }
   if (m->env && m->env < hd->a[A_ACTIVATIONS].n) {
     const Activation *e = &act[m->env];
     printf("activation %u  recipe %s\n  arguments", m->env, str(e->recipe, 120));
