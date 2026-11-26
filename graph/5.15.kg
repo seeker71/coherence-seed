@@ -47,7 +47,7 @@ from: 5.3.2 5.1.5 5.15.2 5.14.30
 src: 2.30.14 2.30.15
 conf: mid
 why: 5.3.2 asks for rows read forwards and run backwards with no printer written by hand. Between two shapes of nodes that is matching and substitution, and it leaves text to the words and leaves beneath. A surface word is an entry of a higher namespace that lowers into the core (5.1.5).
-flip: A pattern over text, as an infix operator or a host language needs, is not a pair of node shapes; that part of 5.3.2 is not built.
+flip: The BML lens expresses patterns over characters in BMF (5.19.28).
 limit: A hole may stand once on each side. Every row is tried at every node.
 at: 2026-11-25
 
@@ -73,7 +73,7 @@ from: 5.3.2 5.3.5 5.15.2 5.15.4
 src: 2.30.14 2.30.15
 conf: mid
 why: 5.3.2 names an operator table among a lens's rows. Arithmetic and tests are most of what is read in a definition, and written in front they hide what is compared with what.
-flip: A reader used to precedence must write every bracket. A pattern over text, which a host language's lens needs, is still not built.
+flip: The home word lens requires brackets. The BML grammar expresses precedence through its productions (5.19.28).
 limit: Seven signs. A name may not be a sign.
 at: 2026-11-26
 

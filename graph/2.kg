@@ -278,3 +278,12 @@ path: coherence-seed/spec/objects.md
 date: 2026-11-25
 got: 2026-11-25
 at: 2026-11-25
+
+n: 2.30.17
+name: bml-and-bmf-running-together
+kind: source
+is: A Form program runs the thesis and form.bml readings of subtraction, links a parameterized BMF grammar and exercises cursor restore, cut, stop and bounded retries on whole character streams.
+path: coherence-seed/ground/nums-lenses.ck
+date: 2026-11-26
+got: 2026-11-26
+at: 2026-11-26

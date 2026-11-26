@@ -369,11 +369,10 @@ The following paths run on that catalogue. The ground programs with the prefix
   recipe rescores the parents. The default is two-way tournament selection, a supplied
   variation recipe and generational replacement. A path can select a subtree for typed
   replacement. The caller supplies the type judgment for its program representation.
-- `nums/go.ck` and `nums/bml.ck` are rows for one reader and printer. Arithmetic has a direct
-  spelling. The constructor spelling covers entries, leaves and composites, including a
-  composite category. To run the reader, supply a row-file path on the first line of stdin
-  and an expression on the following lines to `./ck text nums/read.ck`. The corresponding
-  writer is `./ck text nums/show.ck`. Both return their output directly to the caller.
+- `nums/read.ck` reads the lens path on the first line of stdin and the whole source after it.
+  `nums/show.ck` takes the same path followed by a canonical node. The Go lens uses projection
+  rows. The BML lens uses its BMF grammar for expressions and whole source files. Both read
+  entries, leaves and composites through constructor expressions and print arithmetic directly.
   The row files `nums/go-bytes.ck` and `nums/bml-bytes.ck` project any node as a native byte
   sequence literal carrying its frozen graph. This gives a language a direct way to produce
   nodes, including references to shared children. A Go program writing the generated literal
@@ -444,9 +443,70 @@ The following paths run on that catalogue. The ground programs with the prefix
   cases, answered the same compiled and on frames. The machine code answered 8,354 of those
   casts itself. A million rectangles took 5.9 ms compiled; a thousand took 156 ms on frames.
 
-Full-language declaration and statement grammars, execution of the rest of the recipe
-catalogue and regeneration of the bootstrap remain open. Members and objects run neither on
+Lowering whole BML packages to executable declarations, a full Go grammar, execution of the
+rest of the recipe catalogue and regeneration of the bootstrap remain open. Members and objects run neither on
 frames nor in compiled code. The compiler takes no more than six parameters at a call from
 outside and eight between declarations, and does not write GPU code, unroll loops or trace
 compiled code; a function it refuses runs on frames. On frames a nothing is not carried out of
 a declared function: returned, it answers 1, and written to a place it faults `arity`.
+
+## BML and its BMF character cursor
+
+The BML productions are numeric nodes in `nums/bml.ck`. Each production refers to other
+productions by number. The character matcher in `bmf/cursor.ck` serves both those productions
+and the rules a BML program declares inside `syntax { … }`. The language-specific terminals
+and the translation to NUMS live in `nums/bml-reader.ck`.
+
+The cursor is a position between Unicode scalar values. The first position is zero. A choice
+saves that position. Failure can return to it across a token, a comment or a newline. BML
+terminals skip whitespace and comments, including nested block comments. An embedded BMF
+rule sees each character, including spaces. `EndOfLine` consumes LF or CRLF. CRLF occupies
+two cursor positions. `EndOfFile` succeeds at the end of the character stream.
+
+| BMF element | What the matcher does |
+| --- | --- |
+| Sequence and ordered choice | Continue each match into the following element. Try the next alternative when a later element fails. |
+| Optional and repetition | Try the longest match first. Give back characters until the suffix matches or the minimum is reached. An empty match ends repetition. |
+| `Fail` | Resume the nearest available choice. Form restores trailed cell writes on that path. |
+| `Cut` | Succeed going forward. A retry across this position ends the parse with the numeric cut reason and the saved position. |
+| `Stop` | End the parse immediately with the numeric stop reason and the current position. |
+| `MultiMatch(part, retries)` | Offer the first match and at most that many retries. Close the operand's choice points as its last allowed answer leaves. Enclosing alternatives remain available. |
+
+Urs C. Muff describes these cursor, branch, repeat and cut semantics in *Backtracking Model
+Languages* (2000), pp. 10–13. The separate immediate `Stop` follows the later kernel. Form's
+scoped `first` closes local alternatives when a grammar production explicitly commits to its
+first match. It also chooses the first complete parse at the public entry point.
+
+The thesis and the original JBML grammar supply packages, interfaces, classes with multiple
+parents, templates, sections, properties, declarations, expressions and statements. The
+`section [form.bml]` productions cover the later kernel's blueprints, methods with contracts,
+class members, collection literals, slices, lambdas, match arms and pipelines. The enclosing
+grammar selects associativity. At the root, `10 - 3 - 2` follows the thesis's expression
+example on pp. 23–25 and evaluates to 9. In a `form.bml` definition it evaluates to 5.
+
+Reading a source file returns a syntax tree with numbered productions and typed token leaves.
+Showing it emits normalized spacing. Reading that spelling reconstructs the tree.
+`bml.recipe` turns an untyped, expression-bodied `form.bml` definition in the supported
+operator subset into a recipe, resolving parameters to argument positions. Class declarations
+and statement bodies currently have a syntax representation. Whole-package name resolution,
+type checking and code generation for those declarations remain open.
+
+`bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
+result can run directly with `bmf.run` given a start rule and source text. For example,
+`List(item, separator) ::= item { separator item };` accepts another rule and a literal as
+arguments. Character ranges, literal strings, grouping and the control elements above execute.
+BMF method callbacks, tagged captures and whitespace annotations on individual literals
+remain open. `ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
+process as a BML definition.
+
+The numeric entry `bmf.run-stream` takes linked rules, a start rule and a vector of Unicode
+scalars. In an isolated `seed-run` process, a binary request with those three ids parsed
+`Alpha,B_e,C` with the thesis's parameterized list. A call by id to the BML-authored
+subtraction recipe in the same image returned 5. Both returned ids matched the authoring
+process. The image contained 11,078 records and zero text leaves.
+
+The public lens also reads a thesis expression from stdin.
+
+```sh
+printf 'nums/bml.ck\n10 - 3 - 2\n' | ./ck text nums/read.ck
+```

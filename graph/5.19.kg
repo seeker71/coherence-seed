@@ -95,7 +95,7 @@ status: inferred
 from: 5.3.2 5.2.4 3.2.8.3 3.1.4.3 5.19.2
 conf: mid
 why: NUMS's label tree already carries such templates and one table per language. Writing comes first because it needs no grammar.
-flip: Until a lens reads a language, programs enter through the bracket notation.
+flip: The Go projection and the BML grammar read into nodes. The BML syntax tree can express declarations that the engine cannot yet execute (5.19.28).
 at: 2026-11-26
 
 n: 5.19.10
@@ -263,4 +263,25 @@ from: 5.19.22
 conf: high
 why: A tuple gathers the answers of its parts, and a part that fails gives none. Observed in a cast sweep: a conversion the compiler could not write dropped out of the code and the function returned the wrong register. The same shape stood in reading a deep temporary, storing, returning, passing arguments and taking a callee's answer.
 flip: A builder of lists that failed with any part would let the rules build their words in place.
+at: 2026-11-26
+
+n: 5.19.27
+name: bmf-character-cursor-and-parser-control
+kind: decision
+is: and writing the BMF parser with choice, cut, stop, etc. is essential as it has been done in the thesis, that is why those primitives were added in the first place during the thesis
+why: the BML parser is based BMF and the BMF cursor that is character based and not line based, right? that is very important
+status: given
+by: owner
+see: 3.5.4.1 3.5.4.2
+at: 2026-11-26
+
+n: 5.19.28
+name: bml-reads-by-running-bmf
+kind: decision
+is: The thesis and original JBML grammar supply the BML productions. A form.bml section selects the later kernel's productions. The same BMF matcher runs both the BML grammar and the grammar a BML program defines. A character cursor and native Form choices carry the search across lines. Fail resumes a branch, crossing Cut ends the search and Stop ends it on entry. Rule and argument references are numbers when the linked grammar runs.
+status: inferred
+from: 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
+src: 2.3.1 2.8.6 2.8.12 2.8.14 2.30.17
+conf: high
+limit: The language lens reads more syntax than it lowers to executable recipes. The running subset and the source round trips are described in spec/nums.md and FLOOR.md.
 at: 2026-11-26
