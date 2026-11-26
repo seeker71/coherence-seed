@@ -248,19 +248,31 @@ entries to the coordinates `nums_consts.go` gives them, and every entry to its n
 `ground/instance-runs-its-binding.ck` binds `(Instance Plus (Integer (TwosComplement 32)))` and
 runs a node of it. An instance with no binding answers itself.
 
-The following paths run on that catalogue. The six ground programs with the prefix
+The following paths run on that catalogue. The ground programs with the prefix
 `ground/nums-` observe their results.
 
 - `nums/objects.ck` creates an object from its parents, members, methods and constructor.
-  A field with a fixed layout occupies aligned bytes in one trailed payload. Its declaration
+  A field with a fixed layout occupies aligned bytes in one room labelled with the object declaration. Its declaration
   supplies the blueprint when read. An Any field holds the complete node. A cell reference
-  carries both the actual declaration and the visible view. Method calls, explicit parent
+  carries the actual declaration, the visible view and the same room through each cast. Method calls, explicit parent
   calls, structural views and recipe specialization all operate on that reference.
 - `nums/numbers.ck` implements the five cast policies in Form. It converts signed and unsigned
   integer layouts of 1 to 64 bits, the native fixed-width leaves and binary floating layouts
   specified by exponent width, fraction width and special-value convention. The witnesses
-  include binary16/32/64, bfloat16, FP4, FP8, and unsigned E8M0. Exact casts can answer
+  include binary16/32/64, bfloat16, FP4, both FP6 formats, FP8, and unsigned E8M0. Exact casts can answer
   nothing. Integer wrap uses the target width. NaN payloads are canonicalized.
+- `nums/quantized.ck` reads and writes a `Fixed` point as an integer times a power of two.
+  An `Affine` layout rounds the quotient of the value and positive scale, adds its zero point
+  and applies the integer policy. A `Table` layout stores an index into a numeric codebook.
+  Magnitudes in `nums/magnitude.ck` are sequences of bytes. Integer products, sums and
+  quotient/remainder can span multiple machine words before the target rounds.
+- `nums.block-pack` takes the element values, a block blueprint, its shared E8M0 scale and
+  the cast policy, with the blueprint first. The leaf holds the shared scale byte followed by
+  the element bits from least significant upward. `nums.block-unpack` reads that leaf into
+  the requested scalar layout. Three FP4 elements at scale two occupy the bytes `80 0a 05`
+  for the values −2, 0 and 6. The caller selects the scale. The quantization and block
+  conventions are described by [ONNX](https://onnx.ai/onnx/operators/onnx__QuantizeLinear.html)
+  and [OCP](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf).
 - `nums/genetics.ck` develops each genome and scores the resulting phenotype. A generation
   carries its specimens, random seed, development recipe and fitness recipe. Changing either
   recipe rescores the parents. The default is two-way tournament selection, a supplied
@@ -271,6 +283,11 @@ The following paths run on that catalogue. The six ground programs with the pref
   composite category. To run the reader, supply a row-file path on the first line of stdin
   and an expression on the following lines to `./ck text nums/read.ck`. The corresponding
   writer is `./ck text nums/show.ck`. Both return their output directly to the caller.
+  The row files `nums/go-bytes.ck` and `nums/bml-bytes.ck` project any node as a native byte
+  sequence literal carrying its frozen graph. This gives a language a direct way to produce
+  nodes, including references to shared children. A Go program writing the generated literal
+  for `(#9999 (#46 [#4 11] [#4 19]) [#1 ff00] ^1)` produced the same 510 bytes as
+  `ice.freeze`. The repository checks the round trip in Form.
 
 - `nums/run.ck` is the generic runtime. The catalogue's recipes are bound to recipes in form,
   so a recipe node runs as it stands and the walker is at that node. A call of `(FunctionDecl
