@@ -8,9 +8,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 142 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,274 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,282 lines of C under a 2,000-line budget, with two commands: run a program, and run it and write its answer as text |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 69 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
@@ -26,7 +26,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, eight lines: the header against its nodes; 67 ground programs and the
+- **`make check` passes**, eight lines: the header against its nodes; 68 ground programs and the
   146 vectors, judged by a program in form; ice across two processes; native code unsigned and
   hardened; a run recorded from a second process; a run asked from one; a search that writes
   a file only for the path that held; and the reads by a bare number against their budget.
@@ -98,7 +98,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 121 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 123 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -119,11 +119,17 @@ helper could not see the code (found by planting faults that nothing noticed).
 
 - **The rest of the NUMS engine.** The catalogue, constructed cells, conversion between scalar
   layouts, typed method dispatch and specialization, a genetic population and two expression
-  lenses run. Full-language statement and declaration grammars and the complete execution path
-  through the recipe catalogue are open. The ground programs and supported layouts are listed
-  in [the engine specification](spec/nums.md).
+  lenses run, and so does a generic runtime for declared functions: frames in rooms, control as
+  written and integer arithmetic of every width. Arithmetic on floats, the recipes for switch,
+  foreach, try, defer and go, full-language grammars, and a compiler from these nodes to
+  machine code are open. The ground programs and supported layouts are listed in [the engine
+  specification](spec/nums.md).
+- **Reasons as nodes.** The bootstrap names a refusal or a fault with a text leaf in English
+  (`range`, `arity`), and `outcome` answers with the words `node`, `nothing` and `fault`; the
+  runtime is to hold no text but what it shows (graph node 5.19.13), so these are still to
+  become nodes.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
-  beside it. One step is taken: the 68 operations describe themselves as nodes, what each
+  beside it. One step is taken: the 74 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
   a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
   instructions are rows of data. The rest is not there. The nodes read a part by a bare number
@@ -146,7 +152,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 121
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 123
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 87 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the

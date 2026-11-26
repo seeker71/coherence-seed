@@ -599,6 +599,19 @@ room trail, and a fail puts them back; with no choice open nothing is kept. A ro
 given back: like a node, it stays until the run ends. `ground/rooms.ck` stores, loads, has two
 stores undone by a fail and is refused outside a room and for a width of three.
 
+## Entries 118 to 123: integers as their 64 bits
+
+| Entry | Name | Takes | Answers |
+| --- | --- | --- | --- |
+| 118, 119, 120 | wadd, wsub, wmul | a, b | the sum, difference and product of two integers modulo 2^64, as the 64 bits of an integer |
+| 121 | ult | a, b | yes if a is less than b when both are read as unsigned, otherwise no |
+| 122, 123 | udiv, umod | a, b | the quotient and the remainder of a by b, both read as unsigned; nothing, `zero`, for b zero |
+
+`add`, `sub` and `mul` answer nothing when the true result does not fit in 64 bits. A number of a
+fixed width wraps instead, so the engine's arithmetic on such numbers (`spec/nums.md`) uses
+these and keeps the low bits its layout has. A 64-bit unsigned number is held in an integer's
+64 bits, and `ult`, `udiv` and `umod` read it as such.
+
 ## The operations describe themselves
 
 `form/operations.ck` binds `operations` to a list with one node for each operation: the entry,
@@ -611,7 +624,7 @@ be done again), `op.builds` (it makes a node; doing it again makes the same node
 `op.faults` and `op.controls`. `(op.of e)` is an entry's description, and `op.takes`,
 `op.gives` and `op.effect` its parts.
 
-`ground/operations-as-described.ck` holds the descriptions to the bootstrap for the 31
+`ground/operations-as-described.ck` holds the descriptions to the bootstrap for the 37
 operations that read or build with a fixed number of parts: each takes the number its
 description says and refuses one more. Two wrong descriptions planted were both named. The kinds
 are not checked, and neither the walker nor the bootstrap reads the descriptions.

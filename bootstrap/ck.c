@@ -879,6 +879,12 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     uint64_t u = (uint64_t)m, w = (uint64_t)n;
     W->v = mki((int64_t)(op == BAND ? u & w : op == BOR ? u | w : op == BXOR ? u ^ w : op == SHL ? u << w : u >> w)); return;
   }
+  if (op >= WADD && op <= UMOD) {     /* an integer as its 64 bits: sum, difference and product modulo 2^64, and */
+    uint64_t u = (uint64_t)m, w = (uint64_t)n;        /* less-than, quotient and remainder read unsigned */
+    if (op == ULT) { W->v = u < w ? E(YES) : E(NO); return; }
+    if (op >= UDIV && !w) { W->v = 0; W->reason = txt("zero"); return; }
+    W->v = mki((int64_t)(op == WADD ? u + w : op == WSUB ? u - w : op == WMUL ? u * w : op == UDIV ? u / w : u % w)); return;
+  }
   if (op == DIV || op == MOD) {       /* the quotient rounds toward zero; the remainder has the sign of a */
     if (!n) { W->v = 0; W->reason = txt("zero"); return; }
     if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = txt("range"); return; }

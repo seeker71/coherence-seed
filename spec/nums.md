@@ -19,6 +19,13 @@ section names is built; the rest is the design the work follows.
   each catalogue entry in each language, are rows in tables keyed by node. They change no node.
 - **Text is a view.** A lens writes a language's text from nodes. That text may be kept in a
   local cache; it is never stored here.
+- **The runtime reads no words.** It loads nodes as their numbers and runs them by their ids:
+  what a node is, is its blueprint's id, and what runs it is the binding of a recipe's id.
+  Nothing is left to resolve, and no text is in it except what is shown to a person.
+- **Two runtimes from one description.** The generic runtime runs the nodes as they stand; a
+  compiler writes machine code for any recipe from the same nodes, for the CPU or the GPU, with
+  or without tracking and tracing, boxed or unboxed, its stack and loops unrolled as the
+  hardware wants. Either can stand in for the other while the system runs.
 
 ## Coordinates
 
@@ -226,7 +233,7 @@ variation operators also distinguish a changed individual from its parent's fitn
 
 ## The bootstrap's earlier catalogue
 
-The 69 operations of `spec/core-operations.md` are package 0. They are how the present lens,
+The 75 operations of `spec/core-operations.md` are package 0. They are how the present lens,
 emitter and tools are written. They stay while those are written again as recipes of this
 catalogue, and go when nothing is left on them.
 
@@ -264,6 +271,18 @@ The following paths run on that catalogue. The six ground programs with the pref
   composite category. To run the reader, supply a row-file path on the first line of stdin
   and an expression on the following lines to `./ck text nums/read.ck`. The corresponding
   writer is `./ck text nums/show.ck`. Both return their output directly to the caller.
+
+- `nums/run.ck` is the generic runtime. The catalogue's recipes are bound to recipes in form,
+  so a recipe node runs as it stands and the walker is at that node. A call of `(FunctionDecl
+  signature locals body)` makes its frame, a room under the declaration laid out by the
+  blueprints of its parameters and locals: a number of fixed layout as its bytes, a Bool as one
+  byte, anything else as the handle of its node. Block, if, the loops, return, break and
+  continue run as written; a jump answers the node that says it. An operator takes its instance
+  from its operands' blueprint, makes the recipe for it once and keeps it under the instance
+  node, and an integer of any Bits or TwosComplement width wraps at that width.
+  `ground/nums-runs-as-written.ck` runs four functions written as nodes, a sum in a for loop, a
+  recursion through Callee, a while that writes its parameters and a loop left by break, and two
+  numbers that wrap. Its nodes hold no word and no text.
 
 Full-language declaration and statement grammars, execution of the rest of the recipe
 catalogue and regeneration of the bootstrap remain open.
