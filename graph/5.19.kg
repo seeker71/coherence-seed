@@ -125,18 +125,18 @@ at: 2026-11-26
 n: 5.19.12
 name: genetic-algorithms
 kind: decision
-is: no, to support genetic algorithms, do some proper research about genetic code modeling
+is: Genetic support begins with research into how genetic code is modelled, before any operators are written.
 status: given
-by: owner
+by: Urs
 see: 5.19.10
 at: 2026-11-26
 
 n: 5.19.13
 name: the-runtime-reads-no-words
 kind: decision
-is: the form runtime execution engine should not need any language symbols, just nodes as constants, it should have the absolute minimum of strings, and I don't see any reason it should contain any english unless it is printing something on the screen, the engine and runtime should only load nodes as numeric payloads and should be able to execute them with just node-ids (blueprint-ids, recipe-ids, cell-ids), with no need for symbols to glue it all together or resolve, all is already resolved,
+is: The runtime needs no words: it loads nodes as numeric payloads and runs them by the ids of blueprints, recipes and cells, all already resolved; text appears only where something is shown to a person.
 status: given
-by: owner
+by: Urs
 see: 5.19.1 5.19.8
 at: 2026-11-26
 
@@ -154,27 +154,27 @@ at: 2026-11-26
 n: 5.19.15
 name: one-recipe-on-many-targets
 kind: decision
-is: and we can either have a generic runtime, or a JIT runtime that can turn any recipe into CPU or GPU machine code with and without tracking, tracing, boxing, unboxed, stack unrolling, loop unrolling and all the other fancy optimizations that can produce hardware optimal code from the generic description in the NUMS (numeric space) as form nodes.
+is: A recipe runs on a generic runtime, or becomes machine code for the CPU or the GPU with or without tracking, tracing, boxing and unrolling, from the same nodes.
 status: given
-by: owner
+by: Urs
 see: 5.19.13 5.19.14
 at: 2026-11-26
 
 n: 5.19.16
 name: parts-that-evolve-together
 kind: decision
-is: one big difference was that the old coherence-kernel wrote way too much code in prelude low level code, instead of using reusable blocks, components, parts, that can evolve and interlock and be A/B tested including with genetic evolution, so this time around we want to be much, much smarter when we write code.
+is: Code is made of reusable parts that interlock and can be tried against one another and evolved, not of low-level prelude as too much of the old kernel was.
 status: given
-by: owner
+by: Urs
 see: 5.19.4 5.19.10
 at: 2026-11-26
 
 n: 5.19.17
 name: recipes-between-predictions
 kind: decision
-is: how can we make reusable, adaptable, self modifyable, self observable, self evolving code that has micro thoughts (tokens in an LLM stream that can resolve a recipe as token for instance), and the forms NUMS blueprints can be complex structures, classes, templates, generics, not just simple primitives, and recipes can be generic algorithms that can be applied on multiple types and cells and generate code at runtime.
+is: Code can observe, adapt and evolve itself; a recipe can stand as a token in a model's stream; blueprints are whole structures, classes, templates and generics; recipes are generic algorithms over many blueprints and cells that write code as they run.
 status: given
-by: owner
+by: Urs
 see: 5.19.1 5.19.16
 at: 2026-11-26
 
@@ -193,18 +193,18 @@ at: 2026-11-26
 n: 5.19.19
 name: the-kernel-solved-it-in-text
 kind: decision
-is: you know that most if not all technical problems were already solved in the previous coherence-kernel repo, it was just not as cleanly implemented and it was storing text source code instead of numeric nodes with symbols.
+is: Most technical problems were solved in the coherence-kernel, which stored text where this body stores numeric nodes; its solutions are carried over as nodes.
 status: given
-by: owner
+by: Urs
 see: 5.19.1 5.19.15
 at: 2026-11-26
 
 n: 5.19.20
 name: only-final-numeric-code
 kind: decision
-is: we are only commiting end-to-end final highest quality numeric node code, right? we don't add bands, doors, gates, checks as static code, right?
+is: Only final, end-to-end numeric node code is committed, with no bands, doors, gates or checks added as static code.
 status: given
-by: owner
+by: Urs
 see: 5.19.16 5.19.17 7.13
 at: 2026-11-26
 

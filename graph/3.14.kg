@@ -1,13 +1,13 @@
 n: 3.14
 name: ice-water-gas-origin
 kind: hub
-is: The three words first appear on the disk in the first commit of the Living Codex, 2025-09-09: ice is essential persisted facts, water materialized caches, gas derivable or transient, with compiled code as gas. NUMS.Go has none of the words. The reading counts 21 uses on 12 axes: 12 compatible, 5 conflicting, 4 loose. The owner rejected the binding of state to kind on 2026-06-08. No definition by the owner was found, only short statements. The reading proposes state as the reach of a node's commitment, three invariants and six operations.
+is: The three words first appear on the disk in the first commit of the Living Codex, 2025-09-09: ice is essential persisted facts, water materialized caches, gas derivable or transient, with compiled code as gas. NUMS.Go has none of the words. The reading counts 21 uses on 12 axes: 12 compatible, 5 conflicting, 4 loose. Urs rejected the binding of state to kind on 2026-06-08. No definition by Urs was found, only short statements. The reading proposes state as the reach of a node's commitment, three invariants and six operations.
 at: 2026-11-24
 
 n: 3.14.1
 name: origin
 kind: hub
-is: The oldest definition on the disk is the Living Codex of September 2025, committed under the owner's name with no assistant trailer: a state field on every node, ice kept small, the spec as ice and compiled code as gas, and code that refuses illegal moves. Its melt edits a node under the same id, and the older foundation document its spec cites is not on the disk.
+is: The oldest definition on the disk is the Living Codex of September 2025, committed under Urs's name with no assistant trailer: a state field on every node, ice kept small, the spec as ice and compiled code as gas, and code that refuses illegal moves. Its melt edits a node under the same id, and the older foundation document its spec cites is not on the disk.
 at: 2026-11-24
 
 n: 3.14.1.1
@@ -25,13 +25,13 @@ kind: observation
 is: The 2025 spec and the rule file for the coding assistant in the same repository both say: "Keep Ice Tiny. Persist only atoms, deltas, essential indices. Let water (materialized) and gas (derivable) carry weight." and "Resonance Before Refreeze. Structural edits must harmonize with anchors; otherwise generalize or stay as water/gas."
 status: observed
 src: 2.22.3#12,15 2.22.5#12,18
-limit: The commit carries the owner's name and no assistant trailer, but it ships a rule file for a coding assistant, so the text may be assistant-drafted.
+limit: The commit carries Urs's name and no assistant trailer, but it ships a rule file for a coding assistant, so the text may be assistant-drafted.
 at: 2026-11-24
 
 n: 3.14.1.3
 name: spec-ice-code-water-binary-gas
 kind: observation
-is: Living Codex commit 721e2c7 of 2025-09-12, under the owner's name with no assistant trailer, defines "Spec (Ice): Persistent, immutable source of truth", "Code (Water): Generated from spec, can be regenerated" and "DLL (Gas): Compiled from code, ephemeral runtime artifacts". Its message says: "Only specs (ice) need to be persistent".
+is: Living Codex commit 721e2c7 of 2025-09-12, under Urs's name with no assistant trailer, defines "Spec (Ice): Persistent, immutable source of truth", "Code (Water): Generated from spec, can be regenerated" and "DLL (Gas): Compiled from code, ephemeral runtime artifacts". Its message says: "Only specs (ice) need to be persistent".
 status: observed
 src: 2.22.6#14-16 2.22.2#commit-721e2c7
 at: 2026-11-24
@@ -82,7 +82,7 @@ kind: observation
 is: The old body calls compiled forms ice. host-kernel.form: "a hot pure composite crystallizes into a callable native leaf, melts on cool". lane-motion.bml counts "every .fkb under the working directory" as ice, the .fkb written within the last hour as water, and sources with no image as gas. AGENTS.md: "is your work freezing ice or leaving gas?"
 status: observed
 src: 2.22.21#29-30,56-57,206-213 2.22.24#16-21 2.22.25#63-64,131 2.1.4#585-586
-limit: The reading found no owner statement behind either use.
+limit: The reading found no statement by Urs behind either use.
 at: 2026-11-24
 
 n: 3.14.2.7
@@ -112,15 +112,15 @@ src: 2.1.9#46-48,158-159 2.1.8#1006
 at: 2026-11-24
 
 n: 3.14.3
-name: owner-statements
+name: urs-statements
 kind: hub
-is: The owner's attested words on the three states are the 2025 spec and code under the owner's name, eight short statements recorded by assistants from 2026-05-27 to 2026-09-08, and one memory note. Read together: state belongs to a node and is not its kind; a move removes nothing and is invited by measurement; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is not ice. No definition written by the owner was found.
+is: Urs's attested words on the three states are the 2025 spec and code under Urs's name, eight short statements recorded by assistants from 2026-05-27 to 2026-09-08, and one memory note. Read together: state belongs to a node and is not its kind; a move removes nothing and is invited by measurement; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is not ice. No definition written by Urs was found.
 at: 2026-11-24
 
 n: 3.14.3.1
 name: less-ice-and-jit-in-ram
 kind: observation
-is: Two owner statements are recorded as paraphrase. An audit file gives the goal "(re-stated, 2026-05-27)" as including "less ice / more gas". A memory note dated 2026-09-01 records "JIT in RAM, not on disk", refined the same day: a disk cache is optional and its "absence or staleness means simply JIT again in RAM".
+is: Two statements by Urs are recorded as paraphrase. An audit file gives the goal "(re-stated, 2026-05-27)" as including "less ice / more gas". A memory note dated 2026-09-01 records "JIT in RAM, not on disk", refined the same day: a disk cache is optional and its "absence or staleness means simply JIT again in RAM".
 status: observed
 src: 2.22.19#3-5
 limit: The audit's sentence that regenerable content "is ice that wants to thaw" (lines 80-81) is assistant text.
@@ -129,25 +129,25 @@ at: 2026-11-24
 n: 3.14.3.2
 name: correction-day-2026-06-08
 kind: observation
-is: Four parent-repository commits within 62 minutes on 2026-06-08 record the owner shaping the model. Paraphrased: use counts over clusters "to know when to move a cell from state to state (gas/water/ice)", and "invite nodes to shift when the physics asks". Quoted: "why does melt remove tissue? where does it go, why do you say remove?"
+is: Four parent-repository commits within 62 minutes on 2026-06-08 record Urs shaping the model. Paraphrased: use counts over clusters "to know when to move a cell from state to state (gas/water/ice)", and "invite nodes to shift when the physics asks". Quoted: "why does melt remove tissue? where does it go, why do you say remove?"
 status: observed
 src: 2.3#commit-241b3e3e4 2.3#commit-a3929fff8 2.3#commit-274c61a1c
-limit: A quotation in a commit message is an assistant's record of what the owner said.
+limit: A quotation in a commit message is an assistant's record of what Urs said.
 at: 2026-11-24
 
 n: 3.14.3.3
 name: kind-is-not-state
 kind: observation
-is: Commit 93af83e75 of 2026-06-08 in the parent repository quotes the owner: "not sure all blueprints are ice and all recipes are water; I feel there are blueprints in water and gas as well, and recipes in all 3 states." Commit 04e49aff2 of 2026-06-14, an assistant commit made under the owner's identity (it carries an assistant trailer and speaks in the assistant's first person), calls the binding of state to kind "The misunderstanding".
+is: Commit 93af83e75 of 2026-06-08 in the parent repository quotes Urs: "not sure all blueprints are ice and all recipes are water; I feel there are blueprints in water and gas as well, and recipes in all 3 states." Commit 04e49aff2 of 2026-06-14, an assistant commit made under Urs's identity (it carries an assistant trailer and speaks in the assistant's first person), calls the binding of state to kind "The misunderstanding".
 status: observed
 src: 2.3#commit-93af83e75 2.3#commit-04e49aff2
-limit: The owner's attested words on this point are the one quotation of 2026-06-08. Review 9.5.19.18 re-read both commit messages.
+limit: Urs's attested words on this point are the one quotation of 2026-06-08. Review 9.5.19.18 re-read both commit messages.
 at: 2026-11-24
 
 n: 3.14.3.4
 name: share-ice-readdress-water
 kind: observation
-is: federation-addressing.form of 2026-06-10 quotes the owner twice: "share ice" and "water must serialize and re-address across substrate". It also credits the owner with the idea of reserving blocks of ids for nodes that have no stable content identity, such as a live socket or a session.
+is: federation-addressing.form of 2026-06-10 quotes Urs twice: "share ice" and "water must serialize and re-address across substrate". It also credits Urs with the idea of reserving blocks of ids for nodes that have no stable content identity, such as a live socket or a session.
 status: observed
 src: 2.22.17#21,24-25,42-43
 at: 2026-11-24
@@ -155,7 +155,7 @@ at: 2026-11-24
 n: 3.14.3.5
 name: lexicon-split-and-gas-in-ram
 kind: observation
-is: Two commit messages quote the owner. 2026-06-21, parent repository: the neutral lexicon can have its own symbol space, "trainable, dynamic, split into ice, water, gas nodes". 2026-09-08, old body: "all the roots and float values have flow gaps as well as nodes in gas (RAM) state seems to be a gap."
+is: Two commit messages quote Urs. 2026-06-21, parent repository: the neutral lexicon can have its own symbol space, "trainable, dynamic, split into ice, water, gas nodes". 2026-09-08, old body: "all the roots and float values have flow gaps as well as nodes in gas (RAM) state seems to be a gap."
 status: observed
 src: 2.3#commit-5cc4e5585 2.1#commit-ad361e750
 at: 2026-11-24
@@ -163,7 +163,7 @@ at: 2026-11-24
 n: 3.14.3.6
 name: what-the-statements-say
 kind: finding
-is: Read together, the owner's statements say six things: state belongs to a node and is not the node's kind; a move removes nothing; moves are invited by measurement, not forced; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is a cached, regenerable artifact and not ice.
+is: Read together, Urs's statements say six things: state belongs to a node and is not the node's kind; a move removes nothing; moves are invited by measurement, not forced; ice is shared as it is, water is serialized and re-addressed, gas is in RAM; ice is kept small; compiled code is a cached, regenerable artifact and not ice.
 status: inferred
 conf: mid
 from: 3.14.1.2 3.14.1.3 3.14.3.1 3.14.3.2 3.14.3.3 3.14.3.4 3.14.3.5
@@ -173,11 +173,11 @@ at: 2026-11-24
 n: 3.14.3.7
 name: attestation-is-thin
 kind: finding
-is: No definition file written by the owner was found. Every long definition after 2025 is assistant text or unattested, and the 2025 text cannot be shown not to be assistant-drafted. A quotation in a commit message is an assistant's record of what the owner said; the session transcripts behind the quoted commits were not opened.
+is: No definition file written by Urs was found. Every long definition after 2025 is assistant text or unattested, and the 2025 text cannot be shown not to be assistant-drafted. A quotation in a commit message is an assistant's record of what Urs said; the session transcripts behind the quoted commits were not opened.
 status: inferred
 conf: high
 from: 3.14.1.2 3.14.3.2 3.14.3.3 3.14.3.5
-limit: In the old body 1,634 commits carry the owner's git name and no trailer, which cannot tell a person from an agent that writes no trailer, so "unattested" means only that no owner statement was found. The reading's summary counts seven recorded statements where its table lists nine rows for 2026-05-27 to 2026-09-08, eight without a memory note. The Living Codex has 222 commits, 221 under the owner's full name and one under a second author name.
+limit: In the old body 1,634 commits carry Urs's git name and no trailer, which cannot tell a person from an agent that writes no trailer, so "unattested" means only that no statement by Urs was found. The reading's summary counts seven recorded statements where its table lists nine rows for 2026-05-27 to 2026-09-08, eight without a memory note. The Living Codex has 222 commits, 221 under Urs's full name and one under a second author name.
 at: 2026-11-24
 
 n: 3.14.4
@@ -208,7 +208,7 @@ at: 2026-11-24
 n: 3.14.8
 name: keep
 kind: hub
-is: The reading's own proposal, found in no single source and not put to the owner: the state of a node is the reach of its commitment, independent of its kind; three checkable invariants (only water is mutable, a node references only nodes at least as committed, a transition conserves the node); ice marked essential or pinned, with essential ice kept small and compiled code never essential; six named operations of which only freeze needs an offer; counts and heat are readings that invite a move.
+is: The reading's own proposal, found in no single source and not put to Urs: the state of a node is the reach of its commitment, independent of its kind; three checkable invariants (only water is mutable, a node references only nodes at least as committed, a transition conserves the node); ice marked essential or pinned, with essential ice kept small and compiled code never essential; six named operations of which only freeze needs an offer; counts and heat are readings that invite a move.
 at: 2026-11-24
 
 n: 3.14.8.2

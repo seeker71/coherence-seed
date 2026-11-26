@@ -27,7 +27,7 @@ at: 2026-11-24
 n: 2.10.4
 name: json-inside-form.md
 kind: source
-is: The old body's page on replacing JSON inside the system, 99 lines: the owner's two requests, the form-rows text shape, the atomic binary write and the measurement of 3,000 rows as nodes against text.
+is: The old body's page on replacing JSON inside the system, 99 lines: Urs's two requests, the form-rows text shape, the atomic binary write and the measurement of 3,000 rows as nodes against text.
 path: coherence-kernel/docs/json-inside-form.md
 rev: 6df0a6224
 date: 2026-10-12

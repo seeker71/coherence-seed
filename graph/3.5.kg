@@ -360,7 +360,7 @@ at: 2026-11-24
 n: 3.5.9.4
 name: extra-readers
 kind: finding
-is: Drop every BML reader beyond one: reader (a), which erases types and cannot tell a failure from an exception, and the second statement walker beside the cursor grammar, which the owner's direction of 2026-09-29 already wanted released so that new syntax lands once.
+is: Drop every BML reader beyond one: reader (a), which erases types and cannot tell a failure from an exception, and the second statement walker beside the cursor grammar, which Urs's direction of 2026-09-29 already wanted released so that new syntax lands once.
 status: inferred
 conf: high
 from: 3.5.1.3

@@ -76,7 +76,7 @@ at: 2026-11-24
 n: 3.3.3.1
 name: north-star-and-its-measure
 kind: observation
-is: The north star is 'an organic intelligence that runs from the inside out: a minimal kernel, Form-native choice, consented membranes, observable receipts, trust earned and lost by evidence'. The owner's measure, dated 2026-09-18, is 'the minimum rental token spent on the path to full sovereignty'; remote tokens that do the work go to zero.
+is: The north star is 'an organic intelligence that runs from the inside out: a minimal kernel, Form-native choice, consented membranes, observable receipts, trust earned and lost by evidence'. Urs's measure, dated 2026-09-18, is 'the minimum rental token spent on the path to full sovereignty'; remote tokens that do the work go to zero.
 status: observed
 src: 2.1.2#3-5,40-45 2.6.7#3,20-23
 at: 2026-11-24
@@ -93,7 +93,7 @@ at: 2026-11-24
 n: 3.3.3.3
 name: no-laws-dated-beliefs
 kind: observation
-is: AGENTS.md records the owner's statement of 2026-09-01 that there are no laws: the tree holds currently observed, proven beliefs with freshness stamps; a belief stamped before the ground shifted is owed a re-witness before anything leans on it; living documents carry only what is and where the work goes, and how it got there stays in git.
+is: AGENTS.md records Urs's statement of 2026-09-01 that there are no laws: the tree holds currently observed, proven beliefs with freshness stamps; a belief stamped before the ground shifted is owed a re-witness before anything leans on it; living documents carry only what is and where the work goes, and how it got there stays in git.
 status: observed
 src: 2.1.4#716-722
 at: 2026-11-24
@@ -101,7 +101,7 @@ at: 2026-11-24
 n: 3.3.3.4
 name: principles-in-three-classes
 kind: finding
-is: The reading sorts 59 principles of the old body into three classes: 24 restate an axiom or a theorem and are fixed with the five; 9 are directions named by the owner, not derivable from the axioms; 26 are practices another method could replace, among them the count of five, the four-field NodeID layout, two grammars, one C runtime and numeric bands.
+is: The reading sorts 59 principles of the old body into three classes: 24 restate an axiom or a theorem and are fixed with the five; 9 are directions named by Urs, not derivable from the axioms; 26 are practices another method could replace, among them the count of five, the four-field NodeID layout, two grammars, one C runtime and numeric bands.
 status: inferred
 conf: mid
 from: 1.1 1.2 1.3 1.4 1.5 1.7 1.8 3.3.3.1 3.3.3.2 3.3.3.3 3.3.2.3
@@ -238,7 +238,7 @@ at: 2026-11-24
 n: 3.3.9.2
 name: drop-number-as-proof
 kind: finding
-is: Let go of a printed bitmask integer as the unit of proof. Every band of the old body answers a pinned number, yet the number alone cannot separate a pass from a fold over a recovered nothing, and the owner's guide of 2026-10-05 calls every band a wall that needs tending and admits a new one only when an older one leaves.
+is: Let go of a printed bitmask integer as the unit of proof. Every band of the old body answers a pinned number, yet the number alone cannot separate a pass from a fold over a recovered nothing, and Urs's guide of 2026-10-05 calls every band a wall that needs tending and admits a new one only when an older one leaves.
 status: inferred
 conf: high
 src: 2.1.5#71-78 2.1.4#100-105

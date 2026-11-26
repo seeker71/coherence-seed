@@ -39,7 +39,7 @@ at: 2026-11-24
 n: 3.13.1.5
 name: form-half-landed-on-old-c
 kind: observation
-is: Commit 7ed6ad7b2 of 2026-11-08 22:23 landed the rewrite's Form work on the old C: 200 files, with 143 changed lines in runtime/fkwu-uni.c. A note of that day gives the reason: the rewritten evaluator was about 40 times slower, and the owner had asked for no speed regression and minimal C change. The rewrite's C commits are not ancestors of main.
+is: Commit 7ed6ad7b2 of 2026-11-08 22:23 landed the rewrite's Form work on the old C: 200 files, with 143 changed lines in runtime/fkwu-uni.c. A note of that day gives the reason: the rewritten evaluator was about 40 times slower, and Urs had asked for no speed regression and minimal C change. The rewrite's C commits are not ancestors of main.
 status: observed
 src: 2.1#7ed6ad7b2
 at: 2026-11-24

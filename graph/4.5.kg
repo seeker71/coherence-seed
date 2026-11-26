@@ -324,7 +324,7 @@ conf: mid
 src: 2.1.4#575 2.1.4#585
 from: 4.5.3.1 4.5.3.2 4.5.3.3 4.5.3.4 1.3 1.7.2
 see: 3.14 3.15.2.2
-limit: The reading mapped frozen, live and transient onto ice, water and gas from two lines of the old body's AGENTS.md and marked the mapping assumed; hub 3.14 has since traced the three words to 2025-09-09 and counted 21 uses on 12 axes, with no definition by the owner. The reading measured no hash; hub 3.15 has since measured direct SHA-256 at 16.0 ns per 40-byte digest on one Apple M4 Max, with synthetic nodes (3.15.2.2)
+limit: The reading mapped frozen, live and transient onto ice, water and gas from two lines of the old body's AGENTS.md and marked the mapping assumed; hub 3.14 has since traced the three words to 2025-09-09 and counted 21 uses on 12 axes, with no definition by Urs. The reading measured no hash; hub 3.15 has since measured direct SHA-256 at 16.0 ns per 40-byte digest on one Apple M4 Max, with synthetic nodes (3.15.2.2)
 at: 2026-11-24
 
 n: 4.5.8.8
