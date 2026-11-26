@@ -686,8 +686,16 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
 
 - **Names are beside.** A package is written with names (`write.named`, parameters and locals by
   name); `nums/resolve.ck` turns them into places and gives the names as rows keyed by declaration
-  and method, kept in `nums/names.ck`. Resolving the named sources of `nums/resolve.ck` and
-  `nums/part.ck` gives exactly their stored nodes. A member's name is its `b.member` entry, or the
+  and method, kept in `nums/names.ck`, and puts them back (`write.named-package`). For each of
+  `nums/write.ck`, `nums/part.ck` and `nums/resolve.ck`, putting the names back and resolving
+  again gives the stored nodes, so a package is edited through its named view:
+
+  ```sh
+  printf 'nums/part.ck\n' | ./ck text nums/named-view.ck > part.txt      # edit part.txt
+  printf 'part.txt\n' | ./ck text nums/resolved.ck > nums/part.ck
+  printf 'part.txt\n' | ./ck text nums/names-merged.ck > names.ck && mv names.ck nums/names.ck
+  ```
+ A member's name is its `b.member` entry, or the
   part names the lexicon gives an entry (`r.type` has a name and a shape). A local that would take
   the name of a function of the package gets a suffix, as does a reserved word.
 - **How often a recipe answers.** The writer finds for each function and method whether it answers
