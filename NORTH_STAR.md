@@ -30,6 +30,10 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
 - **Every part can be replaced.** The bootstrap's code is one implementation of each part. Any
   part can be replaced, enhanced and evolved while the system runs: by a form recipe, by machine
   code, by whatever is invented next.
+- **Recipes compose and evolve.** A generic recipe can take an object, a template or another
+  recipe as a part. A trial can vary one part, observe the same task through the framebuffer
+  and select a binding for that instance. A model's token can refer to such a recipe and use
+  the result of its call in the same stream.
 - **The host's own speed.** Compiled code reaches what the hardware allows: scalar code first, then
   matrix instructions and the GPU, with a model reading and choosing nodes inline on the same
   substrate.

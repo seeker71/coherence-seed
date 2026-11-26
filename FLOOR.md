@@ -17,9 +17,9 @@ What stands, as observed on **2026-11-26** on one Apple M4 Max running macOS.
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions from rows of instructions |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
-| Programs | [`ground/`](ground) | 73 that witness the above; one more runs them and judges how each ends |
+| Programs | [`ground/`](ground) | 72 entries in the ground expectation table, exercised by a program in Form |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,418 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,421 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -27,20 +27,25 @@ Each line here is held by a program that runs under `make check`, or names how i
 
 **The walker**
 
-- **`make check` passes**, nine lines: the header against its nodes; 73 ground programs and the
-  146 vectors, judged by a program in form; ice across two processes; native code unsigned and
-  hardened; a run recorded from a second process; a run asked from one; a search that writes
-  a file only for the path that held; and the reads by a bare number against their budget.
+- **`make check` passes.** It compares the header with its nodes and exercises 72 ground
+  programs and 146 encoding vectors. It checks ice across processes, unsigned and hardened
+  native execution, recording and querying a live run, a deferred write on the chosen path,
+  the budget for bare numeric reads and a resolved image run by id in a separate process.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
   the bytes of rooms; a note is kept. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 9,865 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 9,943 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
   requests and checked replies are in `ground/nums-image.ck`, `ground/nums-requests.ck`,
   `ground/nums-native-requests.ck` and `ground/nums-replies.ck`.
+- **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
+  attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
+  steps for the direct call and 5 after compilation, with the same result id at overflow.
+  The image also ran that instance through a numeric token and through signed and unsigned
+  eight-bit callers. Token input came from the example vocabulary.
 - **A cell can hold its bytes alone.** `take` makes a room in the region under a blueprint, and
   `load` and `store` read and change 1, 2, 4 or 8 of its bytes in place; the room's head names
   its blueprint and its last writer. Constructed object views share one room. Its fixed-width
@@ -125,7 +130,7 @@ Each line here is held by a program that runs under `make check`, or names how i
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 143 files of nodes here. Text it cannot read is a fault
+  for byte, as is each of the 145 files of nodes here. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -140,7 +145,7 @@ everything on the reader in form); the emitter trusted a recipe's own name where
 the recipe (found reading it back); a witness compared the walker with the walker because its
 helper could not see the code (found by planting faults that nothing noticed).
 
-- **The graph holds.** `./kg check`: no errors over 1,235 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,238 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -177,7 +182,7 @@ helper could not see the code (found by planting faults that nothing noticed).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more, with no precedence, and there is no pattern over text.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 143
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 145
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (662 lines of C under `tools/`), the Makefile's 98 lines, eleven pages, the claim
   graph as 55 text files, and the axioms' text. Five of the checks are still lines of the

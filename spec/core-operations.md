@@ -615,6 +615,12 @@ fixed width wraps instead, so the engine's arithmetic on such numbers (`spec/num
 these and keeps the low bits its layout has. A 64-bit unsigned number is held in an integer's
 64 bits, and `ult`, `udiv` and `umod` read it as such.
 
+In the NUMS image, entry 119 calls the resident instance `(b.instance wsub int)`.
+The recipe computes the complement of the wrapping sum of the complemented left word
+and the right word. Resolved integer subtraction calls that instance directly. The
+compiler can attach machine code to its binding while callers keep the same id.
+The C implementation supplies subtraction during cold execution.
+
 ## The operations describe themselves
 
 `form/operations.ck` binds `operations` to a list with one node for each operation: the entry,
