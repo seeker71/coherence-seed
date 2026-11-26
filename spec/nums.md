@@ -31,10 +31,12 @@ section names is built; the rest is the design the work follows.
 
 `nums.image` is the entry at 16.2.4.1. Its first child initializes the bindings. Its second
 child is a list that keeps the public recipes, blueprints and constants reachable. The packer
-expands module imports once per image and freezes the resulting graph in dependency order.
+expands module imports once per image and freezes the resulting graph in dependency order;
+a file that a statement of the initialization reads as data, such as a package handed to
+`part.load`, is read when the image is packed, since the image runs where there are no files.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
 authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 11,871 nodes containing zero text leaves.
+exports pack together as 13,513 nodes containing zero text leaves.
 
 ```sh
 make
@@ -406,12 +408,18 @@ The following paths run on that catalogue. The ground programs with the prefix
   6,264 comparisons. For bfloat16, E5M2, E4M3 and E4M3 with an unsigned zero it matched the
   hardware's binary32 result rounded back, except that it keeps a NaN's payload and names an
   overflow `range`.
-- `nums/arm.ck` is the AArch64 target as rows. Each instruction is an entry with its base word
-  and its fields, each a position, a width and a kind: signed, unsigned, or a condition taken
-  inverted. One recipe packs any instruction and fails when a value does not fit its field.
-  The condition codes are rows of a number and the inverse, and the target's facts are rows
-  too: which registers hold the region, the count, the answer and its kind, the arguments, the
-  temps and the homes of each family, and how the stack floor is read.
+- `nums/arm.ck` is the AArch64 encoder as a component package, loaded with `part.load`. A
+  `Field` is an offset, a width and a kind, unsigned, signed or a condition taken inverted, and
+  says whether a value `fits` and where it is `place`d; a `Format` holds its fields and `pack`s
+  the operands into a base word, failing when one does not fit; an `Encoding` is an opcode, a
+  base word and a format. The fields and formats the rows share are named (`rd`, `imm12`,
+  `three-registers`, `register-pair`, ...). The encodings, the condition codes (`Condition`: a
+  name, a number and the inverse) and the target's facts (`Fact`: a role and its value, such as
+  which registers hold the region, the count, the answer and its kind, the arguments, the temps
+  and the homes of each family, and how the stack floor is read) are rows, and each row keeps
+  itself where the compiler reads it. `encode`, `bytes` and `pieces` are functions. The word an
+  encoding gives an instruction is kept under the encoding and the instruction, so an
+  instruction is packed once.
 - `nums/compile.ck` writes AArch64 for a whole declared function from the same nodes the
   generic runtime runs. Its knowledge is rows, its choices are choices:
   - Each category has one code rule, kept under the category. Each family of values, whole,
@@ -489,11 +497,19 @@ The following paths run on that catalogue. The ground programs with the prefix
   - every cast between nine layouts by each rule over the same values;
   - thirteen edges, among them returns between widths, a continue in a do loop, a literal
     beyond 64 bits, an argument that changes a local, and a nothing as a condition and as an
-    argument.
-  Its expectation holds that none differ and that some compiled and some were answered by the
-  machine; on 2026-11-26 that was 37,822 cases, 30,269 compiled and 27,108 answered by the
-  machine code, the rest declined. It runs with the other ground programs and ends holding
-  36,839 nodes, since a fail gives back what it returns past.
+    argument;
+  - the encoder, against the rows and recipe it replaced, kept in the program as its
+    reference: every instruction row with each field at its smallest and largest value, one
+    past each, every condition and four operands that are no field's number, with one operand
+    fewer and one more; every inversion, the pieces of eight constants, the bytes of two lists
+    of words and the target's facts. Two encodings agree when they give the same word, both
+    refuse or both fault for the same reason.
+  Its expectation holds that none differ, that some compiled and some were answered by the
+  machine, and that every planned encoding was compared; on 2026-11-26 that was 37,822 cases,
+  30,269 compiled and 27,108 answered by the machine code, the rest declined, and on 2026-11-27
+  3,742 encodings over the 60 rows, of which 2,436 gave the same word, 1,145 were refused by
+  both and 161 faulted in both on an operand beyond 64 bits. It runs with the other ground
+  programs and ends holding 53,490 nodes, since a fail gives back what it returns past.
   `ground/nums-compiled.ck` runs fib on frames
   to 15 and as machine code to 30, Newton's root of 2 in binary64, a harmonic sum to 1,000 in
   binary32, and the area under x² by 1,000 rectangles, each a call of a second declaration,
@@ -709,13 +725,15 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   truth; a condition that is not a comparison is tested by Form's truth, where only no and nothing
   are false.
 - **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
-  b }`, `fail`, a blueprint for a class's data and a class for its methods. The writer's own package
-  written as BML reads back into a syntax tree with the BML reader. In that dialect `choice` takes
-  the first option that is not nothing, so where a node's choice is a search the BML does not yet
-  mean what the node means; the thesis's choice statement, which backtracks, would.
-- **A method is called on its receiver.** `nums/part.ck` binds each method a package declares to a
-  recipe that calls the receiver's own method (`nums.method-key`), before the package loads, so a
-  call `(r.call M receiver …)` dispatches by the receiver's blueprint and is written
+  b }`, `fail`, a blueprint for a class's data and a class for its methods, whose receiver is
+  `this` and no parameter. The writer's own package and the encoder's, written as BML, read back
+  into syntax trees with the BML reader. In that dialect `choice` takes the first option that is
+  not nothing, so where a node's choice is a search the BML does not yet mean what the node
+  means; the thesis's choice statement, which backtracks, would.
+- **A method is called on its receiver.** `part.load` (`nums/part.ck`) binds each method a package
+  declares to a recipe that calls the receiver's own method (`nums.method-key`), in one layer with
+  the package's own declarations, so that a method can call the package's functions and they its
+  methods. A call `(r.call M receiver …)` dispatches by the receiver's blueprint and is written
   `receiver.m(…)`.
 - **Constants and layout.** A function without parameters whose body is a literal is written as a
   constant, and a number it names is written by that name (`LOWER_A <= letter`). Each function
@@ -724,7 +742,7 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   puts its arguments one per line.
 
 `ground/lens-round-trip.ck` writes the writer's package in all five languages and reads the BML
-back. On this machine the Python parses with Python's own parser; Deno, javac and Roslyn check
-the TypeScript, Java and C# against stubs of the runtime and still refuse parts of them. A
-record of more than five fields is not yet made, since `call` takes at most six arguments
-(`bootstrap/ck.c`).
+back, and the encoder's package is written the same way. On this machine the Python parses with
+Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C# against stubs of the
+runtime and still refuse parts of them. A record of more than five fields is not yet made, since
+`call` takes at most six arguments (`bootstrap/ck.c`).
