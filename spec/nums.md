@@ -429,8 +429,10 @@ The following paths run on that catalogue. The ground programs with the prefix
     time to compile grows with the size of a function and not with the depth of its nesting.
   - A word that cannot be encoded, a part a record lacks, a target fact, a label or a template
     item that does not expand is the fault `jit.broken`, a mistake of the compiler. A construct it does not take fails.
-    Under `(run.refused declaration)` the runtime notes that the function was refused, or the
-    fault's reason when compiling faulted; which construct was refused is not recorded.
+    Under `(run.refused declaration)` is noted the category of a construct no rule takes, or,
+    when the function was refused for another reason, a layout a template lacks or a callee
+    that does not compile, only that it was refused; when compiling faulted, the fault's
+    reason.
   Parameters and locals stay unboxed in registers for the whole call, integers and hardware
   floats each in their homes, values being computed in temps saved beside the frame across a
   call. Integers are kept at their width after every operation. Where the runtime would
@@ -441,6 +443,21 @@ The following paths run on that catalogue. The ground programs with the prefix
   caught, noted and answered by frames. A float instance's machine form is the compiler applied
   to the function that returns the operator on its two parameters, and it is given only what
   its form would take: numbers of its layout, ints and integer layouts.
+- What the compiler's own records hold, which the nodes do not say by themselves:
+  - Compiled code is `(jit.code (jit.class c) (jit.items items))`: the class of the value it
+    leaves and its items, each a word, a label's mark or a jump that names a label.
+  - A function's context is `(jit.ctx ..)`: the declaration, the home of each parameter and
+    local, how many parameters there are, the declared result, the depth, the frame, and the
+    labels out, decline and early, where the stack floor is reached.
+  - A node compiled at depth d leaves its value in the temp at d of its class and may use the
+    temps above it; the temps below d hold values still waiting, and a call saves them beside
+    the frame.
+  - A lookup in a table (`jit.row-of`) fails, so a construct the rows do not cover refuses the
+    function; a lookup in a record or in the target (`jit.must`, `jit.target-of`) faults, since
+    a part that is not there is a mistake of the compiler.
+  - Compiled code changes nothing outside its own frame and registers before it answers; the
+    notes it writes are kept back until then. So a decline can run the whole call again on
+    frames.
 - A function compiles together with every declaration it calls into one leaf: the callee is
   the running function (`r.callee`), a declaration written in the call, or an entry given one
   by `run.declare`. Each has its own frame, and a call is a branch with its arguments in x0 to

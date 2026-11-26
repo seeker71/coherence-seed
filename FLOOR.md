@@ -203,8 +203,8 @@ running compiled code against frames all the way down).
   code for whole functions. Whole-package BML lowering, the full Go grammar, GPU code and
   the recipes for switch, foreach, try, defer and go are open. Members and objects run neither on frames nor in compiled
   code, and the compiler takes no more than six parameters at a call from outside and eight
-  between declarations. A function the compiler refuses keeps a note that it was refused, not
-  which construct refused it. The ground programs and supported
+  between declarations. A function the compiler refuses keeps a note of the construct no rule
+  takes; refused for another reason, it notes only that it was refused. The ground programs and supported
   layouts are listed in [the engine specification](spec/nums.md).
 - **A store bounded by what is live.** A run with no choice open keeps every node it makes until
   a fail returns past it: a loop that counts to ten million fills the store. A handle kept as a
