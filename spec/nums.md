@@ -466,11 +466,26 @@ two cursor positions. `EndOfFile` succeeds at the end of the character stream.
 | BMF element | What the matcher does |
 | --- | --- |
 | Sequence and ordered choice | Continue each match into the following element. Try the next alternative when a later element fails. |
-| Optional and repetition | Try the longest match first. Give back characters until the suffix matches or the minimum is reached. An empty match ends repetition. |
+| Optional and repetition | Try the longest match first. Give back characters until the suffix matches or the minimum is reached. An empty match counts toward the minimum, carries its captures, and ends that path when the minimum is satisfied. |
 | `Fail` | Resume the nearest available choice. Form restores trailed cell writes on that path. |
 | `Cut` | Succeed going forward. A retry across this position ends the parse with the numeric cut reason and the saved position. |
 | `Stop` | End the parse immediately with the numeric stop reason and the current position. |
 | `MultiMatch(part, retries)` | Offer the first match and at most that many retries. Close the operand's choice points as its last allowed answer leaves. Enclosing alternatives remain available. |
+
+Each match carries the characters or production nodes it captured and the position where it
+ended. Sequence and repetition share immutable capture groups while a choice is open. They
+deliver the groups in source order when they yield an answer. The active rule calls form a
+separate immutable chain. Re-entering the same rule with the same arguments at the same
+character position fails that branch. Recursion after consuming input and nested invocations
+with different arguments remain available. Grammars that grow a result through left recursion
+still need to express that growth as repetition or consuming recursion.
+
+`bmf.on` associates a pattern kind with a numeric recipe in a trailed cell. The recipe takes
+the parser, pattern, scalar stream, position and active rule chain, and yields matches in order.
+A literal entry is registered as `(bmf.atom entry)`, so a terminal and a blueprint may
+share the same number. An unregistered terminal goes to the parser's lexer. In
+`ground/nums-lenses.ck`, an alternate range matcher accepts the character `2` through an existing word rule. Leaving the trial restores
+the original range matcher and the same word rule declines that input.
 
 Urs C. Muff describes these cursor, branch, repeat and cut semantics in *Backtracking Model
 Languages* (2000), pp. 10–13. The separate immediate `Stop` follows the later kernel. Form's
@@ -492,9 +507,14 @@ and statement bodies currently have a syntax representation. Whole-package name 
 type checking and code generation for those declarations remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
-result can run directly with `bmf.run` given a start rule and source text. For example,
+linker indexes all rule signatures before resolving bodies. A reference carries its rule number
+and a formal parameter carries its argument slot. Repeated formal names have no unique slot
+and produce a link fault. Given a start rule and source text, `bmf.run` executes the result.
+For example,
 `List(item, separator) ::= item { separator item };` accepts another rule and a literal as
-arguments. Character ranges, literal strings, grouping and the control elements above execute.
+arguments. The count syntax follows `Java/JBMF/library/BMFBasis.BMF` in the Angelic archive.
+`2{ Blank }3` takes two to three matches. Either bound can be omitted. Character ranges,
+literal strings, grouping and the control elements above execute.
 BMF method callbacks, tagged captures and whitespace annotations on individual literals
 remain open. `ground/nums-lenses.ck` reads, shows, links and runs embedded rules in the same
 process as a BML definition.
@@ -503,7 +523,7 @@ The numeric entry `bmf.run-stream` takes linked rules, a start rule and a vector
 scalars. In an isolated `seed-run` process, a binary request with those three ids parsed
 `Alpha,B_e,C` with the thesis's parameterized list. A call by id to the BML-authored
 subtraction recipe in the same image returned 5. Both returned ids matched the authoring
-process. The image contained 11,078 records and zero text leaves.
+process. The image contained 11,149 records and zero text leaves.
 
 The public lens also reads a thesis expression from stdin.
 

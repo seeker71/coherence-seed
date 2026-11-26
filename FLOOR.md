@@ -81,9 +81,14 @@ Each line here is held by a program that runs under `make check`, or names how i
 - **BML runs on a BMF character cursor.** In `ground/nums-lenses.ck` an alternative retries
   across an emoji and newline. Crossing a cut reports position 2, immediate stop reports 1,
   and a parameterized BMF list reads two words. The thesis expression `10 - 3 - 2` gives 9.
-  A `form.bml` method with the same subtraction gives 5. Reading, printing and rereading
+  A `form.bml` method with the same subtraction gives 5. The same ground program takes the
+  base branch of two mutually recursive rules and returns both captures from a bounded
+  repetition of an empty rule. It also varies one range matcher for a trial and observes the
+  original matcher on return. Reading, printing and rereading
   produced identical syntax trees for 124 Angelic BML sources and all 28 previous-kernel
   `bml-*.bml` fixtures. One additional Angelic file with a BML extension contains Java.
+  A separate enumerator agreed on the captures, their order and the cursor positions for 92
+  small patterns on all 15 strings of length zero through three over `a` and `b`.
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).

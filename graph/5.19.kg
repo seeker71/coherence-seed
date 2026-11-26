@@ -283,5 +283,6 @@ status: inferred
 from: 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
 src: 2.3.1 2.8.6 2.8.12 2.8.14 2.30.17
 conf: high
+why: A pattern kind selects a recipe in a trailed cell. A grammar can vary one matcher and keep the rest of the rules intact. Active rule calls carry the cursor and the resolved invocation, so a branch can decline a cycle without consuming the alternatives. Sequence and repetition share captured groups until an answer is requested. ground/nums-lenses.ck runs these choices.
 limit: The language lens reads more syntax than it lowers to executable recipes. The running subset and the source round trips are described in spec/nums.md and FLOOR.md.
 at: 2026-11-26
