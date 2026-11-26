@@ -240,3 +240,36 @@ conf: high
 why: A recipe handed to a definition runs on the bindings that definition sees. Observed: a recipe given to an older helper answered its own body as data, because the newer definition it named was not there for it.
 flip: A helper that ran what it is handed where it was asked would let the parts be layers of their own.
 at: 2026-11-26
+
+n: 5.19.24
+name: a-function-and-what-it-calls-are-one-leaf
+kind: decision
+is: A declaration is compiled together with every declaration it calls into one code leaf, each with its own frame and a call a branch between them. A callee that does not compile fails the leaf. A new declaration of an entry makes every leaf compiled before it compile again at its next call.
+status: inferred
+from: 5.19.15 5.19.22
+conf: mid
+why: Each code leaf is copied into the code region on its own, so one leaf cannot branch into another; a leaf that holds what it calls needs no address resolved while it runs, and recursion through two declarations stays in machine code. The kernel's emitter compiled a module of definitions with what they call to one leaf. Observed: even and odd through two entries made one 356-byte leaf, and a million calls of a second declaration in a loop took 5.9 ms.
+flip: A leaf per declaration, called through a table the runtime keeps, would share code between callers and let a declaration be replaced without compiling its callers again.
+at: 2026-11-26
+
+n: 5.19.25
+name: a-cast-is-a-row-of-rounding-and-range
+kind: decision
+is: Each of the five cast rules is a row of how it rounds and what it does beyond the target's range. Compiled code does that on the hardware where the hardware's answer is the runtime's, and declines where it is not.
+status: inferred
+from: 5.19.21 5.19.22
+conf: mid
+why: Exact, nearest and truncate answer nothing beyond the range, saturate clamps and wrap keeps the low bits, in the runtime's own recipe for a cast. Binary64 holds ±2^63 and 2^64 exactly, so a float is bounded there before it becomes an integer. Observed: 12,690 casts between nine layouts by all five rules answered the same compiled and on frames in a session sweep.
+flip: A conversion the hardware does otherwise, a NaN's payload or an infinity under saturate, could be done in machine code by more instructions instead of declining.
+at: 2026-11-26
+
+n: 5.19.26
+name: a-part-that-does-not-lower-fails-the-whole
+kind: decision
+is: A code rule binds every part it builds before it puts the words together, so a part that does not lower fails the function and never leaves a gap in its code.
+status: inferred
+from: 5.19.22
+conf: high
+why: A tuple gathers the answers of its parts, and a part that fails gives none. Observed in a cast sweep: a conversion the compiler could not write dropped out of the code and the function returned the wrong register. The same shape stood in reading a deep temporary, storing, returning, passing arguments and taking a callee's answer.
+flip: A builder of lists that failed with any part would let the rules build their words in place.
+at: 2026-11-26
