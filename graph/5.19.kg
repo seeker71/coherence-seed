@@ -375,3 +375,15 @@ conf: mid
 why: Tuples read by position were knowledge only their author could name; as classes with named parts the same rows read in five languages from their own nodes, and the sizes the bodies use are named. Observed on 2026-11-27, against the rows and recipe it replaced, kept in the sweep as its reference: 3,742 encodings at the edges of every field of the 60 rows agree, 2,436 giving the same word, 1,145 refused and 161 faulting in both, and so do inversions, pieces, bytes and the target's facts; twelve planted faults each made cases differ. Unkept, an encoding took about 1,660 walker steps against 585 and the sweep 976.4 million steps against 919.8 million; kept, the sweep's 44,877 encodings are of 343 instructions and it took 900.2 million, 8.00 s of CPU against 8.13.
 flip: A word kept under its encoding and its instruction is not kept under the conditions' rows, so a condition kept again after the word is not seen by it.
 at: 2026-11-27
+
+n: 5.19.36
+name: the-compiler-is-components
+kind: decision
+is: The AArch64 compiler is a component package. A Compilation carries what lowering a node needs and lowered code is a Code. Kinds vary behind interfaces: a Lowering for each kind of node kept under its category, a Family of values, an Operation for each operator, a Crossing for each pair of families and a CalleeForm. The families, operators, formats, cast rules and layouts are rows kept where the compiler reads them, and templates are specialized to the target when they are kept. The encoder and the runtime reach it as Services handed to its setup.
+status: observed
+from: 5.19.22 5.19.31 5.19.33 5.19.35 7.24
+src: 2.30.18
+conf: mid
+why: Records read by scanning their keys and recipes kept in rows could be read only through the lens; as classes with named parts and interfaces where kinds vary, the same knowledge reads in five languages from its own nodes. Observed on 2026-11-27 against the compiler it replaced, run in a second process over every function the agreement sweep meets: of 1,465 functions both compiled the same 924 to the same code byte for byte and both declined the other 541, and so they did for a quoted callee, two declared entries calling each other and a construct no rule takes, with the same note. Four rounds of compiling those functions took 284.3 million walker steps against 314.6 million once each template's instructions with no role left were kept as their words.
+flip: A dispatch per node and per template piece costs more than a row's lookup; where compiling must be faster still, a kind could be a row of a recipe again, at the cost of reading in one language only.
+at: 2026-11-27

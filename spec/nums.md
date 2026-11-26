@@ -36,7 +36,7 @@ a file that a statement of the initialization reads as data, such as a package h
 `part.load`, is read when the image is packed, since the image runs where there are no files.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
 authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 13,513 nodes containing zero text leaves.
+exports pack together as 14,523 nodes containing zero text leaves.
 
 ```sh
 make
@@ -448,26 +448,46 @@ The following paths run on that catalogue. The ground programs with the prefix
   encoding gives an instruction is kept under the encoding and the instruction, so an
   instruction is packed once.
 - `nums/compile.ck` writes AArch64 for a whole declared function from the same nodes the
-  generic runtime runs. Its knowledge is rows, its choices are choices:
-  - Each category has one code rule, kept under the category. Each family of values, whole,
-    real and truth, is a row of templates whose holes are named roles; an operator is a row of
-    its templates and the guards that make the code decline. What a family admits is a row as
-    well: whole numbers every operator, reals the four sums and the relations, truths only
-    equal and not equal.
+  generic runtime runs. It is a component package, loaded with `part.load`:
+  - A `Compilation` is what lowering a node carries: the `Routine` (the declaration, the homes
+    of its parameters and locals, how many parameters there are, the declared result and the
+    `Frame`), its `Exits` (the labels out, decline and early, where the stack floor is
+    reached), the innermost `Loop` and the depth. Lowered code is a `Code`: the class of the
+    value it leaves and its items, each a word, a `Mark` of a label or a `Jump` that names one.
+  - Kinds vary behind interfaces. A `Lowering` for each kind of node is kept under its category
+    by a table of `Rule` rows; the operators, compound writes and steps are built from the
+    runtime's own tables. A `Family` of values, `Whole`, `Truth` or `Real`, loads a constant,
+    answers a value and says where its temps spill. An `Operation` for each operator writes its
+    words: an `Arithmetic` with its templates per column and its immediates, a `Relation` with
+    its conditions. A `Crossing` for each pair of families converts and casts between them, and
+    a `CalleeForm` finds the declaration a call names.
+  - Knowledge is rows, kept where the compiler reads them: each family with its bank of
+    registers, its rank and its templates; each operator with the families that admit it; the
+    float formats, the cast rules, and the layouts of a function, the door, a call, a branch
+    and each loop. A template is a list of `Piece`s: an `Instruction` whose holes are named
+    roles, a `Mark`, a `Jump`, a `Splice` of items bound by name or a `Fragment` of a shared
+    guard. When a template is kept it is specialized to the target's facts, and an instruction
+    with no role left is kept as its word.
+  - The encoder's `encode`, `pieces`, `invert` and `bytes`, the runtime's number of a literal
+    and its float encoder reach the package as `Services`, which `nums/run.ck` hands to
+    `jit.setup` with the runtime's tables of operators, compound writes and steps.
   - Records have named parts. A rule binds every part it builds before it puts them together,
     so a part that does not lower fails the whole function and never leaves a gap in its code.
-  - Code is laid out with fresh labels and jumps that name them; an if, a loop and the door
-    by which the runtime enters are templates of labels, resolved once the words stand.
+    Code is laid out with fresh labels and jumps that name them, resolved once the words stand.
   - Where there is more than one way, ordered choice takes the first that holds: a constant is
     one move, an inverted move, or a move and up to three keeps; an immediate is tried before
     a register. An operand is compiled once and both forms are chosen over its code, so the
     time to compile grows with the size of a function and not with the depth of its nesting.
-  - A word that cannot be encoded, a part a record lacks, a target fact, a label or a template
-    item that does not expand is the fault `jit.broken`, a mistake of the compiler. A construct it does not take fails.
-    Under `(run.refused declaration)` is noted the category of a construct no rule takes, or,
-    when the function was refused for another reason, a layout a template lacks or a callee
-    that does not compile, only that it was refused; when compiling faulted, the fault's
-    reason.
+  - A lookup in a table fails, so a construct the rows do not cover refuses the function. A
+    word that cannot be encoded, or a target fact, label or template that is not there, is the
+    fault `jit.broken`, a mistake of the compiler. Under `(run.refused declaration)` is noted
+    the category of a construct no rule takes, or, when the function was refused for another
+    reason, only that it was refused; when compiling faulted, the fault's reason.
+  - A node compiled at depth d leaves its value in the temp at d of its class and may use the
+    temps above it; the temps below d hold values still waiting, and a call saves them beside
+    the frame. Compiled code changes nothing outside its own frame and registers before it
+    answers; the notes it writes are kept back until then, so a decline can run the whole call
+    again on frames.
   Parameters and locals stay unboxed in registers for the whole call, integers and hardware
   floats each in their homes, values being computed in temps saved beside the frame across a
   call. Integers are kept at their width after every operation. Where the runtime would
@@ -478,21 +498,6 @@ The following paths run on that catalogue. The ground programs with the prefix
   caught, noted and answered by frames. A float instance's machine form is the compiler applied
   to the function that returns the operator on its two parameters, and it is given only what
   its form would take: numbers of its layout, ints and integer layouts.
-- What the compiler's own records hold, which the nodes do not say by themselves:
-  - Compiled code is `(jit.code (jit.class c) (jit.items items))`: the class of the value it
-    leaves and its items, each a word, a label's mark or a jump that names a label.
-  - A function's context is `(jit.ctx ..)`: the declaration, the home of each parameter and
-    local, how many parameters there are, the declared result, the depth, the frame, and the
-    labels out, decline and early, where the stack floor is reached.
-  - A node compiled at depth d leaves its value in the temp at d of its class and may use the
-    temps above it; the temps below d hold values still waiting, and a call saves them beside
-    the frame.
-  - A lookup in a table (`jit.row-of`) fails, so a construct the rows do not cover refuses the
-    function; a lookup in a record or in the target (`jit.must`, `jit.target-of`) faults, since
-    a part that is not there is a mistake of the compiler.
-  - Compiled code changes nothing outside its own frame and registers before it answers; the
-    notes it writes are kept back until then. So a decline can run the whole call again on
-    frames.
 - A function compiles together with every declaration it calls into one leaf: the callee is
   the running function (`r.callee`), a declaration written in the call, or an entry given one
   by `run.declare`. Each has its own frame, and a call is a branch with its arguments in x0 to
@@ -536,12 +541,15 @@ The following paths run on that catalogue. The ground programs with the prefix
   30,269 compiled and 27,108 answered by the machine code, the rest declined, and on 2026-11-27
   3,742 encodings over the 60 rows, of which 2,436 gave the same word, 1,145 were refused by
   both and 161 faulted in both on an operand beyond 64 bits. It runs with the other ground
-  programs and ends holding 53,490 nodes, since a fail gives back what it returns past.
+  programs and ends holding 57,464 nodes, since a fail gives back what it returns past.
   `ground/nums-compiled.ck` runs fib on frames
   to 15 and as machine code to 30, Newton's root of 2 in binary64, a harmonic sum to 1,000 in
   binary32, and the area under x² by 1,000 rectangles, each a call of a second declaration,
   cast to an integer by nearest. Beyond the 9 ms that loading and compiling take, a million
-  rectangles took about 1 ms as machine code; a thousand took 159 ms on frames.
+  rectangles took about 1 ms as machine code; a thousand took 159 ms on frames. It also calls
+  a declaration quoted in the call, compiled into the same leaf, and a function that uses
+  `r.callee` as a value, which no rule takes: it runs on frames and its refusal notes
+  `r.callee`.
 
 Lowering whole BML packages to executable declarations, a full Go grammar, execution of the
 rest of the recipe catalogue and regeneration of the bootstrap remain open. Members and objects run neither on
@@ -804,7 +812,11 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   puts its arguments one per line.
 
 `ground/lens-round-trip.ck` writes the writer's package in all five languages and reads the BML
-back, and the encoder's package is written the same way. On this machine the Python parses with
-Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C# against stubs of the
-runtime and still refuse parts of them. A record of more than five fields is not yet made, since
-`call` takes at most six arguments (`bootstrap/ck.c`).
+back, and the encoder's and the compiler's packages are written the same way. On this machine the
+Python parses with Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C#
+against stubs of the runtime and still refuse parts of them. A record of more than five fields is
+not yet made, since `call` takes at most six arguments (`bootstrap/ck.c`). The writer does not
+write a call of another package's function, since it knows how often only its own package's
+functions and a table of operations answer (`e.unbound` of `write.answers`); a package reaches
+another through recipes it is handed. Where an expression is expected the writer takes no
+throw, Java no `let` and BML no sequence; the BML reader takes a class of one interface only.

@@ -15,12 +15,12 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
-| Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler that writes AArch64 for whole functions and what they call, casts included, through an encoder written as components over rows of instructions |
+| Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler written as components that writes AArch64 for whole functions and what they call, casts included, through an encoder written as components over rows of instructions |
 | Writer | [`spec/nums.md`](spec/nums.md), [`nums/write.ck`](nums/write.ck) | a component package that writes any component package as Python, C#, TypeScript, Java or BML from rows per language, with names kept beside the nodes and methods called on their receivers |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,442 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,443 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -42,12 +42,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   every node made since a choice point goes when a fail returns to it, except what no fail
   undoes and what that holds, which moves down in the order it was made, its id with it. The
   sweep of compiled code against frames, of 37,822 cases and 3,742 encodings, ends holding
-  53,490 nodes, and runs with the other ground programs in one process. `ground/gives-back.ck` makes more than four
+  57,464 nodes, and runs with the other ground programs in one process. `ground/gives-back.ck` makes more than four
   million nodes in forty thousand outcomes and ends with a note from a failed branch, an all's
   answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
   percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 13,513 nodes with zero text leaves.
+  ids. The generic engine with its float definition and both compilers packs as 14,523 nodes with zero text leaves.
   In a single process a constructor returned a cell id, a reader returned zero, and a writer
   and reader used that id to store and recover 42. On this machine the AArch64 compiler
   returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
@@ -107,6 +107,19 @@ Each line here is held by a program in `make check-full`, or names how it was se
   before the change takes 919.8 million walker steps on the rows and recipe, 900.2 million on
   the package and 976.4 million on the package keeping no words; under `/usr/bin/time -l`, five
   interleaved runs of each took 8.13, 8.00 and 8.42 s of CPU.
+- **The compiler is components, held to the one it replaced.** `nums/compile.ck` is a package of
+  a compilation's records, a lowering for each kind of node, families of values, an operation
+  for each operator, crossings between families and the forms a callee takes, over rows that
+  keep themselves where it reads them. The compiler it replaced ran in a second process over
+  every function the agreement sweep meets: of 1,465, both compiled the same 924 to the same
+  code byte for byte and both declined the other 541; so they did for a quoted callee, two
+  declared entries that call each other and a construct no rule takes, with the same note.
+  Four rounds of compiling those functions take 284.3 million walker steps where they took
+  314.6 million, since each template is specialized to the target when it is kept, an
+  instruction with no role left is kept as its word, and the search runtime checks a record's
+  fields in the recipe that builds it, not in a second one. The sweep takes 934.0 million steps
+  where it took 940.6 million; under `/usr/bin/time -l`, five interleaved runs of each took 8.29
+  and 8.34 s of CPU on average.
 - **A language can produce the graph.** Go and BML byte literals round-trip through frozen
   nodes, preserving composite blueprints and shared children (`ground/nums-portable.ck`).
 - **BML runs on a BMF character cursor.** In `ground/nums-lenses.ck` an alternative retries
@@ -138,7 +151,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   argument lists are broken at the language's width. The old
   kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
   BML rows do not yet keep a search's meaning where a choice is a search. The encoder's package,
-  `nums/arm.ck`, is written by the same writer in all five.
+  `nums/arm.ck`, and the compiler's, `nums/compile.ck`, are written by the same writer in all
+  five; the compiler's Python parses and its BML reads back. The writer writes no call into
+  another package, so the compiler is handed the encoder's functions and the runtime's as recipes.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -249,7 +264,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,259 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,260 claims, none reviewed by a second reader.
 
 ## Not there
 
