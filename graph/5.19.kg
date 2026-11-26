@@ -282,7 +282,7 @@ from: 5.19.28.1 5.19.27 5.19.9 3.5.4.1 3.5.4.2 3.5.4.3
 src: 2.3.1 2.8.6 2.8.12 2.8.14 2.30.17
 conf: high
 why: ground/bmf-sweep.ck compares direct and specialized matches with independently enumerated spellings, capture trees and cursor positions. ground/bmf-items.ck installs a grammar-owned class and restores a capture action's write on failure. ground/nums-lenses.ck runs the same item methods on BML, and the numeric port runs a generic rule by id.
-limit: BML links named and anonymous captures. Capture actions run through the numeric API. BML action binding and literal whitespace annotations remain open. A Java view of the range class has been compiled and compared with Seed. Projection of the whole search package is open.
+limit: Five language views reproduce the identifier predicates and the range fields and constructor. BML links blueprint fields and nested type applications. Whole-package projection, general BML class lowering, action binding and literal whitespace annotations remain open.
 at: 2026-11-26
 
 n: 5.19.28.1

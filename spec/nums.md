@@ -299,6 +299,33 @@ that constructs it.
 - The first lens that reads is the bracket notation of `spec/lens.md`, with the catalogue's
   words.
 
+### Viewing a component declaration
+
+The BML lexer calls the typed predicates in `nums/bml-alphabet.ck`. Both the lexer and
+the BMF range matcher use `bmf.in-range` from `bmf/items.ck`. The interval has two
+declared members and a positional constructor. The alphabet declares its three constant
+intervals and composes the start and continuation predicates from them.
+
+`lens/identifier.ck` prints this part of the installed model. Select Java, C#, TypeScript,
+Python or BML with 0, 1, 2, 3 or 4 respectively. For example, this prints Python:
+
+```sh
+printf '3\n' | ./ck text lens/identifier.ck
+```
+
+`lens/identifier-model.ck` selects the range fields and constructor and the six function
+declarations. The terminal's search method has a separate contract. In
+`lens/identifier-views.ck` each row pairs a NUMS template with its five surface spellings.
+The renderer in `nums/view-patterns.ck` extracts the template arguments and reapplies the
+template to confirm the entire node matches. Reading the emitted spelling rebuilds the
+declarations, including field order, types, formal positions and scoped template holes.
+This inverse reads the emitted layouts. Each host's compiler or interpreter can also run the
+host view. The TypeScript view uses `bigint` for Seed's signed integer arguments.
+
+`ground/nums-portable.ck` round-trips the live declarations and a variant with a wider
+uppercase range through all five views. It installs the variant read from BML, observes the
+changed answer for U+005B, then observes the original answer after the trial.
+
 ## Templates, generics and variation
 
 - A template is filled by putting blueprints or recipes in its holes. The result is a node, the
@@ -619,6 +646,13 @@ Showing it emits normalized spacing. Reading that spelling reconstructs the tree
 operator subset into a recipe, resolving parameters to argument positions. Class declarations
 and statement bodies currently have a syntax representation. Whole-package name resolution,
 type checking and code generation for those declarations remain open.
+
+For a parsed `form.bml` blueprint, `bml.blueprint-decl(syntax, resolve)` produces an
+`r.type` containing the ordered `b.member` declarations and a `b.template` constructor.
+The resolver receives a scope and a spelling. Type names resolve at the root and members
+resolve under their owner. Qualified names and nested type applications are supported.
+An unresolved or ambiguous name, duplicate member identity or array suffix produces a
+link fault. The runtime receives the resolved declaration.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number

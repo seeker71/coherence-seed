@@ -118,6 +118,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
   into a syntax tree with the BML reader. Python's parser takes the Python and Deno's the
   TypeScript; the C# and Java are not compiled here, which has no JDK and no C# project.
+- **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
+  the projected predicates. The BML view parsed with Seed's grammar and its declarations
+  ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
+  64-bit endpoints. A standalone image with zero text leaves answered five calls to those
+  predicates by id. The BML blueprint reader reconstructed the range fields and constructor
+  from parsed syntax. See [the component projection](spec/nums.md#viewing-a-component-declaration).
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and
