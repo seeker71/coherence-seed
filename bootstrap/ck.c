@@ -1451,11 +1451,12 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   return !W->v ? (Ret){ 0, 2 } : geti(W->v, &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 };
 }
 
-static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
+static uint32_t top = ~COOL;            /* what the top of a run sees: every binding, or with 0 the bootstrap's code alone */
+static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   Status why; H *a = hand;
   const uint64_t text_base = ntext;
-  W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
-  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
+  W->serve = (uint64_t)(uintptr_t)serve; W->x = x0; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
+  nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, top, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; ntk = left; nnoted = 0; fb->me.taken += reading; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) { H h = tk[--ntk]; if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0; }
@@ -1572,7 +1573,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
-        H b = nd[W->v].comp && KID(W->v, 0) == notice(S_NODE) && !nd[KID(W->v, 1)].comp ? KID(W->v, 1) : 0;   /* in text: the bytes */
+        H b = nd[W->v].comp && nd[W->v].n == 2 && KID(W->v, 0) == notice(S_NODE) && !nd[KID(W->v, 1)].comp ? KID(W->v, 1) : 0;   /* in text: the bytes */
         uint64_t n = numeric_io ? 32 : b && nd[b].n <= fb->a[A_ANSWERED].cap ? nd[b].n : 0;  /* the asked node answered, */
         room(A_ANSWERED, n); memcpy((uint8_t *)fb + fb->a[A_ANSWERED].off, numeric_io ? idof(W->v) : bytes + nd[b].off, n);  /* or none */
         N(A_ANSWERED) = n; N(A_ASKED) = 0;
@@ -1956,15 +1957,16 @@ static int execute_image(const char *path, int warm, int keyed, char **starts) {
   }
 }
 #ifndef NUMERIC_PORT
-/* The answer line: a word and the node's canonical print, made by form/print.ck beside the executable. It runs after the
- * program, in its region, with what the program held back left for later; the machine then shows the program's end again. */
+/* The answer line: a word and the node's canonical print, made by the recipe form/print.ck beside the executable answers.
+ * It runs after the program, in its region, on the bootstrap's code alone, so nothing the program bound is seen, and
+ * nothing it held back for later runs; the machine then shows the program's end again. */
 static void show(const char *word, H v) {
-  char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q = v ? mk(1, E(QUOTE), &v, 1, &why) : 0, p, t;
+  char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q[2] = { 0, v ? mk(1, E(QUOTE), &v, 1, &why) : 0 }, t;
   if (!*home) die("ck run by no path has no form/print.ck beside it to print the answer");
   snprintf(path, sizeof path, "%sform/print.ck", home); uint8_t *b = load(path, &len);
-  nafter = 0; if ((p = read_nodes(b, len, &why))) run(p);
-  if (q && p && W->outcome == 'n') run(mk(1, E(PRINT), &q, 1, &why));
-  t = q && p && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later;
+  nafter = 0; top = 0; if ((q[0] = read_nodes(b, len, &why))) run(q[0]);
+  if (q[0] && q[1] && W->outcome == 'n') { q[0] = W->v; run(mk(1, E(CALL), q, 2, &why)); }
+  t = q[0] && q[1] && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later; top = ~COOL;
   if (!t) die("form/print.ck beside the executable did not print the answer");
   put(1, word); if (!send_fd(1, bytes + nd[t].off, nd[t].n)) exit(2); put(1, "\n");
 }
@@ -2022,8 +2024,9 @@ static void *on_region(void *p) {
   s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {
-  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; const char *slash = strrchr(argv[0], '/');   /* region/rest.ck beside the executable */
-  if (slash && (size_t)(slash - argv[0]) + 16 < sizeof home) { snprintf(home, sizeof home, "%.*s", (int)(slash - argv[0]) + 1, argv[0]);
+  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; char real[PATH_MAX];   /* the folder of the executable, a link followed */
+  const char *exe = strchr(argv[0], '/') && realpath(argv[0], real) ? real : argv[0], *slash = strrchr(exe, '/');
+  if (slash && (size_t)(slash - exe) + 16 < sizeof home) { snprintf(home, sizeof home, "%.*s", (int)(slash - exe) + 1, exe);
     snprintf(rest_buf, sizeof rest_buf, "%sregion/rest.ck", home); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
   fb_open();
   pthread_attr_init(&at);

@@ -3,7 +3,7 @@
 # Nothing here needs more than a C compiler: no part of the old kernel builds or runs this repository.
 # How many times the stored nodes may still read a part of a node by a bare number (graph node
 # 7.22). The count is of the nodes, whatever names lie beside them. It is lowered, never raised.
-BARE = 461
+BARE = 459
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 ifeq ($(shell uname -s),Linux)

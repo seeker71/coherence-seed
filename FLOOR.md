@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,117 lines, 61 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,120 lines, 58 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -397,14 +397,20 @@ Each line here is held by a program in `make check-full`, or names how it was se
   the canonical print are `form/read.ck` and `form/print.ck`, and entry 77 unbound is the fault
   `unbound`. Machines exchange records: the asked service, the check an image keeps, the BML and
   ice outputs fed to `ck run`, and the Makefile's prints, made records by `form/from-print.ck`.
-  The answer line of `ck run` is printed by `form/print.ck` read from beside the executable, so a
-  copy of `ck` takes `form/print.ck` with it, and `region/rest.ck`'s saver `form/nodes.ck`. Before
-  the C went, every answer line of `make check-full` was printed by both and compared: no line
-  differed. The printer in form adds 0.4 M instructions to a run answering 42 (14.1 M to 14.5 M)
-  and 1.8 M to `ground/held-back.ck`; a list of 3,000 numbers takes 314 M where the C took 21 M.
-  An asked answer is written by `bin.write` in the asked run, which keeps its notes there, and a
-  leaf of 300,000 bytes asked of a run at 32 MiB filled its frames where the C printer would have
-  cut the print short.
+  The answer line of `ck run` is printed by the recipe `form/print.ck` answers, read from beside
+  the executable (a link followed) and run on the bootstrap's code alone, so what the program bound
+  does not change it; a copy of `ck` takes `form/print.ck` with it, and `region/rest.ck`'s saver
+  `form/nodes.ck`, without which it saves nothing. Before the C went, every answer line of
+  `make check-full` was printed by both and compared: no line differed; the printer as it stands
+  was held to the C of 5bfb416 over 28 answers, bindings of `pack`, `leaf`, `choice` and the step
+  among them, and three of 1,000 to 20,000 nodes, byte for byte. The printer writes into a
+  room in two passes, so it is linear in the size of the print at any depth, but slow: it adds
+  1.0 M instructions to a run answering 42 (14.2 M to 15.2 M) and 7 M to `ground/held-back.ck`; a
+  list of 3,000 numbers takes 1,549 M where the C took 21 M, and a chain 10,000 deep 3.5 G where it
+  took 29 M. A run that ends with an area of the region full can no longer print its fault: `ck`
+  ends with the area's message and exit 2. `ck` found through `PATH` has no folder and ends saying
+  so. An asked answer is written by `bin.write` in the asked run, on what that run has bound, and
+  keeps its notes there; a leaf of 300,000 bytes asked of a run at 32 MiB filled its frames.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an

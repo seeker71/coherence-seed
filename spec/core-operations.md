@@ -375,8 +375,9 @@ like any other.
 Text comes in through `file`, which reads the standard input under its usual path, and goes out
 at the end of a run: `./ck text F` runs F as `./ck run F` does and writes an answer that is a
 leaf as its own bytes. Nothing is written while a program runs, so nothing written needs undoing.
-The answer line of `ck run` is printed by `form/print.ck`, read from beside the executable and run
-after the program in its region; a copy of `ck` takes that file with it.
+The answer line of `ck run` is printed by the recipe `form/print.ck` answers, read from beside the
+executable and run after the program in its region on the bootstrap's code alone, so nothing the
+program bound changes it; a copy of `ck` takes that file with it.
 
 `ground/runs-a-file.ck` reads a program from a file, reads its records into a node and runs it: what
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form

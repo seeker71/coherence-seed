@@ -420,7 +420,9 @@ bound; what it binds is bound from outside the run, seen at every layer and kept
 else it did stays, whether it answered, failed or faulted, but the writer's notes of what it
 wrote. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
 `(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
-in `answered`, is answered with no bytes, and the asker answers nothing with `unanswered`.
+in `answered`, is answered with no bytes, and the asker answers `(list "nothing" "unanswered")`.
+The writer runs on what the asked run has bound, so a binding of `pack` made from outside changes
+what it writes.
 
 `region/ask.ck`, written in form, is the asker. Its first line of input is the region's name and
 the rest a node in the lens's words:
