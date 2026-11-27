@@ -38,7 +38,7 @@ The export list can carry arbitrary user data. Argument names and the lexicon li
 authoring lens. The `nums.image` method `image.then(dependency, application)` in
 `nums/images.ck` composes two manifests. Initialization runs in that order, and public
 entries from both manifests keep their content IDs. The generic NUMS library with its float
-definition, both AArch64 compilers and the example exports pack together as 14,523 nodes containing zero text leaves.
+definition, the compilers, a small conditional model and the example exports pack together with zero text leaves.
 
 ```sh
 make
@@ -166,7 +166,13 @@ a list of target ids with `no` in ordinary token slots. A mapped token produces 
 request as a direct call. An ordinary token or an index outside the vocabulary answers nothing
 with `e.unbound`. The vocabulary has its own content id, so two models can give the same token
 number different meanings. In the image example, token 1 calls the word instance of subtraction.
-A model decoder feeding the reply to its next prediction is still to be connected.
+The categorical model in `nums/conditional.ck` fits counts from context/token pairs. A unique
+highest count selects a token. An unseen context and a tied maximum give different reasons.
+The vocabulary and weights travel together. In `make check-image` the client chooses subtraction
+or unsigned comparison, calls the image, and the reply checker continues from the value the port
+actually returned. The image serves its fitted checkpoint to that checker. Faults and unanswered
+requests keep their outcomes. This flow uses ordered replies and a small discrete vocabulary.
+Training a language model and streaming its neural decoder remain open.
 
 A recipe body has an immutable id. Its instance has a binding that a trial can replace.
 A candidate genome can therefore hold recipes or typed subtrees. Development fills a template,
@@ -893,8 +899,15 @@ back, and the encoder's and the compiler's packages are written the same way. On
 Python parses with Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C#
 against stubs of the runtime and still refuse parts of them. A record takes as many fields as
 memory holds: its fields are the arguments of one call, and the walker holds a call's values in
-the region. The writer does not write a call of another package's function, since it knows how
-often only its own package's functions and a table of operations answer (`e.unbound` of
-`write.answers`); a package reaches another through recipes it is handed. Where an expression is
+the region. To show a component with its dependencies, give `nums/write-text.ck` the subject and
+language rows on the first two lines, then one dependency package path per line. For example,
+`printf '%s\n' lens/participation.ck nums/lang-python.ck nums/view-patterns.ck bmf/items.ck | ./ck text nums/write-text.ck`
+shows the participating declarations together. The writer follows references through the supplied
+packages and computes how often their calls can answer. In a search, keeping the first result
+still yields an iterable with zero or one element. A linked example, run as Python, C# and
+TypeScript, agreed with the walker on empty input, a first answer of false, and a first answer of zero
+with more candidates available. Repeated identical declarations coalesce.
+Different declarations of the same name fault. An external operation whose answer contract is
+unknown still faults with `e.unbound` of `write.answers`. Where an expression is
 expected the writer takes no throw, Java no `let` and BML no sequence; the BML reader takes a
 class of one interface only.

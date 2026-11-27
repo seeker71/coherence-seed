@@ -617,6 +617,34 @@ written before its outcome. A hundred calls held back are made in the order they
 a fault caught after a cut in its body closed every choice keeps the calls held outside it. It runs in the open under `make check-full`, since the checker's
 own `outcome` would end by failing over it.
 
+### Scoped delivery
+
+`circle/export.ck` is a NUMS search package that composes `after` with a recipient's local
+port. After loading `nums/search.ck` and the package, call `share.offer port scope`.
+The scope holds the owner, circle, original source, recipient, fidelity, purpose and exact
+bytes offered. An owner can distinguish two interpretations of the same utterance by putting
+the selected reading in the source field.
+
+The port binds one recipient to its writer, current-grant lookup, clock and receipt observer.
+The caller that installs these callbacks is trusted. Each callback supplies one answer.
+The lookup takes the owner and circle and returns the active grant or `no`. The grant carries
+the entire scope and two integer times in the clock's units. The dispatch accepts equality at
+the start and declines equality at expiry. It reads the grant and clock when the held call runs.
+A missing clock reading declines the delivery with its own reason.
+A failed branch therefore performs no delivery, and a later withdrawal can stop a queued one.
+
+The observer receives the scope's content ID, a result and the measured byte count. A declined
+scope writes zero bytes. For an admitted scope, the writer returns the number actually written.
+A short write reports its count. An absent or out-of-range count leaves the count unknown.
+A callback fault follows ordinary Form fault handling. A fault after a write can leave bytes at
+the sink. No retry is implicit. The observed boundary is one walker and a trusted local sink.
+Authentication, concurrent remote withdrawal and delivery acknowledgment require their own carrier.
+
+`./ck run ground/scoped-delivery.ck` answers `node #33` when the grant decisions, receipts
+and bytes in the receiving stream agree. The maintained deferred-write flow runs it under
+`make check-held-back`. Its callback objects use `nums.callable`, which takes a one-body recipe
+or a nested closure over one. The ground compares that judgment with the walker's own `close`.
+
 ## Entry 104: nothing, with its reason
 
 `(nothing r)` answers nothing, and r is the reason beside it: what an operation of the bootstrap

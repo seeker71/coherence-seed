@@ -323,3 +323,27 @@ path: coherence-seed/ground/native-add.ck
 date: 2026-11-27
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.22
+name: nums-replies.ck
+kind: source
+is: The numeric port comparison reads the fitted checkpoint and the answers to the selected tool calls and compares their continuations with the reference.
+path: coherence-seed/ground/nums-replies.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.23
+name: scoped-delivery.ck
+kind: source
+is: A selected bilingual reading, scoped grants and a local port are exercised together. The ground checks authorization, callback compatibility, receipts and the bytes in the receiving stream.
+path: coherence-seed/ground/scoped-delivery.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.24
+name: nums-portable.ck
+kind: source
+is: The lens comparisons include a bilingual reference for complete, ambiguous, absent and unrenderable readings.
+path: coherence-seed/ground/nums-portable.ck
+got: 2026-11-27
+at: 2026-11-27

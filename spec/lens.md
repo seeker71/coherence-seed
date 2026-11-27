@@ -160,8 +160,19 @@ the text of the file that stores x.
   once by a substitution of numbers for words; since then its source is its own showing. Names
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
-- `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 152 files, none differs in either line, in 3.1 s.
+- `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again the files in
+  `ground/files.ck`. It returns the paths whose bytes differ.
+
+## Readings of a human utterance
+
+`lens/participation-views.ck` holds a bounded English and Indonesian vocabulary of speakers,
+listeners and actions. An English “we” admits inclusive and exclusive readings. Each carries
+the original wording, an actor and action, and the first complete target wording for that
+meaning. Run
+`printf 'en\nid\nWe may share\n' | ./ck text lens/translate.ck` to see both.
+A known source meaning survives a missing target wording or an unsupported target language.
+A reader who chooses one interpretation can refer to its complete node. Permission to send
+the wording is a separate offer to the recipient's port.
 
 ## Limits
 

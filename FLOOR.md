@@ -20,7 +20,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,449 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | the ground, the design, what is open, the path and their evidence |
 
 ## Observed
 
@@ -159,8 +159,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
   those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
   `nums/compile.ck`, are written by the same writer in all five; the compiler's Python parses and
-  its BML reads back. The writer writes no call into another package, so the compiler is handed
-  the encoder's functions and the runtime's as recipes.
+  its BML reads back. The compiler takes the encoder's functions and the runtime's as recipes.
+  The writer also accepts dependency packages for a linked view. It follows referenced
+  declarations to determine whether a call can produce several answers.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -322,7 +323,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 **Writing**
 
 - **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 152 files of nodes here. Text it cannot read is a fault
+  for byte, as are the files listed in `ground/files.ck`. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
   its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -340,7 +341,19 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,265 claims, none reviewed by a second reader.
+- **A small model can continue from a tool result.** In `make check-image`, nine examples fit a
+  categorical model. Its predictions select subtraction or comparison. A separate process reads
+  the fitted model from the image and uses the actual answers to make the next prediction across
+  eighteen calls. A sibling changed one learned continuation and observed the image comparison
+  fail. Neural language inference and LoRA training are still open in seed.
+- **A bilingual reading can be shared under an exact grant.** English “We may share” gives two
+  actor/action readings. `ground/scoped-delivery.ck` selects the exclusive one and sends “Kami
+  boleh berbagi” to an anonymous local stream. The same recipient and bytes under the other
+  reading are declined. The ground also withdraws permission after queueing and compares the
+  bytes left by complete, empty and partial writes. A sibling substituted a writer that claimed
+  success without writing. The physical stream comparison caught it. [Scoped delivery](spec/core-operations.md#scoped-delivery)
+- **The graph holds.** `./kg check` reports structural errors, warnings and the review state
+  of the claims. The sibling experiments above are behavioral comparisons.
 
 ## Not there
 
@@ -348,7 +361,7 @@ running compiled code against frames all the way down).
   layouts, typed method dispatch and specialization, a genetic population and two expression
   lenses run, and so does a generic runtime for declared functions: frames in rooms, control as
   written, integer arithmetic of every width, arithmetic on every float layout, and machine
-  code for whole functions. Whole-package BML lowering, the full Go grammar, GPU code and
+  code for whole functions. Whole-package BML lowering, the full Go grammar, floating-point GPU reductions and
   the recipes for switch, foreach, try, defer and go are open. Members and objects run neither on frames nor in compiled
   code, and the compiler takes no more than six parameters at a call from outside and eight
   between declarations. A function the compiler refuses keeps a note of the construct no rule
@@ -390,7 +403,7 @@ running compiled code against frames all the way down).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and the
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
   graph as 56 text files, and the axioms' text. The Makefile still drives cross-process checks.
