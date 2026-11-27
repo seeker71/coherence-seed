@@ -209,13 +209,25 @@ An external library emitted by the previous kernel ran two positions of the loca
 28-layer Llama 3.2 3B Q4_K_M file. The two greedy IDs agreed with its resident decoder.
 A Qwen 3.8 Q8 weight projection returned the expected bytes for four independent inputs.
 
-Libraries, pipelines and GPU resources live for one synchronous batch. The serving design
-calls for one resident owner per model identity. Clients submit streams to that owner.
-It maintains separate mutable KV and recurrent state for each stream, shares complete
-prefix blocks and batches compatible rows. When a peer needs time, the scheduling unit is
-a completed decoding step or prefill chunk. Cached prefixes and idle models can then give
-memory back. A persistent serving owner, a live stream scheduler and cross-process
-reservation accounting are open in Seed.
+For a resident model, `metal.mount` takes a `metal.model` containing a library and its
+allocation descriptors. It returns the content ID of that declaration. Within a worker,
+mounting the same declaration again returns the same ID and keeps the existing state.
+The caller keeps the mapped weight file stable for the lifetime of the model.
+`metal.advance` takes that ID, a batch with an empty library field, and the desired
+readbacks. Turns reuse the device, library, pipeline cache, buffers and queue. The
+stage views select each stream's own scratch and KV allocations. `metal.retire`
+releases the worker's ownership and makes the ID available for a fresh mount.
+
+Each resident turn runs at a committed boundary. Before encoding, a host memory
+pressure reading outside the normal state releases the resident objects and returns
+`e.declined`. A fault inside submission also releases the station, so a later mount
+starts with fresh mutable state. Two interleaved Llama contexts used the same mapped
+weights and returned the previous decoder's token IDs on both macOS process ABIs.
+
+Routing separate clients to one worker per model, admitting new streams between decode
+steps, sharing complete prefix blocks, and coordinating memory reservations across
+workers are open in Seed. The previous kernel's resident Qwen server supplies a running
+reference for these behaviors.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the
