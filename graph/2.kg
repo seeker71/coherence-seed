@@ -332,3 +332,12 @@ path: coherence-seed/region/one-handle.ck
 date: 2026-11-27
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.23
+name: share.ck
+kind: source
+is: The component package by which a process becomes a member of a named substrate: rows of the host functions and constants it needs, a row for each table of a substrate, a machine-code leaf that compares and swaps a word, and the functions that make, join, claim, tell who stands, retire, bury, leave and list.
+path: coherence-seed/share/share.ck
+date: 2026-11-27
+got: 2026-11-27
+at: 2026-11-27

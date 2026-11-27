@@ -17,10 +17,12 @@ The substrate header also identifies its version and extent within the region.
 - The bootstrap reserves a shared region with stable addresses. An ordinary run uses an
   anonymous mapping, which the OS releases even if the process is killed. Set `CK_FB` to
   publish a run by name. A published run remains available after exit until `fb drop NAME`.
-- Set `CK_SHARE` to a name and the process is a member of the substrate of that name (below). It
-  reserves 16 TiB of addresses once, keeps its own region at their start and maps the substrate at
-  byte 2^43 of them, as every member does. `CK_SHARE_BYTES` is that substrate's allowance, set by
-  whoever makes it.
+- Set `CK_SHARE` to a name and run after the prelude `share/all.ck`, and the process becomes a
+  member of the substrate of that name (below). It starts alone, as any process does. The prelude
+  maps the substrate at byte 2^43 of the region's addresses, as every member has it, by asking the
+  host for that place and taking no other; nothing between is reserved. `CK_SHARE_BYTES` is that
+  substrate's allowance, set by whoever makes it. With `CK_SHARE` set the bootstrap itself only
+  gives the three tables keyed by handle room for every handle.
 - The runtime gives all tables one allowance for touched memory. It charges their page-rounded
   high-water marks, the two heads, the thread's entire stack and the executable copy of code.
   Cells, bound-by-node and print-numbers are keyed by handle, so they are charged by the pages
@@ -56,7 +58,8 @@ moves: at byte 28 the **floor**, the lowest page the machine stack may reach, co
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
 code); and at byte 160 where the nodes area starts. After the last area entry lie the **doors**:
 addresses the host gave this process, for code that has no walker to ask. The first is `symbol`,
-the address of the host's lookup of a name (`dlsym`). They come after the area table so that the
+the address of the host's lookup of a name (`dlsym`); the second is `adopt`, the address of the
+bootstrap's own function by which a process becomes a member (below). They come after the area table so that the
 three places above do not move when a door is added; a reader finds them at the end of the area
 table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
@@ -95,13 +98,12 @@ out.
 ## The substrate
 
 A node's handle is a place in a node table that lies in a **substrate**. A process alone makes its
-own, a part of its region after its own areas, with one **lane**. With `CK_SHARE=name` the
-substrate is an object of that name which every **member** maps at the same offset `share`, 2^43,
-of the addresses it reserved, so a place in it is the same offset from each member's first byte
-and rule 3 holds across members. A named substrate has 256 lanes that divide the handles between
+own, a part of its region after its own areas, with one **lane**. A named substrate is an object
+of that name which every **member** has mapped at the same offset `share`, 2^43, from its region's
+first byte, so a place in it is the same offset in each member and rule 3 holds across members. A named substrate has 256 lanes that divide the handles between
 them: lane k holds the handles from k·2^24 up to (k+1)·2^24, and a handle names the same node in
-every member. Lane 0 belongs to whoever made the substrate and holds nothing at handle 0 and the
-seeded catalogue; a process that joins seeds nothing.
+every member. Lane 0 belongs to whoever made the substrate and holds nothing at handle 0, the
+seeded catalogue, and whatever else its maker had made before it became a member.
 
 A member's nodes, their parts and their ids lie in its lane. Its own area entries for those four
 tables point at the substrate's tables, with its lane's part as their count and their room, so the
@@ -111,8 +113,10 @@ has, its maker's process id and the instant the host started that process, the i
 `share`, its size, its allowance and how much of it is charged, `buried`, and the `tide`; then one area entry
 per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
 
-- **A lane's row** is 64 bytes: `who`, the member's process id in its upper half and below it 1
-  claimed, 2 live or 3 gone; `start`, the instant the host started that process; `n`, how far the
+- **A lane's row** is 64 bytes: `who`, one word that is the member: its process id from bit 42
+  up, below that the low 40 bits of the instant the host started that process, in microseconds,
+  and in its two lowest bits 2 live or 3 gone, 0 while the row is free; `start`, that instant in
+  full, for a reader; `n`, how far the
   lane's records are made, stored with release as the member makes a node or a fail gives nodes
   back; `sw`; what the lane has charged; and how many of its nodes a commit forwarded.
 - **Settled and working.** Every node of a lane below its `sw` is settled, and its record's
@@ -159,20 +163,54 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   compare-and-swap, when the lane's member has not yet done so itself. A member killed between
   publishing a node and raising `sw` is finished that way by whoever next takes the node, and what
   a published node names is always below its lane's `sw`.
-- **Members.** A member is a process id and the instant the host started that process. It joins
-  by claiming the first free row with one compare-and-swap that writes its process id, stores its
-  start and marks the row live. Each process that joins, and each that leaves, looks at every row:
-  a row whose process is gone, or was started at another instant, is retired by compare-and-swap,
-  once. A member that exits retires its own row. When no row has a member the substrate ends: one
-  process writes itself in `buried` by compare-and-swap, looks at the rows once more, and unlinks
-  the name, or takes `buried` back when someone joined meanwhile; a process that claimed a row
-  and then finds `buried` set gives the row up and joins again. So after every member was killed
-  the object stays until the next process opens it, buries it and makes a new one. A process waits
-  for nobody: a substrate whose maker has not finished seeding it is tried again for at most ten
-  seconds, and buried if its maker is gone.
+- **Members.** A member is a process id and the instant the host started that process, both in the
+  one word a row is claimed by, so a row is never held in the name of an id alone. A process that
+  the host says is not there, or is a zombie, or was started at another instant, is gone; one the
+  host refuses to describe counts as standing. Each process that joins, and each that leaves, looks
+  at every row that was ever claimed and retires by compare-and-swap, once, a live row whose
+  member is gone. When no row has a member the substrate ends: one process writes its own word in
+  `buried` by compare-and-swap, in place of nothing or of the word of a process that is gone,
+  looks at the rows once more, and unlinks the name, or takes `buried` back when someone joined
+  meanwhile; a process that claimed a row and then finds `buried` set gives the row up and joins
+  again. So after every member was killed the object stays until the next process opens it,
+  buries it and makes a new one. A process waits for nobody: a substrate whose maker has not
+  finished is tried again for at most ten seconds, and buried if its maker is gone or, having
+  written nothing of itself, has not within two.
+- **Becoming a member.** All of that is `share/share.ck`, a component package over the host's rows
+  (`host/host.ck`): rows for the host functions it calls (`shm_open`, `ftruncate`, `fstat`,
+  `proc_pidinfo`, `getenv` and the rest), rows for the host's constants and record offsets, a row
+  for each table of a substrate and how its room is found, one machine-code leaf that compares and
+  swaps a word, and functions that read a record's field by the name `region/layout.ck` gives it.
+  `share.enter` reads `CK_SHARE` and makes or joins: the maker sizes and maps the object, writes
+  its head, its area table and lane 0's row, adopts, and only then writes the magic word, so
+  nobody takes a substrate half made; a joiner checks the magic word, then the version, then
+  whether it is being buried and whether any member lives, claims the first free row, asks whether
+  the allowance has room for a lane's first pages, counts its lane among those ever claimed, looks
+  at `buried` once more and adopts. Every one of these is a call of the host, which a search
+  cannot undo, so it runs with no choice open.
+- **Adopt** is the one part of this the bootstrap does, reached through its door with the
+  substrate's address, a lane and the name: the process's entries for its four lane tables are
+  pointed at that lane, and every node it had made while alone is made again there, oldest first,
+  by the maker all a member's nodes come from, so content the substrate already holds answers with
+  the handle every member knows it by; then everything the run holds is forwarded onto those, as a
+  commit forwards. What it made as the first lane's maker did, in the same order, is first
+  compared with that lane and keeps its handle without the index being asked. It is refused while
+  a choice is open, from inside machine code, twice, and in a process started without `CK_SHARE`;
+  once begun, a fault or a full inside it ends the process. The lane-0 member's own nodes, the
+  door's among them, are in the substrate like any other.
+- **Leaving.** The cell `substrate` holds a node the bootstrap runs once after the run's own end,
+  with the machine put back as that end left it; the package holds its leaving there: the member
+  retires its own row and buries the substrate if no member is left. A member that ends by one of
+  the bootstrap's own refusals, cannot write its answer, or is in a substrate with no room left
+  (leaving makes nodes), leaves as a killed one does: by the next that looks.
+- **The door a member reads.** Loading the two packages through the search, and assembling their
+  leaves, is done once: `share/bind.ck` writes every binding they made and every leaf they
+  assembled as one node, `share/bound.ck` (`make door`; `check-header` holds that it is what they
+  give), and `share/door.ck` reads that in their place.
 - **The allowance.** `CK_SHARE_BYTES`, or else what the host could spare when the substrate was
   made, is in its head and never changes. The two indexes and the head are charged in full when it
-  is made, and each lane's first pages when it is claimed. A lane's growth is charged by whole
+  is made; a lane is charged nothing for being claimed, though one is not claimed where its first
+  pages would have no room. A lane's growth is charged by whole
   pages: the head's count is read, and the growth is added by one compare-and-swap only when it
   fits, so a growth with no room never counts against another member's; it is the fault `full` with the area's name, and the host is asked again at each
   MiB step as for any area. A member's own allowance (`CK_MEMORY_BYTES`) no longer counts those
@@ -306,11 +344,12 @@ process that has mapped the region read-only.
 
 - `fb show NAME` takes one frame of a running or kept region and prints it: the machine, and for
   each area how many records are in use, their bytes, and the most it has held. For a member of a
-  named substrate it maps that object too, reads the nodes in place, the member's own and what any
-  lane has settled, and prints the substrate as `fb share` does.
-- `fb share NAME` maps a named substrate alone and prints its head and each lane that was ever
-  claimed: its state, its process and whether that runs, its nodes, how far they are settled, how
-  many a commit forwarded and what it charged.
+  named substrate it maps that object too and reads the nodes in place, the member's own and what
+  any lane has settled.
+- `./ck text share/show.ck`, given a substrate's name on its input, maps it alone through the
+  same rows a member uses and prints its head and each lane that was ever claimed: its state, its
+  process and whether that stands, its nodes, how far they are settled, how many a commit
+  forwarded and what it charged. It fails when no substrate of that name stands.
 - `fb record NAME FILE MS` takes a frame every MS milliseconds until the writer is done. The file
   keeps, for each frame, only the 16 KiB pages that differ from the frame before.
 - `fb play FILE` prints one line per frame; `fb play FILE N` prints frame N in full; with a handle
@@ -322,6 +361,22 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
+- 2026-11-27, version 23, the member's start in Form against the start in C of version 22 (the
+  build of 4ea5ec2), each the answer to `#33`, with an allowance of 64 MiB for the process and for
+  the substrate, under `/usr/bin/time -l`: instructions and peak footprint the medians of five
+  runs, time the mean of thirty. A process alone: 24.0 M instructions, 2.7 ms, 2.05 MB, the same
+  as the build of origin/main (6f93c2c). The door read and nothing joined: 49.8 M, 4.2 ms, 2.78 MB.
+  The maker of a substrate: 85.0 M, 6.5 ms and 20.5 MB, against 134.8 M, 17 ms and 5.24 MB. A
+  joiner: 69.7 M, 6.8 ms and 6.8 MB, against 133.3 M, 16 ms and 3.14 MB. What the start in C spent
+  was the reservation: this host takes about 6.6 M instructions for each TiB of addresses a
+  process reserves, whatever kind, and 0.78 ms (a process that reserves and ends: 10.2 M and 1.4 ms
+  for 2^34 bytes, 11.6 M and 1.6 ms for 2^38, 16.1 M and 2.2 ms for 2^40, 117.8 M and 14.1 ms for
+  2^44), and 16 TiB were reserved to keep byte 2^43 free. A member now maps only the object, 352 GiB
+  of addresses whatever the allowance, since a lane's tables span its 2^24 handles. What rose is the
+  footprint: the door's 3,200 nodes settle into lane 0, and each falls on a page of the
+  by-content index of its own, since that index is made once for the whole allowance and is asked
+  by a hash; the maker touches nearly all of its 16 MiB at once, where it used to touch them as
+  its program made nodes. With an allowance of 4 MiB the maker's footprint is 5.2 MB.
 - 2026-11-27, version 22 with the named substrate against version 21 (the build of 01db529), a
   process alone, in alternating rounds under `/usr/bin/time -l`, one process at a time, medians
   of seven, seven and three rounds: the long recursion 27.427 G instructions against 27.423 G
@@ -342,10 +397,8 @@ in it was complete when its count was read.
   commit's forwarding table, the index made once and the charge; two together make each node once
   between them, and 21,675 of their nodes were forwarded in the last round.
 - The same day, what this Mac allows a member (two probes written and run in the session, not
-  kept in the repository): reservations of 1 to 64 TiB with no access, 16 TiB anonymous and shared for reading
-  and writing, a sparse object of 16 TiB, a 3 TiB object mapped at a fixed place 2^43 bytes into
-  the reserved range, and a second process with another base that saw the first's bytes at the
-  same offset and won a compare-and-swap there.
+  kept in the repository): a sparse object of 16 TiB, and a second process with another base that
+  saw the first's bytes at the same offset and won a compare-and-swap there.
 - 2026-11-27, version 21 against the bootstrap without the substrate (version 20), in three
   alternating rounds under `/usr/bin/time -l`, one process at a time, medians of cycles: the long
   recursion 3.85 G against 4.21 G (−8.6%; instructions −6.5%), forty thousand outcomes given back
