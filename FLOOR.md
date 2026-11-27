@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,120 lines, 58 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,131 lines, 47 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -407,10 +407,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   room in two passes, so it is linear in the size of the print at any depth, but slow: it adds
   1.0 M instructions to a run answering 42 (14.2 M to 15.2 M) and 7 M to `ground/held-back.ck`; a
   list of 3,000 numbers takes 1,549 M where the C took 21 M, and a chain 10,000 deep 3.5 G where it
-  took 29 M. A run that ends with an area of the region full can no longer print its fault: `ck`
-  ends with the area's message and exit 2. `ck` found through `PATH` has no folder and ends saying
-  so. An asked answer is written by `bin.write` in the asked run, on what that run has bound, and
-  keeps its notes there; a leaf of 300,000 bytes asked of a run at 32 MiB filled its frames.
+  took 29 M. The answer line may take 16 MiB past the allowance, so a run that ends with an area
+  full still says its fault: `(all (range 0 300000000))` at 4, 8, 16 and 32 MiB ended with
+  `fault (full ...)`, where at 4 to 32 MiB the C ended with no room left for the print. `ck` finds
+  its folder from the host (`_NSGetExecutablePath`, `/proc/self/exe`), through `PATH` and links. An
+  asked answer is written by `bin.write` beneath the asked run's bindings, and its marks are holds
+  that the outcome takes back; an outside binding of `pack` or `leaf` no longer changes it.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
@@ -536,7 +538,7 @@ running compiled code against frames all the way down).
   `region/rest.ck` is a `let` of recipes and not a component package, and it is not among the
   files `make check-bare` counts.
 - **An area larger than its reservation.** Each area holds at most what `region/layout.ck`
-  reserves for it, however large the allowance: 1 GiB for the text, the print, the frames, links,
+  reserves for it, however large the allowance: 1 GiB for the text, the frames, links,
   activations and most of the walker's tables, 256 MiB for the asked and answered bytes, born code
   and the bindings. A file of more than 1 GiB is the fault `full` with `text` here, where on main
   it was read when the allowance held it.

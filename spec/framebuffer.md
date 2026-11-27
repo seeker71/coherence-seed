@@ -175,7 +175,7 @@ out.
 | outside | binding | what was bound from outside the run: seen by every layer of the program, and not undone by a fail |
 | cells | words | for each node used as a cell, the node it holds |
 | trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back; and, kept, each note, faster form and born code, so a fail leaves them and keeps what they hold |
-| reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader of records and of the store, and every file read; the area print is no longer written |
+| reader-opened, gathering-children, gathering-bytes, print-numbers, text | words, bytes | working lists of the reader of records and of the store, and every file read |
 | stack | bytes | the machine stack of the C code and of code leaves |
 | asked, answered | bytes | the records of a node another process asks the run to evaluate, and the records of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
@@ -410,19 +410,18 @@ A second process can ask a running program to evaluate a node. It writes the nod
 (`spec/node-encoding.md`, section 8) in the area `asked` and then that area's count; between two
 steps the walker sees the count, evaluates the node and, when it answers a leaf, writes that leaf's
 bytes in the area `answered` with their count, and sets the count of `asked` back to nothing. The
-asker sends `(call w (outcome x))`, where w is the writer of records, `bin.write` of
-`form/nodes.ck`, a recipe that calls nothing bound, so the outcome comes back as its records. The run goes on where it was: the node it was about to evaluate, its
+asker sends `(list w x)`, where w is the writer of records, `bin.write` of `form/nodes.ck`, a recipe
+that calls nothing bound. The walker evaluates x, then `(outcome (call w o))` on o, x's outcome,
+beneath every binding, as the answer line is printed, and answers the leaf it gives: the outcome as
+its records. The writer marks what it has written with `hold`, which the outcome takes back. The run goes on where it was: the node it was about to evaluate, its
 activation, its cut scope and the reason in hand are kept in a frame and taken up again.
 
 The node is evaluated as `(outcome (outside x))` (`spec/core-operations.md`, entries 82 and
 101), with no arguments. So a request can read any cell and call anything the program has
 bound; what it binds is bound from outside the run, seen at every layer and kept; and nothing
-else it did stays, whether it answered, failed or faulted, but the writer's notes of what it
-wrote. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
+else it did stays, whether it answered, failed or faulted. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
 `(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
 in `answered`, is answered with no bytes, and the asker answers `(list "nothing" "unanswered")`.
-The writer runs on what the asked run has bound, so a binding of `pack` made from outside changes
-what it writes.
 
 `region/ask.ck`, written in form, is the asker. Its first line of input is the region's name and
 the rest a node in the lens's words:

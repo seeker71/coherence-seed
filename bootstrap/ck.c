@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #ifdef __APPLE__
 #include <mach-o/loader.h>
+#include <mach-o/dyld.h>
 #endif
 #include <time.h>
 #include <dlfcn.h>
@@ -243,7 +244,8 @@ static const char *const AREA_NAME[A_COUNT + S_COUNT] = { FB_AREA_NAMES FB_SUBST
  * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full, parting; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full, parting, answering;   /* answering: the answer line may take SPARE past the allowance */ static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
+#define SPARE ((uint64_t)16 << 20)
 static int reading;                       /* a start is running: what it takes from the host or the process is counted in member.taken */
 static void area_full(int a) {            /* how far memory goes follows the process, not the program: a start that met it is not saved */
   fb->me.taken += reading;
@@ -271,12 +273,12 @@ static uint64_t used_in(const Head *h, const Substrate *s) {   /* what a region 
 static uint64_t remaining_memory(void) { uint64_t used = used_in(fb, sub); return used < fb->me.allowance ? fb->me.allowance - used : 0; }
 static int fits_growth(uint64_t old, uint64_t next) {
   uint64_t extra = pages_for(next) - pages_for(old);
-  return !extra || (extra <= remaining_memory() && host_has_growth(old, next));
+  return !extra || (extra <= remaining_memory() + (answering ? SPARE : 0) && host_has_growth(old, next));
 }
 static void further(int a, uint64_t need) {
   Area *area = AR(a); uint64_t old = area_extent(area, area->peak), next = area_extent(area, need), extra = pages_for(next) - pages_for(old); int s = shared && a < A_COUNT && LANED[a];   /* a lane's growth is charged to the named substrate by whole pages: */
   if (s && extra && need <= area->cap) { uint64_t c = LD(sub->charged);    /* asked of what stands and taken by one swap, so a growth that has no room never counts against another's */
-    do if ((c + extra > sub->allowance && !parting) || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }   /* but for a member that is leaving */
+    do if ((c + extra > sub->allowance + (answering ? SPARE : 0) && !parting) || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }   /* but for a member that is leaving */
   if (need > area->cap || (!s && !fits_growth(old, next))) area_full(s ? SA(LANED[a] - 1) : a);
   area->peak = need; if (s) ln->charged += extra;
 }
@@ -1471,14 +1473,16 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
     }
     if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
-      uint64_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
+      uint64_t n = N(A_ASKED), mark = ntext; H q, p, w = 0;  /* run, as from outside and leaving no other trace; in text, */
       if (n == ~0ull) { N(A_ASKED) = 0; exit(143); } if (n > fb->a[A_ASKED].cap) n = 0;
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
       why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_nodes((uint8_t *)s, n, &why);
+      if (!numeric_io && q && nd[q].comp && nd[q].bp == E(LIST) && nd[q].n == 2) { w = KID(q, 0); q = KID(q, 1); }   /* a writer and a node */
       if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
       ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
-      W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); W->x = q; W->env = W->one = 0; W->cut = ncp;
+      W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); if (w) W->k = push(F_ASIDE, w, 0, 0, 0, 0, W->k, 3);
+      W->x = q; W->env = W->one = 0; W->cut = ncp;
     }
     H x = W->x; W->at = x;
     long long op = nd[x].comp ? catn(nd[x].bp) : -1; uint32_t c = nd[x].n, b = 0; int given = 0;
@@ -1572,6 +1576,8 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
     case F_RECOVER: break;
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
+      if (f.aux == 3) { H c[2] = { f.node, mk(1, E(QUOTE), &W->v, 1, &why) }; W->x = mk(1, E(CALL), c, 2, &why);   /* the outcome, */
+        W->x = mk(1, E(OUTCOME), &W->x, 1, &why); W->env = enter(0, 0, 0, 0, 0, ncp); W->cut = ncp; W->mode = M_EVAL; break; }   /* written beneath every binding */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
         H b = nd[W->v].comp && nd[W->v].n == 2 && KID(W->v, 0) == notice(S_NODE) && !nd[KID(W->v, 1)].comp ? KID(W->v, 1) : 0;   /* in text: the bytes */
         uint64_t n = numeric_io ? 32 : b && nd[b].n <= fb->a[A_ANSWERED].cap ? nd[b].n : 0;  /* the asked node answered, */
@@ -1961,12 +1967,12 @@ static int execute_image(const char *path, int warm, int keyed, char **starts) {
  * It runs after the program, in its region, on the bootstrap's code alone, so nothing the program bound is seen, and
  * nothing it held back for later runs; the machine then shows the program's end again. */
 static void show(const char *word, H v) {
-  char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q[2] = { 0, v ? mk(1, E(QUOTE), &v, 1, &why) : 0 }, t;
-  if (!*home) die("ck run by no path has no form/print.ck beside it to print the answer");
+  answering = 1; char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q[2] = { 0, v ? mk(1, E(QUOTE), &v, 1, &why) : 0 }, t;
+  if (!*home) die("the host does not say where the executable lies, so form/print.ck is not found");
   snprintf(path, sizeof path, "%sform/print.ck", home); uint8_t *b = load(path, &len);
   nafter = 0; top = 0; if ((q[0] = read_nodes(b, len, &why))) run(q[0]);
   if (q[0] && q[1] && W->outcome == 'n') { q[0] = W->v; run(mk(1, E(CALL), q, 2, &why)); }
-  t = q[0] && q[1] && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later; top = ~COOL;
+  t = q[0] && q[1] && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later; top = ~COOL; answering = 0;
   if (!t) die("form/print.ck beside the executable did not print the answer");
   put(1, word); if (!send_fd(1, bytes + nd[t].off, nd[t].n)) exit(2); put(1, "\n");
 }
@@ -2024,8 +2030,13 @@ static void *on_region(void *p) {
   s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {
-  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; char real[PATH_MAX];   /* the folder of the executable, a link followed */
-  const char *exe = strchr(argv[0], '/') && realpath(argv[0], real) ? real : argv[0], *slash = strrchr(exe, '/');
+  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; char raw[PATH_MAX], real[PATH_MAX];   /* the executable's folder, as */
+#ifdef __APPLE__                                                                                   /* the host has it, links followed */
+  uint32_t size = sizeof raw; int got = !_NSGetExecutablePath(raw, &size);
+#else
+  ssize_t size = readlink("/proc/self/exe", raw, sizeof raw - 1); int got = size > 0; if (got) raw[size] = 0;
+#endif
+  const char *exe = got && realpath(raw, real) ? real : argv[0], *slash = strrchr(exe, '/');
   if (slash && (size_t)(slash - exe) + 16 < sizeof home) { snprintf(home, sizeof home, "%.*s", (int)(slash - exe) + 1, exe);
     snprintf(rest_buf, sizeof rest_buf, "%sregion/rest.ck", home); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
   fb_open();
