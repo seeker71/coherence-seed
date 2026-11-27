@@ -117,7 +117,7 @@ check-image: seed-run
 	    echo "Metal: direct, attached and batched calls by ID agree with NUMS frames"; \
 	    printf '(note "rounds" %s)' "$(METAL_ROUNDS)" | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/rounds"; \
 	    got=$$(./ck run ground/metal-holds.ck "$$work/rounds" < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
-	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave numbers only, fewer than one for two maps, and in the walker's areas what $(METAL_ROUNDS) leave; has-target runs its value once, and a fault or a fail midway lets every object go"; \
+	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave in the region what $(METAL_ROUNDS) leave, and numbers only; has-target runs its value once, and a fault or a fail midway lets every object go"; \
 	  fi
 
 check-live: ck fb

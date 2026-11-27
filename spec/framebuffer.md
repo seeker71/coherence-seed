@@ -111,7 +111,7 @@ head's byte 160 still says where node h lies: at that offset plus 32·h, in ever
 substrate begins with its own head: a magic word, the layout version, how many areas and lanes it
 has, its maker's process id, in `start` its maker's member word (below), the instant it was made,
 `share`, its size, its allowance and how much of it is charged, `buried`, the `tide`, and `catalogue`,
-seven bytes of the content id of the list of the seeded entries; then one area entry
+a digest of the seeded entries' words and numbers that `region/header.ck` writes into `fb.h`; then one area entry
 per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
 
 - **A lane's row** is 64 bytes: `who`, one word that is the member: its process id from bit 42
@@ -178,13 +178,17 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   `buried`; otherwise it takes `buried` back. So a process that still has an ended substrate mapped
   cannot unlink the name of the one made after it, and only one process at a time, the holder of
   `buried`, unlinks at all. An object left empty by a maker that died is given one page and buried
-  the same way; a maker writes its word in `start` first and, finding `buried` held, gives the
-  object up and joins again. The words these decisions turn on are read and written by one
+  the same way, by a joiner that has watched that same object stay empty, through its own
+  descriptor of it, for twelve hundred looks half a millisecond apart: patience is counted of the
+  object, not of the joiner. A maker writes its word in `start` first and, finding `buried` held,
+  gives the object up and joins again; one that cannot size its object, or whose allowance is too
+  small, or whom the bootstrap will not adopt, gives it up the same way, and never unlinks by
+  the name alone. The words these decisions turn on are read and written by one
   compare-and-swap leaf, which orders them among all members. A process that claimed a row and
   then finds `buried` set gives the row up and joins again. So after every member was killed the
   object stays until the next process opens it, buries it and makes a new one. A process waits for
-  nobody: it tries six thousand times, half a millisecond apart, about ten seconds on this
-  machine, and buries a substrate whose maker has written nothing for the first twelve hundred.
+  nobody: it tries six thousand times, half a millisecond apart, and buries a substrate in whose
+  head no maker's word appears while it looks twelve hundred times.
 - **Becoming a member.** All of that is `share/share.ck`, a component package over the host's rows
   (`host/host.ck`): rows for the host functions it calls (`shm_open`, `ftruncate`, `fstat`,
   `proc_pidinfo`, `getenv` and the rest), rows for the host's constants and record offsets, a row
@@ -204,16 +208,22 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   the handle every member knows it by; then everything the run holds is forwarded onto those, as a
   commit forwards. What it made as the first lane's maker did, in the same order, is first
   compared with that lane and keeps its handle without the index being asked. It is refused while
-  a choice is open, from inside machine code, twice, and in a process started without `CK_SHARE`;
+  a choice is open, from inside machine code, twice, in a process started without `CK_SHARE`, and,
+  for a lane other than the first, in a process that has given out a handle above the catalogue
+  other than the one of its leaving, since that number would name another node after;
   once begun, a fault or a full inside it ends the process. The lane-0 member's own nodes, the
   door's among them, are in the substrate like any other.
 - **Leaving.** The head's member part holds the node adopt was given, where no program writes; the
   bootstrap runs it once on the walker's thread, after the run's own end or when it ends the
   process itself from inside a run (a program it cannot read, a refusal, an answer it cannot
-  write), with the machine put back as the run left it. The package's leaving retires the
-  member's row and buries the substrate if no member is left. A process alone runs nothing last.
-  Leaving makes nodes, so a member of a substrate with no room left does not leave, nor does one
-  the host kills: the next that looks retires it.
+  write), with the machine put back as the run left it. A member also leaves at a signal that
+  would end it (`SIGTERM`, `SIGINT`, `SIGHUP`): the bootstrap's handler, set by adopt, ends the
+  process there when no run is under way and otherwise marks `asked`, so that the walker ends it
+  between two steps; this is C, since a signal cannot be handed to the walker as a call. The
+  package's leaving retires the member's row and buries the substrate if no member is left; while
+  it runs, a lane's growth is not refused for the allowance, so a member of a full substrate
+  leaves too, a page or so above it. A process alone runs nothing last and keeps the host's own
+  way with signals. A member the host kills outright does not leave: the next that looks retires it.
 - **The door a member reads.** Loading the two packages through the search, and assembling their
   leaves, is done once: `share/bind.ck` writes every binding they made and every leaf they
   assembled as one node, `share/bound.ck` (`make door`; `check-header` holds that it is what they
@@ -374,9 +384,9 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
-- 2026-11-27, version 24, after the review: the maker 97.4 M instructions, 6.0 ms and 12.7 MB,
-  a joiner 83.4 M, 6.5 ms and 6.7 MB, the door read and nothing joined 52.3 M, a process alone
-  13.8 M and 1.50 MB as origin/main (57bbbd6); the indexes at half their size, the member word
+- 2026-11-27, version 24, after the review, merged with origin/main at b7c76e5: the maker 107.6 M
+  instructions, 6.4 ms and 12.7 MB, a joiner 92.3 M, 6.8 ms and 6.5 MB, the door read and nothing
+  joined 55.6 M and 2.30 MB, a process alone 13.9 M and 1.48 MB against main's 13.7 M and 1.48 MB; the indexes at half their size, the member word
   read through its rows and the host asked by `sysctl`. With an allowance of 4 MiB the maker's
   footprint is 4.0 MB.
 - 2026-11-27, version 23, the member's start in Form against the start in C of version 22 (the
