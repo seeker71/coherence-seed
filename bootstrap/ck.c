@@ -1164,7 +1164,7 @@ COLD void commit(void) {
  * any other finds it there. Once begun it cannot stop half way: a fault or a full inside it ends the process. */
 static Ret adopt(int64_t base, int64_t lane, int64_t name) {
   Substrate *to = (Substrate *)(intptr_t)base; Ret no = { 0, 0 };
-  if (shared || ncp || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;
+  if (shared || ncp || coding != 1 || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;   /* not from inside code, which holds handles */
   if (nn > sw) commit();
   const Node *ond = nd; const H *okids = kids; const uint8_t *obytes = bytes, *oids = ids; H top = (H)nn, at = W->at; uint64_t mark = ntext, base_tk = ntk; int was = coding, over = 0;
   coding = walking = 0; sub = to; shared = 1; fb->me.share = (uint64_t)base - (uint64_t)(uintptr_t)fb; fb->me.lane = (uint32_t)lane; strncpy((char *)fb->me.name, (const char *)(intptr_t)name, 31);
@@ -1175,11 +1175,13 @@ static Ret adopt(int64_t base, int64_t lane, int64_t name) {
   ftab = (H *)((uint8_t *)sub + sub->a[S_BY_CONTENT].off); sidt = (H *)((uint8_t *)sub + sub->a[S_BY_ID].off); lanes = (Lane *)((uint8_t *)sub + sub->a[S_LANES].off); ln = lanes + lane;
   if (!lane) { nn = 1; nids = IDREC; }    /* handle 0 is nothing, and the first id lies after a record of none */
   ST(ln->n, (uint32_t)nn); ST(sw, (uint32_t)nn); room(A_SEEN, sub->lanes); N(A_SEEN) = sub->lanes;
-  fm = lane ? SEEDED + 1 : 1; ftop = top; fw = talloc((size_t)(top - fm) * 4);
-  for (H h = fm; h < top; h++) {          /* a node is newer than its parts, so each is made from parts already forwarded */
-    Node x = ond[h]; const void *p = obytes + x.off; H o;
-    if (x.comp) { room(A_GATHERING_CHILDREN, ntk + x.n); for (uint64_t i = 0; i < x.n; i++) tk[ntk + i] = fwd(okids[x.off + i]); p = tk + ntk; }
-    W->at = fwd(x.by); fw[h - fm] = o = make_far(x.comp, fwd(x.bp), p, x.n);
+  fm = lane ? SEEDED + 1 : 1; ftop = top; fw = talloc((size_t)(top - fm) * 4); H same = fm, first = lsw(0, 0);
+  for (const Node *x, *y; lane && same < top && same < first && (x = &ond[same])->bp == (y = &nd[same])->bp && x->comp == y->comp && x->n == y->n   /* what it made as the */
+         && !memcmp(x->comp ? (const void *)(okids + x->off) : (const void *)(obytes + x->off), payload_of(same), x->comp ? (size_t)x->n * 4 : x->n); same++) {}   /* maker did, in the maker's order, */
+  for (H h = fm; h < top; h++) {          /* lies in the first lane at the handle it had. A node is newer than its parts, so each other is made from parts already forwarded */
+    Node x = ond[h]; const void *p = obytes + x.off; H o = h;
+    if (x.comp && h >= same) { room(A_GATHERING_CHILDREN, ntk + x.n); for (uint64_t i = 0; i < x.n; i++) tk[ntk + i] = fwd(okids[x.off + i]); p = tk + ntk; }
+    if (h >= same) { W->at = fwd(x.by); o = make_far(x.comp, fwd(x.bp), p, x.n); } fw[h - fm] = o;
     if (!lane && o != h) die("the substrate's first lane did not take the catalogue where it lay");
     if (x.ida) setid(o, oids + (uint64_t)x.ida * IDREC + 4);
     for (int a = A_BOUND_BY_NODE; a <= A_CELLS; a += A_CELLS - A_BOUND_BY_NODE) {   /* its bindings and its cell go with it once every node is made: a new handle */
@@ -1205,7 +1207,7 @@ static void crashed(int sig) {
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
 }
 static uint32_t left;
-static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
+static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = was + 1; Ret r = host.call(fn, arg); coding = was; return r; }   /* coding: how deep in calls of code */
 static int landed(void *fn, int64_t *arg) {
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address as its seventh argument */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */

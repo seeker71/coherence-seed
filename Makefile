@@ -90,6 +90,18 @@ check-image: seed-run
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image"; \
+	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
+	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | ./ck text /dev/stdin; }; \
+	    ./ck text share/pack.ck < ground/nums-image.ck > "$$work/member"; \
+	    { printf '\003'; idof 16; idof 77; idof 78; idof 79; } > "$$work/part"; ./seed-run "$$work/member" < "$$work/part" > "$$work/part.reply"; \
+	    { printf '\001'; idof 16; dd if="$$work/part.reply" bs=1 skip=1 count=32 2>/dev/null; } > "$$work/holder"; \
+	    cat "$$work/requests" "$$work/part" "$$work/holder" | ./seed-run "$$work/member" > "$$work/alone"; \
+	    { $(call joined,$$name); cat "$$work/requests" "$$work/part" | CK_SHARE=$$name CK_SHARE_BYTES=67108864 ./seed-run "$$work/member" > "$$work/second"; cat "$$work/holder"; } | \
+	      CK_SHARE=$$name CK_SHARE_BYTES=67108864 ./seed-run "$$work/member" > "$$work/first"; \
+	    cat "$$work/second" "$$work/first" | cmp -s - "$$work/alone" || { echo "image: two members of one substrate did not reply what the port alone replies"; exit 1; }; \
+	    ! $(call shown,$$name) > /dev/null 2>&1 || { echo "image: the substrate outlived its members"; exit 1; }; \
+	    echo "image: two ports that are members of one substrate replied, between them, byte for byte what one alone replies, also where a node lies in a lower lane than its part"; \
+	  fi; \
 	  if [ "$$(uname -s)" = Darwin ] && xcrun -sdk macosx metal -v >/dev/null 2>&1; then \
 	    printf '(has-target metal-map64)' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/target"; \
 	    gpu=$$(./ck run "$$work/target"); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
@@ -130,8 +142,10 @@ G = .ck-ground
 # Every ground program in its own process, all of them members of one substrate: sharing changes no outcome. One
 # more member, the long recursion, is killed in mid-run beside them. The member that held the substrate open then
 # makes every settled node again from its parts and must be answered its handle. A second substrate loses every
-# member to kill -9; the next to open it buries it and makes a new one. Both names are dropped at the end, and each
-# substrate has a small allowance, so nothing here can hold the machine's memory.
+# member to kill -9, after ground/substrate-recycled.ck wrote its burying and a lane in the name of a process that
+# runs but was started at another instant, as a process id the host gave again would leave them; the next to open it
+# buries it and makes a new one. Both names are dropped at the end, and each substrate has a small allowance, so
+# nothing here can hold the machine's memory.
 ground-isolated: ck fb
 	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; \
 	  trap 'rc=$$?; set +e; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; rm -f $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
@@ -147,12 +161,13 @@ ground-isolated: ck fb
 	  ! $(call shown,$$name) > /dev/null 2>&1 || { echo "ground: the substrate outlived its last member"; exit 1; }; \
 	  export CK_SHARE=$$dead CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=67108864; \
 	  for k in 1 2; do (./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim$$k); done; $(call joined,$$dead); sleep 0.3; \
+	  again=$$(printf %s $$dead | ./ck run ground/substrate-recycled.ck 2>&1); [ "$$again" = 'node (#16)' ] || { echo "ground: a process id with another start: $$again"; exit 1; }; \
 	  kill -9 $$(cat $(G).victim1 $(G).victim2); sleep 0.1; old=$$($(call shown,$$dead) | head -1); \
 	  got=$$({ n=0; until [ "$$($(call shown,$$dead) 2> /dev/null | head -1)" != "$$old" ]; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done; \
 	    $(call shown,$$dead) | head -1 > $(G).new; cat ground/add.ck; } | ./ck run /dev/stdin $(MEMBER)); new=$$(cat $(G).new); \
 	  [ "$$got" = 'node [#4 2a]' ] && [ -n "$$old" ] && [ -n "$$new" ] && [ "$$new" != "$$old" ] && ! $(call shown,$$dead) > /dev/null 2>&1 || \
 	    { echo "ground: after every member was killed the next answered '$$got'; the substrate before: '$$old', after: '$$new'"; exit 1; }; \
-	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, the next to open it buried it and made a new one"
+	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one"
 
 ground-together: ck
 	@got=$$(./ck run ground/check.ck 2>&1); \
