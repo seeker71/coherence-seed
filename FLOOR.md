@@ -432,11 +432,10 @@ running compiled code against frames all the way down).
   and signals have no rows; a structure of more than two words goes by reference from a room.
   Memory a host function hands out is outside the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. Of the
-  bootstrap's own host functions only Metal has left C. A call through a row is walked: a
-  Metal map makes about forty, and costs about 2.8 ms more than the C it replaced. A call of
-  A row run while a choice is open is refused where every row passes, looked up or not
-  (`ground/host-refused.ck`), except inside a guard that a row of `host.guards` declares: the
-  Metal door's. A program that lays the berth out by hand and runs its leaf is not refused.
+  bootstrap's own host functions only Metal has left C. Metal prepares its message signatures when it opens. On the M4 Max, the same 481-stage
+  Llama graph with layout-matched kernels took about 142 ms to encode with prepared calls.
+  The general row path took about 874 ms. Both produced the reference token histories.
+  The native call observes the host choice scope (`ground/host-refused.ck`). A program that lays the berth out by hand and runs its leaf is not refused.
   A dispatch is not reentrant: entering the door's guard from inside it is a fault.
   A library leaf bound as an entry's implementation does not run the map, where the C ran it
   for operands of the right shape: it declines, and the map is reached by `native`. A map makes

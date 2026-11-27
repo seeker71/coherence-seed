@@ -571,13 +571,13 @@ receiver and the selector, and the kind of its result; `host.send` lays them aft
 slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A structure of more
 than two words goes by reference, as the convention says: the caller lays it in a room and
 passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf.
-`host.run` runs a row on an address already in hand: it looks nothing up, so it makes no call
-of entry 98. The refusal is a property of the call all the same: `host.launch`, which every
-call through a row passes, asks the guard first, a call of entry 98 that does nothing, so a
-row run while a choice is open is the fault `irreversible` whether it was looked up or not.
-It is not asked inside a guard that a row of `host.guards` declares, with the numeric entry that owns cleanup:
-one row today, the Metal door's, which lets go of every object it made when it ends, on a
-fault and on a fail, and leaves only a note. The door notes the guard it is in under
+`host.run` runs a row on a resolved address. `host.prepare-call` binds the address and row
+into a reusable recipe. When the ABI places all arguments in successive integer slots,
+the recipe binds the native entry and result reader once. Integer leaves go directly
+to those slots. Other argument shapes use the general row conversion, including copied
+bytes and text. Both paths ask the guard before writing the berth. An open choice yields
+`irreversible` outside a declared cleanup scope. Metal declares its scope in `host.guards`
+and releases its temporary objects on completion, fault or failure. The door notes the guard it is in under
 `host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
 program that lays the berth out by hand and runs its leaf passes no row and is not refused:
 no node can yet ask whether a choice is open except by calling entry 98. The
