@@ -54,6 +54,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
   nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
   this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
+- **Metal runs a word map by ID.** On the M4 Max, both the arm64 and Rosetta x86-64 runtimes
+  dispatched the same packed library to the GPU. A 65-lane recipe combining arithmetic and
+  bitwise operations matched frames byte for byte in both operand orders. The image ran from
+  a directory containing only that image. [Metal word maps](spec/nums.md#metal-word-maps)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.

@@ -106,7 +106,41 @@ stay portable.
 word-subtraction instance by ID. A conditional recipe returns 2 and 42 for opposite orderings
 both before and after compilation. A NUMS function with guarded returns also handles equality
 and returns 0. Linux and macOS x86-64 returned identical binary replies from
-one image packed on AArch64. GPU lowering and measured target-specific optimization remain open.
+one image packed on AArch64.
+
+### Metal word maps
+
+The macOS GPU runs a batch through one NUMS declaration with signature `(b.function int int int)`.
+The Metal profile in `nums/metal.ck` lowers the two parameters, integer literals and nested
+addition, subtraction, multiplication, AND, OR and XOR. It uses unsigned 64-bit Metal arithmetic
+to preserve Seed's wrapping word results. It shares declaration and return-shape recognition with
+the CPU compiler. Other expressions decline during lowering.
+
+```sh
+make metal-image METAL_RECIPE=ground/metal-polynomial.ck \
+  METAL_INPUTS=ground/metal-vectors.ck METAL_IMAGE=/tmp/words.image
+./ck text ground/metal-requests.ck | ./seed-run /tmp/words.image | ./ck run ground/metal-replies.ck
+```
+
+The builder projects the declaration to temporary Metal source and invokes Apple's Metal compiler
+and library linker. The image holds the compiled library, the numeric map entry
+`(b.instance b.gpu declaration)` and the supplied operands. A request addresses that entry
+and two operands by content ID. Each operand packs one 64-bit word per lane. The entry ID
+depends on the declaration and stays the same across builds of its Metal library.
+
+The `metal-map64` ABI binds one shared word buffer at index 0 and the unsigned 32-bit lane count
+at index 1. For `n` lanes the two inputs start at words 0 and `n`, and the output starts at word
+`2*n`. The host selects devices advertising Apple GPU family 3 or Metal family 3 for 64-bit
+integer arithmetic. [Metal feature tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf)
+
+The hardware port chooses the threadgroup width from the pipeline. The kernel checks its lane
+against the supplied count. Each synchronous dispatch places the two inputs and the output in one shared buffer.
+It accounts for that allocation
+against Seed's remaining allowance, host memory and the device's reported working set.
+The buffer, command queue and pipeline are released after use. On a Mac with the compiler and
+a Metal device, the image flow compares both orders of 65 inputs with their frame results,
+including wraparound, the empty vector and two invalid shapes. The compiler is a build-time
+dependency. Floating-point layouts, reductions and pipeline reuse are open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the

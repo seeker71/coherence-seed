@@ -63,7 +63,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 46, 47, 48 | add, sub, mul | a, b | integer arithmetic on `int` leaves |
 | 49 | eq | a, b | yes if a and b are the same node, otherwise no |
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
-| 51 | native | code, arguments | runs a machine-code leaf on up to six values |
+| 51 | native | code, arguments | runs a CPU code leaf on up to six values, or a Metal map on two packed word vectors |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
 
 ## Fail, choice and cut
@@ -106,11 +106,18 @@ Dividing by zero answers nothing with the reason `zero`.
 
 `(host-target)` (entry 124) returns the numeric ABI identity of the running process, or
 `no` on a host with the generic runtime alone. A leaf with blueprint `(code abi)` carries
-machine bytes for that ABI. The original bare `code` blueprint identifies AArch64.
+an executable payload for that ABI. The original bare `code` blueprint identifies AArch64.
 `native` answers nothing with reason `no-native` when the identities differ. A binding
 declines that implementation and can continue with its recipe.
 
-The call has six value positions, followed by the framebuffer address and the argument-count
+`(has-target abi)` (entry 125) answers whether the process can use that target. It recognizes
+the current CPU ABI and probes the default Metal device for the 64-bit integer arithmetic used by `metal-map64`.
+For that ABI the leaf holds a compiled single-kernel Metal library. Its two arguments are
+byte leaves of equal length containing little-endian 64-bit words. Dispatch completes before
+the runtime returns a fresh byte leaf. Unequal lengths or partial words answer `range`.
+A device or pipeline that cannot run the library answers `no-native`.
+
+The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
 x0 and x1. On System V AMD64 the values occupy RDI, RSI, RDX, RCX, R8 and R9. The seventh
 and eighth arguments are at entry RSP+8 and RSP+16. RAX and RDX return value and kind.
