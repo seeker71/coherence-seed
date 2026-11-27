@@ -81,13 +81,18 @@ a body, and generated code can decline particular arguments. Frames evaluate eit
 | Process target | Native coverage |
 | --- | --- |
 | macOS AArch64 | The existing Form emitter and optimizing NUMS compiler, including calls, branches, typed integer operations, and floating point. |
-| macOS and Linux x86-64, System V ABI | Straight-line word expressions with up to six integer inputs, integer literals, addition, subtraction, multiplication, bitwise operations and comparisons. NUMS accepts `int` parameters and an `int` or Boolean result in a return or single-return block. Form also supplies checked arithmetic, wrapping arithmetic and unsigned less-than. Other bodies use frames. |
+| macOS and Linux x86-64, System V ABI | Up to six integer inputs, integer and Boolean literals, addition, subtraction, multiplication, bitwise operations and comparisons. A Boolean condition selects one of two integer or Boolean arms of matching kind. NUMS supports nested conditionals, two returning arms and a sequence of guarded returns ending in a return. Form also supplies checked arithmetic, wrapping arithmetic and unsigned less-than. Calls, loops and floating-point bodies use frames. |
 
 `nums/word-target.ck` holds the expression compiler as a NUMS component. The target supplies
 argument encodings, instruction and result-kind rows, literal and return encodings, and the
 entry convention. The compiler recursively combines fragments and keeps the required argument
 count and result kind alongside the bytes. Checked x86-64 arithmetic restores the entry stack
 and declines on overflow, so the caller observes Form's original outcome.
+
+Both Form and NUMS conditionals lower through the same branch component. The target describes
+each forward jump by its opcode bytes and displacement width. The compiler measures the distance
+from the end of that instruction, including the jump past the alternative when appropriate.
+Only the selected arm executes.
 
 To add a backend, assign its ABI a numeric node, list it in `fb.targets`, and select that
 identity in the host port. Supply its setup and compilation recipes in a backend row in
@@ -98,7 +103,9 @@ stay portable.
 
 `make check` sends the same recipe ID for `x + 2*y` before and after compilation and receives
 42 both times. It also calls a generated NUMS function directly, and compiles the resident
-word-subtraction instance by ID. Linux and macOS x86-64 returned identical binary replies from
+word-subtraction instance by ID. A conditional recipe returns 2 and 42 for opposite orderings
+both before and after compilation. A NUMS function with guarded returns also handles equality
+and returns 0. Linux and macOS x86-64 returned identical binary replies from
 one image packed on AArch64. GPU lowering and measured target-specific optimization remain open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
@@ -788,6 +795,10 @@ parts, and functions that answer the pieces of text in order. Each language is a
 and `nums/lang-bml.ck`: a template with numbered places for each operation, declaration and
 statement, the spelling of each blueprint, a case for each kind of name, the reserved words and
 how the language answers a search.
+
+A typed byte leaf in a component projects as a call to `pack` with its blueprint and payload
+bytes in order. For a composite literal, the writer reconstructs its blueprint and children
+recursively. This preserves instruction bytes, including leading zeros, in every language view.
 
 ```sh
 printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck

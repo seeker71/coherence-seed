@@ -31,7 +31,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **`make check` runs three flows.** A BML expression passes through the source lens and the
   runtime. A standalone process receives a packed image and answers requests by id. A live
   recursion accepts an addition counter from another process and finishes with the expected answer.
-  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64, 64 on x86-64), compares the
+  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64, 63 on x86-64), compares the
   generated header and checks encoding, freeze and thaw, hardened native execution, framebuffer
   replay, deferred writes and the budget for bare numeric reads.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
@@ -50,9 +50,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   ids. Its packed image contains zero text leaves. One process constructed a cell and stored
   and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID
   and ran a generated NUMS function directly on macOS AArch64, macOS x86-64 under Rosetta,
-  and Linux x86-64 under QEMU. All three returned 42. The x86-64 compiler handles straight-line
-  integer arithmetic and comparisons. Branches, calls and floating-point bodies use frames
-  on this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
+  and Linux x86-64 under QEMU. The same image ran a conditional by ID before and after compilation
+  and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
+  nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
+  this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.

@@ -396,6 +396,6 @@ status: observed
 from: 5.6.4 5.19.36
 src: 2.30.21 2.30.18
 conf: mid
-why: A packed image compiled x + 2*y by recipe ID and ran it with 20 and 11 on macOS AArch64 and on macOS and Linux x86-64. A direct native NUMS call answered 42 on each target. The Linux run used a 256 MiB QEMU guest.
+why: One packed image compiled recipes by ID on macOS AArch64 and on macOS and Linux x86-64. A conditional answered 2 and 42 before and after compilation. A direct native NUMS function with guarded returns also answered 0 on equal inputs. The Linux run used a 256 MiB QEMU guest.
 flip: A further target can supply its own compilation or use frames for bodies it declines. This observation covers scalar word code on the System V x86-64 calling convention.
 at: 2026-11-27
