@@ -654,7 +654,7 @@ at: 2026-11-24
 n: 5.9
 name: bootstrap
 kind: hub
-is: The stored bootstrap is one C file whose lines the build counts. It holds the framebuffer, a node store, a reader for the canonical print, a walker of about 25 operations whose one job is to run the compiler once, the birth of executable pages, and the host table. Everything else is written in the one grammar and compiled by the system.
+is: The stored bootstrap is one C file whose lines the build counts. It holds the framebuffer, a node store, a reader of stored records, a walker of about 25 operations whose one job is to run the compiler once, the birth of executable pages, and the host table. Everything else is written in the one grammar and compiled by the system.
 at: 2026-11-24
 
 n: 5.9.1
@@ -684,7 +684,7 @@ at: 2026-11-24
 n: 5.9.3
 name: bootstrap-contents
 kind: decision
-is: The bootstrap holds exactly: process entry; the one shared region that is all of its memory; a store that interns, freezes and thaws nodes; a reader for the canonical print; a walker over the seeded core operations; the birth of executable pages; the host table with a symbol lookup and one call trampoline; a fault handler that records and does not resume.
+is: The bootstrap holds exactly: process entry; the one shared region that is all of its memory; a store that interns, freezes and thaws nodes; a reader of stored records; a walker over the seeded core operations; the birth of executable pages; the host table with a symbol lookup and one call trampoline; a fault handler that records and does not resume.
 status: inferred
 from: 3.6.4.4 3.13.3.3 3.13.3.4 3.9.3.5 3.6.8.3
 conf: mid

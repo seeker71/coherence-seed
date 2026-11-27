@@ -3,7 +3,8 @@
 This fixes what a node is as bytes, what its identity is, how it is written as text, and which
 nodes exist before any other. It is meant to be enough to write a reader from this page alone.
 `spec/node-vectors.ck` holds the conformance vectors as a node, and `ground/vectors.ck`, a program in
-form, holds the bootstrap's reader to them through the operations read, print, id, encode and decode. Where
+form, holds the readers to them through the operations read, print, id, encode and decode: the bootstrap's reader
+of stored records, and the reader and printer of the print written in form (`form/read.ck`, `form/print.ck`). Where
 the page, the vectors and a reader disagree, this page is right and the others are wrong.
 
 Design nodes this stands on: 5.1.1, 5.1.4, 5.1.5, 5.2.2, 5.2.4, 5.3.4. Choices made here that
@@ -100,10 +101,9 @@ hex    = one or more pairs of 0-9 a-f
 Rules that make it canonical:
 
 1. One space between items and no other white space. A print ends where the text ends or at a
-   line feed. A file of nodes is stored as records (section 8); a file stored as a print holds one
-   node on its first line. A second line, when there is one, is the
-   print of the names a lens keeps for parts of that node (`spec/lens.md`); it lies beside the
-   node and is no part of it.
+   line feed. A file of nodes is stored as records (section 8), and the names a lens keeps for
+   parts of the node (`spec/lens.md`) lie beside it as records of their own; the bootstrap reads
+   only records, and the print is read and written in form.
 2. A catalogue entry is always written `#N` and never as a leaf in brackets.
 3. Each `[` and each `(` opens a node and gives it the next number, starting at 0. `#N` and `^k`
    open nothing.

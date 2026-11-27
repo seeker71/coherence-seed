@@ -341,7 +341,8 @@ directly: it computes, and says in its second result whether the answer is a num
 or out of range.
 
 The whole of `spec/node-encoding.md` is written in form as well. `form/read.ck` and
-`form/print.ck` are entries 76 and 77, the reader and the printer of the canonical print: the
+`form/print.ck` are entries 76 and 77, the reader and the printer of the canonical print, which
+the bootstrap no longer holds: the
 reader goes through the text once, numbers each node it opens, checks each leaf's bytes itself
 and names the first rule broken; the printer numbers what it opens and writes `^k` for what it
 has closed. `form/id.ck` is entries 78 and 87: SHA-256 written over the bits of integers, the
@@ -365,8 +366,8 @@ like any other.
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 76 | read | t | the node leaf t stores: its records (`spec/node-encoding.md`, section 8), or a canonical print on its first line, what follows a line feed not read; refused bytes answer nothing with the refusal's word |
-| 77 | print | x | a text leaf holding x's canonical print |
+| 76 | read | t | the node leaf t stores as records (`spec/node-encoding.md`, section 8); refused bytes answer nothing with the refusal's word, `syntax` for bytes that are not records |
+| 77 | print | x | a text leaf holding x's canonical print: `form/print.ck`'s; unbound, the fault `unbound` |
 | 78 | id | x | a bytes leaf holding x's content id |
 | 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |
 | 80 | clock | | nanoseconds on a clock that only moves forward |
@@ -374,8 +375,10 @@ like any other.
 Text comes in through `file`, which reads the standard input under its usual path, and goes out
 at the end of a run: `./ck text F` runs F as `./ck run F` does and writes an answer that is a
 leaf as its own bytes. Nothing is written while a program runs, so nothing written needs undoing.
+The answer line of `ck run` is printed by `form/print.ck`, read from beside the executable and run
+after the program in its region; a copy of `ck` takes that file with it.
 
-`ground/runs-a-file.ck` reads a program from a file, reads its print into a node and runs it: what
+`ground/runs-a-file.ck` reads a program from a file, reads its records into a node and runs it: what
 `ck run` does, written in form. `ground/keeps-the-faster.ck` times one workload on `add` in form
 and on `add` as machine code, and binds the one that took less.
 
@@ -838,7 +841,7 @@ under entry 52. What it knows:
   `choice`, `let`, `seq`, `need`, `fail`, `if` and operations whose parts are searches
   themselves;
 - a definition that answers more than once, called from such a search;
-- `note`, and what reads without leaving a mark: `bound`, `handle`, `id`, `print`, `encode`,
+- `note`, and what reads without leaving a mark: `bound`, `handle`, `id`, `encode`,
   `decode`, `read`, `file`, `at`, `peek`; `close`, a recipe as a value, and `self`;
 - a call of the recipe itself, by `(call (self) ..)` or by its own name when an entry was
   compiled, and a call of another definition by its name. Every definition reached that way is

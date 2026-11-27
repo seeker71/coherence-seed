@@ -90,7 +90,7 @@ function of what was read, and is saved once; every later start with the same na
   The host keeps when an image was last read: APFS moves the time when a start reads an image's
   head, and a Linux mount with `relatime` moves it at most once a day.
 - **The image** is a head, its extents, the region's pages that hold anything, each at its place,
-  and the rows of the files the start read, in the canonical print. The head repeats the whole key, the layout version and the
+  and the rows of the files the start read, as stored records. The head repeats the whole key, the layout version and the
   executable's `LC_UUID`. The words of `fb.own` are saved as 0; the born-code table, the working
   indexes and the text past the guard's stack are saved empty, so code is born again at its first
   call.
@@ -175,9 +175,9 @@ out.
 | outside | binding | what was bound from outside the run: seen by every layer of the program, and not undone by a fail |
 | cells | words | for each node used as a cell, the node it holds |
 | trail | trail | while a choice is open, what a cell held before each change, so a fail puts it back; and, kept, each note, faster form and born code, so a fail leaves them and keeps what they hold |
-| reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader and the printer, and every file read |
+| reader-opened, gathering-children, gathering-bytes, print, print-numbers, text | words, bytes | working lists of the reader of records and of the store, and every file read; the area print is no longer written |
 | stack | bytes | the machine stack of the C code and of code leaves |
-| asked, answered | bytes | the print of a node another process asks the run to evaluate, and the print of its outcome |
+| asked, answered | bytes | the records of a node another process asks the run to evaluate, and the records of its outcome |
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 | noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
 | rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, how many stores it has had and its size, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
@@ -406,18 +406,21 @@ what is met rarely is not.
 
 ## Asking a running program
 
-A second process can ask a running program to evaluate a node. It writes the node's print in the
-area `asked` and then that area's count; between two steps the walker sees the count, evaluates
-the node, writes the outcome's print in the area `answered` with its count, and sets the count
-of `asked` back to nothing. The run goes on where it was: the node it was about to evaluate, its
+A second process can ask a running program to evaluate a node. It writes the node's records
+(`spec/node-encoding.md`, section 8) in the area `asked` and then that area's count; between two
+steps the walker sees the count, evaluates the node and, when it answers a leaf, writes that leaf's
+bytes in the area `answered` with their count, and sets the count of `asked` back to nothing. The
+asker sends `(call w (outcome x))`, where w is the writer of records, `bin.write` of
+`form/nodes.ck`, a recipe that calls nothing bound, so the outcome comes back as its records. The run goes on where it was: the node it was about to evaluate, its
 activation, its cut scope and the reason in hand are kept in a frame and taken up again.
 
 The node is evaluated as `(outcome (outside x))` (`spec/core-operations.md`, entries 82 and
 101), with no arguments. So a request can read any cell and call anything the program has
 bound; what it binds is bound from outside the run, seen at every layer and kept; and nothing
-else it did stays, whether it answered, failed or faulted. A print that cannot be read is the
-fault `syntax`. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)`
-or `(list "fault" reason)`.
+else it did stays, whether it answered, failed or faulted, but the writer's notes of what it
+wrote. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
+`(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
+in `answered`, is answered with no bytes, and the asker answers nothing with `unanswered`.
 
 `region/ask.ck`, written in form, is the asker. Its first line of input is the region's name and
 the rest a node in the lens's words:

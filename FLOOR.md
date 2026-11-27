@@ -7,8 +7,8 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,148 lines, 39 fewer since another process's region is read in Form and the layout no longer asks the host, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records and, while authoring moves to Form, the canonical print |
+| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,117 lines, 61 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -393,6 +393,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   print, the canonical bytes, SHA-256 and the id, and the reader of bytes. Bound in place of the
   bootstrap's own they hold the 142 vectors, ids among them; on the reader and printer every
   ground program runs.
+- **The print left C.** The bootstrap reads stored records only; the reader and the printer of
+  the canonical print are `form/read.ck` and `form/print.ck`, and entry 77 unbound is the fault
+  `unbound`. Machines exchange records: the asked service, the check an image keeps, the BML and
+  ice outputs fed to `ck run`, and the Makefile's prints, made records by `form/from-print.ck`.
+  The answer line of `ck run` is printed by `form/print.ck` read from beside the executable, so a
+  copy of `ck` takes `form/print.ck` with it, and `region/rest.ck`'s saver `form/nodes.ck`. Before
+  the C went, every answer line of `make check-full` was printed by both and compared: no line
+  differed. The printer in form adds 0.4 M instructions to a run answering 42 (14.1 M to 14.5 M)
+  and 1.8 M to `ground/held-back.ck`; a list of 3,000 numbers takes 314 M where the C took 21 M.
+  An asked answer is written by `bin.write` in the asked run, which keeps its notes there, and a
+  leaf of 300,000 bytes asked of a run at 32 MiB filled its frames where the C printer would have
+  cut the print short.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
@@ -506,13 +518,15 @@ running compiled code against frames all the way down).
   instructions and 29.7 ms against 1,360 M and 51.7 ms cold). A start that runs any code is cold,
   compiled code too: nothing yet tells code the compiler made, which reads only what it is given,
   from code that reads anything. The name, the gate, the saver and the directory's size are
-  recipes of `region/rest.ck`, which every start with files before its program reads: a warm lens
+  recipes of `region/rest.ck`, which every start with files before its program reads, and the saver
+  reads the writer of records, `form/nodes.ck`, from beside the executable: a warm lens
   flow takes 29.2 M instructions and 2.26 ms where the gate in C took 18 M and 1.53 ms. Images are kept by default in the user's cache, held
   to 64 MB or a sixteenth of the free disk by removing those read longest ago. A page of
   an image is trusted as written: one byte changed in it is answered from, where a cold start
   answers otherwise; hashing every page of the lens image would cost 0.26 to 0.6 ms of its 1.67
   ms and read every page in. The node an image runs before it is entered may use only the
-  operations of the bootstrap and the values it carries, since nothing is bound where it runs, so
+  operations of the bootstrap, the values it carries and the files beside the executable, since
+  nothing is bound where it runs, so
   `region/rest.ck` is a `let` of recipes and not a component package, and it is not among the
   files `make check-bare` counts.
 - **An area larger than its reservation.** Each area holds at most what `region/layout.ck`
@@ -573,7 +587,7 @@ running compiled code against frames all the way down).
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
   names the same node in each, but nothing yet carries a handle from one to another: `swap`,
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
-  built, and asking still goes by print through `asked`. The numeric port does not answer by
+  built, and asking goes by records through `asked`. The numeric port does not answer by
   handle.
 - **More of the substrate.** A lane is never used again, so a named substrate has 255 members
   after its maker in its life, and the next to come is refused; its indexes never grow, and a

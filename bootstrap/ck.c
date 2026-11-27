@@ -200,7 +200,7 @@ static int shared; static uint32_t LS = 32; static H lb, *ftab, none;   /* a mem
 static __attribute__((noinline)) uint32_t lsw(uint64_t j, uint64_t past) {   /* and ended at one tide saw one moment (opening). How far lane j is settled: what is in the index is */
   uint32_t s = LD(lanes[j].sw); if (s < past) TIDE; while (s < past && !CAS(lanes[j].sw, &s, (uint32_t)past)) {} return s; }   /* settled with all below it in its lane, so who takes it from there says so, past it */
 static const uint8_t LANED[A_COUNT] = { [A_NODES] = S_NODES + 1, [A_LEAF_BYTES] = S_LEAF_BYTES + 1, [A_CHILDREN] = S_CHILDREN + 1, [A_IDS] = S_IDS + 1 };   /* in the lane: which area, plus one */
-static Node *nd; static uint8_t *bytes, *tb, *text, *tbits; static char *ob;
+static Node *nd; static uint8_t *bytes, *tb, *text, *tbits;
 static H *kids, *tab, *idtab, *stab, *sidt, *seen, *argp, *opened, *tk, *aft, *noted, *hand; static uint32_t *pnum, *bykey; static H *held;
 static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives; static uint8_t *ids;
 #define N(i) (fb->a[i].n)
@@ -231,7 +231,6 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nopen N(A_READER_OPENED)
 #define ntk N(A_GATHERING_CHILDREN)
 #define ntb N(A_GATHERING_BYTES)
-#define nob N(A_PRINT)
 #define ntext N(A_TEXT)
 #define nids N(A_IDS)
 #define nhand N(A_VALUES)
@@ -372,7 +371,7 @@ static void fb_open(void) {
 #define AT(i) ((void *)((uint8_t *)fb + off[i]))
   nd = AT(A_NODES); bytes = AT(A_LEAF_BYTES); kids = AT(A_CHILDREN); tab = AT(A_BY_CONTENT); idtab = AT(A_BY_ID); fr = AT(A_FRAMES);
   lk = AT(A_LINKS); act = AT(A_ACTIVATIONS); argp = AT(A_ARGUMENTS); cp = AT(A_CHOICE_POINTS); coll = AT(A_GATHERED); born = AT(A_BORN_CODE); bd = AT(A_BINDINGS); out = AT(A_OUTSIDE); aft = AT(A_AFTER); noted = AT(A_NOTED); bykey = AT(A_BOUND_BY_NODE); held = AT(A_CELLS); trail = AT(A_TRAIL); rooms = AT(A_ROOMS); rtrail = AT(A_ROOM_TRAIL);
-  opened = AT(A_READER_OPENED); tk = AT(A_GATHERING_CHILDREN); tb = AT(A_GATHERING_BYTES); ob = AT(A_PRINT); pnum = AT(A_PRINT_NUMBERS); text = AT(A_TEXT); gives = AT(A_GIVES); ids = AT(A_IDS); hand = AT(A_VALUES);
+  opened = AT(A_READER_OPENED); tk = AT(A_GATHERING_CHILDREN); tb = AT(A_GATHERING_BYTES); pnum = AT(A_PRINT_NUMBERS); text = AT(A_TEXT); gives = AT(A_GIVES); ids = AT(A_IDS); hand = AT(A_VALUES);
   seen = AT(A_SEEN); tbits = AT(A_TOUCHED); stab = AT(SA(S_BY_CONTENT)); sidt = AT(SA(S_BY_ID)); ln = lanes = AT(SA(S_LANES));
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
   fb->me.allowance = sub->allowance = mem; fb_reset();
@@ -734,66 +733,16 @@ static H mki(int64_t v) {
   return mk(0, E(INT), b, n, &why);
 }
 
-/* ---- section 6: the canonical print, read and written -------------------------------- */
-typedef struct { const char *p; Status err; } Rd;               /* where the reader stands, and its first refusal */
-static H refuse(Rd *r, Status w) { if (!r->err) r->err = w; return 0; }
-static int number(Rd *r, uint64_t *out) {   /* at most 2^63 - 1, so one signed word holds any entry */
-  const char *p = r->p;
-  if (*p < '0' || *p > '9' || (*p == '0' && p[1] >= '0' && p[1] <= '9')) return 0;
-  uint64_t v = 0;
-  for (; *p >= '0' && *p <= '9'; p++) { unsigned d = (unsigned)(*p - '0'); if (v > (INT64_MAX - d) / 10) return 0; v = v * 10 + d; }
-  r->p = p; *out = v; return 1;
-}
-static int hexval(char c) { return c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'f' ? c - 'a' + 10 : -1; }
-static H read_node(Rd *r) {
-  uint64_t n; Status why;
-  if (*r->p == '#') {
-    r->p++; if (!number(r, &n)) return refuse(r, S_SYNTAX);
-    return catalogue(n);
-  }
-  if (*r->p == '^') { r->p++; if (!number(r, &n)) return refuse(r, S_SYNTAX);
-    return (n < nopen && opened[n]) ? opened[n] : refuse(r, S_FORWARD); }
-  if (*r->p != '[' && *r->p != '(') return refuse(r, S_SYNTAX);
-  int comp = *r->p++ == '('; uint32_t me = nopen; H x;
-  room(A_READER_OPENED, (uint64_t)nopen + 1); opened[nopen++] = 0;
-  H bp = read_node(r); if (!bp) return 0;
-  if (comp) {
-    uint32_t base = ntk;
-    while (*r->p == ' ') { r->p++; H k = read_node(r); if (!k) { ntk = base; return 0; }
-      room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = k; }
-    if (*r->p++ != ')') { ntk = base; return refuse(r, S_SYNTAX); }
-    x = mk(1, bp, tk + base, ntk - base, &why); ntk = base;
-  } else {
-    uint64_t base = ntb;
-    if (*r->p == ' ') { r->p++;
-      if (hexval(*r->p) < 0) return refuse(r, S_SYNTAX);
-      while (hexval(*r->p) >= 0) {
-        if (hexval(r->p[1]) < 0) { ntb = base; return refuse(r, S_SYNTAX); }
-        room(A_GATHERING_BYTES, (uint64_t)ntb + 1); tb[ntb++] = (uint8_t)(hexval(r->p[0]) << 4 | hexval(r->p[1])); r->p += 2; } }
-    if (*r->p++ != ']') { ntb = base; return refuse(r, S_SYNTAX); }
-    x = mk(0, bp, tb + base, ntb - base, &why); ntb = base;
-  }
-  if (!x) return refuse(r, why);
-  if (catn(x) >= 0) return refuse(r, S_NOT_CANONICAL);                         /* rule 2 */
-  touch(A_PRINT_NUMBERS, x); if (pnum[x]) return refuse(r, S_NOT_CANONICAL);   /* rule 4: a node met before is marked, */
-  opened[me] = x; pnum[x] = 1; return x;                                       /* until the print is read */
-}
-/* A print ends with the text or at a line end. What a file holds after that line lies beside
- * the node and is no part of it: a lens keeps the names it gave there. */
-static H read_print(const char *s, Status *why) {    /* s lies in the region */
-  Rd r = { s, S_OK }; nopen = 0;
-  H x = read_node(&r);
-  for (uint32_t j = 0; j < nopen; j++) if (opened[j]) pnum[opened[j]] = 0;
-  if (x && *r.p && *r.p != '\n') x = refuse(&r, S_SYNTAX);
-  *why = r.err; return x;
-}
-/* Stored nodes (spec/node-encoding.md, section 8): CKNODES and a line end, the format word 1, how many records and how
+/* ---- section 6: stored nodes, read --------------------------------------------------------
+ * spec/node-encoding.md, section 8: CKNODES and a line end, the format word 1, how many records and how
  * many bytes they take, then each record: its kind, its blueprint, how many parts, then its bytes or its parts. A part is
  * an entry below 128, or 128 more than an earlier record. Each node is one record, written once; the last is the node,
- * and what follows the records lies beside it. */
+ * and what follows the records lies beside it. The canonical print is read and written in form/read.ck and form/print.ck. */
+static const uint8_t NODES_MAGIC[8] = { 'C', 'K', 'N', 'O', 'D', 'E', 'S', '\n' };
 #define LE4(p) ((uint32_t)(p)[0] | (uint32_t)(p)[1] << 8 | (uint32_t)(p)[2] << 16 | (uint32_t)(p)[3] << 24)
 static H read_nodes(const uint8_t *b, uint64_t len, Status *why) {
   uint64_t count = len >= 20 ? LE4(b + 12) : 0, size = len >= 20 ? LE4(b + 16) : 0, at = 20; H x = 0; nopen = 0;
+  if (len < 8 || memcmp(b, NODES_MAGIC, 8)) { *why = S_SYNTAX; return 0; }
   if (len < 20 || LE4(b + 8) != 1 || size > len - 20 || !count || count > size / 9) { *why = S_SHORT; return 0; }
   room(A_READER_OPENED, count); *why = S_OK;
   for (uint64_t i = 0; i < count && !*why; i++) {
@@ -813,32 +762,6 @@ static H read_nodes(const uint8_t *b, uint64_t len, Status *why) {
   if (!*why && at != size + 20) *why = S_TRAILING;
   return *why ? 0 : x;
 }
-static const uint8_t NODES_MAGIC[8] = { 'C', 'K', 'N', 'O', 'D', 'E', 'S', '\n' };
-static H read_any(const uint8_t *b, uint64_t len, Status *why) {   /* stored nodes, or a print; b has a zero after it */
-  return len >= 8 && !memcmp(b, NODES_MAGIC, 8) ? read_nodes(b, len, why) : read_print((const char *)b, why);
-}
-static void oput(const char *s) { size_t l = strlen(s); room(A_PRINT, nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
-static const char *dec(char t[24], uint64_t v) { char *e = t + 23; *e = 0; do *--e = (char)('0' + v % 10); while (v /= 10); return e; }
-static const char HEX[] = "0123456789abcdef";
-static void print_node(H x) {
-  char t[24]; long long c = catn(x);
-  if (c >= 0) { oput("#"); oput(dec(t, (uint64_t)c)); return; }
-  touch(A_PRINT_NUMBERS, x);
-  if (pnum[x]) { oput("^"); oput(dec(t, pnum[x] - 1)); return; }
-  pnum[x] = ++W->pcount; room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = x;
-  oput(nd[x].comp ? "(" : "["); print_node(nd[x].bp);
-  if (nd[x].comp) for (uint64_t i = 0; i < nd[x].n; i++) { oput(" "); print_node(KID(x, i)); }
-  else if (nd[x].n) { oput(" "); t[2] = 0;
-    for (uint64_t i = 0; i < nd[x].n; i++) { uint8_t b = bytes[nd[x].off + i]; t[0] = HEX[b >> 4]; t[1] = HEX[b & 15]; oput(t); } }
-  oput(nd[x].comp ? ")" : "]");
-}
-static const char *print(H x) {
-  W->pcount = 0; nob = 0; oput("");
-  uint64_t base = ntk; print_node(x);
-  while (ntk > base) pnum[tk[--ntk]] = 0;         /* a print costs what it prints: only its own numbers are taken back */
-  return ob;
-}
-
 /* ---- code pages -----------------------------------------------------------------------
  * The host does not let executable pages be shared, so the runnable copy of a code leaf
  * lies outside the region. The leaf, where its copy starts and who asked for it are here. */
@@ -1260,12 +1183,12 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
   Status why = S_OK; int64_t k = 0; H x = a[0], l = c == 2 ? a[1] : 0;
   if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u)) { fault(S_ARITY); return; }
   if (!x || (c == 2 && !l)) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-  if (op == PRINT) { print(x); W->v = mk(0, E(TEXT), ob, nob, &why); return; }
+  if (op == PRINT) { fault(S_UNBOUND); return; }        /* the canonical print is form/print.ck's */
   if (op == ID) { W->v = mk(0, E(BYTES), idof(x), 32, &why); return; }
-  if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
+  if (op == READ || op == FILE_OP) {       /* a leaf's bytes as stored nodes to read, or as the path of a file */
     if (nd[x].comp) { fault(S_KIND); return; }
     uint64_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
-    if (op == READ) { if (!(W->v = read_any((uint8_t *)s, nd[x].n, &why))) W->reason = notice(why); }
+    if (op == READ) { if (!(W->v = read_nodes((uint8_t *)s, nd[x].n, &why))) W->reason = notice(why); }
     else { int64_t got = read_text(s);
       if (got == -2) area_full(A_TEXT);
       if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); read_seen(0, 0, 0, 0, 0); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); read_seen(0, 0, 0, x, W->v); } }
@@ -1551,7 +1474,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (n == ~0ull) { N(A_ASKED) = 0; exit(143); } if (n > fb->a[A_ASKED].cap) n = 0;
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
-      why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_any((uint8_t *)s, n, &why);
+      why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_nodes((uint8_t *)s, n, &why);
       if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
       ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
       W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); W->x = q; W->env = W->one = 0; W->cut = ncp;
@@ -1791,9 +1714,9 @@ static H notice(Status status) {
   return mk(0, ROOT, ordinal, sizeof ordinal, &why);
 }
 #ifndef NUMERIC_PORT
-static H file_node(const char *path) {      /* a print file: one node on its first line */
+static H file_node(const char *path) {      /* a node file: its records */
   size_t len; Status why; uint8_t *b = load(path, &len);
-  H x = read_any(b, len, &why);
+  H x = read_nodes(b, len, &why);
   if (!x) { say("refused ", status_words[why]); exit(1); }
   read_seen(path, 0, 0, 0, x); return x;                  /* a start file is checked by the node it reads to */
 }
@@ -1932,7 +1855,7 @@ static H told(int n, char **paths) {
 /* region/rest.ck, run: its recipes. The file and the bytes it gave are kept, for the saver's check. */
 static H rest_read;
 static H rest_load(void) {
-  size_t len; Status why; uint8_t *b = load(rest_path, &len); H r = read_any(b, len, &why), p[2] = { txt(rest_path), mk(0, E(BYTES), b, len, &why) };
+  size_t len; Status why; uint8_t *b = load(rest_path, &len); H r = read_nodes(b, len, &why), p[2] = { txt(rest_path), mk(0, E(BYTES), b, len, &why) };
   rest_read = mk(1, E(LIST), p, 2, &why); if (r) run(r);
   return r && W->outcome == 'n' && nd[W->v].comp && nd[W->v].n == 2 ? W->v : 0;
 }
@@ -2037,8 +1960,9 @@ static int execute_image(const char *path, int warm, int keyed, char **starts) {
  * program, in its region, with what the program held back left for later; the machine then shows the program's end again. */
 static void show(const char *word, H v) {
   char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q = v ? mk(1, E(QUOTE), &v, 1, &why) : 0, p, t;
+  if (!*home) die("ck run by no path has no form/print.ck beside it to print the answer");
   snprintf(path, sizeof path, "%sform/print.ck", home); uint8_t *b = load(path, &len);
-  nafter = 0; if ((p = read_any(b, len, &why))) run(p);
+  nafter = 0; if ((p = read_nodes(b, len, &why))) run(p);
   if (q && p && W->outcome == 'n') run(mk(1, E(PRINT), &q, 1, &why));
   t = q && p && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later;
   if (!t) die("form/print.ck beside the executable did not print the answer");
