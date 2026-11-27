@@ -76,8 +76,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   because the door is opened ahead: every lookup by name is made at the start, and a dispatch
   lets go of all it made before it answers.
 - **A hundredth map leaves what a second leaves.** `ground/metal-holds.ck`, run by
-  `make check-image` on the image itself, makes 176 maps in one process: fifty leave as many
-  nodes and as much in every area of the walker as twenty-five; a fault raised at the first
+  `make check-image` on the image itself, compares four maps with two, and under
+  `make check-full` fifty with twenty-five, 176 maps in one process: twice the maps leave as
+  many nodes and as much in every area of the walker as half as many; `has-target` runs its
+  value once and answers each target of a choice; a fault raised at the first
   copy into the buffer comes out as itself with no object held; a fail at the same place
   under an open choice is the fault `metal.guard` with no object held; the map answers the
   same afterwards. By hand, with the case that differed before: twelve maps of 4 MB under an
@@ -88,14 +90,15 @@ Each line here is held by a program in `make check-full`, or names how it was se
   values and one are the fault `e.arity`; running the berth leaf again after a call is the
   fault `crash`.
 - **What the walked dispatch costs.** Timed one process at a time, medians of 15 runs against
-  the C of main: the flow of five requests takes 72 ms where C takes 43, and each further map
-  of 65 lanes about 6.3 ms where C takes 3.5. A start with no request takes 46 ms where C
+  the C of main: the flow of five requests takes 72 ms where C takes 46, and each further map
+  of 65 lanes about 6.6 ms where C takes 3.8. A start with no request takes 22 ms where C
   takes 5: 2 ms for an image that does nothing, 11 ms to load the host package and assemble
-  its leaves, 4 ms for the Metal package and its binds, and about 30 ms to open the door,
-  most of it the one question to the device that the first map used to pay for. The image is
-  412 KB where it was 93 KB. Under Rosetta the x86-64 build answers `has-target` no and a map
-  `no-native`, where the C dispatch ran there: rows exist for Apple's arm64 convention only.
-  [Metal word maps](spec/nums.md#metal-word-maps)
+  its leaves, 4 ms for the Metal package and its binds, and 6 ms to open the door; the device
+  is asked at the first `has-target` or the first map. The image is 423,434 bytes where it
+  was 93,187. `make check` takes 2.0 s of wall time with four maps compared with two;
+  `make check-full` compares fifty with twenty-five. Under Rosetta the x86-64 build answers
+  `has-target` no and a map `no-native`, where the C dispatch ran there: rows exist for
+  Apple's arm64 convention only. [Metal word maps](spec/nums.md#metal-word-maps)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -449,7 +452,10 @@ running compiled code against frames all the way down).
   ties to the process's first thread cannot be reached: the walker is not that thread. Of the
   bootstrap's own host functions only Metal has left C. A call through a row is walked: a
   Metal map makes about forty, and costs about 2.8 ms more than the C it replaced. A call of
-  `host.run` under a choice is not refused: the caller answers for it, as the Metal door does.
+  A row run while a choice is open is refused where every row passes, looked up or not
+  (`ground/host-refused.ck`), except inside a guard that a row of `host.guards` declares: the
+  Metal door's. A program that lays the berth out by hand and runs its leaf is not refused.
+  A dispatch is not reentrant: entering the door's guard from inside it is a fault.
   A library leaf bound as an entry's implementation does not run the map, where the C ran it
   for operands of the right shape: it declines, and the map is reached by `native`. A map makes
   its device and pipeline anew each time, as the C did. The compiler does not yet emit a row

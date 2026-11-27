@@ -113,7 +113,7 @@ declines that implementation and can continue with its recipe.
 `(has-target abi)` (entry 125) answers whether the process can use that target. The bootstrap
 answers yes for the current CPU ABI and no for every other; a target that is not the
 processor's binds the entry, as `host/metal-bind.ck` does for `metal-map64`. Its answer for
-that target is found once, when the door is opened, and kept, so asking opens nothing. The
+that target is found at the first asking, by one question to the device, and kept. The
 count of values is checked as before: two are the fault `arity`.
 
 A code leaf whose target is not this processor's is not run by the bootstrap. Where its
@@ -298,7 +298,13 @@ have.
   given; a recipe called with answers has no user of its own and passes on its caller's
   (`ground/user-kept.ck`). Under `base` the node's own entry means what it meant
   beneath this binding, and everything inside it is as the user sees it: a `lazy` that records
-  something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation.
+  something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation. A
+  `lazy` that needs a child's answer runs the child once with `up`, binds it in a `let` that
+  stands under no choice of the `lazy`'s own, and hands what lies beneath a node built from
+  the answer, quoted: testing `(up child)` in a condition and then calling `(base (arg 0))`
+  would run the child twice and keep only its first answer. The binding of `has-target` in
+  `host/metal-bind.ck` is written so, and `ground/metal-holds.ck` holds it: a value that
+  counts is counted once, and a choice of three targets gives three answers.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
   calls, e means what it meant before this binding. So a new `add` can use the `add` it replaces,
   and `add` and `sub` can each be written with the other.
@@ -561,7 +567,15 @@ slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A struc
 than two words goes by reference, as the convention says: the caller lays it in a room and
 passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf.
 `host.run` runs a row on an address already in hand: it looks nothing up, so it makes no call
-of entry 98, and whoever uses it under a choice answers for what the call leaves behind. The
+of entry 98. The refusal is a property of the call all the same: `host.launch`, which every
+call through a row passes, asks the guard first, a call of entry 98 that does nothing, so a
+row run while a choice is open is the fault `irreversible` whether it was looked up or not.
+It is not asked inside a guard that a row of `host.guards` declares, with the reason it may:
+one row today, the Metal door's, which lets go of every object it made when it ends, on a
+fault and on a fail, and leaves only a note. The door notes the guard it is in under
+`host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
+program that lays the berth out by hand and runs its leaf passes no row and is not refused:
+no node can yet ask whether a choice is open except by calling entry 98. The
 berth's word for the function is cleared after each call, so running the berth leaf again
 calls nothing and is the fault `crash`. A raw supervisor call and a store at an absolute address are refused while a choice is
 open, as entry 98 is.

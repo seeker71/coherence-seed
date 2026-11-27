@@ -152,8 +152,8 @@ numbers, with the layout version they were read under, and faults `metal.open` o
 The door is opened ahead, by `metal.open`, while no choice is open: it resolves every function
 row of this host and keeps the row beside its address, registers every message's selector and
 keeps its row, finds the pool's class, checks that a leaf's bytes are where the layout says by
-reading one back, and asks the device once whether it has the families, which is what
-`has-target` answers from then on. After that a map asks the host
+reading one back. The device is asked whether it has the families at the first
+`has-target`, once, and the answer is kept. After that a map asks the host
 nothing by name. The library and the two operands are read where they lie in the region, by
 their addresses, and are not copied on the way. This is what lets the application of the
 example call the map inside a search, once for each operand order.

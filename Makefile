@@ -95,8 +95,9 @@ check-image: seed-run
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
 	    echo "Metal: direct and backtracking calls by ID agree with NUMS frames"; \
-	    got=$$(./ck run ground/metal-holds.ck < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
-	    echo "Metal: fifty maps in one run leave in the region what twenty-five leave, and a fault or a fail midway lets every object go"; \
+	    printf '(note "rounds" %s)' "$(METAL_ROUNDS)" | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/rounds"; \
+	    got=$$(./ck run ground/metal-holds.ck "$$work/rounds" < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
+	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave in the region what $(METAL_ROUNDS) leave, has-target runs its value once, and a fault or a fail midway lets every object go"; \
 	  fi
 
 check-live: ck fb
@@ -111,6 +112,9 @@ check-live: ck fb
 	  then echo "live: a room beyond the shared allowance recovered; a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
 	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last'"; exit 1; fi
 
+# How many maps ground/metal-holds.ck compares with twice as many: few under make check, more here.
+METAL_ROUNDS ?= 2
+check-full: METAL_ROUNDS = 25
 check-full: check
 	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
 

@@ -14,7 +14,7 @@ status: inferred
 from: 5.14.60 5.19.37 7.21 5.9.2
 conf: mid
 why: Run on 2026-11-27 on an M4 Max: the image flow of make check answered the bytes the C dispatch gave for the same five requests, a 65-lane map in both operand orders, the empty vector and two invalid shapes, from a directory holding only the image. The same holds against main's later flow, where an application calls the map inside one search in both operand orders. The bootstrap went from 2,000 lines to 1,909.
-flip: A dispatch walked through rows takes about 6.3 ms where the C took 3.5, and a start 46 ms where it took 5, most of it the one question to the device. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
+flip: A dispatch walked through rows takes about 6.6 ms where the C took 3.8, and a start 22 ms where it took 5. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
 limit: Rows exist for Apple's arm64 convention only, so under Rosetta, where the C dispatch ran, has-target now answers no and a map answers no-native. A library leaf bound as an entry's implementation no longer runs the map. One line of C still names the target, for the collector. One machine.
 at: 2026-11-27
 
@@ -40,7 +40,7 @@ conf: mid
 why: Main's application calls the map inside an all over two operand orders. With lookups made at each call the reply was the fault irreversible; with the door opened ahead the five replies are the bytes the C dispatch gave. By hand, four maps gathered by one all over two choices answered four vectors.
 alt: Holding the map back with after, which cannot give its answer to the search that asked. Refusing, which would end the application's flow.
 flip: A dispatch that left something standing in the host, such as a pipeline kept between maps, would have to be made before the choice or be refused under it.
-limit: That a dispatch leaves nothing behind is the package's own care and no check of the walker: host.run is not refused under a choice. A buffer's bytes in the host are gone when it is let go, yet what the device did meanwhile is not something a fail could have undone.
+limit: A row run under a choice is refused where every row passes, except inside a guard that a row of host.guards declares; that the Metal door's guard leaves nothing behind is what its check holds. A program that runs the berth leaf by hand passes no row. A buffer's bytes in the host are gone when it is let go, yet what the device did meanwhile is not something a fail could have undone.
 at: 2026-11-27
 
 n: 5.14.62.4
@@ -52,5 +52,5 @@ from: 5.14.62.3 5.7.3
 conf: mid
 why: An independent review of the first version measured 268 KB of frames kept per map and a room kept by every check of the allowance. Read from the region after the change: a hundred cuts, host calls and maps in one recursion end with the 5 frames and 2 links they began with, where the maps alone had left 432,965 frames; twelve maps of 4 MB under 128 MB answer, where none of the later ones did. ground/metal-holds.ck holds the equality of fifty maps and twenty-five.
 flip: A dispatch that must leave more than an answer, such as a pipeline kept for the next map, notes that as well.
-limit: Every map still makes its device and pipeline anew. A map of 65 lanes takes about 6.3 ms where the C took 3.5.
+limit: Every map still makes its device and pipeline anew. A map of 65 lanes takes about 6.6 ms where the C took 3.8.
 at: 2026-11-27
