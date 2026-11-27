@@ -112,31 +112,37 @@ declines that implementation and can continue with its recipe.
 
 `(has-target abi)` (entry 125) answers whether the process can use that target. The bootstrap
 answers yes for the current CPU ABI and no for every other; a target that is not the
-processor's is added by binding the entry, as `host/metal-bind.ck` does for `metal-map64`.
+processor's binds the entry, as `host/metal-bind.ck` does for `metal-map64`. Its answer for
+that target is found once, when the door is opened, and kept, so asking opens nothing. The
+count of values is checked as before: two are the fault `arity`.
 
-A leaf whose target is not this processor's is not run by the bootstrap. Where its blueprint,
-`(code abi)`, is bound to a recipe, `native` calls that recipe with the leaf and the values,
-and so does a binding whose implementation is such a leaf. With no binding the answer is
-nothing, `no-native`. This is how a target is added without C: `metal-map64` is bound to
+A code leaf whose target is not this processor's is not run by the bootstrap. Where its
+blueprint, `(code abi)`, is bound to a recipe, `native` calls that recipe with the leaf and
+the list of the values. With no binding the answer is nothing, `no-native`. A leaf that is not
+code is the fault `kind` under `native`, bound blueprint or not. As a binding's
+implementation such a leaf declines, and the binding continues with the recipe beneath; a map
+is reached by `native`. This is how a target is added without C: `metal-map64` is bound to
 `metal.map` of the package `host/metal.ck`, which runs a compiled single-kernel Metal library
 through the rows of the package `host/` ([Metal word maps](nums.md#metal-word-maps)). Its two
-arguments are byte leaves of equal length containing little-endian 64-bit words, and it
-answers a fresh byte leaf once the dispatch has completed. Unequal lengths or partial words
-answer nothing, `range`; a value that is not a byte leaf is the fault `e.kind`; a device or
-pipeline that cannot run the library, and a host with no rows, answer `no-native`; a buffer
-the allowance cannot hold answers `declined`. With one value it is the fault `arg`, and a
-third value is not read, where the C refused both as `arity`. These reasons are the catalogue's entries in
-both ports, where the bootstrap's own reasons are words in the authoring tool.
+values are byte leaves of equal length containing little-endian 64-bit words, and it answers
+a fresh byte leaf once the dispatch has completed. One value or three are the fault
+`e.arity`; a value that is not a byte leaf is the fault `e.kind`; unequal lengths or partial
+words answer nothing, `range`; a device or pipeline that cannot run the library, and a host
+with no rows, answer `no-native`; an output the allowance cannot hold answers `declined`,
+before any host object is made. These reasons are the catalogue's entries in both ports,
+where the bootstrap's own reasons are words in the authoring tool.
 
 A map may run while a choice is open, as code of the processor may, and a search can gather
 maps: the door is opened ahead. Everything the host is asked by name, and so through entry
 98, is asked when `metal.open` runs with no choice open: the address of each function row,
 the registered name of each message and the pool's class. A dispatch then makes no call of
 entry 98. It runs machine code through the berth on addresses it holds, reads its operands
-where they lie in the region, and lets go of every object it made before it answers; its
-stores into rooms are on the room trail. So a fail that returns past a map finds nothing of
-it to undo. Entry 98 is refused under a choice as before, and so are the package's
-supervisor call and absolute store.
+where they lie in the region, and lets go of every object it made before it answers. What it
+holds meanwhile is noted, and a note is what no fail undoes: a fault midway and a fail midway
+both find the objects and let them go, the fail as the fault `metal.guard`. A dispatch cannot
+be failed into from outside, since it answers once and holds no choice open when it does. So
+a fail that returns past a map finds nothing of it to undo. Entry 98 is refused under a
+choice as before, and so are the package's supervisor call and absolute store.
 
 The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
@@ -555,7 +561,9 @@ slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A struc
 than two words goes by reference, as the convention says: the caller lays it in a room and
 passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf.
 `host.run` runs a row on an address already in hand: it looks nothing up, so it makes no call
-of entry 98, and whoever uses it under a choice answers for what the call leaves behind. A raw supervisor call and a store at an absolute address are refused while a choice is
+of entry 98, and whoever uses it under a choice answers for what the call leaves behind. The
+berth's word for the function is cleared after each call, so running the berth leaf again
+calls nothing and is the fault `crash`. A raw supervisor call and a store at an absolute address are refused while a choice is
 open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is

@@ -95,6 +95,8 @@ check-image: seed-run
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
 	    echo "Metal: direct and backtracking calls by ID agree with NUMS frames"; \
+	    got=$$(./ck run ground/metal-holds.ck < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
+	    echo "Metal: fifty maps in one run leave in the region what twenty-five leave, and a fault or a fail midway lets every object go"; \
 	  fi
 
 check-live: ck fb

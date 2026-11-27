@@ -1129,11 +1129,10 @@ static int watched(void) {
  * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from, H node) {
   H impl = B(b)->impl;
-  if (!nd[impl].comp && !local_code(impl)) {        /* another kind of implementation, code for another target too: what */
-    uint32_t r = bound(nd[impl].bp, 0, under(b, lim));              /* its blueprint is bound to runs it, given the leaf and the values */
-    if (r && nd[B(r)->impl].comp) {
-      H *t = in_hand((uint64_t)c + 1); t[0] = impl; if (c) memcpy(t + 1, a, sizeof(H) * c); a = t; c++; lim = under(b, lim); b = r; impl = B(r)->impl;
-    } else if (!code_target(impl)) { fault(S_KIND); return 1; }
+  if (!nd[impl].comp && !code_target(impl)) {       /* another kind of implementation: what its blueprint */
+    uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
+    if (!r || !nd[B(r)->impl].comp) { fault(S_KIND); return 1; }
+    H *t = in_hand((uint64_t)c + 1); t[0] = impl; if (c) memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
   if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
@@ -1453,7 +1452,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   }
   for (nhand = 0;; W->step++, nhand = 0) switch (W->mode) {
   case M_EVAL: {
-    if (!ncp && nn > sw) commit();        /* every choice is closed: what was made under one settles before */
+    if (!ncp) { ntrail = 0; nrtrail = 0; if (nn > sw) commit(); }        /* every choice is closed: what was made under one settles before */
     if (nafter && !ncp) {                 /* anything runs, and what was held back for that is done now */
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
     }
@@ -1540,7 +1539,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->outcome = W->v ? 'n' : '0'; W->mode = M_DONE; return;
     }
     uint32_t k = W->k; Frame f = fr[k]; W->at = f.node;
-    if (k == nfr - 1 && (!ncp || k >= cp[ncp-1].mfr)) nfr--;       /* nothing can return to it */
+    if (!ncp || k >= cp[ncp-1].mfr) {     /* nothing can return to it, nor to the frames a commit left above it, */
+      nfr = k; if (f.mlink < nlink && (!ncp || f.mlink >= cp[ncp-1].mlink)) nlink = f.mlink; }      /* nor to the values linked since */
     uint32_t keep = (ncp && cp[ncp-1].mact > f.mact) ? cp[ncp-1].mact : f.mact;
     if (keep < nact) { nargp = act[keep].off; nact = keep; }       /* calls made since the frame have returned */
     W->k = f.k;
@@ -1619,9 +1619,12 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
         W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
-      if (op == NATIVE_OP) {              /* a leaf this processor does not run is run by what its blueprint is bound to, */
-        b = c && a[0] && !nd[a[0]].comp && !local_code(a[0]) ? bound(nd[a[0]].bp, 0, f.aux) : 0;     /* given the leaf and the values */
-        if (b && nd[B(b)->impl].comp && apply(b, f.aux, a, c, f.env, 0)) break;
+      if (op == NATIVE_OP) {              /* code for a target this processor does not run is run by what its blueprint */
+        b = c && code_target(a[0]) && !local_code(a[0]) ? bound(nd[a[0]].bp, 0, f.aux) : 0;       /* is bound to, given the leaf */
+        if (b && nd[B(b)->impl].comp) {                                                           /* and the list of the values */
+          H two[2] = { a[0], mk(1, E(LIST), a + 1, c - 1, &why) };
+          if (!two[1]) fault(why); else apply(b, f.aux, two, 2, f.env, 0);
+          break; }
         Status result = execute_code(a[0], a + 1, c - 1, 0, f.env);
         if (result == S_KIND || result == S_ARITY) fault(result);
         else if (result != S_OK) { W->v = 0; W->reason = notice(result); }
@@ -1633,7 +1636,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     break; }
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = notice(S_NO_PATH); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
-    ChoicePoint *q = &cp[ncp-1]; W->at = q->node;
+    ChoicePoint *q = &cp[ncp-1]; W->at = q->node; W->v = 0;      /* a fail carries no answer: what the failed path last answered is not kept */
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
     for (uint32_t t = ntrail; t > q->mtrail; t--)                      /* and cells hold what they held, */

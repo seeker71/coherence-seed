@@ -150,31 +150,42 @@ layout and opens the door. An image carries `host/metal-bind.ck` linked in and t
 numbers, with the layout version they were read under, and faults `metal.open` on another.
 
 The door is opened ahead, by `metal.open`, while no choice is open: it resolves every function
-row of this host, registers every message's selector, finds the pool's class, and checks that
-a leaf's bytes are where the layout says by reading one back. After that a map asks the host
+row of this host and keeps the row beside its address, registers every message's selector and
+keeps its row, finds the pool's class, checks that a leaf's bytes are where the layout says by
+reading one back, and asks the device once whether it has the families, which is what
+`has-target` answers from then on. After that a map asks the host
 nothing by name. The library and the two operands are read where they lie in the region, by
 their addresses, and are not copied on the way. This is what lets the application of the
 example call the map inside a search, once for each operand order.
 
-Every object a dispatch makes is written into a slot of one room, the bench, as it is made:
-the autorelease pool, the device, the library's data, the library, the kernel, the pipeline,
-the queue and the buffer. The bench is taken once per process. Whatever stands in a slot is
-let go when the dispatch ends, when a fault leaves it, and before the next dispatch begins, so
-a fault midway strands nothing. The two sizes, three words each, and the lane count lie in the
-bench as well and are passed by their addresses. The output is copied from the shared buffer
-into a second room, which grows to the largest output asked for, and leaves as a leaf of the
-region's own bytes.
+Every object a dispatch makes is noted under its name as it is made: the autorelease pool,
+the device, the library's data, the library, the kernel, the pipeline, the queue and the
+buffer. Whatever is noted is let go, by the row that says how, when the dispatch ends, when a
+fault or a fail leaves it, and before the next dispatch begins, and its note is cleared only
+after the host has answered. A message or a function with no row is a fault. The two sizes,
+three words each, and the lane count lie in one room, the bench, taken once per process, and
+are passed by their addresses. The output is copied from the shared buffer into a second
+room, which grows to the largest output asked for, and leaves as a leaf of the region's own
+bytes.
+
+The door runs each dispatch under a choice of its own, notes the answer, and fails back: the
+frames, links and nodes the walked calls made are given back, and only the answer stays. So a
+hundredth map leaves in the region what a second leaves, which `ground/metal-holds.ck` holds
+inside `make check-image`, with the fault and the fail midway.
 
 The threadgroup width comes from the pipeline, and the kernel checks its lane against the
-supplied count. Before anything is made, a room of three times the input plus the library is
-taken and given back by a fail: where the allowance or the host cannot hold it the map
-answers `declined`. The buffer itself is the host's memory, checked against the device's
-longest buffer and its reported working set. On a Mac with the compiler and a Metal device,
-the image flow compares both orders of 65 inputs with their frame results, including
-wraparound, the empty vector and two invalid shapes. The compiler is a build-time dependency.
-Rows exist for Apple's arm64 convention only: under Rosetta and on Linux x86-64 the door does
-not open, `has-target` answers no and a map answers `no-native` after the same checks of
-shape, so the search of the example answers a list of nothing there. Floating-point layouts, reductions and pipeline reuse are open.
+supplied count. Before any host object is made, what the map takes of the allowance at its
+peak is taken: the room for the output, for good, and the leaf that will leave, made once and
+given back by a fail, which leaves its place. Where the allowance cannot hold them the map
+answers `declined`. The shared buffer is the host's memory and outside the allowance; it is
+checked against the device's longest buffer and its reported working set, and no longer
+against the allowance as the C did. On a Mac with the compiler and a Metal device, the image
+flow compares both orders of 65 inputs with their frame results, including wraparound, the
+empty vector and two invalid shapes. The compiler is a build-time dependency. Rows exist for
+Apple's arm64 convention only: under Rosetta and on Linux x86-64 the door does not open,
+`has-target` answers no and a map answers `no-native` after the same checks of shape, so the
+search of the example answers a list of nothing there. A map makes its device and pipeline
+anew each time, as the C did. Floating-point layouts, reductions and pipeline reuse are open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the
