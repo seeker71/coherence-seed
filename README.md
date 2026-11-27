@@ -34,8 +34,8 @@ in the same session. The wire format and a runnable example are in [the NUMS spe
 
 ## Read it and write it
 
-What is stored is the canonical print, numbers and brackets, and beside it the names a person
-gave to arguments. The lens ([`spec/lens.md`](spec/lens.md)), itself a program in form, shows a
+What is stored is nodes as records, each node once with its blueprint and parts, and beside it
+the names a person gave to arguments. Their canonical print is numbers and brackets. The lens ([`spec/lens.md`](spec/lens.md)), itself a program in form, shows a
 stored node in words and names:
 
 ```bash
@@ -154,7 +154,7 @@ and the printer of the stored form are operations like any other, and they too a
 form; this runs every ground program on them:
 
 ```bash
-./ck run ground/check.ck form/read.ck form/print.ck
+./ck run ground/check.ck form/nodes.ck form/read.ck form/print.ck
 ```
 
 `ground/compiles-a-recipe.ck` loads an emitter written in form (`form/compile.aarch64.ck`), has it

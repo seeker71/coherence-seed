@@ -2,9 +2,9 @@
 
 A lens reads text into nodes and prints nodes back as text (graph hub 5.3). This is the first
 one, and it is written in form: `lens/lens.ck` is its reader, its printer and its matcher,
-`lens/words.ck` its words and `lens/rows.ck` its rows. The canonical print of
-`spec/node-encoding.md` stays what is stored; the lens is how a stored node is read by a person
-and how a new one is written.
+`lens/words.ck` its words and `lens/rows.ck` its rows. What is stored is nodes as
+records (`spec/node-encoding.md`, section 8), with the canonical print as their plain view; the
+lens is how a stored node is read by a person and how a new one is written.
 
 It has three parts. Words and leaves turn text into nodes and back. Names stand for a recipe's
 arguments and for the parts a `let` gives a place. Rows turn the surface a person writes into the
@@ -75,9 +75,9 @@ kept beside the node (graph node 5.2.4).
   two ways.
 
 The names of a recipe's arguments and the name a let gives are rows keyed by that node: a list
-whose first item is the node's content id. A file of nodes holds them on a second line, after
-the node's print. Reading a file learns its rows; storing writes the rows of the names met, in
-the order the node holds them. A node is its first line alone: giving a name, or another name,
+whose first item is the node's content id. A file of nodes holds them after the node's records,
+as records of their own (a file stored as a print holds them on its second line). Reading a file learns its rows; storing writes the rows of the names met, in
+the order the node holds them. A node is its own records alone: giving a name, or another name,
 changes no id. Where a name cannot be read back as it stands, because it has become a word or
 would land on another number, the number is shown.
 
@@ -96,7 +96,7 @@ number that the shape has a name for. The lexicon can name the parts of an entry
 row for `let` is the word, the entry, and `place`, `value`, `body`, so `{x:let | x.value}`
 reads the value of a let node. An entry that only names parts, with no meaning of its own, is
 an interface: `emit.two` names `left` and `right` for any operation of two. The shape is written into the name as it is stored
-beside the node (`mine:emit.row`), so the second line of the file carries it.
+beside the node (`mine:emit.row`), so the names stored after the node carry it.
 
 ## Rows
 
@@ -145,23 +145,27 @@ shows a stored node, with the names its file holds.
 ./ck text lens/to-nodes.ck lens/all.ck < words.txt > node.ck
 ```
 
-reads what was written and gives what to store: the canonical print, and the names on a second
-line when there are any. Write to a new file: the shell empties the file it writes before `ck`
+reads what was written and gives what to store: the node as records, and after them, as records
+too, the names when there are any. `./ck text lens/to-print.ck < node.ck` is its canonical print. Two
+changes to one stored file are merged through their views: the base, ours and theirs shown with
+`lens/to-words.ck`, joined by `git merge-file`, and the result read back with `lens/to-nodes.ck`. Write to a new file: the shell empties the file it writes before `ck`
 reads anything. `lens/all.ck` evaluates the three files of the lens. Inside a program, after
 `(step (read (file "lens/all.ck")))`, `(lens.read t)` answers the node a text leaf shows,
 `(lens.show x)` the one-line text of x, `(lens.lower x)` and `(lens.raise x)` run the rows,
-`(lens.stored raw)` is the node of a file's bytes with its names learned and `(lens.to-store x)`
-the text of the file that stores x.
+`(lens.stored raw)` is the node of a file's bytes, records or a print, with its names learned, and
+`(lens.to-store x)` the bytes of the file that stores x.
 
 ## How it is known
 
-- The lens shows its own definition, 984 lines and 119 definitions, through its own rows and with its own names, and reads that
-  text back to the file it is stored as, byte for byte, both lines. It was brought into being
+- The lens shows its own definition through its own rows and with its own names, and reads that
+  text back to the file it is stored as, byte for byte, the node and its names. It was brought into being
   once by a substitution of numbers for words; since then its source is its own showing. Names
   were read by a second lens written in the first, and its own arguments were then named without
   one byte of its node changing.
 - `ground/lens-round-trip.ck`, written in the lens, shows, reads and stores again every file of
-  nodes in the repository: 152 files, none differs in either line, in 3.1 s.
+  nodes in `ground/files.ck`: none differs, its node or its names; and for each, the node read
+  back from the records `bin.write` makes of it is the same node, and writing it again gives the
+  same bytes.
 
 ## Limits
 

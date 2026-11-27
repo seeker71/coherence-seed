@@ -365,7 +365,7 @@ like any other.
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 76 | read | t | the node whose canonical print is the first line of leaf t: what follows a line feed is not read; a refused print answers nothing with the refusal's word |
+| 76 | read | t | the node leaf t stores: its records (`spec/node-encoding.md`, section 8), or a canonical print on its first line, what follows a line feed not read; refused bytes answer nothing with the refusal's word |
 | 77 | print | x | a text leaf holding x's canonical print |
 | 78 | id | x | a bytes leaf holding x's content id |
 | 79 | file | p | a bytes leaf holding the file whose path is the bytes of leaf p; nothing with `no-file` when it cannot be read |

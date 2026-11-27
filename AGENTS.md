@@ -23,7 +23,8 @@ needs no permission. It is kept short and in our own words (graph node 7.13), no
 - **Form first.** New code is written in form and kept as nodes. C is the bootstrap only, and no
   other language is written. What a program lacks becomes an operation of the bootstrap. Write in
   words through the lens and read stored nodes through it ([`spec/lens.md`](spec/lens.md)); what
-  is stored is the canonical print. A new operation, area or field is added in a node
+  is stored is nodes as records (`spec/node-encoding.md`, section 8), and the canonical print and
+  the lens are their views (`make views` once per clone lets git show them through the lens). A new operation, area or field is added in a node
   (`lens/words.ck`, `region/layout.ck`) and `make header` writes the C header from them.
 - **Components first.** New code is a component package: interfaces, classes with their
   members and methods, templates and functions (`bmf/items.ck`, `nums/write.ck`), written with

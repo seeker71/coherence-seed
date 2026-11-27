@@ -100,7 +100,8 @@ hex    = one or more pairs of 0-9 a-f
 Rules that make it canonical:
 
 1. One space between items and no other white space. A print ends where the text ends or at a
-   line feed. A file holds one node on its first line. A second line, when there is one, is the
+   line feed. A file of nodes is stored as records (section 8); a file stored as a print holds one
+   node on its first line. A second line, when there is one, is the
    print of the names a lens keeps for parts of that node (`spec/lens.md`); it lies beside the
    node and is no part of it.
 2. A catalogue entry is always written `#N` and never as a leaf in brackets.
@@ -179,7 +180,9 @@ for that rule.
 
 The bootstrap reads them by making each record through the store, which finds equal content, so
 reading needs no id and no hash: the ids are taken when asked for. `form/nodes.ck` writes them:
-`(bin.write x)` is the bytes of x stored. For every stored file, the node read from its print and
+`(bin.write x)` is the bytes of x stored, and `(bin.read raw)` reads them again in Form, for a
+program that binds entry 76 to the reader in form (`form/read.ck` hands it records); it trusts
+well-formed records and refuses nothing, so the refusals above are the bootstrap's reader's alone. For every stored file, the node read from its print and
 the node read from the bytes `bin.write` makes of it are one node, and writing that node again
 gives the same bytes (`ground/lens-round-trip.ck`).
 

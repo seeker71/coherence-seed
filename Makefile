@@ -33,6 +33,10 @@ fb: tools/fb.c bootstrap/fb.h
 kg: tools/kg.c
 	$(CC) $(CFLAGS) -o kg tools/kg.c
 
+# Node files are stored as records (spec/node-encoding.md, section 8); git shows them through the lens. Run once per clone.
+views: ck
+	git config diff.ck.textconv "sh -c './ck text lens/to-words.ck lens/all.ck < \"\$$0\"'"
+
 # bootstrap/fb.h is made from nodes: the catalogue's words and the layout of the region's records.
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
@@ -215,7 +219,7 @@ check-ice: ck fb
 	@name=/ck.ice.$$$$; export CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456; trap './fb drop '$$name' 2>/dev/null; rm -f .ck-check.ice .ck-check.named' EXIT; \
 	  ./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck $(MEMBER) lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin $(MEMBER)); \
-	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(cat .ck-check.named), by a second member: the same node"; \
+	  if [ "$$b" = "node $$(./ck text lens/to-print.ck < ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(cat .ck-check.named), by a second member: the same node"; \
 	  else echo "ice: named '$$(cat .ck-check.named)', which is '$$b'"; exit 1; fi
 	@d=$(IMAGES); mkdir -p "$$d/images"; export CK_IMAGES="$$d/images"; I="$$CK_IMAGES/coherence-seed-images"; trap 'rm -rf "$$d"' EXIT; \
 	  bind() { printf '(#71 #4096 (#36 [#4 0%s]))' "$$1" > "$$d/start.ck"; }; \
@@ -315,4 +319,4 @@ clean:
 	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 	rm -rf .ck-images
 
-.PHONY: all metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
+.PHONY: all views metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header

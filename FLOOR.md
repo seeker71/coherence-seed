@@ -7,8 +7,8 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; a node file can hold its node as records, which the bootstrap reads by making each through the store |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,148 lines, 39 fewer since another process's region is read in Form and the layout no longer asks the host, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,148 lines, 39 fewer since another process's region is read in Form and the layout no longer asks the host, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records and, while authoring moves to Form, the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -452,11 +452,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
 
 **Writing**
 
-- **The lens reads its own definition**: 984 lines, shown and read back to the file it is, byte
-  for byte, as is each of the 152 files of nodes here. Text it cannot read is a fault
+- **The lens reads its own definition**: shown and read back to the file it is, byte for byte, as
+  is each file of nodes here. Text it cannot read is a fault
   that names what and where.
-- **Names lie beside the nodes.** Arguments are numbers in a node and names on a second line of
-  its file. Every module and ground program was named; naming changed no node. A sign stands
+- **Names lie beside the nodes.** Arguments are numbers in a node and names in records stored after
+  the node's in its file. Every module and ground program was named; naming changed no node. A sign stands
   between two: `(n < 2)`.
 - **Objects.** Two parents that share an ancestor are one shape; super moves the view; a slot
   outside the view is refused; a cell is seen through an interface it fits by structure.
@@ -542,8 +542,8 @@ running compiled code against frames all the way down).
   the bootstrap and not instructions.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
-  files of nodes in the canonical print. Everything else stored is neither: the recorder and the
+- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 221
+  files of nodes, stored as records. Everything else stored is neither: the recorder and the
   graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
   graph as 57 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
