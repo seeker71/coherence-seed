@@ -419,7 +419,9 @@ activation, its cut scope and the reason in hand are kept in a frame and taken u
 The node is evaluated as `(outcome (outside x))` (`spec/core-operations.md`, entries 82 and
 101), with no arguments. So a request can read any cell and call anything the program has
 bound; what it binds is bound from outside the run, seen at every layer and kept; and nothing
-else it did stays, whether it answered, failed or faulted. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
+else it did stays but its notes, whether it answered, failed or faulted. The writer is given the
+same 16 MiB past the allowance as the answer line, and a request that is not a writer and a node is
+refused with `kind`. The answer is what `outcome` gives: `(list "node" v)`, `(list "nothing" reason)` or
 `(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
 in `answered`, is answered with no bytes, and the asker answers `(list "nothing" "unanswered")`.
 

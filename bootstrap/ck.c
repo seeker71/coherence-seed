@@ -1461,7 +1461,7 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, top, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; ntk = left; nnoted = 0; fb->me.taken += reading; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
-  case 2: while (ntk) { H h = tk[--ntk]; if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0; }
+  case 2: if (answering == 2) answering = 0; while (ntk) { H h = tk[--ntk]; if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0; }
     for (uint32_t j = 0; j < nopen; j++) if (opened[j] < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, opened[j])) pnum[opened[j]] = 0;
     coding = 0; ntb = 0; ntext = text_base; W->reason = full_at[full]; W->mode = M_FAULT; break;
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
@@ -1478,7 +1478,7 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
       why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_nodes((uint8_t *)s, n, &why);
-      if (!numeric_io && q && nd[q].comp && nd[q].bp == E(LIST) && nd[q].n == 2) { w = KID(q, 0); q = KID(q, 1); }   /* a writer and a node */
+      if (!numeric_io) { if (q && nd[q].comp && nd[q].bp == E(LIST) && nd[q].n == 2 && is_recipe(KID(q, 0))) { w = KID(q, 0); q = KID(q, 1); } else if (q) { why = S_KIND; q = 0; } }   /* a writer and a node */
       if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
       ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
       W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); if (w) W->k = push(F_ASIDE, w, 0, 0, 0, 0, W->k, 3);
@@ -1577,12 +1577,12 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (f.aux == 3) { H c[2] = { f.node, mk(1, E(QUOTE), &W->v, 1, &why) }; W->x = mk(1, E(CALL), c, 2, &why);   /* the outcome, */
-        W->x = mk(1, E(OUTCOME), &W->x, 1, &why); W->env = enter(0, 0, 0, 0, 0, ncp); W->cut = ncp; W->mode = M_EVAL; break; }   /* written beneath every binding */
+        W->x = mk(1, E(OUTCOME), &W->x, 1, &why); W->env = enter(0, 0, 0, 0, 0, ncp); W->cut = ncp; W->mode = M_EVAL; answering = 2; break; }   /* with SPARE */   /* written beneath every binding */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
         H b = nd[W->v].comp && nd[W->v].n == 2 && KID(W->v, 0) == notice(S_NODE) && !nd[KID(W->v, 1)].comp ? KID(W->v, 1) : 0;   /* in text: the bytes */
         uint64_t n = numeric_io ? 32 : b && nd[b].n <= fb->a[A_ANSWERED].cap ? nd[b].n : 0;  /* the asked node answered, */
         room(A_ANSWERED, n); memcpy((uint8_t *)fb + fb->a[A_ANSWERED].off, numeric_io ? idof(W->v) : bytes + nd[b].off, n);  /* or none */
-        N(A_ANSWERED) = n; N(A_ASKED) = 0;
+        N(A_ANSWERED) = n; N(A_ASKED) = 0; if (answering == 2) answering = 0;
       }
       W->env = f.env; W->cut = f.cut; W->x = f.node; W->one = f.i; W->reason = f.vals; W->mode = M_EVAL; break; }
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
@@ -2036,7 +2036,7 @@ int main(int argc, char **argv) {
 #else
   ssize_t size = readlink("/proc/self/exe", raw, sizeof raw - 1); int got = size > 0; if (got) raw[size] = 0;
 #endif
-  const char *exe = got && realpath(raw, real) ? real : argv[0], *slash = strrchr(exe, '/');
+  const char *exe = (got || strchr(argv[0], '/')) && realpath(got ? raw : argv[0], real) ? real : argv[0], *slash = strrchr(exe, '/');
   if (slash && (size_t)(slash - exe) + 16 < sizeof home) { snprintf(home, sizeof home, "%.*s", (int)(slash - exe) + 1, exe);
     snprintf(rest_buf, sizeof rest_buf, "%sregion/rest.ck", home); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
   fb_open();
