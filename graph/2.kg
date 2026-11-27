@@ -314,3 +314,12 @@ path: coherence-seed/ground/lens-round-trip.ck
 date: 2026-11-27
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.21
+name: native-add.ck
+kind: source
+is: Form runs generated NUMS arithmetic and comparisons directly against frames, exercises the six value arguments and checks decline and foreign-target behavior.
+path: coherence-seed/ground/native-add.ck
+date: 2026-11-27
+got: 2026-11-27
+at: 2026-11-27

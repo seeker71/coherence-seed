@@ -11,6 +11,9 @@
  * only the pages that differ from the frame before. The names it prints for catalogue
  * entries are for reading here; they are not part of any node.
  */
+#ifdef __linux__
+#define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -180,7 +183,11 @@ static void detail(void) {
 /* ---- commands ---------------------------------------------------------------------------- */
 static const char RMAGIC[8] = "CKREC1\n";
 static void image(void) {
-  img = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  int flags = MAP_PRIVATE | MAP_ANON;
+#ifdef __linux__
+  flags |= MAP_NORESERVE;  /* only the pages present in the recorded frame are copied */
+#endif
+  img = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
   if (img == MAP_FAILED) stop("cannot hold a frame", ""); bind();
 }
 static int record(const char *name, const char *path, double every) {

@@ -1,6 +1,6 @@
 # Floor
 
-What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
+What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -8,9 +8,9 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,604 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start stays under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
@@ -20,7 +20,7 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,444 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,446 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -31,7 +31,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **`make check` runs three flows.** A BML expression passes through the source lens and the
   runtime. A standalone process receives a packed image and answers requests by id. A live
   recursion accepts an addition counter from another process and finishes with the expected answer.
-  `make check-full` also runs all 77 ground programs separately and together, compares the
+  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64, 64 on x86-64), compares the
   generated header and checks encoding, freeze and thaw, hardened native execution, framebuffer
   replay, deferred writes and the budget for bare numeric reads.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
@@ -47,12 +47,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
   percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 14,523 nodes with zero text leaves.
-  In a single process a constructor returned a cell id, a reader returned zero, and a writer
-  and reader used that id to store and recover 42. On this machine the AArch64 compiler
-  returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
-  requests and checked replies are in `ground/nums-image.ck`, `ground/nums-requests.ck`,
-  `ground/nums-native-requests.ck` and `ground/nums-replies.ck`.
+  ids. Its packed image contains zero text leaves. One process constructed a cell and stored
+  and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID
+  and ran a generated NUMS function directly on macOS AArch64, macOS x86-64 under Rosetta,
+  and Linux x86-64 under QEMU. All three returned 42. The x86-64 compiler handles straight-line
+  integer arithmetic and comparisons. Branches, calls and floating-point bodies use frames
+  on this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.

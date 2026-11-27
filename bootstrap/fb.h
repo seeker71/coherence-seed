@@ -7,7 +7,7 @@
 typedef uint32_t H;                       /* a handle: an index into the node table; 0 is nothing */
 #define ROOT 1u
 #define E(n) ((H)((n) + 1))               /* handle of catalogue entry n, n below SEEDED */
-#define SEEDED 124u
+#define SEEDED 125u
 enum {
 BYTES = 1, TEXT = 2, NAT = 3, INT = 4, U8 = 5, U16 = 6, U32 = 7,
 U64 = 8, I8 = 9, I16 = 10, I32 = 11, I64 = 12, F32 = 13, F64 = 14, LIST = 16, NO = 32, YES = 33, QUOTE = 34, ARG = 35, RECIPE = 36, CALL = 37, SELF = 38, SEQ = 39,
@@ -21,7 +21,7 @@ DECODE = 88, HOLD = 89, HELD = 90, TRAIL = 91, NOTE = 92, UNBIND = 93, PEEK = 94
 AT = 96, LOOK = 97, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
 NOTHING = 104, CLOSE = 105, CLOSED = 106, BAND = 107, BOR = 108, BXOR = 109, SHL = 110, SHR = 111,
 FAST = 112, ROOM = 113, ROOM_TRAIL = 114, TAKE = 115, LOAD = 116, STORE = 117, WADD = 118, WSUB = 119,
-WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, LAST = 123 };
+WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, HOST_TARGET = 124, LAST = 124 };
 #define FB_ENTRY_NAMES \
 [0] = "root", [1] = "bytes", [2] = "text", [3] = "nat", [4] = "int", [5] = "u8", \
 [6] = "u16", [7] = "u32", [8] = "u64", [9] = "i8", [10] = "i16", [11] = "i32", \
@@ -40,7 +40,9 @@ WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, LAST = 123 };
 [102] = "bound", [103] = "after", [104] = "nothing", [105] = "close", [106] = "closed", [107] = "band", \
 [108] = "bor", [109] = "bxor", [110] = "shl", [111] = "shr", [112] = "fast", [113] = "room", \
 [114] = "room-trail", [115] = "take", [116] = "load", [117] = "store", [118] = "wadd", [119] = "wsub", \
-[120] = "wmul", [121] = "ult", [122] = "udiv", [123] = "umod", 
+[120] = "wmul", [121] = "ult", [122] = "udiv", [123] = "umod", [124] = "host-target",
+#define TARGET_AAPCS64 UINT64_C(1297036695148953601)
+#define TARGET_AMD64_SYSV UINT64_C(1297036695148953602)
 enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_AFTER, A_NOTED, A_ROOMS, A_ROOM_TRAIL, A_GIVES, A_IDS, A_VALUES, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", "after", "noted", "rooms", "room-trail", "gives", "ids", "values", 
 enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER, F_OUTCOME, F_LAYER, F_LET, F_ASIDE, F_COUNT };

@@ -6,6 +6,9 @@ BUDGET = 2000
 BARE = 475
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
+ifeq ($(shell uname -s),Linux)
+LDLIBS ?= -pthread -ldl -lrt
+endif
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
@@ -14,14 +17,14 @@ all: ck fb kg seed-run
 ck: $(BOOT)
 	@n=$$(cat $(BOOT) | wc -l); if [ $$n -gt $(BUDGET) ]; then \
 	  echo "the bootstrap has $$n lines; its budget is $(BUDGET)"; exit 1; fi
-	$(CC) $(CFLAGS) -o ck bootstrap/ck.c
+	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS)
 
 seed-run: ck $(BOOT)
-	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c
+	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c $(LDLIBS)
 
 # The observer: a second process that shows, records and replays a framebuffer.
 fb: tools/fb.c bootstrap/fb.h
-	$(CC) $(CFLAGS) -o fb tools/fb.c
+	$(CC) $(CFLAGS) -o fb tools/fb.c $(LDLIBS)
 
 # The claim graph's checker.
 kg: tools/kg.c
@@ -66,9 +69,7 @@ check-image: seed-run
 	@set -e; root=$$PWD; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/run"; \
 	  ./ck text nums/pack.ck < ground/nums-image.ck > "$$work/run/image"; \
 	  ./ck text ground/nums-requests.ck > "$$work/requests"; test -s "$$work/requests"; \
-	  if [ "$$(uname -sm)" = "Darwin arm64" ]; then \
-	    ./ck text ground/nums-native-requests.ck > "$$work/native"; test -s "$$work/native"; \
-	    cat "$$work/native" >> "$$work/requests"; fi; \
+	  ./ck text ground/nums-native-requests.ck >> "$$work/requests"; \
 	  (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
@@ -94,10 +95,10 @@ check-header: ck
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
 
 ground-isolated: ck
-	@set -e; paths=$$(./ck text ground/paths.ck); \
+	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); \
 	  differences=$$(printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 8 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"'); \
 	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \
-	  echo "ground: each program ends as expected in its own process"
+	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed in their own processes"
 
 ground-together: ck
 	@got=$$(./ck run ground/check.ck 2>&1); \
@@ -111,12 +112,12 @@ check-ice: ck
 	  else echo "ice: thawed '$$b'"; exit 1; fi
 
 check-native: ck
-	@if [ "$$(uname -sm)" = "Darwin arm64" ]; then \
-	  cp ck .ck-hardened && codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements .ck-hardened 2>/dev/null && \
-	  got=$$(./.ck-hardened run ground/native-add.ck); rm -f .ck-hardened; \
-	  if [ "$$got" = "node [#4 2a]" ]; then echo "native: a code leaf runs unsigned and under the hardened runtime"; \
-	  else echo "native under the hardened runtime: got '$$got'"; exit 1; fi; \
-	else echo "native: not Apple silicon; the hardened-runtime witness did not run"; fi
+	@set -e; if [ "$$(uname -s)" = Darwin ] && ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/native-add.ck; then \
+	  binary=$$(mktemp); trap 'rm -f "$$binary"' EXIT; cp ck "$$binary"; chmod +x "$$binary"; \
+	  codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements "$$binary" 2>/dev/null; \
+	  test "$$("$$binary" run ground/native-add.ck)" = 'node [#4 2a]'; \
+	  echo "native: generated code and frames agree under the hardened runtime"; \
+	else echo "native: hardened signing applies to native Darwin targets"; fi
 
 check-replay: ck fb
 	@name=/ck.check.$$$$; (CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); ./fb record $$name .ck-check.rec 5 > /dev/null; \

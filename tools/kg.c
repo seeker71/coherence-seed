@@ -12,6 +12,9 @@
  * is its present content. A review names the digest it saw, so a changed node shows
  * its review as stale. Nothing here is stored: the index is derived on every run.
  */
+#ifdef __linux__
+#define _POSIX_C_SOURCE 200809L
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

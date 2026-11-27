@@ -72,12 +72,34 @@ Stack expansion and loop unrolling belong to a compilation decision for a partic
 and target. A variant that omits observation points can run where those observations are
 optional. The walker supplies the common, observable execution path.
 
-On Apple silicon the numeric image can call the Form AArch64 compiler by id while the session
-is live. The same recipe for `x + 2*y` is called with 20 and 11 before and after compilation.
-It yields 42 both times. The compiler returns a 244-byte code leaf on the observed target.
-The generic recipe runs through a separate process in `make check`; the native portion runs
-on Darwin arm64. GPU execution, general stack and loop unrolling, and measured target-specific
-selection across those variants are design work.
+A packed image carries the recipes and backend declarations. At startup, `host-target`
+reports the calling convention of the running process. The runtime selects a `cpu.backend`
+row by that numeric identity and invokes its setup recipe. The row provides a compiler for
+declared NUMS functions and can supply a compiler for Form recipes. A compiler can decline
+a body, and generated code can decline particular arguments. Frames evaluate either case.
+
+| Process target | Native coverage |
+| --- | --- |
+| macOS AArch64 | The existing Form emitter and optimizing NUMS compiler, including calls, branches, typed integer operations, and floating point. |
+| macOS and Linux x86-64, System V ABI | Straight-line word expressions with up to six integer inputs, integer literals, addition, subtraction, multiplication, bitwise operations and comparisons. NUMS accepts `int` parameters and an `int` or Boolean result in a return or single-return block. Form also supplies checked arithmetic, wrapping arithmetic and unsigned less-than. Other bodies use frames. |
+
+`nums/word-target.ck` holds the expression compiler as a NUMS component. The target supplies
+argument encodings, instruction and result-kind rows, literal and return encodings, and the
+entry convention. The compiler recursively combines fragments and keeps the required argument
+count and result kind alongside the bytes. Checked x86-64 arithmetic restores the entry stack
+and declines on overflow, so the caller observes Form's original outcome.
+
+To add a backend, assign its ABI a numeric node, list it in `fb.targets`, and select that
+identity in the host port. Supply its setup and compilation recipes in a backend row in
+`nums/run.ck`. A backend can reuse the word-expression compiler or provide its own lowering.
+The OS port supplies executable memory and instruction-cache synchronization. Add the target
+to the applicable ground witnesses as its capabilities run. Recipe IDs and image requests
+stay portable.
+
+`make check` sends the same recipe ID for `x + 2*y` before and after compilation and receives
+42 both times. It also calls a generated NUMS function directly, and compiles the resident
+word-subtraction instance by ID. Linux and macOS x86-64 returned identical binary replies from
+one image packed on AArch64. GPU lowering and measured target-specific optimization remain open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the

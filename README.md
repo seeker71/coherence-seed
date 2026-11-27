@@ -20,6 +20,10 @@ make
 ./ck run ground/recursion.ck
 ```
 
+Seed runs native code for macOS AArch64 and System V x86-64 on macOS and Linux. The same
+numeric image selects a backend in the receiving process. Run `make check` to compile and
+call a recipe by ID. [Native coverage and backend interface](spec/nums.md#execution-and-specialization)
+
 `ck` is the bootstrap: [`bootstrap/ck.c`](bootstrap/ck.c) with the memory layout
 [`bootstrap/fb.h`](bootstrap/fb.h), under a budget of 2,000 lines that the build enforces. It holds
 a node store, a reader and printer of the canonical print, a walker over the operations in

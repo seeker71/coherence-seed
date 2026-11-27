@@ -102,18 +102,26 @@ Dividing by zero answers nothing with the reason `zero`.
 
 ## Native code
 
-A leaf under entry 52 holds AArch64 instructions for a function of up to six values, in x0 to
-x5. A value that is an integer of at most eight bytes comes as the number it is; any other comes
-as the handle of its node. x7 says how many values there are in its low byte and has, above it,
-a bit for each value that came as a handle: code that takes numbers only declines when one of
-those bits is set. x6 holds the region's address. The code answers in x0 and x1. x1 says what x0
-is: 0 a number, 1 a truth (yes unless x0 is zero), 4 the handle of a node in the region, 3
-nothing at all: the code declines and what lies beneath its binding runs. It declines as well
-when it answers 4 with no handle: it met nothing, and the reason is left for the walker to say.
-Anything else is no answer, which is nothing with the reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
-copies it once into the process's code region and calls it; code that declines there answers
-nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
-the reason `no-native`.
+`(host-target)` (entry 124) returns the numeric ABI identity of the running process, or
+`no` on a host with the generic runtime alone. A leaf with blueprint `(code abi)` carries
+machine bytes for that ABI. The original bare `code` blueprint identifies AArch64.
+`native` answers nothing with reason `no-native` when the identities differ. A binding
+declines that implementation and can continue with its recipe.
+
+The call has six value positions, followed by the framebuffer address and the argument-count
+and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
+x0 and x1. On System V AMD64 the values occupy RDI, RSI, RDX, RCX, R8 and R9. The seventh
+and eighth arguments are at entry RSP+8 and RSP+16. RAX and RDX return value and kind.
+The generated x86-64 word backend preserves the callee-saved registers and restores RSP on
+each return. [AMD64 calling convention](https://gitlab.com/x86-psABIs/x86-64-ABI/-/blob/master/x86-64-ABI/low-level-sys-info.tex)
+
+An integer of up to eight bytes travels as its value. Every other argument travels as a
+node handle. The low byte of the last argument gives the count, and the following bits
+identify the positions containing handles. The return kind is 0 for an integer, 1 for a
+Boolean, and 4 for a node handle. Kind 3 or a zero handle in kind 4 declines the call.
+A malformed result answers nothing with reason `range`. An explicit `native` call that
+the code declines answers nothing with reason `declined`. The runtime copies each local
+leaf into executable memory on its first use.
 
 ### Code asks the bootstrap
 
@@ -337,7 +345,7 @@ that compiles, or that runs elsewhere is then one more implementation in the sam
 - **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
   lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
   children are evaluated as the user sees them, so the step meets each of them in turn.
-- **A code leaf gets the node's handle in x0 and the number of the activation it stands in in
+- **An AArch64 code leaf gets the node's handle in x0 and the number of the activation it stands in in
   x1**, and reads what it needs from the region, whose address every call of code carries in x6
   (`spec/framebuffer.md`). It answers as any code does, or declines.
 - **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.

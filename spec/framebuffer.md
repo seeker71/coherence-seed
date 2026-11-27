@@ -234,7 +234,10 @@ in it was complete when its count was read.
   once it is stored. The walker keeps its registers in the region for this reason.
 - **Executable pages are outside.** macOS refused a shared executable mapping (`EINVAL`, tested).
   A code leaf's bytes are a node in the region and its runnable copy is in a private mapping; the
-  region records the leaf, the offset of its copy and the address of that mapping.
+  region records the leaf, the offset of its copy and the address of that mapping. On macOS
+  a process uses one `MAP_JIT` reservation. Linux x86-64 publishes code by changing the touched
+  pages from writable to executable. Linux reserves anonymous framebuffer addresses with
+  `MAP_NORESERVE` and charges touched pages to the runtime's shared allowance.
 - **The C library's own memory is outside**: what the dynamic loader and the thread library keep.
   The process's arguments and its first thread's stack are outside until the move onto the
   region's stack.
