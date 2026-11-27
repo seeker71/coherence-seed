@@ -37,6 +37,17 @@ static uint8_t *img; static uint64_t size;                /* a private copy of o
 static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
 static Frame *fr; static Activation *act; static ChoicePoint *cp; static Binding *bd;
 static void stop(const char *m, const char *n) { fprintf(stderr, "fb: %s%s\n", m, n); exit(2); }
+static void require_layout(const Head *h) {
+  if (size < FB_PAGE || memcmp(h->magic, FB_MAGIC, 8) || h->version != FB_VERSION || h->areas != A_COUNT)
+    stop("incompatible framebuffer layout", "");
+  if (h->bytes != size || h->me.share < FB_PAGE || h->me.share % FB_PAGE || h->me.share > size - FB_PAGE)
+    stop("invalid framebuffer extent", "");
+}
+static void require_substrate(const Head *h, const Substrate *s) {
+  if (memcmp(s->magic, FB_SUBSTRATE_MAGIC, 8) || s->version != FB_VERSION || s->areas != S_COUNT ||
+      s->share != h->me.share || s->bytes != size - h->me.share)
+    stop("incompatible substrate layout", "");
+}
 static void *at(int i) { return img + hd->a[i].off; }
 static void bind(void) {
   hd = (Head *)img; nd = at(A_NODES); bytes = at(A_LEAF_BYTES); kids = at(A_CHILDREN); argp = at(A_ARGUMENTS);
@@ -55,7 +66,7 @@ static const uint8_t *attach(const char *name, double wait_ms) {   /* waits for 
     if (fd >= 0) close(fd);
     if (src != MAP_FAILED) {
       const Head *h = (const Head *)src; int live = h->pid && (!kill((pid_t)h->pid, 0) || errno == EPERM);
-      if (!memcmp(h->magic, FB_MAGIC, 8) && (live || now_ms() - t0 >= wait_ms)) return src;
+      if (!memcmp(h->magic, FB_MAGIC, 8) && (live || now_ms() - t0 >= wait_ms)) { require_layout(h); return src; }
       munmap((void *)src, size); src = MAP_FAILED;
     }
     if (now_ms() - t0 >= wait_ms) stop("no framebuffer named ", name);
@@ -68,6 +79,7 @@ static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
   memcpy(head, src, FB_PAGE);                             /* the counts are read once, first */
   const Head *h = (const Head *)head; const Substrate *s = (const Substrate *)shead;
   memcpy(shead, src + h->me.share, FB_PAGE);              /* and the substrate's, which lies at share */
+  require_substrate(h, s);
   for (int i = -1; i <= A_COUNT + S_COUNT; i++) {
     uint64_t off = 0, len = FB_PAGE;
     if (i == A_COUNT) off = h->me.share;                  /* the substrate's head; its tables in a lane are the process's own areas */
@@ -194,7 +206,7 @@ static void image(void) {
   flags |= MAP_NORESERVE;  /* only the pages present in the recorded frame are copied */
 #endif
   img = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
-  if (img == MAP_FAILED) stop("cannot hold a frame", ""); bind();
+  if (img == MAP_FAILED) stop("cannot hold a frame", "");
 }
 static int record(const char *name, const char *path, double every) {
   const uint8_t *src = attach(name, 5000); image();
@@ -223,8 +235,12 @@ static int play(const char *path, int want, int detailed, H h) {
   for (;; i++) {
     double m2; uint64_t a2, off; uint32_t n2;
     if (fread(&m2, 8, 1, f) != 1 || fread(&a2, 8, 1, f) != 1 || fread(&n2, 4, 1, f) != 1) break;
-    for (uint32_t j = 0; j < n2; j++)
-      if (fread(&off, 8, 1, f) != 1 || off > size - FB_PAGE || fread(img + off, 1, FB_PAGE, f) != FB_PAGE) stop("the recording is cut short: ", path);
+    for (uint32_t j = 0; j < n2; j++) {
+      if (fread(&off, 8, 1, f) != 1 || size < FB_PAGE || off % FB_PAGE || off > size - FB_PAGE || fread(img + off, 1, FB_PAGE, f) != FB_PAGE) stop("the recording is cut short: ", path);
+      if (off == 0) require_layout((const Head *)img);
+    }
+    require_layout((const Head *)img);
+    require_substrate((const Head *)img, (const Substrate *)(img + ((const Head *)img)->me.share));
     ms = m2; after = a2; n = n2; any = 1; bind();
     if (!detailed) line(i, ms, after, n);
     else if (i == want) break;

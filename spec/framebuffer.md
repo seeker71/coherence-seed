@@ -8,6 +8,10 @@ each object, and a record can name who last wrote it.
 This page fixes how the bootstrap does that. `bootstrap/fb.h` is the layout in C, `bootstrap/ck.c`
 is the only writer, and `tools/fb.c` is the observer.
 
+The observer reads the layout version and area count before following any region offsets.
+Live regions and recordings from another layout close with an incompatibility message.
+The substrate header also identifies its version and extent within the region.
+
 ## The region
 
 - The bootstrap reserves a shared region with stable addresses. An ordinary run uses an
