@@ -80,13 +80,15 @@ function of what was read, and is saved once; every later start with the same na
   executable's `LC_UUID`. The words of `fb.own` are saved as 0; the born-code table, the working
   indexes and the text past the guard's stack are saved empty, so code is born again at its first
   call.
-- **The builder** writes the pages, then hands `region/rest.ck`, found beside the executable,
-  every file the start read with the bytes it gave. `region/rest.ck` asks the host for each
-  file's device, inode, size and both times, refuses one that is not a regular file or does not
-  read the same bytes again, and answers a node that checks those signatures again. That node is
-  the image's last part; the file is written under `<name>.image.part`, synced to the disk and
-  then renamed. The
-  builder then maps the image over its own region, so that it goes on exactly as a later start.
+- **The builder** takes the snapshot (The saver, below) and hands `region/rest.ck`, found beside
+  the executable, every file the start read with the bytes it gave. `region/rest.ck` asks the
+  host for each file's device, inode, size and both times, refuses one that is not a regular file
+  or does not read the same bytes again, and makes a node that checks those signatures again.
+  That node is the image's last part; the file is written under `<name>.image.part`, synced to the
+  disk and then renamed, all by `region/rest.ck`. The builder then puts the snapshot's pages back
+  over its own region, so that it goes on exactly as a later start. The text area is saved as it
+  was before the start, its count and its high mark, since how far it reached follows the command
+  line.
 - **Entering.** A later start reads the head and checks it in C: owned by this user, not writable
   by others, its length, the key, the version, the executable, every extent inside the region
   below the stack, every area laid out as this process lays it out, and room in the allowance for
@@ -95,6 +97,16 @@ function of what was read, and is saved once; every later start with the same na
   zero again and the pages mapped copy-on-write (`CK_FB`: read into the shared object instead);
   then the words of `fb.own` are this process's again. Any other answer makes the region what
   `fb_open` made, and the start runs cold and saves a new image.
+- **What runs after.** A node a start leaves in the cell under the entry `after` runs once the
+  start is over, in every process, whether the start ran or was entered: a package's opening, the
+  door, the device, the join, follows its loading and is not saved with it. `share/all.ck` and
+  `host/metal-all.ck` leave theirs there, and so does the first part of a Metal image.
+- **The saver.** When a start is judged at rest the bootstrap takes a copy-on-write snapshot of
+  the region below the stack (`vm_copy`), with the words of `fb.own` as 0 and the text as before
+  the start, and hands it to `region/rest.ck` with the page ranges the areas use. Form scans
+  those pages for the ones that hold anything, writes them, the head and the check through the
+  host's `creat`, `pwrite`, `fsync` and `rename`, and the bootstrap puts the snapshot's pages back
+  over the region, so the builder goes on as a later start has it.
 - **The part at rest.** A start saves itself after each of its files that leaves the region at
   rest, also after the part of it an image stood for, whose checks then go into the longer image, under the name of the files so far, and drops the image of the
   part before; so a start whose last file takes from the host keeps the image of the files before
@@ -285,11 +297,12 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   it runs, a lane's growth is not refused for the allowance, so a member of a full substrate
   leaves too, a page or so above it. A process alone runs nothing last and keeps the host's own
   way with signals. A member the host kills outright does not leave: the next that looks retires it.
-- **The door a member reads.** Loading the two packages through the search, and assembling their
-  leaves, is done once: `share/bind.ck` writes every binding they made and every leaf they
-  assembled as one node, `share/bound.ck` (`make door`; `check-header` holds that it is what they
-  give, in `make check` too), and `share/door.ck` reads that in their place. It is a stopgap: a saved
-  region at rest will hold the same bindings without a second copy of them.
+- **The door a member reads.** `share/all.ck` loads the two packages through `share/load.ck`, a
+  start that is saved at rest, and holds the opening of the door and the joining in the cell under
+  the entry `after`, which runs once the start is over (A region at rest, above). A member started
+  with `CK_IMAGES` enters the loaded packages from their image; there is no second copy of their
+  bindings to keep in step with them. `share/door.ck` loads and opens in one, for a program that
+  needs the door and is not a member.
 - **The allowance.** `CK_SHARE_BYTES`, or else what the host could spare when the substrate was
   made, is in its head and never changes. Each index has a place for twice the nodes the allowance
   can hold beside it, a thirty-second of the allowance in places, so the two take a quarter of

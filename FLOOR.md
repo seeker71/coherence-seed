@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,197 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,195 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -222,8 +222,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   leaves at the run's end, also where the bootstrap ends the process from inside a run. The bootstrap keeps one
   function of it, `adopt`, reached through a door in the head: the mapped substrate becomes the
   process's, every node it had made alone is made again there, and all the run holds is
-  forwarded. The door is read as one bound node, `share/bound.ck`, which `make door` writes from
-  the two packages and `check-header` holds to them.
+  forwarded. A member's start, `share/all.ck`, loads the two packages (`share/load.ck`), which is
+  saved at rest, and leaves the opening of the door and the joining to run after it, so a start
+  with `CK_IMAGES` enters the loaded packages and opens and joins from there.
   `make check-full` holds this with three flows. In the first, all 77 ground programs ran as
   members of one substrate, six at a time, each ending as expected, while one more member, the
   long recursion, was killed with `kill -9` in mid-run and its lane was retired by those that
@@ -466,15 +467,14 @@ running compiled code against frames all the way down).
   change of meaning: sizes of compiled code, counts of definitions and of a lens's nodes, labels
   of what the emitter compiles, step thresholds and two comparisons of clock time.
 - **More of the warm start.** Only macOS has it: the executable's identity is its `LC_UUID`, and
-  on Linux no build id is read, so every start there is cold. A start that opens the host's door
-  while it loads, as the Metal package and `share/all.ck` do, takes from the host and is never
-  saved: the Metal image's start (51 ms here, as on main) and a member's start are cold. The part of a start
-  before its first file that takes from the host is saved, but a file that loads and then opens
-  is one file, and nothing yet runs after a map what a package must make again for the process
-  (a `reborn` list). A start that runs any code is cold, compiled code too: nothing yet tells code
-  the compiler made, which reads only what it is given, from code that reads anything. The saver
-  is C, not a recipe; a copy-on-write snapshot of the region's pages (`vm_copy`, 36 to 46 µs for
-  2 MB here, seen by a probe) would let it be one. Images are kept only where `CK_IMAGES` says,
+  on Linux no build id is read, so every start there is cold. The Metal package, the Metal
+  image's first part and `share/all.ck` load, are saved, and leave their opening to run after the
+  start; the opening itself is not saved, so a warm Metal image start still asks the device (829 M
+  instructions and 29.5 ms against 1,284 M and 52.7 ms cold). A start that runs any code is cold,
+  compiled code too: nothing yet tells code the compiler made, which reads only what it is given,
+  from code that reads anything. The saver is a recipe of `region/rest.ck` over a snapshot the
+  bootstrap takes; the name, the gate's checks of the head, the extents and the layout, and the
+  reading of the check an entered part carries are still C. Images are kept only where `CK_IMAGES` says,
   since nothing yet holds that directory to a size or removes an image no start uses. A page of
   an image is trusted as written: one byte changed in it is answered from, where a cold start
   answers otherwise; hashing every page of the lens image would cost 0.26 to 0.6 ms of its 1.67
@@ -550,17 +550,9 @@ running compiled code against frames all the way down).
   Apple silicon. A member the host kills outright does not leave; its row and, if it was the
   last, the name stay until the next process looks. A member that leaves a full substrate takes
   about a page above the allowance to do it.
-  `share/bound.ck` is a stopgap: a member's start still reads and binds the door, six lone starts
-  in instructions, though the substrate holds those nodes already. A start that only loads the
-  host's and the substrate's packages is saved at rest and entered as any other (`share/load.ck`
-  is such a start); what keeps a member's start cold is that `share/all.ck` opens the door while
-  it loads, so it takes from the host and is not saved. Once loading and entering are apart, the
-  image of the loading is what `share/bound.ck` stands in for. Seen by hand, held by no check,
-  with allowances of 64 MiB: a start of `share/load.ck` and then a file that only opens the door
-  and enters, entered from the image of `share/load.ck`, made a substrate in 84.4 M instructions
-  and 4.7 ms against 109.0 M and 5.7 ms through `share/bound.ck`, and joined one in 69 to 73 M and
-  5.0 ms against 94.1 M and 6.6 ms, with a peak footprint of 12.1 MB against 6.4 MB, since the maker
-  it joined had started the other way and the joiner's nodes settled in its own lane. A process that has given out a handle above the catalogue is refused
+  A member's start with no image (`CK_IMAGES` unset) loads the two packages through the search,
+  about 600 M instructions, where reading the door as one bound node took 109 M; with an image it
+  makes a substrate in 86.5 M and joins one in 65 M. A process that has given out a handle above the catalogue is refused
   when it would join as other than the maker, since that number would name the maker's node at
   that place after; a number computed and not given by `handle` has no such claim and may name
   another node, as a number kept across a fail can. The joiner's catalogue is compared by a digest

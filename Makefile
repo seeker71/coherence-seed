@@ -35,11 +35,6 @@ kg: tools/kg.c
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
 
-# share/bound.ck is made from nodes too: what the host's package and the substrate's bind once they are loaded, and the
-# machine-code leaves their rows assemble to, as one node a member reads in place of loading and assembling them.
-door: ck
-	./ck text share/bind.ck > .ck-door && mv .ck-door share/bound.ck
-
 # Wait until the region named $name stands, for at most ten seconds.
 up = n=0; until ./fb show $$name > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
 
@@ -57,7 +52,7 @@ TEST_LIMIT := 86
 ifneq ($(word 4,$(CHECK_FLOWS)),)
 $(error make check has room for three flows)
 endif
-check: test-inventory check-door $(CHECK_FLOWS)
+check: test-inventory $(CHECK_FLOWS)
 
 # One slot per ground expectation or named Makefile check, including host-specific checks.
 test-inventory: ck
@@ -118,9 +113,12 @@ check-image: seed-run
 	    gpu=$$(./ck run "$$work/target" host/metal-all.ck); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
 	    $(MAKE) --no-print-directory metal-image METAL_RECIPE=ground/metal-polynomial.ck METAL_INPUTS=ground/metal-vectors.ck METAL_APPLICATION=ground/metal-application.ck METAL_IMAGE="$$work/run/image"; \
 	    ./ck text ground/metal-requests.ck > "$$work/requests"; \
-	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
+	    rm -f "$$images"/*.image; (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" image) < "$$work/requests" > "$$work/cold"; \
+	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; saved=$$(ls -i "$$images"); test -n "$$saved"; \
+	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/warm"; \
+	    cmp -s "$$work/cold" "$$work/replies" && cmp -s "$$work/cold" "$$work/warm" && [ "$$saved" = "$$(ls -i "$$images")" ] || { echo "Metal: the replies of a start entered from its image differ from a cold start's, or it was not entered"; exit 1; }; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
-	    echo "Metal: direct, attached and batched calls by ID agree with NUMS frames"; \
+	    echo "Metal: direct, attached and batched calls by ID agree with NUMS frames, cold and entered from the image of the start that loads them, the device opened after"; \
 	    printf '(note "rounds" %s)' "$(METAL_ROUNDS)" | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/rounds"; \
 	    got=$$(./ck run ground/metal-holds.ck "$$work/rounds" < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
 	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave in the region what $(METAL_ROUNDS) leave, and numbers only; has-target runs its value once, and a fault or a fail midway lets every object go"; \
@@ -148,16 +146,12 @@ check-header: ck
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
 
-# The bound door is a copy of what its packages give, so it is held to them wherever a member is started: under make check too.
-check-header: check-door
-check-door: ck
-	@./ck text share/bind.ck | cmp -s - share/bound.ck && echo "door: share/bound.ck is what the host's and the substrate's packages bind and assemble" || \
-	  { echo "door: share/bound.ck is not what share/bind.ck writes; run make door"; exit 1; }
 
-# A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which makes or joins it through
-# the host's rows; it reads the door as share/bound.ck holds it (make door). $(call shown,NAME) lists a substrate and its lanes by the same rows, and fails when none stands.
+# A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which loads the host's and
+# the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
+# it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
-shown = printf %s $(1) | ./ck text share/show.ck
+shown = printf %s $(1) | ./ck text share/show.ck share/load.ck
 # Wait until the substrate named $(1) has a member, for at most ten seconds.
 joined = n=0; until $(call shown,$(1)) > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
 G = .ck-ground
@@ -172,8 +166,8 @@ G = .ck-ground
 # must stand. Every name is dropped at the end, and each substrate has a small allowance, so nothing here can hold
 # the machine's memory.
 ground-isolated: ck fb
-	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; stale=/ck.ground.$$$$.s; \
-	  trap 'rc=$$?; set +e; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
+	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; stale=/ck.ground.$$$$.s; images=$(IMAGES); export CK_IMAGES="$$images"; \
+	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
 	  export CK_SHARE=$$name CK_SHARE_BYTES=536870912; \
 	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
@@ -293,6 +287,6 @@ check-bare: ck
 	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; exit 1; fi
 
 clean:
-	rm -f ck fb kg seed-run .ck-header .ck-door .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
+	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
-.PHONY: all door check-door metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
+.PHONY: all metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
