@@ -141,19 +141,21 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. Python's parser takes the Python and ruff finds no
-  undefined name in it. Against loose stubs of the runtime, the hosts' own checkers still refuse
-  parts of the typed renderings: TypeScript's strict checker 77 errors, javac 131 and Roslyn 343
-  (29 distinct messages). Most are a value typed loosely in the package (any, a list of any) used
-  where a host wants a narrower type; in C# about half are an entry compared with `is`, which
-  takes only a constant. A member read is cast to the shape it reads, and a value of unknown
-  type to the type its place declares. Numbers the package names are written by name, and long
-  argument lists are broken at the language's width. The old
-  kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
-  BML rows do not yet keep a search's meaning where a choice is a search. The encoder's package,
-  `nums/arm.ck`, and the compiler's, `nums/compile.ck`, are written by the same writer in all
-  five; the compiler's Python parses and its BML reads back. The writer writes no call into
-  another package, so the compiler is handed the encoder's functions and the runtime's as recipes.
+  into a syntax tree with the BML reader. Through `nums/write-text.ck` the writer writes itself
+  as 2,949 lines of Python, 4,980 of C#, 3,374 of TypeScript, 3,522 of Java and 2,916 of BML.
+  Python's parser takes the Python, and ruff finds in it no undefined name, redefinition, unused
+  local or comparison with `None`, `True` or `False`. Against a stub of the runtime that types
+  every name `any`, Deno's checker refuses 81 places in the TypeScript, 77 of them a value of type
+  unknown used where a type is needed; against small stubs, javac 21 refuses 121 and Roslyn 349.
+  A member read is cast to the shape it reads where the receiver's static type is another, and a
+  value of unknown type to the type its place declares. Numbers the package names are written by
+  name, and long argument lists are broken at the language's width. The BML is written as
+  `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first lines say
+  it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
+  those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
+  `nums/compile.ck`, are written by the same writer in all five; the compiler's Python parses and
+  its BML reads back. The writer writes no call into another package, so the compiler is handed
+  the encoder's functions and the runtime's as recipes.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -262,7 +264,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,261 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,263 claims, none reviewed by a second reader.
 
 ## Not there
 

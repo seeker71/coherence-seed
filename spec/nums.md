@@ -817,12 +817,15 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   `FirstOrDefault`, `findFirst().orElseGet(…)`. An `if-else` commits to its condition's first
   truth; a condition that is not a comparison is tested by Form's truth, where only no and nothing
   are false.
-- **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
-  b }`, `fail`, a blueprint for a class's data and a class for its methods, whose receiver is
-  `self` and no parameter. The writer's own package and the encoder's, written as BML, read back
-  into syntax trees with the BML reader. In that dialect `choice` takes the first option that is
-  not nothing, so where a node's choice is a search the BML does not yet mean what the node
-  means; the thesis's choice statement, which backtracks, would.
+- **BML** is written as `section [form.search]`, the old kernel's `[form.bml]` read as Form reads
+  its nodes; `nums/bml.ck` takes both. Its first lines say so: `choice { a; b }` answers each
+  answer of a and then of b, `fail` answers nothing, `let` binds each answer in turn, `first` and
+  `all` keep the first answer or every one, `a ?? b` is `first(choice { a; b })`, a `match` is a
+  ladder on one subject, and declared types are documentation. A blueprint holds a class's data
+  and a class its methods, whose receiver is `self` and no parameter. A def that does not answer
+  exactly once is preceded by a note saying how often it answers. The writer's own package and
+  the encoder's, written as BML, read back into syntax trees with the BML reader; no reader yet
+  lowers their searches to recipes.
 - **A method is called on its receiver.** `part.load` (`nums/part.ck`) binds each method a package
   declares to a recipe that calls the receiver's own method (`nums.method-key`), in one layer with
   the package's own declarations, so that a method can call the package's functions and they its
