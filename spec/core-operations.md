@@ -5,12 +5,12 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 84 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 83 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
-94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
+94 to 96 read its own region; 97 has no operation; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
 104 answers nothing with a reason, 105 with 106 close a recipe over values, 107 to 111 work on
 the bits of an integer, and 112 gives a binding a faster form. 126 and 127 are the kinds of the
@@ -523,14 +523,13 @@ emitter does not know stays on the walker until the watcher rests. The answers a
 walker's, in 1.6 million walker steps where the first recursion alone takes 158.6 million
 there. The observer shows the bindings afterwards: watched, released, compiled, watched again.
 
-## Entries 94 to 97: the region, read by a program
+## Entries 94 to 96: the region, read by a program
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
 | 94 | peek | o, n | a bytes leaf holding n bytes of the region from byte o; nothing with `range` outside it or on the page kept under the stack |
 | 95 | handle | x | the number of x's place in the node table |
 | 96 | at | h | the node at that place; nothing with `range` when there is none; the fault `irreversible` when another member settled it after this search began |
-| 97 | look | name, o, n | n bytes from byte o of the region another process made under that name, mapped to be read only; nothing with `no-region` when there is none |
 
 Diagnostics is reading the region, and these let a program do it for its own. What the bytes
 mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a place in the node
@@ -547,8 +546,14 @@ content another member settled, or moves it down past one that was; take a handl
 when no choice is open. Becoming a member makes every node the process had again in the
 substrate, so a number taken as a handle before that names nothing after. A handle
 means nothing in a stored node. `peek` reaches the member's region and, from the head's `share`
-on, the substrate. `look` reads a region that
-is being written while it is read, and its writer neither knows nor waits.
+on, the substrate.
+
+Another process's region is not read by an operation. `region/far.ck` maps it to be read only
+through the host's rows (`shm_open`, `fstat`, `mmap`), refuses with `no-region` an object that
+is not a framebuffer of this layout, whole, and reads its bytes with the load leaf, which may
+run under an open choice where a host call may not. The region is being written while it is
+read, and its writer neither knows nor waits. 97, where `look` stood, has no operation: a node
+of it faults (`kind`, or `arity` for other than two values).
 
 ## Entry 98: the host, called by name or by address
 

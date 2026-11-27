@@ -64,7 +64,7 @@ function of what was read, and is saved once; every later start with the same na
   nodes, cells, rooms and bindings, reading a file with no choice open, and a `peek` of bytes an
   image keeps as they were, which are the two heads and the areas `fb.kept` names in
   `region/layout.ck`, but the words of `fb.own`. Anything else counts in `member.taken` and the
-  start is not saved: a call of the host, `clock`, `look`, any other `peek`, any code a program
+  start is not saved: a call of the host, `clock`, any other `peek`, any code a program
   runs (code reads what it likes, and is given the region's address), a read of a file not there,
   a read under a choice, more than 64 files. So does any fault whose coming follows the process
   and not the program, caught or not: `full` of any area, which follows the allowance, the stack
@@ -146,8 +146,10 @@ Machine code reads the region too, and three places in the head are kept for it 
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
 16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
-code); and at byte 160 where the nodes area starts. After the last area entry lie the **doors**:
-addresses the host gave this process, for code that has no walker to ask. The first is `symbol`,
+code); and at byte 160 where the nodes area starts. The machine's word `unused`, where the
+address of a watched region lay before another region was read in Form, holds the second and
+third where code reads them. After the last area entry lie the **doors**: addresses the host
+gave this process, for code that has no walker to ask. The first is `symbol`,
 the address of the host's lookup of a name (`dlsym`); the second is `adopt`, the address of the
 bootstrap's own function by which a process becomes a member (below). They come after the area table so that the
 three places above do not move when a door is added; a reader finds them at the end of the area
@@ -380,11 +382,11 @@ the three places code relies on, the substrate's head and areas, the lane row, a
 puts the nodes. `ground/region-describes-itself.ck` runs that check; a description with a field
 widened or two fields changed over is reported.
 
-The same program reads another process's region. `look` maps it to be read only, and
-`region/watch.ck` shows it: every handle it meets is a place in the other process's node table,
-so the node is built again here from its record, its blueprint first, and what is shown is the
-node and not the number. The address of the mapping is the machine's `watch`, the one address
-kept in the region beside where code pages lie.
+The same program reads another process's region. `fb.watch` maps it to be read only through
+`region/far.ck`, a package over the host's rows, and `region/watch.ck` shows it: every handle
+it meets is a place in the other process's node table, so the node is built again here from its
+record, its blueprint first, and what is shown is the node and not the number. The name is held
+in the cell `fb.where` and the address of the mapping in `fb.mapped`.
 
 ## Where a run spends its time
 

@@ -127,16 +127,18 @@ check-image: seed-run
 	  fi
 
 check-live: ck fb
-	@name=/ck.ask.$$$$; budget=33554432; (CK_MEMORY_BYTES=$$budget CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); \
+	@name=/ck.ask.$$$$; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; budget=33554432; (CK_MEMORY_BYTES=$$budget CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); \
 	  ask() { printf '%s\n%s' "$$name" "$$1" | ./ck text region/ask.ck | tr -d '()\n'; }; \
 	  on=$$(ask '(seq (need ((recover (seq (take u8 '"$$((budget - 4096))"') no) {reason | reason}) = (list "full" "rooms"))) (bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $$0)))))'); \
 	  one=$$(ask '(held #1002)'); two=$$(ask '(held #1002)'); off=$$(ask '(unbind add)'); three=$$(ask '(held #1002)'); four=$$(ask '(held #1002)'); \
+	  printf '(seq (step (read (file "region/all.ck"))) (let named (file "/dev/stdin") watched (fb.watch (pack text (all (let c (lens.bytes-of named) (when (32 < c) c))))) m (held fb.mapped) size (far.size m) (tuple ((far.bytes m 0 8) = [bytes 434b4642310a0000]) ((count (far.bytes m (size - 8) 8)) = 8) ((fb.num (fb.offset (fb.kind "head") "bytes") 8) = size) (count (far.bytes m 0 0)) (outcome (far.bytes m (size - 7) 8)) (outcome (far.bytes m -1 1)) (outcome (far.bytes m 0 -1)))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/edges"; \
+	  edges=$$(printf %s $$name | ./ck run "$$work/edges"); none=$$(printf %s $$name.none | ./ck run "$$work/edges"); \
 	  n=0; until ./fb show $$name | grep -q 'mode done'; do n=$$((n+1)); [ $$n -gt 1200 ] && break; sleep 0.05; done; \
 	  last=$$(./fb show $$name | grep '^outcome'); ./fb drop $$name; n1=$${one##* }; n2=$${two##* }; \
 	  case "$$last" in "outcome  node 2178309 "*) ok=1;; *) ok=0;; esac; \
-	  if [ $$ok = 1 ] && [ "$$on" = 'list "node" yes' ] && [ "$$off" = "$$on" ] && [ "$${n1:-0}" -gt 0 ] && [ "$${n2:-0}" -gt "$$n1" ] && [ "$$three" = "$$four" ]; \
-	  then echo "live: a room beyond the shared allowance recovered; a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
-	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last'"; exit 1; fi
+	  if [ $$ok = 1 ] && [ "$$on" = 'list "node" yes' ] && [ "$$off" = "$$on" ] && [ "$${n1:-0}" -gt 0 ] && [ "$${n2:-0}" -gt "$$n1" ] && [ "$$three" = "$$four" ] && [ "$$edges" = 'node (#16 #33 #33 #33 [#4] (#16 [#2 6e6f7468696e67] [#2 72616e6765]) ^2 ^2)' ] && case "$$none" in 'fault (#16 [#2 6e6f2d726567696f6e] '*) true;; *) false;; esac; \
+	  then echo "live: a room beyond the shared allowance recovered; a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309; read from outside through host rows, its bytes end where its head says, and a name that is no region is refused"; \
+	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last', edges '$$edges', none '$$none'"; exit 1; fi
 
 # How many maps ground/metal-holds.ck compares with twice as many: few under make check, more here.
 METAL_ROUNDS ?= 2

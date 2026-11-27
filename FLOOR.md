@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,187 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,159 lines, 28 fewer since another process's region is read in Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -17,7 +17,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler written as components that writes AArch64 for whole functions and what they call, casts included, through an encoder written as components over rows of instructions |
 | Writer | [`spec/nums.md`](spec/nums.md), [`nums/write.ck`](nums/write.ck) | a component package that writes any component package as Python, C#, TypeScript, Java or BML from rows per language, with names kept beside the nodes and methods called on their receivers |
-| Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most, and `region/rest.ck`, which says of a start saved at rest what it read and whether that still holds |
+| Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most, `region/far.ck`, which maps another process's region by the host's rows and reads it with the load leaf, and `region/rest.ck`, which says of a start saved at rest what it read and whether that still holds |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it. A named substrate and its lanes are shown by `share/show.ck`, in Form |
 | Substrate | [`share/`](share) | written in form, a component package over the host's rows: making or joining a named substrate, claiming a lane, telling whether a member stands, retiring, burying, leaving, and listing one |
@@ -375,6 +375,19 @@ Each line here is held by a program in `make check-full`, or names how it was se
   print, the canonical bytes, SHA-256 and the id, and the reader of bytes. Bound in place of the
   bootstrap's own they hold the 142 vectors, ids among them; on the reader and printer every
   ground program runs.
+- **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
+  `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
+  host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
+  open choice where a host call may not. Before the C went, both read a finished run's region
+  at 24 offsets (page edges, its last bytes, one past, -1) and 12 lengths: the 288 answers were
+  the same, `range` included, and three objects that are no region (none, 100 bytes, 64 KiB of
+  zeros) were refused with `no-region` by both; `region/watch.ck` showed a lens run's region,
+  148 lines with every binding, the same bytes through both, in 3.4 s where `look` took 2.1 s.
+  `make check-live` reads its live region from outside and holds the magic, the size read two
+  ways, the last word, an empty read, three reads past an edge and a name that is no region; a
+  byte mask, a shift and a bound planted in the package each made it fail. A region of another
+  layout version is refused, where `look` read it as this one. 97 has no operation now: a node
+  of it faults, where the bootstrap's arithmetic would have multiplied its two values.
 - **Emitted code is the walker or faster, never different.** It answers a number or a node, or declines. For
   an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
   and it steps aside while something from outside watches an operation it replaced.
@@ -490,7 +503,7 @@ running compiled code against frames all the way down).
   and the bindings. A file of more than 1 GiB is the fault `full` with `text` here, where on main
   it was read when the allowance held it.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
-  beside it. One step is taken: the 74 operations describe themselves as nodes, what each
+  beside it. One step is taken: the 75 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
   a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
   instructions are rows of data. The rest is not there. The nodes read a part by a bare number

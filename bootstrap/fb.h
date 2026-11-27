@@ -18,7 +18,7 @@ BLUEPRINT = 64, COUNT = 65, CHILD = 66, BYTE = 67, LEAF = 68, PACK = 69, JOIN = 
 BINDING = 72, UP = 73, BASE = 74, LAZY = 75, READ = 76, PRINT = 77, ID = 78, FILE_OP = 79,
 CLOCK = 80, STEP = 81, OUTCOME = 82, DIV = 83, MOD = 84, FAULT = 85, LAYER = 86, ENCODE = 87,
 DECODE = 88, HOLD = 89, HELD = 90, TRAIL = 91, NOTE = 92, UNBIND = 93, PEEK = 94, HANDLE = 95,
-AT = 96, LOOK = 97, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
+AT = 96, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
 NOTHING = 104, CLOSE = 105, CLOSED = 106, BAND = 107, BOR = 108, BXOR = 109, SHL = 110, SHR = 111,
 FAST = 112, ROOM = 113, ROOM_TRAIL = 114, TAKE = 115, LOAD = 116, STORE = 117, WADD = 118, WSUB = 119,
 WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, HOST_TARGET = 124, HAS_TARGET = 125, SUBSTRATE = 126, LANE = 127,
@@ -37,7 +37,7 @@ LAST = 127 };
 [78] = "id", [79] = "file", [80] = "clock", [81] = "step", [82] = "outcome", [83] = "div", \
 [84] = "mod", [85] = "fault", [86] = "layer", [87] = "encode", [88] = "decode", [89] = "hold", \
 [90] = "held", [91] = "trail", [92] = "note", [93] = "unbind", [94] = "peek", [95] = "handle", \
-[96] = "at", [97] = "look", [98] = "host", [99] = "range", [100] = "let", [101] = "outside", \
+[96] = "at", [98] = "host", [99] = "range", [100] = "let", [101] = "outside", \
 [102] = "bound", [103] = "after", [104] = "nothing", [105] = "close", [106] = "closed", [107] = "band", \
 [108] = "bor", [109] = "bxor", [110] = "shl", [111] = "shr", [112] = "fast", [113] = "room", \
 [114] = "room-trail", [115] = "take", [116] = "load", [117] = "store", [118] = "wadd", [119] = "wsub", \
@@ -53,7 +53,7 @@ enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER
 #define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", "aside", 
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE, M_COUNT };
 #define FB_MODE_NAMES "eval", "ret", "failed", "fault", "done", 
-typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t pcount; uint32_t one; uint32_t ncode; uint64_t watch; uint64_t step; uint64_t code; uint64_t serve; } Machine;
+typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t pcount; uint32_t one; uint32_t ncode; uint64_t unused; uint64_t step; uint64_t code; uint64_t serve; } Machine;
 typedef struct { H bp; H by; H of; uint32_t size; uint64_t peak; uint64_t off; uint64_t cap; uint64_t n; } Area;
 typedef struct { H bp; H by; uint32_t ida; uint8_t comp; uint8_t settled; uint8_t pad[2]; uint64_t n; uint64_t off; } Node;
 typedef struct { H bp; H by; uint32_t t; H node; uint32_t i; uint32_t env; uint32_t cut; uint32_t vals; uint32_t k; uint32_t aux; uint32_t mact; uint32_t mlink; } Frame;
@@ -74,10 +74,10 @@ typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
 #define FB_VERSION 25u
-#define FB_CATALOGUE UINT64_C(42424705279398542)
+#define FB_CATALOGUE UINT64_C(33329149175459548)
 #define FB_PAGE 16384u
 enum { FB_LANE, FB_HANDLES, FB_STACK, FB_BITS };   /* a reservation made by the bootstrap */
 #define FB_AREA_ROWS {NODE, sizeof(Node), FB_LANE}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {FRAME, sizeof(Frame), 1073741824ull}, {LINK, sizeof(Link), 1073741824ull}, {ACTIVATION, sizeof(Activation), 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {CHOICE_POINT, sizeof(ChoicePoint), 1073741824ull}, {GATHERED, sizeof(Gathered), 1073741824ull}, {CODE, sizeof(Code), 268435456ull}, {BINDING, sizeof(Binding), 268435456ull}, {WORD_TABLE, 4, FB_HANDLES}, {BINDING, sizeof(Binding), 3556ull}, {WORD_TABLE, 4, FB_HANDLES}, {TRAIL, sizeof(Trail), 1073741824ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 1073741824ull}, {BYTE_TABLE, 1, 1073741824ull}, {BYTE_TABLE, 1, 1073741824ull}, {WORD_TABLE, 4, FB_HANDLES}, {BYTE_TABLE, 1, 1073741824ull}, {BYTE_TABLE, 1, FB_STACK}, {BYTE_TABLE, 1, 268435456ull}, {BYTE_TABLE, 1, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {BYTE_TABLE, 1, 4294967296ull}, {ROOM_TRAIL, sizeof(RoomTrail), 1073741824ull}, {WORD_TABLE, 4, 16ull}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1024ull}, {BYTE_TABLE, 1, FB_BITS}, {LANE, sizeof(Lane), 64ull}, {NODE, sizeof(Node), 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, 
-#define FB_OWN(X) X(fb->pid) X(fb->bytes) X(W->watch) X(W->code) X(W->serve) X(fb->d.symbol) X(fb->d.adopt) X(fb->d.region) X(fb->me.allowance) X(fb->a[A_STACK]) X(sub->pid) X(sub->allowance) X(sub->bytes) X(ln->who) 
+#define FB_OWN(X) X(fb->pid) X(fb->bytes) X(W->code) X(W->serve) X(fb->d.symbol) X(fb->d.adopt) X(fb->d.region) X(fb->me.allowance) X(fb->a[A_STACK]) X(sub->pid) X(sub->allowance) X(sub->bytes) X(ln->who) 
 #define FB_KEPT(X) X(fb->a[A_BINDINGS]) X(fb->a[A_BOUND_BY_NODE]) X(fb->a[A_CELLS]) X(fb->a[A_ROOMS]) X(fb->a[A_GIVES]) X(fb->a[A_TOUCHED]) X(sub->a[S_LANES]) X(sub->a[S_NODES]) X(sub->a[S_LEAF_BYTES]) X(sub->a[S_CHILDREN]) X(sub->a[S_IDS]) X(sub->a[S_BY_CONTENT]) X(sub->a[S_BY_ID]) 
 #endif

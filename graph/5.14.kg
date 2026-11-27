@@ -409,11 +409,11 @@ at: 2026-11-25
 n: 5.14.39
 name: an-observer-written-in-form
 kind: observation
-is: Observed on 2026-11-25. Entry 97, look, reads bytes of a region another process made, mapped to be read only. region/watch.ck, the same showing program that reads its own region, was pointed at the region a finished run had kept: it showed the version, the machine's step, each area in use and all thirteen bindings, the last four as watched, released, compiled and released, in 0.04 s. Each handle met was built again as a node here from the other process's records, so the bindings showed in the lens's words where the observer in C shows numbers for what it has no name for.
+is: Observed on 2026-11-28. region/far.ck maps a region another process made, read only, by the host's rows and reads it with the load leaf. region/watch.ck, which shows its own region the same way, showed a finished lens run's kept region: version, step, areas in use and every binding, 148 lines, the same bytes entry 97 (look, gone from the bootstrap) showed, in 3.4 s where look took 2.1 s. Each handle met was built again here as a node from the other process's records, so bindings show in the lens's words.
 status: observed
 src: 2.30.7 2.30.9 2.30.10 2.30.11
 limit: One frame of a region kept after its run. Recording a run in motion and replaying it are still the observer in C.
-at: 2026-11-25
+at: 2026-11-28
 
 n: 5.14.40
 name: the-host-is-called-by-name

@@ -71,7 +71,6 @@ typedef struct {
   int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap, uint64_t *written);
   Ret (*call)(void *fn, const int64_t *a);
   int64_t (*clock)(void);                          /* nanoseconds that only move forward */
-  void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
   void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
   uint64_t (*memory)(void);                        /* available bytes on this host now */
@@ -128,17 +127,6 @@ static int h_code_publish(void *p, const void *source, size_t n) {
 }
 static Ret h_call(void *fn, const int64_t *a) {
   return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
-}
-static void *h_watch(const char *name) {
-  static void *previous; static size_t previous_size;
-  int fd = shm_open(name, O_RDONLY, 0); struct stat st;
-  if (fd < 0) return NULL;
-  void *p = fstat(fd, &st) || st.st_size < (off_t)FB_PAGE ? MAP_FAILED : mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  close(fd);
-  if (p == MAP_FAILED) return NULL;
-  if (memcmp(p, FB_MAGIC, 8) || ((const Head *)p)->bytes != (uint64_t)st.st_size) { munmap(p, (size_t)st.st_size); return NULL; }
-  if (previous) munmap(previous, previous_size);
-  previous = p; previous_size = (size_t)st.st_size; return p;
 }
 static void *h_symbol(const char *name) { return dlsym(RTLD_DEFAULT, name); }
 static void h_guard(void (*on)(int), void *stack, size_t n) {
@@ -210,7 +198,7 @@ static uint64_t h_line(void) {
 #endif
   return 0;
 }
-static Host host = { h_region, h_code_map, h_code_publish, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory, h_line };
+static Host host = { h_region, h_code_map, h_code_publish, h_file_read, h_call, h_clock, h_symbol, h_guard, h_memory, h_line };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -1380,23 +1368,6 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     r = called((void *)(intptr_t)arg[0], arg + 1); W->v = mki(r.v);
     return;
   }
-  if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
-    int64_t o = 0, n = 0; uint64_t mark = ntext;
-    if (c != 3) { fault(S_ARITY); return; }
-    if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault(S_KIND); return; }
-    touch(A_CELLS, E(LOOK)); fb->me.taken += reading;
-    if (held[E(LOOK)] != a[0]) {
-      char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
-      void *p = host.watch(s); ntext = mark;
-      if (!p) { W->v = 0; W->reason = notice(S_NO_REGION); return; }
-      W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0]; kept(E(NOTE), E(LOOK), a[0]);
-    }
-    const Head *far = (const Head *)(uintptr_t)W->watch;
-    if (o < 0 || n < 0 || (uint64_t)o + (uint64_t)n > far->bytes) { W->v = 0; W->reason = notice(S_RANGE); return; }
-    uint8_t *copy = talloc((size_t)n); memcpy(copy, (const uint8_t *)far + o, (size_t)n);
-    W->v = mk(0, E(BYTES), copy, (uint64_t)n, &why); ntext = mark; return;
-  }
   if (op == PEEK || op == HANDLE || op == AT) {   /* the region read by a program in it: its bytes, and where a node is */
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
     if (c != (op == PEEK ? 2u : 1u)) { fault(S_ARITY); return; }
@@ -1481,6 +1452,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = notice(S_RANGE); return; }
     W->v = mki(op == DIV ? m / n : m % n); return;
   }
+  if (op != ADD && op != SUB && op != MUL) { fault(S_KIND); return; }   /* a number no operation stands at, as 97 since look left */
   if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
                 : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = notice(S_RANGE); return; }
   W->v = mki(r);
