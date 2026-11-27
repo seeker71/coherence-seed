@@ -180,7 +180,8 @@ check-held-back: ck
 	  gen decline correction refusal; gen silence refusal quiet; gen scope quiet scope; gen other-scope proposal alternative; \
 	  gen permit scope offered first; gen ticket scope ticket first; gen ticket alternative wrong first; \
 	  change authorize offered genesis sender; send receive ticket reply; expect reply inbox.paused; empty; \
-	  change listen ticket genesis listener; gen expire-during-stage ticket reply channel; expect reply share.expired; empty; \
+	  change listen ticket genesis listener; mkdir -p "$$work/expiry/private" "$$work/expiry/letters"; cp "$$work/private/authority" "$$work/private/listening" "$$work/expiry/private"; \
+	  printf %s "$$work/expiry" > "$$work/expiry-path"; gen channel expiry-path expiry-channel; gen expire-during-stage ticket reply expiry-channel; expect reply share.expired; test -z "$$(ls -A "$$work/expiry/letters")"; \
 	  send receive wrong reply; expect reply share.different; empty; \
 	  change listen none listener paused; change listen ticket genesis stale; \
 	  [ "$$(cat "$$work/stale")" = "$$(printf inbox.stale | ./ck text lens/to-nodes.ck lens/all.ck)" ]; \
@@ -190,6 +191,9 @@ check-held-back: ck
 	  interrupt before 75; empty; interrupt after 76; \
 	  set -- "$$work/letters/"*; [ "$$#" = 1 ]; ln "$$1" "$$work/original"; gen bytes original seen; printf 'Kami boleh berbagi' | cmp - "$$work/seen"; \
 	  send receive ticket reply; expect reply inbox.replayed; gen reference reply confirmed; cmp "$$work/confirmed" "$$work/ticket"; test "$$1" -ef "$$work/original"; \
+	  mv "$$work/letters" "$$work/asleep"; rc=0; send receive ticket failed || rc=$$?; [ "$$rc" = 1 ]; \
+	  reason=$$(printf '(list inbox.io "publish" "%s")' "$$1" | ./ck text lens/to-nodes.ck lens/all.ck); \
+	  [ "$$(cat "$$work/failed")" = "fault $$reason" ]; [ ! -e "$$work/private/pending" ]; mv "$$work/asleep" "$$work/letters"; \
 	  gen permit alternative other-permit first; change authorize other-permit sender sender; change listen wrong listener listener; \
 	  send receive wrong reply; expect reply inbox.conflict; gen bytes original intact; cmp "$$work/intact" "$$work/seen"; test "$$1" -ef "$$work/original"; \
 	  change authorize none sender stopped; send receive wrong reply; expect reply share.ungranted; \
@@ -208,11 +212,7 @@ check-held-back: ck
 	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
 	  apply() { ./ck text circle/apply.ck 3<"$$work/channel" 4<"$$work/$$1" <"$$work/$$2"; }; \
 	  verify() { ./ck text circle/check-proof.ck 3<"$$work/$$1" 4<"$$work/$$2" <"$$work/$$3"; }; \
-	  refused() { expected=$$1; shift; rc=0; "$$@" >"$$work/reason" || rc=$$?; actual=$$(cat "$$work/reason"); [ "$$rc" = 1 ] && [ "$$actual" = "fault $$(word "$$expected")" ] || { mv "$$work/private" "$$work/previous"; mkdir "$$work/private"; cp "$$work/wrong-episode" "$$work/private/peers"; \
-	  ./ck text circle/pin.ck <"$$work/wrong-episode" >"$$work/private/authority"; cp "$$work/private/authority" "$$work/private/listening"; \
-	  refused peer.wrong-control apply listener-change listener-proof; apply listener-change listener-other-proof >"$$work/second-listener"; apply owner-change owner-other-proof >"$$work/second-owner"; \
-	  test "$$(receive)" = "$$(word inbox.accepted)"; set -- "$$work/letters/"*; test "$$#" = 2; \
-	  echo "signed control: $$actual, expected $$expected" >&2; return 1; }; }; \
+	  refused() { expected=$$1; shift; rc=0; "$$@" >"$$work/reason" || rc=$$?; actual=$$(cat "$$work/reason"); [ "$$rc" = 1 ] && [ "$$actual" = "fault $$(word "$$expected")" ] || { echo "signed control: $$actual, expected $$expected" >&2; return 1; }; }; \
 	  for item in roster owner-change listener-change withdraw-change owner-proof listener-proof withdraw-proof listener-ticket wrong-episode same-keys owner-other-proof listener-other-proof; do sample "$$item" > "$$work/$$item"; done; \
 	  printf %s channel > "$$work/mode"; printf %s "$$work" | ./ck text ground/circle-exchange.ck 3<"$$work/mode" >"$$work/channel"; \
 	  cp "$$work/roster" "$$work/private/peers"; ./ck text circle/pin.ck < "$$work/roster" > "$$work/pin"; \
@@ -239,7 +239,58 @@ check-held-back: ck
 	  sample witness private/authority | cmp - "$$work/owner-proof"; sample witness private/listening | cmp - "$$work/listener-proof"; \
 	  test "$$(receive)" = "$$(word inbox.accepted)"; set -- "$$work/letters/"*; test "$$#" = 1; printf bytes > "$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$1" > "$$work/observed"; printf "Kami boleh berbagi" | cmp - "$$work/observed"; \
 	  apply withdraw-change withdraw-proof >"$$work/withdrawn"; test "$$(apply owner-change owner-proof)" = "$$(word inbox.stale)"; test "$$(receive)" = "$$(word share.ungranted)"; sample witness private/authority | cmp - "$$work/withdraw-proof"; \
-	  echo "signed control: two enrolled keys, scoped registers, retained signatures, exact recipient bytes and stale withdrawal replay agreed"
+	  mv "$$work/private" "$$work/previous"; mkdir "$$work/private"; cp "$$work/wrong-episode" "$$work/private/peers"; \
+	  ./ck text circle/pin.ck <"$$work/wrong-episode" >"$$work/private/authority"; cp "$$work/private/authority" "$$work/private/listening"; \
+	  refused peer.wrong-control apply listener-change listener-proof; apply listener-change listener-other-proof >"$$work/second-listener"; apply owner-change owner-other-proof >"$$work/second-owner"; \
+	  test "$$(receive)" = "$$(word inbox.accepted)"; set -- "$$work/letters/"*; test "$$#" = 2; \
+	  echo "signed control: two enrolled keys, scoped registers, retained signatures, exact recipient bytes and stale withdrawal replay agreed"; \
+	  for item in roster grant listener withdraw ticket grant-proof listener-proof withdraw-proof; do sample "finite-$$item" > "$$work/finite-$$item"; done; \
+	  ./ck text circle/pin.ck < "$$work/finite-roster" > "$$work/finite-pin"; \
+	  lease_apply() { \
+	    ./ck text circle/apply.ck 3<"$$work/$$1/channel" 4<"$$work/finite-$$2" <"$$work/finite-$$2-proof" >"$$work/$$1/revision"; \
+	  }; \
+	  lease_fresh() { \
+	    mkdir -p "$$work/$$1/private" "$$work/$$1/letters"; \
+	    printf %s channel > "$$work/mode"; \
+	    printf %s "$$work/$$1" | ./ck text ground/circle-exchange.ck 3<"$$work/mode" >"$$work/$$1/channel"; \
+	    cp "$$work/finite-roster" "$$work/$$1/private/peers"; cp "$$work/finite-pin" "$$work/$$1/private/authority"; cp "$$work/finite-pin" "$$work/$$1/private/listening"; \
+	    lease_apply "$$1" grant; lease_apply "$$1" listener; \
+	    sample witness "$$1/private/listening" | cmp - "$$work/finite-listener-proof"; \
+	  }; \
+	  lease_receive() { \
+	    word "$$2" > "$$work/$$1/clock"; \
+	    ./ck text circle/receive.ck ground/broker-clock.ck 3<"$$work/$$1/channel" 4<"$$work/$$1/clock" <"$$work/finite-ticket" >"$$work/$$1/result"; \
+	    printf %s reference > "$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$work/$$1/result" | cmp - "$$work/finite-ticket"; \
+	    printf %s status > "$$work/mode"; observed=$$(./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$work/$$1/result"); expected=$$(word "$$3"); \
+	    [ "$$observed" = "$$expected" ] || { echo "finite grant at $$1, time $$2: expected $$3, observed $$observed" >&2; return 1; }; \
+	  }; \
+	  lease_evidence() { \
+	    sample witness "$$1/private/authority" | cmp - "$$work/finite-$$2-proof"; \
+	    if [ "$$3" = empty ]; then test -z "$$(ls -A "$$work/$$1/letters")"; else \
+	      broker=$$1; set -- "$$work/$$broker/letters/"*; test "$$#" = 1; test -f "$$1"; \
+	      printf %s bytes > "$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$1" > "$$work/$$broker/bytes"; \
+	      printf 'Kami boleh berbagi' | cmp - "$$work/$$broker/bytes"; \
+	      if [ -f "$$work/$$broker/delivered" ]; then test "$$1" -ef "$$work/$$broker/delivered"; else ln "$$1" "$$work/$$broker/delivered"; fi; \
+	    fi; \
+	  }; \
+	  validity() { ./ck text circle/validity.ck 3<"$$work/finite-roster" 4<"$$work/finite-$$1" <"$$work/finite-$$2-proof"; }; \
+	  expect_validity() { sample control "finite-$$1-proof" > "$$work/control"; control=$$(./ck text lens/to-words.ck lens/all.ck < "$$work/control"); terms=$$(word "($$2 $$control $$3)"); actual=$$(validity "$$1" "$$1"); test "$$actual" = "$$terms"; }; \
+	  ticket=$$(./ck text lens/to-words.ck lens/all.ck < "$$work/finite-ticket"); expect_validity grant peer.window "$$ticket 100 110"; expect_validity withdraw peer.withdrawal ""; \
+	  refused peer.not-owner validity listener listener; refused peer.wrong-control validity withdraw grant; \
+	  lease_fresh first/owner; lease_fresh first/isolated; \
+	  lease_receive first/owner 99 share.early; lease_receive first/isolated 99 share.early; \
+	  lease_apply first/owner withdraw; lease_receive first/owner 100 share.ungranted; lease_evidence first/owner withdraw empty; \
+	  lease_evidence first/isolated grant empty; lease_receive first/isolated 100 inbox.accepted; lease_evidence first/isolated grant published; \
+	  lease_receive first/isolated 109 inbox.replayed; lease_receive first/isolated 110 share.expired; lease_evidence first/isolated grant published; \
+	  lease_apply first/isolated withdraw; lease_receive first/isolated 111 share.ungranted; lease_evidence first/isolated withdraw published; \
+	  lease_fresh second/owner; lease_fresh second/isolated; \
+	  lease_receive second/isolated "(list 109 110)" share.expired; lease_evidence second/isolated grant empty; \
+	  lease_receive second/owner 109 inbox.accepted; lease_evidence second/owner grant published; \
+	  lease_receive second/isolated 109 share.clock-regressed; lease_evidence second/isolated grant empty; \
+	  lease_apply second/isolated withdraw; lease_receive second/isolated 109 share.ungranted; lease_evidence second/isolated withdraw empty; \
+	  lease_fresh moving/isolated; lease_receive moving/isolated "(list 104 105 106)" share.clock-unsettled; lease_evidence moving/isolated grant empty; \
+	  lease_receive moving/isolated 105 share.clock-regressed; lease_receive moving/isolated 106 inbox.accepted; lease_evidence moving/isolated grant published; \
+	  echo "finite grant: two signed broker schedules agreed with the grant window, independent withdrawal witnesses, rollback and recipient files"
 
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \

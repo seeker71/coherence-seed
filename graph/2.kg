@@ -363,3 +363,11 @@ is: Public test keys, synthetic consent drafts, signing digests and detached pro
 path: coherence-seed/ground/peer-vectors.ck
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.27
+name: broker-clock.ck
+kind: source
+is: A controlled sequence of host seconds drives signed finite grants through the normal receive command in check-held-back.
+path: coherence-seed/ground/broker-clock.ck
+got: 2026-11-28
+at: 2026-11-28

@@ -1,6 +1,6 @@
 # Floor
 
-What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
+What stands, from observations through **2026-11-28** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -367,6 +367,13 @@ running compiled code against frames all the way down).
   checked the returned ticket and status over a serial link. The receipt itself was unsigned.
   The maintained flow also checks the exact bilingual payload, retained signatures and stale
   grant replay after withdrawal. [Signed consent controls](spec/core-operations.md#signed-consent-controls)
+- **A broker remembers the expiry it observed.** Two local brokers received the same signed
+  grant for seconds 100 through 109. One received the withdrawal and declined at 100. The
+  other delivered at 100. In a separate run it reached 110 before publication, restarted at
+  109 and still left the receiving directory empty. Restoring an older copy of its private
+  directory allowed delivery again. An owner can verify the exact signed window and
+  withdrawal offline. Evidence of when each broker applied them remains open.
+  [Signed consent controls](spec/core-operations.md#signed-consent-controls)
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 

@@ -434,3 +434,15 @@ conf: mid
 why: The maintained comparison checks the public signing bytes, declined controls, independent owner and listener grants, retained signatures and exact delivered wording. Separately, an isolated Linux guest signed an invitation, the macOS broker applied it and the guest matched the returned ticket and status.
 limit: Public keys were preprovisioned. The receipt is unsigned. A change withheld from the broker has no effect there. Human identity and globally current revocation remain open.
 at: 2026-11-27
+
+n: 5.19.41
+name: a-broker-remembers-the-highest-grant-second-it-observed
+kind: observation
+is: A broker with its private checkpoint intact declines a first delivery after observing the signed window close, even when it restarts at an earlier second.
+status: observed
+from: 5.19.40
+src: 2.30.27
+conf: mid
+why: Two local brokers processed the same signed window and received the withdrawal at different times. The maintained comparison checks both receiving directories, retained proofs, exact signed terms, staging across expiry and a fresh process at a lower second.
+limit: Restoring private state from before the observation allowed delivery. There is no independent time source, power-loss guarantee or signed broker acknowledgment.
+at: 2026-11-28

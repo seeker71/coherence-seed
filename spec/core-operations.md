@@ -665,7 +665,18 @@ Initialize `authority` and `listening` inside the private directory to the canon
 Both registers start at `id(no)`. Each successful change returns its new revision ID.
 Reapplying a current change returns that revision. An intervening change makes the old update
 stale, including after withdrawal. One private-directory lock serializes the two controls with
-delivery. The clock is sampled again after staging, immediately before publication.
+delivery. A grant includes its first Unix second and excludes its ending second. Under the
+same lock the broker keeps the highest valid second it has observed in the private
+`observed-time` file. A fresh process reads that checkpoint. For an otherwise matching
+grant, a lower sample returns `share.clock-regressed` and a missing sample returns
+`share.no-clock`. A withdrawal still returns `share.ungranted`.
+
+After staging a letter, the broker samples again. If recording an advance takes it to a
+later second, it records that second too. Expiry takes effect immediately. A still-eligible
+delivery returns `share.clock-unsettled` and can be retried. These paths leave the receiving
+directory untouched. The checkpoint protects an intact store across process restarts. Restoring
+a snapshot taken before expiry can allow delivery again. An inaccurate or frozen host clock
+can also keep a disconnected broker inside the grant window.
 
 The receiver gets one immutable `inbox.letter` holding the ticket and the permitted bytes.
 The original turn, alternative readings and grant stay in the private scope. The letter's
@@ -696,6 +707,7 @@ recipient and two distinct Ed25519 public keys. Provisioning establishes who own
 | Sign and package | `./ck text circle/signing-bytes.ck < control` produces the 32 raw bytes to sign: the content ID of the entire typed control. Sign those bytes with ordinary detached Ed25519. `./ck text circle/seal.ck 4<signature < control` produces the portable proof. |
 | Verify independently | `./ck text circle/check-proof.ck 3<roster 4<draft < proof` checks the exact local draft against the roster and signature and returns the signing role. The caller supplies its trusted copy of the roster. |
 | Apply at the broker | `./ck text circle/apply.ck 3<channel 4<draft < proof` reads the pinned roster from the broker's private directory, verifies the signature, then rechecks the pin and revision under the same lock used by local delivery. Success returns the new revision ID. |
+| Read the owner's signed terms | `./ck text circle/validity.ck 3<roster 4<draft < proof` verifies the proof against the supplied roster and draft. A grant returns the signed control, exact ticket, first second and ending second. A withdrawal returns its signed control. A listener decision gives `peer.not-owner`. |
 
 The current register keeps the verified proof alongside its private authority state and prior
 revision ID. No private signing key is needed by the verifier. An unsigned command against a
@@ -704,6 +716,13 @@ register. Distinct episodes use separate occurrence namespaces even when the par
 and nonce coincide. In a separate run, two brokers held the same roster and signed grant.
 The broker that had received the withdrawal declined delivery. Its disconnected counterpart
 accepted the same ticket, then declined it once the signed withdrawal arrived.
+
+The finite-grant comparison gives two brokers the same signed window from 100 through 109.
+One receives the withdrawal before 100. The other accepts at 100, reports a replay at 109
+and declines at 110. A separate schedule crosses 110 while staging a first delivery. After
+restart at 109 that broker still has an empty receiving directory. The owner can inspect
+the signed terms offline. They establish neither when each broker received the withdrawal
+nor which broker delivered a letter. The protocol has no signed broker acknowledgment.
 
 `host/ed25519.ck` uses a locally installed libsodium provider. Malformed inputs, invalid
 signatures and an unavailable or failing provider have distinct outcomes. The maintained
