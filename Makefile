@@ -119,8 +119,12 @@ check-header: ck
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
 
+# A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which makes or joins it through
+# the host's rows. $(call shown,NAME) lists a substrate and its lanes by the same rows, and fails when none stands.
+MEMBER = share/all.ck
+shown = printf %s $(1) | ./ck text share/show.ck
 # Wait until the substrate named $(1) has a member, for at most ten seconds.
-joined = n=0; until ./fb share $(1) > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
+joined = n=0; until $(call shown,$(1)) > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
 G = .ck-ground
 
 # Every ground program in its own process, all of them members of one substrate: sharing changes no outcome. One
@@ -132,21 +136,21 @@ ground-isolated: ck fb
 	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; \
 	  trap 'rc=$$?; set +e; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; rm -f $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
 	  export CK_SHARE=$$name CK_SHARE_BYTES=1073741824; \
-	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) > /dev/null 2>&1 & echo $$! > $(G).victim); \
+	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
-	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
-	    wait; ./fb share $$name > $(G).lanes; cat region/one-handle.ck; } | ./ck text /dev/stdin > $(G).held; \
+	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck $(MEMBER) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
+	    wait; $(call shown,$$name) > $(G).lanes; cat region/one-handle.ck; } | ./ck text /dev/stdin $(MEMBER) > $(G).held; \
 	  differences=$$(cat $(G).differences); held=$$(cat $(G).held); victim=$$(cat $(G).victim); \
 	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \
 	  [ -f $(G).killed ] && grep -q "gone  *pid $$victim " $(G).lanes || { echo "ground: the member to kill had ended, or its lane was not retired"; exit 1; }; \
 	  case "$$held" in *" settled nodes, 0 not found as themselves, "*) ;; *) echo "ground: over what the members left: $$held"; exit 1;; esac; \
-	  ! ./fb share $$name > /dev/null 2>&1 || { echo "ground: the substrate outlived its last member"; exit 1; }; \
+	  ! $(call shown,$$name) > /dev/null 2>&1 || { echo "ground: the substrate outlived its last member"; exit 1; }; \
 	  export CK_SHARE=$$dead CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=67108864; \
-	  for k in 1 2; do (./ck run $(LONG) > /dev/null 2>&1 & echo $$! > $(G).victim$$k); done; $(call joined,$$dead); sleep 0.3; \
-	  kill -9 $$(cat $(G).victim1 $(G).victim2); sleep 0.1; old=$$(./fb share $$dead | head -1); \
-	  got=$$({ n=0; until [ "$$(./fb share $$dead 2> /dev/null | head -1)" != "$$old" ]; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done; \
-	    ./fb share $$dead | head -1 > $(G).new; cat ground/add.ck; } | ./ck run /dev/stdin); new=$$(cat $(G).new); \
-	  [ "$$got" = 'node [#4 2a]' ] && [ -n "$$old" ] && [ -n "$$new" ] && [ "$$new" != "$$old" ] && ! ./fb share $$dead > /dev/null 2>&1 || \
+	  for k in 1 2; do (./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim$$k); done; $(call joined,$$dead); sleep 0.3; \
+	  kill -9 $$(cat $(G).victim1 $(G).victim2); sleep 0.1; old=$$($(call shown,$$dead) | head -1); \
+	  got=$$({ n=0; until [ "$$($(call shown,$$dead) 2> /dev/null | head -1)" != "$$old" ]; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done; \
+	    $(call shown,$$dead) | head -1 > $(G).new; cat ground/add.ck; } | ./ck run /dev/stdin $(MEMBER)); new=$$(cat $(G).new); \
+	  [ "$$got" = 'node [#4 2a]' ] && [ -n "$$old" ] && [ -n "$$new" ] && [ "$$new" != "$$old" ] && ! $(call shown,$$dead) > /dev/null 2>&1 || \
 	    { echo "ground: after every member was killed the next answered '$$got'; the substrate before: '$$old', after: '$$new'"; exit 1; }; \
 	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, the next to open it buried it and made a new one"
 
@@ -160,7 +164,7 @@ ground-together: ck
 check-ice: ck fb
 	@name=/ck.ice.$$$$; export CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456; trap './fb drop '$$name' 2>/dev/null; rm -f .ck-check.ice .ck-check.named' EXIT; \
 	  ./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
-	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin); \
+	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck $(MEMBER) lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin $(MEMBER)); \
 	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(cat .ck-check.named), by a second member: the same node"; \
 	  else echo "ice: named '$$(cat .ck-check.named)', which is '$$b'"; exit 1; fi
 

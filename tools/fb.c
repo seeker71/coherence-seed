@@ -5,7 +5,6 @@
  *   fb play FILE              one line per recorded frame
  *   fb play FILE N [H]        frame N in detail (-1 is the last); with H, that node and its writer
  *   fb drop NAME              remove a kept region, or a named substrate
- *   fb share NAME             a named substrate (CK_SHARE): its head, and each lane that was ever claimed
  *
  * It maps the region read-only and never writes to it, signals its writer or holds a lock. A member of a
  * named substrate keeps its nodes there: show maps that object too and reads them in place, settled or the
@@ -180,31 +179,13 @@ static void node(H h) {
   printf("  %s, %llu %s\n  written by ", nd[h].comp ? "composite" : "leaf", (unsigned long long)nd[h].n, nd[h].comp ? "children" : "bytes");
   writer(nd[h].by); printf("\n");
 }
-/* A named substrate: what its head says, and each lane that was ever claimed. A member is a pid and the instant
- * the host started it; here only the pid is asked after, so "runs" can be said of a pid the host gave again. */
-static void share(void) {
-  static const char *const STATE[] = { "free", "claimed", "live", "gone" };
-  printf("substrate version %u, made by pid %u at %llu, %llu bytes at byte %llu of each member\n", sub->version, sub->pid,
-         (unsigned long long)sub->made, (unsigned long long)sub->bytes, (unsigned long long)sub->share);
-  printf("  allowance %llu bytes, %llu charged, %u lanes of %llu handles, %llu ever claimed%s\n", (unsigned long long)sub->allowance,
-         (unsigned long long)sub->charged, sub->lanes, (unsigned long long)(((uint64_t)1 << 32) / sub->lanes),
-         (unsigned long long)sub->a[S_LANES].n, sub->buried ? ", being buried" : "");
-  for (uint64_t j = 0; j < sub->a[S_LANES].n && j < sub->lanes; j++) {
-    const Lane *l = &lanes[j]; uint32_t pid = (uint32_t)(l->who >> 32), state = (uint32_t)l->who & 3;
-    uint64_t base = j * (((uint64_t)1 << 32) / sub->lanes);
-    printf("  lane %-3llu %-7s pid %-7u %-8s nodes %-9llu settled %-9llu forwarded %-6llu charged %llu bytes\n", (unsigned long long)j, STATE[state], pid,
-           state == 3 || state == 0 ? "" : !kill((pid_t)pid, 0) || errno == EPERM ? "runs" : "is gone", (unsigned long long)(l->n - base),
-           (unsigned long long)(l->sw - base), (unsigned long long)l->forwarded, (unsigned long long)l->charged);
-  }
-}
 static void detail(void) {
   const Machine *m = &hd->m;
   printf("framebuffer version %u, writer pid %u, %llu bytes reserved\n", hd->version, hd->pid, (unsigned long long)hd->bytes);
   printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
   const Lane *l = &lanes[hd->me.lane]; char name[33] = {0}; memcpy(name, hd->me.name, 32);
   printf("substrate %s at byte %llu, %u lanes: lane %u of pid %u settled below %u\n", name[0] ? name : "of its own", (unsigned long long)hd->me.share,
-         sub->lanes, hd->me.lane, (uint32_t)(l->who >> 32), l->sw);
-  if (far) share();
+         sub->lanes, hd->me.lane, (uint32_t)(l->who >> 42), l->sw);
   printf("machine  mode %s  step %llu  env %u  cut %u  k %u\n", MODE[m->mode <= M_DONE ? m->mode : 0], (unsigned long long)m->step, m->env, m->cut, m->k);
   printf("  at      %s\n", str(m->at, 160));
   printf("  x       %s\n", str(m->x, 160));
@@ -306,10 +287,6 @@ int main(int argc, char **argv) {
   if (argc == 3 && !strcmp(c, "play")) return play(argv[2], 0, 0, 0);
   if ((argc == 4 || argc == 5) && !strcmp(c, "play")) return play(argv[2], atoi(argv[3]), 1, argc == 5 ? (H)strtoul(argv[4], NULL, 10) : 0);
   if (argc == 3 && !strcmp(c, "drop")) { if (shm_unlink(argv[2])) stop("no framebuffer named ", argv[2]); return 0; }
-  if (argc == 3 && !strcmp(c, "share")) {
-    uint64_t n; if (!(far = substrate(argv[2], &n))) stop("no substrate named ", argv[2]);
-    sub = (const Substrate *)far; lanes = (const Lane *)(far + sub->a[S_LANES].off); share(); return 0;
-  }
-  fprintf(stderr, "usage: fb show NAME [H] | record NAME FILE [MS] | play FILE [N [H]] | drop NAME | share NAME\n");
+  fprintf(stderr, "usage: fb show NAME [H] | record NAME FILE [MS] | play FILE [N [H]] | drop NAME\n");
   return 2;
 }
