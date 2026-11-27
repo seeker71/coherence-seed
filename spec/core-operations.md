@@ -126,10 +126,17 @@ answer nothing, `range`; a value that is not a byte leaf is the fault `e.kind`; 
 pipeline that cannot run the library, and a host with no rows, answer `no-native`; a buffer
 the allowance cannot hold answers `declined`. With one value it is the fault `arg`, and a
 third value is not read, where the C refused both as `arity`. These reasons are the catalogue's entries in
-both ports, where the bootstrap's own reasons are words in the authoring tool. Since it calls
-the host, a map while a choice is open is the fault `irreversible`, and so is the first
-`(has-target metal-map64)` of a process; the answer is then kept, and asking again inside a
-search answers from what is kept.
+both ports, where the bootstrap's own reasons are words in the authoring tool.
+
+A map may run while a choice is open, as code of the processor may, and a search can gather
+maps: the door is opened ahead. Everything the host is asked by name, and so through entry
+98, is asked when `metal.open` runs with no choice open: the address of each function row,
+the registered name of each message and the pool's class. A dispatch then makes no call of
+entry 98. It runs machine code through the berth on addresses it holds, reads its operands
+where they lie in the region, and lets go of every object it made before it answers; its
+stores into rooms are on the room trail. So a fail that returns past a map finds nothing of
+it to undo. Entry 98 is refused under a choice as before, and so are the package's
+supervisor call and absolute store.
 
 The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
@@ -546,7 +553,9 @@ in all. An Objective-C message is a row too: its selector, a slot for each value
 receiver and the selector, and the kind of its result; `host.send` lays them after the two
 slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A structure of more
 than two words goes by reference, as the convention says: the caller lays it in a room and
-passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf. A raw supervisor call and a store at an absolute address are refused while a choice is
+passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf.
+`host.run` runs a row on an address already in hand: it looks nothing up, so it makes no call
+of entry 98, and whoever uses it under a choice answers for what the call leaves behind. A raw supervisor call and a store at an absolute address are refused while a choice is
 open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is

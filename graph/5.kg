@@ -654,7 +654,7 @@ at: 2026-11-24
 n: 5.9
 name: bootstrap
 kind: hub
-is: The stored bootstrap is one C file under a line budget that the build enforces. It holds the framebuffer, a node store, a reader for the canonical print, a walker of about 25 operations whose one job is to run the compiler once, the birth of executable pages, and the host table. Everything else is written in the one grammar and compiled by the system.
+is: The stored bootstrap is one C file whose lines the build counts. It holds the framebuffer, a node store, a reader for the canonical print, a walker of about 25 operations whose one job is to run the compiler once, the birth of executable pages, and the host table. Everything else is written in the one grammar and compiled by the system.
 at: 2026-11-24
 
 n: 5.9.1
@@ -672,7 +672,7 @@ at: 2026-11-24
 n: 5.9.2
 name: line-budget
 kind: decision
-is: The bootstrap has a budget of 2,000 lines of C, and the build fails when the file is over it. Raising the budget is a change to this node, with a reason.
+is: The lines of C in the bootstrap are counted at every build, and no fixed number gates it. The direction is down: each part that can be written in Form leaves C, held to the C it replaces, until only what Form cannot start or reach the host without remains.
 status: inferred
 from: 4.1.8.4 3.6.4.3 3.6.4.4 3.13.3.4 3.13.1.2 3.7.3.2 3.3.4.5 3.6.1.4
 conf: mid

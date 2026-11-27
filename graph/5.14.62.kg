@@ -13,9 +13,9 @@ is: The bootstrap holds no Metal. A code leaf of a target the processor does not
 status: inferred
 from: 5.14.60 5.19.37 7.21 5.9.2
 conf: mid
-why: Run on 2026-11-27 on an M4 Max: the image flow of make check answered the bytes the C dispatch gave for the same five requests, a 65-lane map in both operand orders, the empty vector and two invalid shapes, from a directory holding only the image. The bootstrap went from 2,000 lines, the whole budget, to 1,906.
-flip: A dispatch walked through rows takes about 10 ms where the C took about 4, and a start 18 ms where it took 3. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
-limit: Rows exist for Apple's arm64 convention only, so under Rosetta, where the C dispatch ran, has-target now answers no and a map answers no-native. A map or a first has-target while a choice is open is the fault irreversible. One machine.
+why: Run on 2026-11-27 on an M4 Max: the image flow of make check answered the bytes the C dispatch gave for the same five requests, a 65-lane map in both operand orders, the empty vector and two invalid shapes, from a directory holding only the image. The same holds against main's later flow, where an application calls the map inside one search in both operand orders. The bootstrap went from 2,000 lines to 1,906.
+flip: A dispatch walked through rows takes about 7.3 ms where the C took 3.6, and a start 22 ms where it took 5. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
+limit: Rows exist for Apple's arm64 convention only, so under Rosetta, where the C dispatch ran, has-target now answers no and a map answers no-native. One machine.
 at: 2026-11-27
 
 n: 5.14.62.2
@@ -28,4 +28,17 @@ conf: mid
 why: By hand on 2026-11-27: a fault raised at the first copy into the buffer came out as itself with all eight slots empty, and a device left in a slot was let go by the next map. The package written as Python by the writer parses.
 flip: A host object that must outlive a dispatch, such as a pipeline kept between maps, needs a slot that is not let go at the end.
 limit: The fault path is held by no check. The check of the buffer against the allowance takes and gives back a room of that size, which raises the peak the allowance counts. The buffer itself is the host's memory.
+at: 2026-11-27
+
+n: 5.14.62.3
+name: the-door-is-opened-ahead
+kind: decision
+is: A map may run while a choice is open. Everything the host is asked by name is asked when the door is opened with no choice open: each function's address, each message's registered name, the pool's class. A dispatch then makes no call of entry 98: it runs machine code through the berth on addresses it holds, reads its operands where they lie in the region, and lets go of all it made before it answers. Entry 98 stays refused under a choice.
+status: inferred
+from: 5.14.62.2 5.14.60 5.7.3
+conf: mid
+why: Main's application calls the map inside an all over two operand orders. With lookups made at each call the reply was the fault irreversible; with the door opened ahead the five replies are the bytes the C dispatch gave. By hand, four maps gathered by one all over two choices answered four vectors.
+alt: Holding the map back with after, which cannot give its answer to the search that asked. Refusing, which would end the application's flow.
+flip: A dispatch that left something standing in the host, such as a pipeline kept between maps, would have to be made before the choice or be refused under it.
+limit: That a dispatch leaves nothing behind is the package's own care and no check of the walker: host.run is not refused under a choice. A buffer's bytes in the host are gone when it is let go, yet what the device did meanwhile is not something a fail could have undone.
 at: 2026-11-27

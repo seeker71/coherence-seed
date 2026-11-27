@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is 1,906 lines of a budget of 2,000, and holds no Metal. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 1,906 lines now that Metal has left it, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is lane 0 of a substrate inside it |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -20,7 +20,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,452 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,453 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -58,18 +58,20 @@ Each line here is held by a program in `make check-full`, or names how it was se
   package `host/metal.ck` makes the device, the library, the pipeline and the buffer and
   dispatches the kernel through rows of the package `host/`, and the blueprint
   `(code metal-map64)` is bound to it. On the M4 Max a 65-lane recipe combining arithmetic and
-  bitwise operations matched frames byte for byte in both operand orders, with the empty
-  vector and two invalid shapes, from a directory containing only the image; the replies are
-  the bytes the C dispatch gave for the same requests. Timed one process at a time, medians of
-  15 runs: the flow of five requests takes 73 ms where C took 40, a start with no request 18 ms
-  where C took 3, each further map of 65 lanes about 10 ms where C took about 4, and asking
-  `has-target` 68 ms where C took 33; the image is 393 KB where it was 8 KB, since it carries the host package and its assembler. By hand, not
-  held by a check: a fault raised at the first copy into the buffer came out as itself and left
-  all eight object slots empty; a device left in a slot was let go by the next map; a map and
-  a first `has-target` inside an `all` were the fault `irreversible`; a binding whose
-  implementation is the library leaf answered what `native` answers. Under Rosetta the x86-64
-  build answers `has-target` no and a map `no-native`, where the C dispatch ran there: rows
-  exist for Apple's arm64 convention only. [Metal word maps](spec/nums.md#metal-word-maps)
+  bitwise operations matched frames byte for byte, with the empty vector and two invalid
+  shapes, and an application composed with it called the map inside one search in both operand
+  orders, from a directory containing only the image; the five replies are the bytes the C
+  dispatch of main gave for the same requests. The map runs under the open choice because the
+  door is opened ahead: every lookup by name is made at the start, and a dispatch lets go of
+  all it made before it answers. Timed one process at a time, medians of 15 runs: the flow
+  takes 72 ms where C took 41, a start with no request 22 ms where C took 5, and each further
+  map of 65 lanes about 7.3 ms where C took 3.6; the image is 412 KB where it was 93 KB. By
+  hand, not held by a check: a fault raised at the first copy into the buffer came out as
+  itself and left all eight object slots empty; a device left in a slot was let go by the next
+  map; four maps gathered by one `all` over two choices answered four vectors; a binding
+  whose implementation is the library leaf answered what `native` answers. Under Rosetta the
+  x86-64 build answers `has-target` no and a map `no-native`, where the C dispatch ran there:
+  rows exist for Apple's arm64 convention only. [Metal word maps](spec/nums.md#metal-word-maps)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -422,7 +424,8 @@ running compiled code against frames all the way down).
   Memory a host function hands out is outside the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. Of the
   bootstrap's own host functions only Metal has left C. A call through a row is walked: a
-  Metal map makes about seventy, and costs about 6 ms more than the C it replaced. A map makes
+  Metal map makes about forty, and costs about 3.7 ms more than the C it replaced. A call of
+  `host.run` under a choice is not refused: the caller answers for it, as the Metal door does. A map makes
   its device and pipeline anew each time, as the C did. The compiler does not yet emit a row
   as moves and a call.
 - **Handles across processes.** A handle is still local to its process: nobody else maps its

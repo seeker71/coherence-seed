@@ -35,8 +35,10 @@ expands module imports once per image and freezes the resulting graph in depende
 a file that a statement of the initialization reads as data, such as a package handed to
 `part.load`, is read when the image is packed, since the image runs where there are no files.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
-authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 14,523 nodes containing zero text leaves.
+authoring lens. The `nums.image` method `image.then(dependency, application)` in
+`nums/images.ck` composes two manifests. Initialization runs in that order, and public
+entries from both manifests keep their content IDs. The generic NUMS library with its float
+definition, both AArch64 compilers and the example exports pack together as 14,523 nodes containing zero text leaves.
 
 ```sh
 make
@@ -118,7 +120,8 @@ the CPU compiler. Other expressions decline during lowering.
 
 ```sh
 make metal-image METAL_RECIPE=ground/metal-polynomial.ck \
-  METAL_INPUTS=ground/metal-vectors.ck METAL_IMAGE=/tmp/words.image
+  METAL_INPUTS=ground/metal-vectors.ck METAL_APPLICATION=ground/metal-application.ck \
+  METAL_IMAGE=/tmp/words.image
 ./ck text ground/metal-requests.ck | ./seed-run /tmp/words.image | ./ck run ground/metal-replies.ck
 ```
 
@@ -127,6 +130,9 @@ and library linker. The image holds the compiled library, the numeric map entry
 `(b.instance b.gpu declaration)` and the supplied operands. A request addresses that entry
 and two operands by content ID. Each operand packs one 64-bit word per lane. The entry ID
 depends on the declaration and stays the same across builds of its Metal library.
+The optional `METAL_APPLICATION` supplies a `nums.image` manifest. In this example its
+caller receives the map entry and two byte operands by ID. One search calls the map in
+both operand orders and returns the two vectors in a single reply.
 
 The `metal-map64` ABI binds one shared word buffer at index 0 and the unsigned 32-bit lane count
 at index 1. For `n` lanes the two inputs start at words 0 and `n`, and the output starts at word
@@ -142,6 +148,13 @@ handed as a `metal.door`. `host/metal-bind.ck` makes that door, binds the bluepr
 that target; `host/metal-all.ck` also reads where the door's words lie from the region's
 layout and opens the door. An image carries `host/metal-bind.ck` linked in and those places as
 numbers, with the layout version they were read under, and faults `metal.open` on another.
+
+The door is opened ahead, by `metal.open`, while no choice is open: it resolves every function
+row of this host, registers every message's selector, finds the pool's class, and checks that
+a leaf's bytes are where the layout says by reading one back. After that a map asks the host
+nothing by name. The library and the two operands are read where they lie in the region, by
+their addresses, and are not copied on the way. This is what lets the application of the
+example call the map inside a search, once for each operand order.
 
 Every object a dispatch makes is written into a slot of one room, the bench, as it is made:
 the autorelease pool, the device, the library's data, the library, the kernel, the pipeline,
@@ -161,7 +174,7 @@ the image flow compares both orders of 65 inputs with their frame results, inclu
 wraparound, the empty vector and two invalid shapes. The compiler is a build-time dependency.
 Rows exist for Apple's arm64 convention only: under Rosetta and on Linux x86-64 the door does
 not open, `has-target` answers no and a map answers `no-native` after the same checks of
-shape. Floating-point layouts, reductions and pipeline reuse are open.
+shape, so the search of the example answers a list of nothing there. Floating-point layouts, reductions and pipeline reuse are open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the
