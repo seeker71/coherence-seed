@@ -76,7 +76,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   concurrent buffer barriers. The old kernel's float and quantized fills and Llama argmax
   reductions ran in one batch on both process architectures. The complete readbacks matched
   CPU references. Thirteen Q8 matrix products and a recurrent delta update also matched
-  their CPU results on both ABIs. Device buffers live across stages in the batch. [Metal batches](spec/nums.md#named-metal-batches)
+  their CPU results on both ABIs. Page-aligned file mappings supply model weights directly
+  to Metal. A 28-layer Llama pass matched the old decoder, and a four-row Qwen projection
+  matched the sampled GGUF weights. Only the selected result ranges cross the port.
+  A live worker mounted the Llama model once, kept all 255 weight mappings across turns
+  for two distinct KV histories, and released them on retirement while the worker stayed
+  alive. Both histories agreed with the previous decoder on both process architectures.
+  [Metal batches and resident turns](spec/nums.md#named-metal-batches)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -303,8 +309,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   the store is not made. Forty calls that crash inside the host leave the host's heap with the
   bytes in use it had. An object made by the message `new` is let go by `release`, and a
   message with no row answers nothing. Of the 30 function rows, 22 are run by the flow and
-  four more by the Metal flow of `make check-image`; `mprotect`, `dlopen`, `dlsym` and
-  `sysctlbyname` are not run as rows. The host and Metal flows exercise the message rows they use. Inside the ground catalogue's search the same
+  four more by the Metal flow of `make check-image`; `mprotect`, `dlopen` and
+  `dlsym` are outside that comparison. Metal reads VM counters through `sysctlbyname`. The host and Metal flows exercise the message rows they use. Inside the ground catalogue's search the same
   program is the refusal `irreversible`, at its first call, which is by address. By hand, not
   held by a check: two wrong place rows made the run name the five cases they break; a row
   naming a library that is not there is a fault that names the library; a call before the door

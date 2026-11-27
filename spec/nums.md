@@ -163,11 +163,16 @@ checks the result of a declined call.
 `host/metal-batch.ck` runs functions from a compiled Metal library. A request addresses
 `metal.submit` and two immutable arguments by content ID. The first is a `metal.batch`
 with library bytes, an ordered list of stages and a concurrency flag. The second is a list
-of nonempty byte buffers. The reply contains the final bytes of each buffer in the same
-order. Stages share the device allocations through one submission.
+of nonempty byte buffers or a `metal.resources` record. A plain list returns each complete
+buffer in order. A resource record names the allocations and the readbacks separately.
+Stages in the submission share the allocations and one pipeline per distinct entry.
 
 | Form | Fields in order |
 | --- | --- |
+| `metal.resources` | Ordered allocation list, ordered readback list |
+| `metal.file-region` | UTF-8 path bytes, file offset, logical length |
+| `metal.scratch` | Length in bytes of a zero-initialized private buffer |
+| `metal.readback` | Allocation index, byte offset, length of the requested reply |
 | `metal.stage` | UTF-8 entry-name bytes, buffer views, unsigned 32-bit constants, grid |
 | `launch.view` | Zero-based input buffer index, byte offset |
 | `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
@@ -175,11 +180,18 @@ order. Stages share the device allocations through one submission.
 Views bind in order, followed by the constants. A thread grid accepts a width of zero to
 choose one that fits the pipeline and extent. A group grid takes an explicit width within
 the pipeline limit. A concurrent batch can place a buffer barrier before a dependent stage.
-The driver checks individual buffer lengths and the pipeline's group limit. The sum of
-GPU buffer lengths must fit the process's configured framebuffer allowance and the device's
-remaining recommended working set. Repeated references to the same input each count as
-an allocation. Framework entry names are used at pipeline creation. The port handles numeric
-IDs throughout.
+The driver measures the page-rounded allocations against the GPU's working set and each
+buffer against its single-allocation limit. At normal memory pressure it reads the kernel's
+free pages and free-page target, the VM page size and the explicit `CK_MEMORY_BYTES` ceiling
+when supplied. At warning it uses the process's startup allowance. Critical or unknown
+pressure declines the batch. The framebuffer rehearses the largest requested readback.
+
+A file region maps the file privately at a page boundary. Metal wraps those pages directly.
+Both the stage view and the readback add the tensor's displacement within the first page.
+The Metal buffer retains the mapping owner until its final release. Callers keep the file
+stable while using it. The request identifies the descriptor, and the file supplies the
+weight bytes. Each allocation is charged to the submission, including overlapping views
+declared as separate allocations. Framework entry names are used at pipeline creation.
 
 Build an image from an existing library with a numeric batch declaration and buffer list.
 The builder fills the declaration's library field from the supplied file and exports
@@ -195,9 +207,30 @@ as two dependent batch stages. The second stage reads the first stage's output t
 offset view. Its reply is compared with two applications of the NUMS frame evaluator.
 The same batch interface has run the previous kernel's float, Q8, Q4_K and Q6_K fills and
 two Llama reductions, including dynamic threadgroup memory. Thirteen Q8 matrix-product
-implementations and the recurrent delta update also matched CPU references on both ABIs. Libraries and GPU resources
-live for one synchronous batch. Persistent allocations, asynchronous fences and pipeline
-reuse across requests remain open.
+implementations and the recurrent delta update also matched CPU references on both ABIs.
+An external library emitted by the previous kernel ran two positions of the local
+28-layer Llama 3.2 3B Q4_K_M file. The two greedy IDs agreed with its resident decoder.
+A Qwen 3.8 Q8 weight projection returned the expected bytes for four independent inputs.
+
+For a resident model, `metal.mount` takes a `metal.model` containing a library and its
+allocation descriptors. It returns the content ID of that declaration. Within a worker,
+mounting the same declaration again returns the same ID and keeps the existing state.
+The caller keeps the mapped weight file stable for the lifetime of the model.
+`metal.advance` takes that ID, a batch with an empty library field, and the desired
+readbacks. Turns reuse the device, library, pipeline cache, buffers and queue. The
+stage views select each stream's own scratch and KV allocations. `metal.retire`
+releases the worker's ownership and makes the ID available for a fresh mount.
+
+Each resident turn runs at a committed boundary. Before encoding, a host memory
+pressure reading outside the normal state releases the resident objects and returns
+`e.declined`. A fault inside submission also releases the station, so a later mount
+starts with fresh mutable state. Two interleaved Llama contexts used the same mapped
+weights and returned the previous decoder's token IDs on both macOS process ABIs.
+
+Routing separate clients to one worker per model, admitting new streams between decode
+steps, sharing complete prefix blocks, and coordinating memory reservations across
+workers are open in Seed. The previous kernel's resident Qwen server supplies a running
+reference for these behaviors.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the
