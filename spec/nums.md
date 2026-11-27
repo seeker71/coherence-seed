@@ -913,7 +913,9 @@ packages and computes how often their calls can answer. In a search, keeping the
 still yields an iterable with zero or one element. A linked example, run as Python, C# and
 TypeScript, agreed with the walker on empty input, a first answer of false, and a first answer of zero
 with more candidates available. Repeated identical declarations coalesce.
-Different declarations of the same name fault. An external operation whose answer contract is
-unknown still faults with `e.unbound` of `write.answers`. Where an expression is
+Different declarations of the same name fault. A native search target can declare an operation's
+answer count in its language rows. The BML row for `recover` lets the writer show the signature
+provider's cleanup path. An external operation whose answer contract is unknown still faults
+with `e.unbound` of `write.answers`. Where an expression is
 expected the writer takes no throw, Java no `let` and BML no sequence; the BML reader takes a
 class of one interface only.

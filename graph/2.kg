@@ -355,3 +355,11 @@ is: The local exchange driven by check-held-back compares the retained turn, two
 path: coherence-seed/ground/circle-exchange.ck
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.26
+name: peer-vectors.ck
+kind: source
+is: Public test keys, synthetic consent drafts, signing digests and detached proofs anchor the signed-control comparison driven by check-held-back.
+path: coherence-seed/ground/peer-vectors.ck
+got: 2026-11-27
+at: 2026-11-27

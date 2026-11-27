@@ -360,6 +360,13 @@ running compiled code against frames all the way down).
   produced one acceptance and seven replay receipts. This witnesses local process behavior.
   Participants' experience of trust and vitality remains an open question.
   [Local inbox and its boundaries](spec/core-operations.md#local-inbox)
+- **A consent decision can cross machines without sharing the broker's private directory.**
+  An x86-64 Linux guest generated a listener key in RAM, reviewed a fixture invitation and
+  signed its commitment. The macOS broker verified it against a preprovisioned public roster.
+  The receiving directory stayed empty until the owner supplied its own signed grant. The guest
+  checked the returned ticket and status over a serial link. The receipt itself was unsigned.
+  The maintained flow also checks the exact bilingual payload, retained signatures and stale
+  grant replay after withdrawal. [Signed consent controls](spec/core-operations.md#signed-consent-controls)
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 

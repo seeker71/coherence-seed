@@ -678,9 +678,44 @@ It terminates a second receiver immediately after the link. A fresh process then
 same file and bytes, although the publishing process sent no acknowledgment.
 
 Run `make check-held-back` to exercise the actual commands. This carrier assumes trusted
-role provisioning and cooperating processes with one shared local filesystem. Remote
-authentication, host power failure, separate downstream effects and human acknowledgment
-remain outside the observed flow.
+role provisioning and a local filesystem for the broker's state and receiving directory.
+Host power failure, separate downstream effects and human acknowledgment remain open.
+
+### Signed consent controls
+
+An owner and a listener can sign decisions on separately administered endpoints. The broker
+keeps the draft locally. The portable proof carries the roster ID, role, change ID and detached
+signature. The change ID covers both the proposed permission and the expected prior revision,
+including a withdrawal. The public roster binds a 32-byte episode identifier, owner, circle,
+recipient and two distinct Ed25519 public keys. Provisioning establishes who owns each key.
+
+| Step | Interface |
+|---|---|
+| Enroll a fresh channel | Put the canonical `peer.roster` in the broker's private `peers` file. Run `./ck text circle/pin.ck < roster` and use its output as the initial contents of both registers. Each register retains the roster ID when it advances. |
+| Prepare a decision | `./ck text circle/statement.ck 3<roster < intent` takes a `peer.intent` containing the role and the signer's reviewed `inbox.change`. Its output is a canonical `peer.control`. |
+| Sign and package | `./ck text circle/signing-bytes.ck < control` produces the 32 raw bytes to sign: the content ID of the entire typed control. Sign those bytes with ordinary detached Ed25519. `./ck text circle/seal.ck 4<signature < control` produces the portable proof. |
+| Verify independently | `./ck text circle/check-proof.ck 3<roster 4<draft < proof` checks the exact local draft against the roster and signature and returns the signing role. The caller supplies its trusted copy of the roster. |
+| Apply at the broker | `./ck text circle/apply.ck 3<channel 4<draft < proof` reads the pinned roster from the broker's private directory, verifies the signature, then rechecks the pin and revision under the same lock used by local delivery. Success returns the new revision ID. |
+
+The current register keeps the verified proof alongside its private authority state and prior
+revision ID. No private signing key is needed by the verifier. An unsigned command against a
+pinned register is refused, and a signed command cannot silently enroll an existing local
+register. Distinct episodes use separate occurrence namespaces even when the participants
+and nonce coincide. In a separate run, two brokers held the same roster and signed grant.
+The broker that had received the withdrawal declined delivery. Its disconnected counterpart
+accepted the same ticket, then declined it once the signed withdrawal arrived.
+
+`host/ed25519.ck` uses a locally installed libsodium provider. Malformed inputs, invalid
+signatures and an unavailable or failing provider have distinct outcomes. The maintained
+comparison covers published vectors, including empty and binary messages, and exercises
+provider cleanup. [libsodium detached signatures](https://doc.libsodium.org/public-key_cryptography/public-key_signatures) · [RFC 8032 test vectors](https://www.rfc-editor.org/rfc/rfc8032#section-7.1)
+
+Run `make check-held-back` for the fixture proofs. On a host without a usable installed
+provider the check verifies refusal and preservation of the register. In a separate observed
+run, an offline Alpine guest generated and used its own listener key and exchanged the proof
+and receipt with the macOS broker over a serial console. The signature authenticates the
+enrolled key's control decision. The return receipt carries a ticket and status; its origin
+is still a property of the return channel.
 
 ## Entry 104: nothing, with its reason
 

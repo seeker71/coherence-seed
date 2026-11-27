@@ -422,3 +422,15 @@ conf: mid
 why: Fresh processes applied the proposal, correction, refusal and silence. A paused invitation, expiry during staging or process exit before publication left the receiving directory empty. The authorized occurrence contained the exclusive wording. An exit after publication and before acknowledgment followed by a fresh-process retry kept the original inode. Concurrent attempts at a second occurrence published one new letter.
 limit: The participants were fixtures. Local roles and filesystem permissions were provisioned in advance. Human experience, network identity and power-loss durability remain open.
 at: 2026-11-27
+
+n: 5.19.40
+name: an-enrolled-key-can-authorize-a-specific-consent-revision
+kind: observation
+is: The broker verifies an enrolled role's signed commitment to one episode and exact consent change before updating its pinned local register.
+status: observed
+from: 5.19.39
+src: 2.30.26
+conf: mid
+why: The maintained comparison checks the public signing bytes, declined controls, independent owner and listener grants, retained signatures and exact delivered wording. Separately, an isolated Linux guest signed an invitation, the macOS broker applied it and the guest matched the returned ticket and status.
+limit: Public keys were preprovisioned. The receipt is unsigned. A change withheld from the broker has no effect there. Human identity and globally current revocation remain open.
+at: 2026-11-27

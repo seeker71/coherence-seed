@@ -202,6 +202,45 @@ check-held-back: ck
 	  if command -v python3 >/dev/null 2>&1; then python3 -m doctest "$$work/turn_projection.py"; fi; \
 	  echo "circle: two roles retained their readings; consent, expiry and replay matched the letters in the receiving directory"
 
+	@set -eu; \
+	  work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/private" "$$work/letters"; printf '#32' > "$$work/none"; \
+	  sample() { printf %s "$$1" > "$$work/mode"; ./ck text ground/peer-case.ck 3<"$$work/mode" <"$$work/$${2:-none}"; }; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  apply() { ./ck text circle/apply.ck 3<"$$work/channel" 4<"$$work/$$1" <"$$work/$$2"; }; \
+	  verify() { ./ck text circle/check-proof.ck 3<"$$work/$$1" 4<"$$work/$$2" <"$$work/$$3"; }; \
+	  refused() { expected=$$1; shift; rc=0; "$$@" >"$$work/reason" || rc=$$?; actual=$$(cat "$$work/reason"); [ "$$rc" = 1 ] && [ "$$actual" = "fault $$(word "$$expected")" ] || { mv "$$work/private" "$$work/previous"; mkdir "$$work/private"; cp "$$work/wrong-episode" "$$work/private/peers"; \
+	  ./ck text circle/pin.ck <"$$work/wrong-episode" >"$$work/private/authority"; cp "$$work/private/authority" "$$work/private/listening"; \
+	  refused peer.wrong-control apply listener-change listener-proof; apply listener-change listener-other-proof >"$$work/second-listener"; apply owner-change owner-other-proof >"$$work/second-owner"; \
+	  test "$$(receive)" = "$$(word inbox.accepted)"; set -- "$$work/letters/"*; test "$$#" = 2; \
+	  echo "signed control: $$actual, expected $$expected" >&2; return 1; }; }; \
+	  for item in roster owner-change listener-change withdraw-change owner-proof listener-proof withdraw-proof listener-ticket wrong-episode same-keys owner-other-proof listener-other-proof; do sample "$$item" > "$$work/$$item"; done; \
+	  printf %s channel > "$$work/mode"; printf %s "$$work" | ./ck text ground/circle-exchange.ck 3<"$$work/mode" >"$$work/channel"; \
+	  cp "$$work/roster" "$$work/private/peers"; ./ck text circle/pin.ck < "$$work/roster" > "$$work/pin"; \
+	  cp "$$work/pin" "$$work/private/authority"; cp "$$work/pin" "$$work/private/listening"; \
+	  for role in owner listener; do sample "$$role-intent" "$$role-change" >"$$work/intent"; ./ck text circle/statement.ck 3<"$$work/roster" <"$$work/intent" >"$$work/control"; ./ck text circle/signing-bytes.ck <"$$work/control" >"$$work/digest"; sample "$$role-digest" | cmp - "$$work/digest"; sample signature "$$role-proof" >"$$work/sig"; ./ck text circle/seal.ck 4<"$$work/sig" <"$$work/control" >"$$work/built"; cmp "$$work/$$role-proof" "$$work/built"; done; \
+	  refused peer.invalid-roster ./ck text circle/pin.ck < "$$work/same-keys"; \
+	  refused inbox.pinned ./ck text circle/authorize.ck 3<"$$work/channel" <"$$work/owner-change"; \
+	  refused peer.wrong-control verify wrong-episode listener-change listener-proof; \
+	  refused peer.wrong-control apply withdraw-change owner-proof; \
+	  cmp "$$work/pin" "$$work/private/authority"; cmp "$$work/pin" "$$work/private/listening"; \
+	  adapter=$$(./ck run ground/ed25519.ck); \
+	  if [ "$$adapter" = "node $$(word ed25519.unavailable)" ]; then \
+	    refused ed25519.unavailable apply listener-change listener-proof; cmp "$$work/pin" "$$work/private/listening"; echo "signed control: provider unavailable, pinned register unchanged"; exit 0; \
+	  fi; \
+	  test "$$adapter" = "node $$(word ed25519.verified)"; \
+	  cp "$$work/none" "$$work/private/authority"; refused inbox.pinned apply owner-change owner-proof; cmp "$$work/none" "$$work/private/authority"; cp "$$work/pin" "$$work/private/authority"; \
+	  sample control owner-proof >"$$work/control"; sample signature listener-proof >"$$work/sig"; \
+	  ./ck text circle/seal.ck 4<"$$work/sig" <"$$work/control" >"$$work/swapped"; \
+	  refused ed25519.invalid-signature apply owner-change swapped; cmp "$$work/pin" "$$work/private/authority"; \
+	  apply listener-change listener-proof > "$$work/listener-revision"; test "$$(verify roster listener-change listener-proof)" = "$$(word peer.listener)"; \
+	  receive() { ./ck text circle/receive.ck 3<"$$work/channel" <"$$work/listener-ticket" >"$$work/result"; printf status >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$work/result"; }; \
+	  test "$$(receive)" = "$$(word share.ungranted)"; test -z "$$(ls -A "$$work/letters")"; \
+	  apply owner-change owner-proof >"$$work/revision"; apply owner-change owner-proof | cmp - "$$work/revision"; \
+	  sample witness private/authority | cmp - "$$work/owner-proof"; sample witness private/listening | cmp - "$$work/listener-proof"; \
+	  test "$$(receive)" = "$$(word inbox.accepted)"; set -- "$$work/letters/"*; test "$$#" = 1; printf bytes > "$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$1" > "$$work/observed"; printf "Kami boleh berbagi" | cmp - "$$work/observed"; \
+	  apply withdraw-change withdraw-proof >"$$work/withdrawn"; test "$$(apply owner-change owner-proof)" = "$$(word inbox.stale)"; test "$$(receive)" = "$$(word share.ungranted)"; sample witness private/authority | cmp - "$$work/withdraw-proof"; \
+	  echo "signed control: two enrolled keys, scoped registers, retained signatures, exact recipient bytes and stale withdrawal replay agreed"
+
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
 	  if [ "$${n:-99999}" -le $(BARE) ]; then echo "parts by name: $$n reads by a bare number are left in the stored form, within the budget of $(BARE)"; \
