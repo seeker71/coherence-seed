@@ -300,7 +300,8 @@ every ground program ends as it does on the bootstrap's own (`ground/encoding-in
 Every operation can be replaced; the others are not yet written in form. `ground/` shows the
 kinds of swap: a diagnostic on `choice` (`traced-choice.ck`), one recipe tracked on every call and
 then released (`tracked-recipe.ck`), a control operation brought into being (`invented-control.ck`),
-a `cut` handed through a helper recipe to the program that used it (`cut-through.ck`), and a new
+a `cut` handed through a helper recipe to the program that used it, which stops at a running
+`outcome` (`cut-through.ck`), and a new
 kind of implementation (`new-kind.ck`).
 
 ## Entries 76 to 80: what the bootstrap does for itself
@@ -363,7 +364,8 @@ The answer is `node` and x's answer, `nothing` and the reason, or `fault` and th
 `ck run` prints, as a node a program can hold and compare. Everything x did is undone as by a
 fail, a binding it made included, and the nodes it made are given back; only the outcome, the
 nodes it names and what no fail undoes remain (What a fail gives back, below). A `cut` inside
-x does not reach outside it, and a `recover` inside x still catches first.
+x does not reach outside it, not even one run in the cut scope of the recipe that called x, and
+a `recover` inside x still catches first.
 
 So a program can run another and judge how it ended. `ground/check.ck` does that for every
 program under `ground/`: it reads `ground/expect.ck`, a list of each program's path and expected
@@ -440,7 +442,9 @@ kept it. A choice that stays open begins again from where things stand after the
 last time (`spec/framebuffer.md`). `ground/gives-back.ck` runs forty thousand outcomes of 64
 lists each, more nodes than the area holds, and ends with a note made in a failed branch, the
 answers gathered, an outcome's answer, a node made before the outcomes at its own handle and the
-lane's settled watermark where it stood before them.
+lane's settled watermark where it stood before them while they ran. Once they close, the watermark
+is past their answer, which keeps its handle through the fails after it, and a note made after a
+hold on a key that the fail moves onto a page of cells not used before still stands.
 
 ## Entries 92 and 93: what is seen of a run, and a binding released
 

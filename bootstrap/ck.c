@@ -287,12 +287,15 @@ static inline void room(int a, uint64_t need) { if (need > AR(a)->peak) further(
  * below the highest key. A page of theirs is charged when first used instead, a bit for each in
  * touched; a page not yet used holds nothing and is not read, since reading it would take it. */
 static uint64_t tbit[A_COUNT];             /* where an area's bits begin in touched */
+static uint64_t dense[A_COUNT];            /* keys below it lie on used pages: the hot reads skip the bit */
 static uint64_t page_bit(int a, uint64_t k) { return tbit[a] + (fb->a[a].off % FB_PAGE + 4 * k) / FB_PAGE; }
 static int on_page(int a, uint64_t k) { uint64_t b = page_bit(a, k); return tbits[b >> 3] >> (b & 7) & 1; }
 static void charge(int a, uint64_t k) {
   uint64_t b = page_bit(a, k); if (N(a) <= k) N(a) = k + 1;
   if (!(tbits[b >> 3] >> (b & 7) & 1)) { tbits[b >> 3] |= (uint8_t)(1u << (b & 7)); fb->me.charged++; }
+  while (dense[a] < N(a) && on_page(a, dense[a])) dense[a]++;
 }
+#define USED(a, k) ((k) < dense[a] || ((k) < N(a) && on_page(a, k)))   /* a key whose page holds what it was given */
 static void touch(int a, uint64_t k) {
   if (!on_page(a, k) && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + 1) * FB_PAGE)) area_full(a);
   charge(a, k);
@@ -339,7 +342,9 @@ static void fb_open(void) {
                                           [A_CHILDREN] = S_CHILDREN + 1, [A_IDS] = S_IDS + 1 };            /* which area, plus one */
   uint64_t budget = host.memory(), line = host.line();
   struct rlimit limit;
-  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / (A_COUNT + S_COUNT + 3) < budget) budget = limit.rlim_cur / (A_COUNT + S_COUNT + 3);
+  uint64_t placed = A_COUNT + S_COUNT + 3;           /* the areas reserved, a laned one once, and three more as before */
+  for (int i = 0; i < A_COUNT; i++) placed -= LANED[i] != 0;
+  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / placed < budget) budget = limit.rlim_cur / placed;
   const char *setting = getenv("CK_MEMORY_BYTES");
   if (setting) {
     char *end; errno = 0; unsigned long long requested = strtoull(setting, &end, 10);
@@ -858,7 +863,7 @@ static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t u
  * has declined above it: beneath that, faster forms are not tried again. 0: the bootstrap's code. */
 #define B(b) ((b) > OUT ? &out[(b) - OUT - 1] : &bd[(b) - 1])
 static uint32_t newest(H e, uint32_t lim) {             /* down the chain of e's own bindings, newest first */
-  uint32_t i = e < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, e) ? bykey[e] : 0;
+  uint32_t i = USED(A_BOUND_BY_NODE, e) ? bykey[e] : 0;
   while (i > lim) i = bd[i-1].prev;
   return i;
 }
@@ -942,6 +947,7 @@ static H byfwd(H h) { return h >= fm && h < ftop ? (fw[h - fm] ? fw[h - fm] : fn
 static uint64_t roomlen(uint64_t at) { return sizeof(Room) + ((((Room *)(rooms + at))->size + 7) & ~7ull); }
 static void reclaim(ChoicePoint *q) {
   fm = q->mnode; ftop = nn; fnode = q->node;
+  if (sw > fm) die("a fail would give back settled nodes");
   if (ftop <= fm) return;
   uint64_t need = ntext + (uint64_t)(ftop - fm) * 4 + 64;
   if (need > fb->a[A_TEXT].peak && (need > fb->a[A_TEXT].cap || !fits_growth(area_extent(&fb->a[A_TEXT], fb->a[A_TEXT].peak), area_extent(&fb->a[A_TEXT], need)))) return;
@@ -962,10 +968,14 @@ static void reclaim(ChoicePoint *q) {
     }
     else if (nd[h].bp == E(CODE) && icap) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
   }
-  H to = fm; uint64_t pages = 0;          /* where each kept node goes, and the pages of cells that move there */
-  for (H h = fm; h < ftop; h++) if (fw[h - fm]) {
-    pages += h < N(A_CELLS) && on_page(A_CELLS, h) && held[h] && !on_page(A_CELLS, to); fw[h - fm] = to++; }
+  for (uint32_t i = q->mtrail; i < ntrail; i++) if (trail[i].bp == E(NOTE) && trail[i].key >= fm && trail[i].key < ftop) fw[trail[i].key - fm] |= 2;
+  H to = fm; uint64_t pages = 0, last = ~0ull;   /* where each kept node goes, and each page not yet used that */
+  for (H h = fm; h < ftop; h++) if (fw[h - fm]) {   /* a cell moves onto, held or noted, counted once */
+    if ((fw[h - fm] & 2 || (h < N(A_CELLS) && on_page(A_CELLS, h) && held[h])) && !on_page(A_CELLS, to) && page_bit(A_CELLS, to) != last) {
+      pages++; last = page_bit(A_CELLS, to); }
+    fw[h - fm] = to++; }
   if (pages && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + pages) * FB_PAGE)) { ntext = mark; return; }
+  room(A_GIVES, 4);                       /* nothing past here can be full until every kept node is put back */
   for (H h = ftop; h-- > fm; ) {          /* the working index forgets them all, the newest first as linear probing needs */
     uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
     while (tab[i] && tab[i] != h) i = (i + 1) & (tcap - 1);
@@ -977,7 +987,7 @@ static void reclaim(ChoicePoint *q) {
     if (h < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, h)) bykey[h] = 0;
     if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0;
   }
-  room(A_GIVES, 4); gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
+  gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
   nn = fm;                                /* a watcher sees that places were given back, and none half moved */
   for (H h = fm; h < ftop; h++) {         /* each kept node moves down, its parts and cell with it */
     H n = fw[h - fm]; if (!n) continue;
@@ -996,7 +1006,8 @@ static void reclaim(ChoicePoint *q) {
     memcpy(ids + w, &n, 4); nd[n].ida = (uint32_t)(w / IDREC); w += IDREC;
   }
   nids = w;
-  for (H h = fm; h < nn; h++) { tab_put(tab, tcap, h); if (nd[h].ida) index_id(h); }
+  for (H h = fm; h < nn; h++) { tab_put(tab, tcap, h);   /* back where they were found, in places they had */
+    if (nd[h].ida) { uint64_t j = idslot(idtab, icap, NID(h)); W->ids += !idtab[j]; idtab[j] = h; } }
   if (icap && (uint64_t)W->ids * 2 >= icap) idmake(A_BY_ID, idtab, sw, nn, 0);
   if (q->all == 2) q->coll = fwd(q->coll);
   if (q->all == 3) { q->i = fwd(q->i); q->coll = fwd(q->coll); }
@@ -1004,7 +1015,7 @@ static void reclaim(ChoicePoint *q) {
   for (uint32_t i = q->mcoll; i < ncoll; i++) { coll[i].v = fwd(coll[i].v); coll[i].by = byfwd(coll[i].by); }
   for (uint32_t i = q->mtrail; i < ntrail; i++) {
     Trail *e = &trail[i]; e->old = fwd(e->old); e->by = byfwd(e->by);
-    if (e->bp == E(NOTE)) e->key = fwd(e->key);
+    if (e->bp == E(NOTE)) { e->key = fwd(e->key); charge(A_CELLS, e->key); }   /* its note is written there */
     else if (e->bp == E(FAST)) B(e->key)->fast = e->old;
     else { born[e->key].leaf = e->old; born[e->key].by = byfwd(born[e->key].by); }
   }
@@ -1023,23 +1034,27 @@ static void rise(ChoicePoint *q) {
  * nodes stand but this, and mk found no equal settled content for any of them; finding one here would
  * need the working state forwarded onto it, which is not built, so it ends the process. */
 static void commit(void) {
-  H from = sw, top = (H)nn;
-  if (nn * 2 > scap) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);
+  H from = sw, top = (H)nn; uint64_t m = 0;
+  if (nn * 2 > scap) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);   /* both settled indexes have room for them */
+  for (H h = from; h < top; h++) m += nd[h].ida != 0;            /* before any moves, so a full leaves nothing half done */
+  if (m && (!sicap || (sub->ids + m) * 2 >= sicap)) idmake(SA(S_BY_ID), sidt, 1, top, 0);
   for (H h = top; h-- > from; ) {
     uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n), s = i;
     for (i &= tcap - 1; tab[i] && tab[i] != h; i = (i + 1) & (tcap - 1)) ;
     if (tab[i] == h) tab[i] = 0;
     if (found(stab, scap, &s, nd[h].comp, nd[h].bp, payload_of(h), nd[h].n)) die("a commit met content already settled");
-    stab[s] = h; nd[h].settled = 1;
-    if (nd[h].ida) { for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+    nd[h].settled = 1; stab[s] = h;
+    if (nd[h].ida) { index_id(h); for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
       if (idtab[i] == h) idtab[i] = TOMB; }
   }
   sw = top;
-  for (H h = from; h < top; h++) if (nd[h].ida) index_id(h);
 }
 /* A choice point is about to be made. The first one open keeps in seen how far each lane was settled
  * when the search began: one lane, the process's own. */
 static void opening(void) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1); if (!ncp) seen[0] = sw; }
+/* A cut closes the choices opened since c, but not a running outcome's: its body is failed out of,
+ * and what the body did, a cut in it too, does not stay. So no choice ever opens again. */
+static void cutto(uint32_t c) { uint32_t i = ncp; while (i > c && cp[i-1].all != 2) i--; ncp = i; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
  * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
@@ -1077,7 +1092,7 @@ static int given(const H *a, uint32_t c, int64_t *arg) {
  * while it does, a binding's faster form steps aside, so what watches sees every use. */
 static int watched(void) {
   for (uint32_t j = 0; j < nout; j++) { H e = out[j].entry; long long n = e ? catn(e) : -1;
-    if (e && ((n >= 0 && n < SEEDED) || (e < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, e) && bykey[e]))) return 1; }
+    if (e && ((n >= 0 && n < SEEDED) || (USED(A_BOUND_BY_NODE, e) && bykey[e]))) return 1; }
   return 0;
 }
 /* Run binding b: a recipe is entered on the bindings beneath b, a code leaf is called. With
@@ -1293,7 +1308,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       if (j && a[0]) { out[j-1].entry = 0; while (nout && !out[nout-1].entry) nout--; }
       W->v = j && a[0] ? E(YES) : E(NO); return;
     }
-    if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !on_page(A_BOUND_BY_NODE, a[0]) || !bykey[a[0]]) { W->v = E(NO); return; }
+    if (!a[0] || !USED(A_BOUND_BY_NODE, a[0]) || !bykey[a[0]]) { W->v = E(NO); return; }
     room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind, 0 }; nbind++;
     bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); return;
   }
@@ -1301,7 +1316,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
     if (c != (op == HELD ? 1u : 2u)) { fault(S_ARITY); return; }
     if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == HELD) { if (!(W->v = key < N(A_CELLS) && on_page(A_CELLS, key) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
+    if (op == HELD) { if (!(W->v = USED(A_CELLS, key) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
     touch(A_CELLS, key);
     if (op == NOTE) kept(E(NOTE), key, a[1]);      /* a note is what was seen of a run, not part of it: no fail undoes it */
     else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
@@ -1456,7 +1471,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->k = push(F_FAIL, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case CUT:
       if (c > 1) { fault(S_ARITY); break; }
-      if (!c) { if (ncp > W->cut) ncp = W->cut; answer(E(YES)); break; }
+      if (!c) { cutto(W->cut); answer(E(YES)); break; }
       W->k = push(F_CUT, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case ALL:
       if (c != 1) { fault(S_ARITY); break; }
@@ -1500,7 +1515,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL;
       if (f.i + 1 < nd[f.node].n) W->k = push(F_SEQ, f.node, f.i + 1, W->env, W->cut, 0, W->k, 0);
       break;
-    case F_CUT: if (ncp > f.cut) ncp = f.cut; break;
+    case F_CUT: cutto(f.cut); break;
     case F_FAIL: W->reason = W->v; W->mode = M_FAILED; break;
     case F_ALL:
       if (W->v) { room(A_GATHERED, (uint64_t)ncoll + 1); coll[ncoll] = (Gathered){ E(GATHERED), W->at, f.aux, W->v }; ncoll++; }
@@ -1525,6 +1540,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       for (uint32_t i = f.vals; i < nout; i++) out[i].sees = nout;
       break;
     case F_OUTCOME:
+      if (ncp <= f.aux) die("an outcome's choice was closed under it");
       cp[f.aux].coll = W->v ? seen_as(S_NODE, W->v) : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_ANSWER));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
     case F_HANDLER: {
@@ -1617,7 +1633,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     while (j && fr[j].t != F_RECOVER && fr[j].t != F_OUTCOME) j = fr[j].t == F_ALL ? fr[j].vals : fr[j].k;
     if (!j) { W->v = 0; W->outcome = 'f'; W->mode = M_DONE; return; }
     Frame f = fr[j];
-    if (f.t == F_OUTCOME) { cp[f.aux].coll = seen_as(S_FAULT, W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
+    if (f.t == F_OUTCOME) { if (ncp <= f.aux) die("an outcome's choice was closed under it");
+      cp[f.aux].coll = seen_as(S_FAULT, W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
     while (ncp && cp[ncp-1].mfr > j) ncp--;   /* the choices the body opened close, though a cut in it closed older ones */
     nfr = j; if (f.mlink < nlink) nlink = f.mlink;     /* the faulted body's frames, values and calls are given back, */
     if (f.mact < nact) { nargp = act[f.mact].off; nact = f.mact; }

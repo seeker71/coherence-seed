@@ -97,14 +97,21 @@ and by-id. Its tables divided into lanes keep their counts in the process's own 
   working node stands, is settled as it is made. Any other is working: it is found by the process's
   own by-content and by-id, and a fail gives it back as it always did. A settled node lies below
   every choice point's mark, so no fail reaches it, and the substrate's by-content and by-id find it.
+  That holds because no choice opens again once closed: a cut stops at a running outcome's choice
+  point, which the outcome's end fails into. A fail that would reach a settled node ends the
+  process. The machine's `ids` counts the places taken in the working by-id, the substrate head's
+  `ids` those in the settled one.
 - **The commit.** At the top of each evaluation step of the walker, when no choice is open and
   working nodes stand, each is settled where it stands, the newest first, as the working index forgets it, and
-  `sw` rises past them. In a process alone nothing else settles while working nodes stand, so no
+  `sw` rises past them. Both settled indexes are made large enough before the first node is
+  settled, so a `full` there leaves every node where it was found. In a process alone nothing else settles while working nodes stand, so no
   settled node can equal one; were one found, the walker's state would have to be moved onto it,
   which is not built, and the process ends saying so.
 - **The snapshot.** When the first choice point opens, `seen` keeps each lane's `sw`.
 - `fb.check` reads the substrate's head, its areas and the lane row through the description, and
-  checks that `share` and the substrate's nodes area put the nodes where the head says.
+  checks that `share` and the substrate's nodes area put the nodes where the head says. It runs
+  inside a choice, so it also checks that `seen` holds the lane's `sw`, and that every node below
+  `sw` has its `settled` byte at 1 and every other at 0.
 
 ## Rules
 
@@ -238,12 +245,14 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
-- 2026-11-27, version 20 against version 19, in five alternating rounds under `/usr/bin/time -l`,
-  medians: the long recursion took 1.10 s of CPU against 1.04 s (instructions +7.0%, cycles
-  +4.9%), forty thousand outcomes given back 1.42 s against 1.36 s (+4.4%, +4.1%), and the
-  compiled sweep of 37,822 cases 9.89 s against 8.74 s (+14.3%, +13.0%). The test for a commit at
-  each evaluation step, a second index asked for nodes made under a choice and a page bit asked
-  before a handle-keyed read cost those instructions.
+- 2026-11-27, version 20 against version 19, in three alternating rounds under `/usr/bin/time -l`,
+  medians: the long recursion took 1.07 s of CPU against 1.03 s (instructions +4.9%, cycles
+  +3.6%), forty thousand outcomes given back 1.39 s against 1.35 s (+3.6%, +3.1%), and the
+  compiled sweep of 37,822 cases 9.83 s against 8.59 s (+5.7%, +14.6%). A key below the first
+  page not yet used is read without asking its page bit, which took back most of the sweep's
+  added instructions but few of its cycles; where those cycles go is not yet known. The working
+  index keeps its largest size beside the settled one, so the outcomes' peak footprint is 5.67 MB
+  against 4.97 MB.
 - 2026-11-27, version 18 against version 17, in seven alternating rounds under `/usr/bin/time -l`,
   medians: the long recursion took 0.99 s of CPU against 1.01 s (cycles −1.6%, instructions
   +0.8%), three million steps of a choice 0.78 s against 0.83 s (cycles −5.9%), a million calls of

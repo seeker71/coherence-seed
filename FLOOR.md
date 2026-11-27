@@ -180,17 +180,25 @@ Each line here is held by a program in `make check-full`, or names how it was se
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
-  nodes mid-run and below 274 at the end, the answer node 273 among them. `ground/gives-back.ck`
-  holds that a node made before its forty thousand outcomes keeps its handle and the lane's
-  settled watermark stands where it was; `ground/region-describes-itself.ck` checks the substrate
-  head, its areas, the lane row and where `share` puts the nodes, and five faults planted in the
-  description were each reported. A fault planted to move the watermark ended the run at the
-  commit, which found content already settled, rather than going on. Cells, bound-by-node and
-  print-numbers are charged by the pages they use. Measured against version 19 in five
-  alternating rounds under `/usr/bin/time -l`, medians: the long recursion 1.10 s of CPU against
-  1.04 s (instructions +7.0%, cycles +4.9%), `ground/gives-back.ck` as it stood before 1.42 s
-  against 1.36 s (+4.4%, +4.1%), and `ground/nums-compiled-agrees.ck` 9.89 s against 8.74 s
-  (+14.3%, +13.0%), where most nodes are made under a choice and asked of two indexes.
+  nodes mid-run and below 274 at the end, the answer node 273 among them. A cut stops at a
+  running outcome's choice point, so no choice opens again over settled nodes, and a fail that
+  would reach one ends the process. `ground/gives-back.ck` holds that a node made before its forty
+  thousand outcomes keeps its handle, that the lane's settled watermark stands while they run and
+  is past their answer once they close, and that a note on a key the fail moves to a page of cells
+  not used before still stands. `ground/region-describes-itself.ck` checks the substrate head, its
+  areas, the lane row, where `share` puts the nodes, that `seen` holds the watermark while a
+  choice is open, and every node's `settled` byte against it; five faults planted in the
+  description, a walker planted to keep a wrong `seen` and one planted to leave the byte unset
+  were each reported. A fault planted to move the watermark ended the run at the commit, which
+  found content already settled, rather than going on. A `full` planted where the
+  commit and a fail grow an index by id left every node found by content and by id. Cells,
+  bound-by-node and print-numbers are charged by the pages they use. A fail that has no memory for
+  the pages of cells its kept nodes move onto keeps its nodes instead of giving them back, as one
+  without text for its forwarding table already did. Measured against version 19 in three
+  alternating rounds under `/usr/bin/time -l`, medians: the long recursion 1.07 s of CPU against
+  1.03 s (instructions +4.9%, cycles +3.6%), `ground/gives-back.ck` as it stood before 1.39 s
+  against 1.35 s (+3.6%, +3.1%), and `ground/nums-compiled-agrees.ck` 9.83 s against 8.59 s
+  (+5.7%, +14.6%): its added cycles are not yet traced to their cause.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back the
   activations nothing can return to: three million rounds ended with 5 in use.
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments

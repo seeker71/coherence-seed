@@ -42,7 +42,7 @@ at: 2026-11-24
 n: 5.14.4
 name: cut-scope
 kind: decision
-is: Cut closes the nearest enclosing choice in the same recipe body and every choice opened since it was entered; with none, the choices opened since the running recipe was called. All is a barrier a cut does not cross.
+is: Cut closes the nearest enclosing choice in the same recipe body and every choice opened since it was entered; with none, the choices opened since the running recipe was called. All is a barrier a cut does not cross, and so is a running outcome, even for a cut run in the cut scope of the recipe that called it.
 status: inferred
 from: 5.4.6 5.4.7 3.5.2.5
 src: 2.30.6
@@ -578,12 +578,12 @@ at: 2026-11-27
 n: 5.14.60
 name: a-lone-process-settles
 kind: decision
-is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 20. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. A settled node lies below every choice point's mark, so no fail reaches it. A handle is still local to its process.
+is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 20. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. A handle is still local to its process.
 status: observed
 from: 5.14.57 5.7.8 5.7.3
 src: 2.30.19
 conf: mid
-why: Observed on 2026-11-27: all 77 ground programs and the nine named checks end as before; a second process saw lane 0 of the long recursion settled below 273 of 273 nodes mid-run; ground/gives-back.ck holds that a node made before forty thousand outcomes keeps its handle and the lane's settled watermark stands; fb.check reported each of five faults planted in the description; a fault planted to move the watermark ended the run at the commit instead of going on. Against version 19, medians of five alternating rounds: instructions +7.0% on the long recursion, +4.4% on giving back, +14.3% on the compiled sweep.
+why: Observed on 2026-11-27: all 77 ground programs and the nine named checks end as before; a second process saw lane 0 of the long recursion settled below 273 of 273 nodes mid-run; ground/gives-back.ck holds that a node made before forty thousand outcomes keeps its handle, the lane's settled watermark stands while they run and passes their answer once they close, and a note on a key moved to an unused page of cells stands; fb.check checks seen and every node's settled byte against the watermark, and reported each of five faults planted in the description and two planted walkers; a fault planted to move the watermark ended the run at the commit instead of going on. Against version 19, medians of three alternating rounds: instructions +4.9% on the long recursion, +3.6% on giving back, +5.7% on the compiled sweep, whose cycles stay +14.6% for a cause not yet traced.
 flip: Committing at the top of every step rather than every evaluation step cost the long recursion another 0.83 billion instructions.
 limit: One lane: no other process maps the substrate, and the commit's path for content settled meanwhile is not built, since a lone process cannot meet it. One machine.
 at: 2026-11-27
