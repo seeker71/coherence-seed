@@ -36,6 +36,11 @@ kg: tools/kg.c
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
 
+# share/bound.ck is made from nodes too: what the host's package and the substrate's bind once they are loaded, and the
+# machine-code leaves their rows assemble to, as one node a member reads in place of loading and assembling them.
+door: ck
+	./ck text share/bind.ck > .ck-door && mv .ck-door share/bound.ck
+
 # Wait until the region named $name stands, for at most ten seconds.
 up = n=0; until ./fb show $$name > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
 
@@ -130,9 +135,11 @@ check-full: check
 check-header: ck
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
 	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
+	@./ck text share/bind.ck | cmp -s - share/bound.ck && echo "door: share/bound.ck is what the host's and the substrate's packages bind and assemble" || \
+	  { echo "door: share/bound.ck is not what share/bind.ck writes; run make door"; exit 1; }
 
 # A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which makes or joins it through
-# the host's rows. $(call shown,NAME) lists a substrate and its lanes by the same rows, and fails when none stands.
+# the host's rows; it reads the door as share/bound.ck holds it (make door). $(call shown,NAME) lists a substrate and its lanes by the same rows, and fails when none stands.
 MEMBER = share/all.ck
 shown = printf %s $(1) | ./ck text share/show.ck
 # Wait until the substrate named $(1) has a member, for at most ten seconds.
@@ -218,6 +225,6 @@ check-bare: ck
 	  else echo "parts by name: $$n reads by a bare number, over the budget of $(BARE); name the parts"; exit 1; fi
 
 clean:
-	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
+	rm -f ck fb kg seed-run .ck-header .ck-door .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
-.PHONY: all metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
+.PHONY: all door metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
