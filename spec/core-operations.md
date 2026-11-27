@@ -513,15 +513,23 @@ know answers nothing with the reason `no-symbol`, and so does the address 0. A c
 where no code lies is the fault `crash`, like a crash inside code.
 
 The address of the host's own lookup, `dlsym`, is the word `symbol` of the region's head
-(`spec/framebuffer.md`), so `(host symbol -2 name)` answers the address of any function and a
-program that holds no name as text can still reach the host. On the numeric port a first value
-that is not an `int` is, as before, a call of the entry bound to it; an `int` is an address there
-too. This was read in the code and compiled into `seed-run`; it was not run on the port.
+(`spec/framebuffer.md`). With `symbol` bound to that word, `(host symbol -2 name)` answers the
+address of the function the host knows by that name: -2 is what this host calls the default
+handle, every library loaded so far, and the package `host/` holds it as a row
+(`host.default-handle`) since another host has another number. So a program that holds no name
+as text can still reach the host. On the numeric port a first value that is not an `int` is, as
+before, a call of the entry bound to it; an `int` is an address there too, run by hand under
+`seed-run` (`FLOOR.md`).
 
 What the eight registers cannot carry is carried by the package `host/` (graph node 5.14.60): a
 host function is a row with a slot for each value, and one machine-code leaf, the berth, lays
 integers, floats, addresses and varying values where the host's calling convention wants them
-and brings back a float or an integer result. `host/all.ck` loads it.
+and brings back a float, an integer or no result. `host/all.ck` loads it, and `host.open`, given
+the `symbol` word and where the rooms lie, takes the one room the berth lives in. An address
+slot takes an `int` as the address it is, or a text or bytes leaf of at most 127 bytes, copied
+for the length of the call; each register class and the stack take eight values, a call sixteen
+in all. A raw supervisor call and a store at an absolute address are refused while a choice is
+open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is
 open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over

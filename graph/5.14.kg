@@ -578,11 +578,11 @@ at: 2026-11-27
 n: 5.14.60
 name: the-host-is-rows-behind-one-door
 kind: decision
-is: Entry 98 calls its first value: a name is looked up, an integer is the address itself. The address of the host's symbol lookup is a word of the region's head, after the area table, so code with no walker and no words can find any host function. A host function is a row in the package host/: its symbol, a slot for each value (integer, float, by address, varying) and its result. One machine-code leaf, the berth, written as instruction rows, runs any row: it loads the registers a calling-convention row names, copies the stack words, calls, and stores the results back.
+is: Entry 98 calls its first value: a name is looked up, an integer is the address itself. The address of the host's symbol lookup is a word of the region's head, so code with no walker and no words can find any host function. A host function is a row in the package host/: its symbol, a slot for each value and the kind of its result. One machine-code leaf, the berth, written as instruction rows derived from one layout row, runs any row. The berth is one room of the region per process, so a call that faults strands nothing.
 status: inferred
 from: 5.8.3 7.21 5.14.59
 conf: mid
-why: Run on 2026-11-27 on macOS arm64, plain and under the hardened runtime: a file written, read back and removed, a sort through a callback that is leaf code, square root and power with float values, a formatted varying value, a raw supervisor call, each equal to its expected answer and, where entry 98 can carry it, equal by name, by address and through the berth. Two wrong place rows planted by hand were named by the run.
+why: Run on 2026-11-27 on macOS arm64, plain and under the hardened runtime: a file written, read back and removed, a sort through a callback that is leaf code, square root and power with float values, a formatted varying value, a raw supervisor call, forty crashing calls that leave the heap as it was, each equal to its expected answer and, where entry 98 can carry it, equal by name, by address and through the berth. Two wrong place rows planted by hand were named by the run.
 flip: A host whose convention the berth's fixed slots cannot hold, such as a structure passed by value in more than two words, needs another leaf or a copy.
-limit: Rows and leaves exist for aapcs64 only. Not run on the numeric port. Memory the host hands out is outside the allowance. What the host ties to the process's first thread is out of reach, since the walker is not that thread.
+limit: Rows and leaves exist for Apple's arm64 convention only. On the numeric port a call by address was run by hand and no check holds it. Memory the host hands out is outside the allowance. A host function that ends the process itself is not caught. What the host ties to the process's first thread is out of reach, since the walker is not that thread.
 at: 2026-11-27
