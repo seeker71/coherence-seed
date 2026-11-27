@@ -173,7 +173,9 @@ Stages in the submission share the allocations and one pipeline per distinct ent
 | `metal.file-region` | UTF-8 path bytes, file offset, logical length |
 | `metal.scratch` | Length in bytes of a zero-initialized private buffer |
 | `metal.readback` | Allocation index, byte offset, length of the requested reply |
-| `metal.stage` | UTF-8 entry-name bytes, buffer views, unsigned 32-bit constants, grid |
+| `metal.stage` | Entry-name bytes or a `metal.specialization`, buffer views, unsigned 32-bit dispatch constants, grid |
+| `metal.specialization` | UTF-8 function name and an ordered list of `metal.constant-value` nodes |
+| `metal.constant-value` | Metal function constant index, Metal scalar data type and its native payload bytes |
 | `launch.view` | Zero-based input buffer index, byte offset |
 | `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
 
@@ -192,6 +194,19 @@ to each output row and use 32-bit offsets within the matrix. The
 matrix extent must match its file region and each vector must fit its view. An unlisted
 format answers `e.kind`. A different library can supply its own matching rows. The
 compiled library is an input to `make metal-image` through `METAL_LIBRARY`.
+
+A specialization binds its constants when Metal creates the pipeline. For example,
+`(metal.constant-value 1700 53 [bytes 00])` sets the boolean at index 1700 to false.
+The mounted library caches the pipeline by the content ID of the complete specialization.
+A command encoder keeps its selected entry and threadgroup limit across consecutive
+dispatches. A new encoder starts with an empty selection.
+
+On the M4 Max, Seed ran llama.cpp's Q4_K and Q6_K SIMD-group matrix kernels and
+its weighted RMS normalization directly from the upstream Metal library by numeric
+ID. The matrix kernels take their original GGUF blocks and the normalization kernel
+takes one row per stream. The library can be built from the pinned
+[matrix kernel](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/kernels/mul_mv_mma.metal)
+and [normalization kernel](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/kernels/norm.metal).
 
 A `metal.projection-panel` pairs a projection with a stream count. Its input is
 a compact Float32 array indexed by stream and column. Its output is a disjoint
