@@ -173,9 +173,7 @@ the text of the file that stores x.
   has the shape it says.
 - A recipe closes over the outer names only where every outer argument has a name. In a recipe
   whose arguments have no names, or at the top of a program, the first name a let gives takes
-  `$0`. A closed recipe takes every outer place before its own arguments, and a call holds at
-  most forty (`bootstrap/ck.c`), so a recipe written after some thirty-five names of a `let` is
-  refused when called, `not-a-recipe`; a long program gives a part its own inner `let`.
+  `$0`. A closed recipe takes every outer place before its own arguments.
 - Two recipes that are one node have one row of names. A name belongs to one lens; nothing yet
   keeps a second lens's names for the same node.
 - A row's hole may stand only once on each side; a shape with the same hole twice is not checked.

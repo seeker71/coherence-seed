@@ -163,7 +163,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back the
   activations nothing can return to: three million rounds ended with 5 in use.
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
-  and a part a `let` named, over nine at once, through its own recursion, as a handler.
+  and a part a `let` named, over nine at once, over fifty, through its own recursion, as a
+  handler. A call passes as many values as memory holds: forty in `ground/closes-over.ck`.
 - **The host is reached by name**, and a crash inside code or a host function is a fault the
   program can catch, a recursion in machine code that falls off the stack among them. So is a
   request no area of the region can hold: a room larger than memory, asked for a thousand calls
@@ -219,10 +220,14 @@ Each line here is held by a program in `make check-full`, or names how it was se
   one; gathering only its own took the lens's showing of itself from 0.28 s to 0.09 s.
 - **Being seen costs little.** Registers and writers kept in the region cost about a quarter of
   the walker's speed; being recorded every millisecond, up to about 4%.
-- **Only memory sizes the region.** Each area has room for as many records as the machine's
-  memory holds, or as its count of 32 bits numbers where that is fewer: with 128 GiB the region
-  is 2.28 TiB of addresses, reserved in a few microseconds, and an area's entry keeps the most it
-  has held. Against the same bootstrap with fixed capacities, under `/usr/bin/time -l`, the long
+- **Only memory sizes the region, and the host what it takes.** Each area has room for as many
+  records as the machine's memory holds, or as its count of 32 bits numbers where that is fewer:
+  with 128 GiB the region is 2.3 TiB of addresses, reserved in a few microseconds, and an area's
+  entry keeps the most it has held. As the areas grow, the host is asked what it can spare, and a
+  growth it cannot spare is `full`: a room of all the machine's memory less a page is refused
+  untouched (`ground/full-is-a-fault.ck`). A region without a name goes with its process: a run
+  killed by a signal gave back its 2.9 GB at once, where before its region kept them until the
+  machine restarted. Against the same bootstrap with fixed capacities, under `/usr/bin/time -l`, the long
   recursion took 0.99 s of CPU where it took 0.97, the sweep of compiled code 8.29 s where it took
   8.15, and every ground program in one process 57.5 s where it took 56.7: the 64-bit hash and
   counts. The sweep held 6.6 MB at most where it held 7.3, a node's record being 32 bytes where it
@@ -310,9 +315,9 @@ running compiled code against frames all the way down).
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
-- **A bound on the region as a whole.** Each area may take the machine's memory and nothing counts
-  what they take together, so a run that needs more than the machine has is paged by the host
-  instead of meeting `full`, and a recursion that never returns runs until memory is spent. A
+- **A bound on the machine stack.** The areas together take only what the host can spare, but the
+  machine stack is not counted with them, so a recursion in emitted code can still take what the
+  host cannot spare before emitted code's check of the floor. A
   handle and the indexes of the walker's records are 32 bits, so at most 2^32 − 1 nodes and as
   many frames or children; the limit word holds 2^23 − 1 bindings and 127 from outside; born code
   is reached by a 32-bit offset, 4 GiB. The stack holds as much as memory, so no program reaches

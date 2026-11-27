@@ -3,7 +3,7 @@
 n: 5.14
 name: floor
 kind: hub
-is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 75 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of eleven host functions. The region's areas are sized by the machine's memory (5.14.58). Zero and one are catalogue entries and nothing is the absence of a node.
+is: The bootstrap: bootstrap/ck.c and the layout bootstrap/fb.h, under the 2,000-line budget. All of its memory is one shared region, the framebuffer, that a second process records and replays. On it stand a store, the canonical reader and printer, a walker over 75 operations whose registers are a record in the region and whose operations and step a running program can replace, the birth of code pages and a table of thirteen host functions. Memory sizes its areas; the host bounds what they take (5.14.58, 5.14.59). Zero and one are catalogue entries and nothing is the absence of a node.
 at: 2026-11-27
 
 n: 5.14.1
@@ -166,7 +166,7 @@ at: 2026-11-25
 n: 5.14.16
 name: lists-carry-the-parts
 kind: decision
-is: pack and join take their parts as one list, and a program makes that list with all over a recipe that answers one part and, failed back into, the next. So a node of any size is built with two arguments, and the walker's bound of eight children for an operation does not bound what can be built.
+is: pack and join take their parts as one list, and a program makes that list with all over a recipe that answers one part and, failed back into, the next. So a node of any size is built with two arguments.
 status: inferred
 from: 5.14.15 5.14.6
 src: 2.30.6
@@ -418,7 +418,7 @@ at: 2026-11-25
 n: 5.14.40
 name: the-host-is-called-by-name
 kind: decision
-is: Entry 98, host, looks a name up in the host and calls what it finds with up to six arguments, an int as it is and any other leaf as the address of its bytes: one lookup and one raw call for the C library and a framework alike (5.8.3). What the host does cannot be undone, so the call is a fault, irreversible, while any choice is open. Observed on 2026-11-25: with no choice open a program in form wrote a file through creat, write and close, and found the host's getpid equal to the pid in its own region's head; inside an outcome the call was refused.
+is: Entry 98, host, looks a name up in the host and calls what it finds with up to eight arguments, an int as it is and any other leaf as the address of its bytes: one lookup and one raw call for the C library and a framework alike (5.8.3). What the host does cannot be undone, so the call is a fault, irreversible, while any choice is open. Observed on 2026-11-25: with no choice open a program in form wrote a file through creat, write and close, and found the host's getpid equal to the pid in its own region's head; inside an outcome the call was refused.
 status: inferred
 from: 5.8.1 5.8.3 5.4.8 5.9.3 7.3
 src: 2.30.7 2.30.6
@@ -511,7 +511,7 @@ src: 2.30.7 2.30.6
 conf: mid
 why: A recipe is a node and holds no values (5.1.1), so what an inner recipe needs from outside has to be given to it; a node that pairs the recipe with those values keeps both immutable and needs no new kind of activation.
 flip: Each closing makes a node that only a fail back past it gives back, so a closing inside a long loop with no choice open fills the store as a counter does. What is bound for the recipe runs a closed one too, with more arguments than its code was written for, which code then declines.
-limit: Witnessed by ground/closes-over.ck, turned red by two planted faults. At most forty arguments in all.
+limit: Witnessed by ground/closes-over.ck, turned red by two planted faults; it closes over fifty values and calls with forty.
 at: 2026-11-26
 
 n: 5.14.55
@@ -558,6 +558,19 @@ from: 5.14.10 5.14.56 5.14.57 7.13
 src: 2.30.7 2.30.9 2.30.11 2.30.19
 conf: mid
 why: No bound but the hardware's. A fixed capacity was a limit a program met long before the machine's, and pages are taken only as they are touched, so room that is not used costs nothing.
-flip: Nothing counts what the areas take together, so a run that needs more than the machine has is paged by the host before any area is full; a bound on the whole region, with a ground program that reaches it cheaply, would make that a fault too.
+flip: What the areas take together is bounded by what the host can spare (5.14.59); a fixed capacity would come back only on a host that cannot say.
 limit: A handle, the indexes of the walker's records and the limit word are still 32 bits or fewer: at most 2^32 - 1 nodes, as many frames or children, 2^23 - 1 bindings and 127 from outside. Born code is reached by a 32-bit offset, 4 GiB, and the floor counts pages of 16 KiB in 32 bits, so the stack lies within the region's first 64 TiB. The asker writes a request's count as four bytes of eight. One machine.
+at: 2026-11-27
+
+n: 5.14.59
+name: the-host-bounds-the-areas
+kind: decision
+is: The areas take together only what the host can spare: each time they reach a further step, as many pages as the host's VM keeps free, the walker asks the host what it can still give, and a growth it cannot spare is full. A region without a name is unlinked once mapped, so its memory goes with its process however that ends. Observed on 2026-11-27: a room of all the machine's memory less a page was refused untouched, and a run killed by a signal gave back its 2.9 GB at once.
+status: inferred
+from: 5.14.58
+src: 2.30.7 2.30.11
+conf: mid
+why: A run that takes what the host cannot spare takes the host down with it: on 2026-11-26 one process held 267 GiB of a 128 GiB machine before the host stopped answering, and a process the host killed left its memory in its region. Only the hardware bounds what a run takes, and the host is how the hardware's memory is known.
+flip: A run grows at most one step past the moment the host became short, and a host short for other reasons refuses this run's growth too; a finer step, or a signal from the host, would narrow both.
+limit: The machine stack is not counted with the areas. A host that says nothing is not asked. One machine.
 at: 2026-11-27

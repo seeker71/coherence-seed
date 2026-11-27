@@ -47,7 +47,8 @@ make
 `seed-run` loads the canonical binary records from the image. Its input and output are byte
 streams. It initializes once. Each request consists of one unsigned byte giving the number
 of arguments, a 32-byte target id, and one 32-byte id per argument. The direct port accepts
-zero to seven arguments. A list node can carry a longer argument vector. A bound operation
+as many arguments as its count byte numbers, zero to 255; a list node carries a longer vector.
+A request that cannot be read to its end is answered `short`. A bound operation
 receives its arguments as values. A recipe is called. A closed executable expression runs.
 Each reply has a one-byte outcome (0 nothing, 1 node, 2 fault), the 32-byte id of its value
 or reason, a four-byte little-endian archive length and that many bytes of frozen graph.
@@ -806,5 +807,5 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
 `ground/lens-round-trip.ck` writes the writer's package in all five languages and reads the BML
 back, and the encoder's package is written the same way. On this machine the Python parses with
 Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C# against stubs of the
-runtime and still refuse parts of them. A record of more than five fields is not yet made, since
-`call` takes at most six arguments (`bootstrap/ck.c`).
+runtime and still refuse parts of them. A record takes as many fields as memory holds: its fields
+are the arguments of one call, and the walker holds a call's values in the region.

@@ -11,9 +11,11 @@ is the only writer, and `tools/fb.c` is the observer.
 ## The region
 
 - The bootstrap reserves one region when it starts and never moves or grows it. It is POSIX shared
-  memory, named `/ck.<pid>`, or by the variable `CK_FB` when that is set.
-- A region named by `CK_FB` is kept after the run ends, so its last state can be read afterwards.
-  One named by pid is removed when the process ends.
+  memory, named by the variable `CK_FB` when that is set.
+- A region named by `CK_FB` is kept after the run ends, so its last state can be read afterwards,
+  until `fb drop` removes it; a run that another process is to watch is named so. Without a name
+  the region is unlinked as soon as it is mapped, so it lives exactly as long as its process and
+  its memory is given back however the process ends, killed by the host included.
 - The bootstrap keeps no heap. Its tables, its working lists, the files it reads and its machine
   stack are all inside the region. It starts on the host's stack only long enough to move onto the
   region's.
@@ -21,8 +23,12 @@ is the only writer, and `tools/fb.c` is the observer.
   area has room for as many of its records as that memory holds, or as its count can number where
   that is fewer: 32 bits for records named by a handle or an index of 32 bits, 64 for bytes,
   children and the two indexes. Pages are taken from the host as they are first touched, so
-  reserving costs nothing: with 128 GiB of memory the region is 2.28 TiB of addresses, reserved in
+  reserving costs nothing: with 128 GiB of memory the region is 2.3 TiB of addresses, reserved in
   a few microseconds, and a small run's whole process holds under two megabytes.
+- Each area but the stack begins as many lines of the data cache into its first page as there are
+  areas before it, so the first records of no two areas fall on one set of that cache; the host
+  says how long a line is (`hw.cachelinesize`, 128 bytes here), and where it does not say, every
+  area begins on a page. A reader finds each area by its offset in the head.
 
 ## What is in it
 
@@ -37,7 +43,7 @@ moves: at byte 28 the **floor**, the lowest page the machine stack may reach, co
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
 code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 17 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 18 lays it
 out.
 
 | Area | Records | Holds |
@@ -65,6 +71,7 @@ out.
 | room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, and its writer and count, so a fail puts them back |
 | gives | words | how many times a fail gave nodes back, and the choice, the mark and the top of the last time |
 | ids | bytes | each content id once asked for: the node's handle, then the id's 32 bytes; when a fail gives nodes back, the ids of those that stay move down with them |
+| values | words | the values in hand: those of a node's children while its operation runs, and what a call is given; all given back at the walker's next step |
 
 ## Rules
 
@@ -79,7 +86,9 @@ out.
    takes the counts first never sees a record half made. A count moves down before the records it
    leaves are changed: when a fail gives nodes back, the nodes count drops to the mark, what stays
    moves down, and the count rises past it. A place in the nodes can then hold another node, so a
-   reader that keeps nodes by handle reads the count in `gives` and keeps them under it.
+   reader that keeps nodes by handle reads the count in `gives` and keeps them under it. Two
+   working areas, `text` and `values`, take their room by moving the count first and are written
+   after: what lies under their counts is whole only between two steps.
 5. **The writer does nothing for a reader.** It makes no call, takes no lock and waits for no one.
    It cannot tell whether anyone is reading. What it does look at, once a step, is whether
    someone has asked it something (below).
@@ -195,6 +204,13 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
+- 2026-11-27, version 18 against version 17, in seven alternating rounds under `/usr/bin/time -l`,
+  medians: the long recursion took 0.99 s of CPU against 1.01 s (cycles −1.6%, instructions
+  +0.8%), three million steps of a choice 0.78 s against 0.83 s (cycles −5.9%), a million calls of
+  a closure 0.23 s against 0.24 s (cycles −3.2%), and a loop of seven arguments 0.23 s against
+  0.24 s (cycles −4.4%). The values in hand cost those instructions; each area beginning on its own
+  set of the data cache gives back more cycles than they take, where with every area on a page the
+  same walker took up to 11% more cycles.
 - 2026-11-27, version 17 against version 16, which had fixed capacities, in alternating runs under
   `/usr/bin/time -l`: the region of 2.28 TiB is reserved in 1 to 6 µs, as the one of 2.5 GiB was.
   The long recursion in `ground/long-recursion.ck` (158.6 million walker steps) took 0.99 s of CPU
@@ -224,15 +240,18 @@ in it was complete when its count was read.
 - **A frame is a sample.** What a cell held between two frames is not kept, apart from its last
   writer. The journal that undo needs (stage 5) will keep old values inside the region.
 - **The stack is recorded as raw bytes**, its newest 256 KiB, and the observer does not yet read it.
-- **Only memory bounds an area, and nothing bounds them together.** Each area may take the
-  machine's memory, so a run that needs more than the machine has is paged by the host before any
-  area is full, and a recursion that never returns runs until memory is spent. The fault `full`,
-  with the area's name, is met by a request no area can hold or by a count of 32 bits that is
+- **The host bounds the areas together.** Each area may take the machine's memory, and all of
+  them together what the host can spare: each time they have reached a further step, as many
+  pages as the host's VM keeps free, the host is asked how much it can still give
+  (`kern.memorystatus_level` of `hw.memsize`), and nothing while its pressure is at warning or
+  worse (`kern.memorystatus_vm_pressure_level`). The fault `full`, with the area's name, is met by
+  a growth the host cannot spare, by a request no area can hold, or by a count of 32 bits that is
   spent; a `recover` that catches it gets the frames, values and activations back, and no nodes.
+  The machine stack is not counted with the areas, and a host that says nothing is not asked.
 - **What is still counted by 32 bits or fewer**: a node's handle, so at most 2^32 − 1 nodes; the
   indexes of frames, links, activations, arguments, choice points, gathered values, born code,
-  trails, room trails, held-back calls, notes, and the nodes the reader opened and the children it
-  gathers, so a composite has at most 2^32 − 1 children; the limit word, 2^23 − 1 of the program's
+  trails, room trails, held-back calls, notes, values in hand, and the nodes the reader opened and
+  the children it gathers, so a composite has at most 2^32 − 1 children and a call as many values; the limit word, 2^23 − 1 of the program's
   own bindings and 127 from outside; the offset of born code, 4 GiB of it; and the floor, pages of
   16 KiB, so the stack lies within the region's first 64 TiB. On this machine 128 GiB of node
   records hold 2^32 nodes, so memory and the handle bind together.

@@ -154,11 +154,14 @@ fault of the processor anywhere else, in the bootstrap's own code, ends the proc
 
 `full` is the fault of an area of the region that has no room for what is asked of it; its reason
 is `(list "full" name)`, the area's name beside it. An area has room for as much as the machine's
-memory holds, or as its count of 32 bits numbers (`spec/framebuffer.md`), so what ends this way
-is a request larger than that, and not the process. Where a `recover` catches a fault, the frames,
-the gathered values and the activations of the body that faulted are given back, so the program
-goes on (`ground/full-is-a-fault.ck` asks a thousand calls deep for a room larger than memory, twice,
-and finds its frames given back). A recover gives back no nodes, since the cells, bindings and
+memory holds, or as its count of 32 bits numbers, and the areas together for what the host can
+spare (`spec/framebuffer.md`), so what ends this way is a request larger than that, and not the
+process or the machine. Where a `recover` catches a fault, the frames,
+the gathered values, the activations and the choices of the body that faulted are given back, and
+the handler takes the frame of the `recover` itself, so the program goes on in the room it had
+(`ground/full-is-a-fault.ck` asks a thousand calls deep for a room larger than memory, twice, and
+finds its frames given back; `ground/loop-in-place.ck` catches a thousand faults in a loop and
+holds as many frames as after one). A recover gives back no nodes, since the cells, bindings and
 rooms of the body that faulted still stand: a store that is full stays full until a fail returns
 past where its nodes were made, and what catches that fault can do little.
 
@@ -477,7 +480,7 @@ is being written while it is read, and its writer neither knows nor waits.
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 98 | host | name, up to six arguments | looks the name up in the host and calls it; answers what it returns, as an integer |
+| 98 | host | name, up to eight arguments | looks the name up in the host and calls it; answers what it returns, as an integer |
 
 One lookup and one raw call reach everything the host offers, the C library and a framework
 alike (graph node 5.8.3). An `int` argument goes as it is; any other leaf goes as the address of
@@ -552,7 +555,8 @@ bootstrap means by it.
 `(after f a..)` is a call of the recipe f with the values a.., made later: when every choice
 that is open now has been closed. It answers yes at once. If a fail returns past it first, the
 call is never made; so is it when a fault leaves the `recover` it stands in. With no choice open
-it is a call like any other.
+it is a call like any other. When the last open choice closes inside a `recover`'s body, what was
+held back until then is made, and a fault in that body later drops only what it held since.
 
 So a search can act on the world and only the path that held does: the values are taken when
 `after` is evaluated, and the act waits for the commit. Calls held back are made in the order
@@ -564,7 +568,8 @@ own answer is not seen by anyone.
 `ground/held-back.ck` looks for a number among five, holding back a line to a file at each try:
 the file holds the one line of the try that held. A line held back before a fault is not written,
 a direct `host` inside the search is refused, and a line still held when the program ends is
-written before its outcome. It runs in the open under `make check-full`, since the checker's
+written before its outcome. A hundred calls held back are made in the order they were held, and
+a fault caught after a cut in its body closed every choice keeps the calls held outside it. It runs in the open under `make check-full`, since the checker's
 own `outcome` would end by failing over it.
 
 ## Entry 104: nothing, with its reason
@@ -843,8 +848,9 @@ not be what the walker does there.
   body keeps the arguments it stands among.
 - Integer law is still question 6.1.11; the 64-bit bound is the floor's.
 - The root cannot be built: its blueprint is nothing, and `pack` needs a blueprint.
-- An operation that evaluates its children first takes at most eight, so a call passes at most
-  seven arguments.
+- An operation that evaluates its children first holds their values in hand, in the area
+  `values`, so a call passes as many arguments as memory holds, and a recipe closes over as many.
+  Code takes six values in registers: given more, it declines, and the recipe runs on the walker.
 - A replaced step decides what each node means, and the bootstrap's walker still carries the run
   between nodes: the continuation, the choice points and the undo are its own and have no binding.
   The one step in machine code is written by hand and takes only the leaves.
@@ -877,9 +883,9 @@ not be what the walker does there.
 - Finding a leaf's runnable copy reads the born code from the oldest up, so it grows with how
   many leaves have been run. What runs a node is found through an index and does not.
 - What is not an operation has no binding yet: the store's own making of nodes and the host
-  functions that reserve memory and make code runnable. A raw call passes six arguments in
-  registers, so a host function that takes a varying number of them, `open` or `printf`, does
-  not get the ones after its fixed ones. A host function that faults is caught, but what it
+  functions that reserve memory and make code runnable. A raw call passes eight arguments in
+  the registers AArch64 has for them, so a host function that takes a varying number of them,
+  `open` or `printf`, does not get the ones after its fixed ones. A host function that faults is caught, but what it
   changed before it faulted stays changed.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing

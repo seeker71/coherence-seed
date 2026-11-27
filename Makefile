@@ -128,8 +128,8 @@ check-replay: ck fb
 
 check-held-back: ck
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
-	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a]) " ]; \
-	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing"; \
+	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
+	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it"; \
 	  else echo "held back: '$$got'"; exit 1; fi
 
 check-bare: ck

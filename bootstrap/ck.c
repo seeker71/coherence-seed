@@ -9,10 +9,12 @@
  *
  * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md. The header
  * fb.h is made from nodes (region/header.ck); it is not written by hand.
- * Everything this program reads and writes lives in one shared region laid out by fb.h,
- * named /ck.<pid> or by the variable CK_FB; it keeps no heap and its stack is in the region.
+ * Everything this program reads and writes lives in one shared region laid out by fb.h, named by
+ * the variable CK_FB and kept, or else unlinked as soon as it is mapped, so that it lives as long as
+ * the process however that ends; it keeps no heap and its stack is in the region. The areas take
+ * only what the host can give: it is asked how much memory it has to spare as they grow.
  * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
- * getenv getpid atexit exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
+ * getenv getpid exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
  * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp sysconf
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
  * pthread_jit_write_protect_np and sys_icache_invalidate; on Apple, sysctlbyname.
@@ -60,6 +62,7 @@ static void say(const char *a, const char *b) { put(1, a); put(1, b); put(1, "\n
 
 /* ---- the host: every capability the floor takes from it, one function each ------- */
 typedef struct { int64_t v, k; } Ret;              /* what code answers: v, and k saying what v is */
+typedef struct { uint64_t bytes, step; } Spare;    /* what the host can give: all ones where it does not say */
 typedef struct {
   void *(*region)(const char *name, uint64_t n);   /* the one shared region, zeroed */
   void *(*code_map)(size_t);                       /* reserve the one executable region */
@@ -72,6 +75,9 @@ typedef struct {
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
   void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
   uint64_t (*memory)(void);                        /* how many bytes of memory the machine has */
+  uint64_t (*line)(void);                          /* how many bytes a line of its data cache holds; 0 when it does not say */
+  Spare (*spare)(void);                            /* how many bytes it can give now without pressing on others, none when it is
+                                                      short of memory, and how many more it lets be taken before it is asked again */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -132,13 +138,39 @@ static uint64_t h_memory(void) {
   long pages = sysconf(_SC_PHYS_PAGES), size = sysconf(_SC_PAGESIZE);
   return pages > 0 && size > 0 ? (uint64_t)pages * (uint64_t)size : 0;   /* 0: the host does not say */
 }
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory };
+static uint64_t h_line(void) {
+#ifdef __APPLE__
+  uint64_t l = 0; size_t len = sizeof l;
+  if (!sysctlbyname("hw.cachelinesize", &l, &len, NULL, 0) && l) return l;
+#endif
+#ifdef _SC_LEVEL1_DCACHE_LINESIZE
+  long l1 = sysconf(_SC_LEVEL1_DCACHE_LINESIZE); if (l1 > 0) return (uint64_t)l1;
+#endif
+  return 0;
+}
+static Spare h_spare(void) {
+  Spare s = { ~0ull, ~0ull };
+#ifdef __APPLE__
+  int level = 0, avail = 0, target = 0; uint64_t page = 0; size_t len = sizeof avail;
+  if (!sysctlbyname("kern.memorystatus_level", &avail, &len, NULL, 0) && avail > 0) s.bytes = h_memory() / 100 * (uint64_t)avail;
+  len = sizeof level;                                /* the share of memory it can still give, then its pressure: */
+  if (!sysctlbyname("kern.memorystatus_vm_pressure_level", &level, &len, NULL, 0) && level > 1) s.bytes = 0;   /* warning or worse */
+  len = sizeof target;                               /* asked again after as many pages as its VM keeps free */
+  if (!sysctlbyname("kern.vm_page_free_target", &target, &len, NULL, 0) && target > 0 && (len = sizeof page, !sysctlbyname("hw.pagesize", &page, &len, NULL, 0)))
+    s.step = (uint64_t)target * page;
+#else
+  long avail = sysconf(_SC_AVPHYS_PAGES), size = sysconf(_SC_PAGESIZE);
+  if (avail > 0 && size > 0) s.bytes = (uint64_t)avail * (uint64_t)size;
+#endif
+  return s;
+}
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory, h_line, h_spare };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
 static Head *fb;
 static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
-static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted; static uint32_t *pnum, *bykey; static H *held;
+static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted, *hand; static uint32_t *pnum, *bykey; static H *held;
 static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives; static uint8_t *ids;
 #define N(i) (fb->a[i].n)
 #define W (&fb->m)
@@ -166,18 +198,31 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nob N(A_PRINT)
 #define ntext N(A_TEXT)
 #define nids N(A_IDS)
+#define nhand N(A_VALUES)
 #define IDREC 36                          /* a node's id: whose it is, and its 32 bytes */
 #define NID(h) (ids + (uint64_t)nd[h].ida * IDREC + 4)
 static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
-/* An area's peak is the most it has held, and room goes further only past it. An area that is
- * full: while a program runs that is its fault, full and the area's name, which it can
+/* An area's peak is the most it has held, and room goes further only past it. The areas together
+ * take what the host can give: each time they have reached a further step of the host's, it is
+ * asked how much it can spare, and a growth it has no room for, or one past an area's count, is
+ * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
 static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
-static void further(int a, uint64_t need) {
-  if (need <= fb->a[a].cap) { fb->a[a].peak = need; return; }
+static uint64_t reached, ask_at;         /* bytes the areas have reached together, and where the host is asked again */
+static void no_room(int a, const char *why) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
-  put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
+  put(2, "ck: "); put(2, why); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
+}
+static void further(int a, uint64_t need) {
+  if (need > fb->a[a].cap) { no_room(a, "the framebuffer has no room left for "); return; }
+  uint64_t more = (need - fb->a[a].peak) * fb->a[a].size;
+  if (more >= ask_at - reached) {         /* a further step: the host says what it can still give */
+    Spare s = host.spare();
+    if (more > s.bytes) { no_room(a, "the host has no memory to spare for "); return; }
+    ask_at = s.step > ~0ull - reached - more ? ~0ull : reached + more + s.step;
+  }
+  reached += more; fb->a[a].peak = need;
 }
 static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) further(a, need); }
 /* The limit word an activation runs under counts bindings: 23 bits for the program's own, 7 for
@@ -187,8 +232,7 @@ static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) furthe
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
-static char fbname[64]; static int fbkeep;
-static void fb_close(void) { if (!fbkeep) shm_unlink(fbname); }
+static char fbname[64];
 static void fb_open(void) {
   /* An area may grow until the machine's memory is spent: it has room for as many records as that
    * memory holds, or as its count can number where that is fewer. Records named by a handle or an
@@ -210,8 +254,9 @@ static void fb_open(void) {
     [A_ASKED] = { BYTE_TABLE, 1, 1 },               [A_ANSWERED] = { BYTE_TABLE, 1, 1 },
     [A_AFTER] = { WORD_TABLE, 4, 0 },               [A_NOTED] = { WORD_TABLE, 4, 0 },
     [A_ROOMS] = { BYTE_TABLE, 1, 1 },               [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 0 },
-    [A_GIVES] = { WORD_TABLE, 4, 0 },               [A_IDS] = { BYTE_TABLE, 1, 1 } };
-  uint64_t mem = host.memory(), cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
+    [A_GIVES] = { WORD_TABLE, 4, 0 },               [A_IDS] = { BYTE_TABLE, 1, 1 },
+    [A_VALUES] = { WORD_TABLE, 4, 0 } };
+  uint64_t mem = host.memory(), line = host.line(), cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
   if (!mem) die("the host does not say how much memory it has");
   for (int i = 0; i < A_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
   if (cap[A_BY_ID] > (uint64_t)1 << 33) cap[A_BY_CONTENT] = cap[A_BY_ID] = (uint64_t)1 << 33;   /* twice the most nodes a handle names */
@@ -221,19 +266,21 @@ static void fb_open(void) {
   cap[A_GIVES] = 4;                                             /* a record, not a table */
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
-    off[i] = at; at += (L[i].size * cap[i] + FB_PAGE - 1) / FB_PAGE * FB_PAGE;
+    uint64_t hue = i == A_STACK || line * A_COUNT > FB_PAGE ? 0 : line * (uint64_t)i;   /* each area's first records on a */
+    off[i] = at + hue; at += (L[i].size * cap[i] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;  /* cache set no other's first use */
   }
   const char *e = getenv("CK_FB");
-  if (e) { fbkeep = 1; snprintf(fbname, sizeof fbname, "%s", e); } else snprintf(fbname, sizeof fbname, "/ck.%d", (int)getpid());
+  if (e) snprintf(fbname, sizeof fbname, "%s", e); else snprintf(fbname, sizeof fbname, "/ck.%d", (int)getpid());
   if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
-  atexit(fb_close);
+  if (!e) shm_unlink(fbname);             /* unnamed, the region goes with the process, killed by the host included */
+  ask_at = host.spare().step;             /* the first step is taken before the host is asked */
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i], cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = 17; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 18; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
   lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
-  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS);
+  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS); hand = PLACE(A_VALUES);
   nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
@@ -686,15 +733,24 @@ static long long argn(H x) {              /* which argument a node (arg k) names
   for (uint32_t b = nd[i].n; b > 0; b--) j = j << 8 | bytes[nd[i].off + b - 1];
   return j;
 }
+/* Values in hand: the values of a node's children while its operation runs, and what a call is
+ * given. They lie in the area values, taken from its top and all given back at the walker's next
+ * step, so a call passes as many values as memory holds. */
+static H *in_hand(uint64_t n) { room(A_VALUES, nhand + n); H *p = hand + nhand; nhand += n; return p; }
 /* The calls held back by after, oldest first, as one node to run now that no choice is open. */
 static H due(void) {
-  H s[64], p[8]; uint32_t n = 0, at = 0; Status why;
-  while (at < nafter && n < 64) {
-    uint32_t c = aft[at++]; p[0] = aft[at];
+  uint32_t n = 0, at = 0; Status why;
+  for (uint64_t j = 0; j < nafter; j += (uint64_t)aft[j] + 1, n++)      /* each: how many words follow, the recipe, its values */
+    if ((uint64_t)aft[j] + 1 > nafter - j) die("a call held back runs past the calls held back");
+  for (uint32_t k = W->k; k; k = fr[k].t == F_ALL ? fr[k].vals : fr[k].k)       /* a recover around this place marked */
+    if (fr[k].t == F_RECOVER) fr[k].i = 0;                                       /* records this settling uses up */
+  H *s = in_hand(n); n = 0;
+  while (at < nafter) {
+    uint32_t c = aft[at++]; H *p = in_hand(c); p[0] = aft[at];
     for (uint32_t j = 1; j < c; j++) p[j] = mk(1, E(QUOTE), &aft[at + j], 1, &why);
     s[n++] = mk(1, E(CALL), p, c, &why); at += c;
   }
-  memmove(aft, aft + at, sizeof(H) * (nafter - at)); nafter -= at;
+  nafter = 0;
   return mk(1, E(SEQ), s, n, &why);
 }
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
@@ -702,13 +758,16 @@ static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f]
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
 static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED || e == ROOM || e == ROOM_TRAIL; }
 /* What is called is a recipe, or a recipe closed over values: those come first among its arguments.
- * Answers the recipe, with the n values in a made ready for it, or nothing. */
-#define MOST 40
-static H callee(H v, H *a, uint32_t *n) {
-  while (v && nd[v].comp && nd[v].bp == E(CLOSED) && nd[v].n) {
-    uint64_t m = nd[v].n - 1; if (*n + m > MOST) return 0;
-    memmove(a + m, a, sizeof(H) * *n); memcpy(a, kids + nd[v].off + 1, sizeof(H) * m); *n += m; v = KID(v, 0);
-  }
+ * Answers the recipe or nothing, and in full the n values of a made ready for it, in hand. */
+static int closed(H v) { return v && nd[v].comp && nd[v].bp == E(CLOSED) && nd[v].n; }
+static H recipe_of(H v) { while (closed(v)) v = KID(v, 0); return is_recipe(v) ? v : 0; }
+static H callee(H v, const H *a, uint32_t n, const H **full, uint32_t *nfull) {
+  if (!closed(v)) { *full = a; *nfull = n; return is_recipe(v) ? v : 0; }     /* a plain call: its values where they lie */
+  uint64_t m = 0, at;
+  for (H u = v; closed(u); u = KID(u, 0)) m += nd[u].n - 1;
+  H *p = in_hand(m + n); if (n) memcpy(p + m, a, sizeof(H) * n);      /* a, when in hand, lies below p */
+  for (at = m; closed(v); v = KID(v, 0)) { uint32_t k = nd[v].n - 1; at -= k; memcpy(p + at, kids + nd[v].off + 1, sizeof(H) * k); }
+  *full = p; *nfull = (uint32_t)(m + n);
   return is_recipe(v) ? v : 0;
 }
 static void fault(Status w) { W->reason = notice(w); W->mode = M_FAULT; }
@@ -849,11 +908,11 @@ static int watched(void) {
  * itself, unevaluated: a lazy keeps the cut scope, code gets the node's handle and the
  * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from, H node) {
-  H impl = B(b)->impl, t[9]; int64_t arg[8] = {0};
+  H impl = B(b)->impl; int64_t arg[8] = {0};
   if (!nd[impl].comp && nd[impl].bp != E(CODE)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
-    if (!r || !nd[B(r)->impl].comp || c > 8) { fault(S_KIND); return 1; }
-    t[0] = impl; memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
+    if (!r || !nd[B(r)->impl].comp) { fault(S_KIND); return 1; }
+    H *t = in_hand((uint64_t)c + 1); t[0] = impl; if (c) memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
   if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
@@ -927,8 +986,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
 static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   Status why; int64_t m, n, r = 0;
   if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
-    H none[MOST]; uint32_t n0 = 0;
-    if (!callee(a[0], none, &n0)) { fault(S_NOT_A_RECIPE); return; }
+    if (!recipe_of(a[0])) { fault(S_NOT_A_RECIPE); return; }
     for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
     if (!a[0]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     W->v = mk(1, E(CLOSED), a, c, &why); return;
@@ -974,11 +1032,11 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     return;
   }
   if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
-    int64_t arg[8] = {0}; uint64_t mark = ntext;      /* any other leaf as the address of its bytes with a zero after */
-    if (c < 1 || c > 7) { fault(S_ARITY); return; }
+    int64_t arg[8] = {0}; uint64_t mark = ntext; void *fn = 0;     /* any other leaf as the address of its bytes with a zero after */
+    if (c < 1 || (!numeric_io && c > 9)) { fault(S_ARITY); return; }      /* the eight registers AArch64 passes values in */
     if (ncp) { fault(S_IRREVERSIBLE); return; }        /* what cannot be undone is refused while a choice is open */
     if (numeric_io) {
-      H quoted[6], target = a[0];
+      H *quoted = in_hand(c - 1), target = a[0];
       if (!target || !bound(target, 0, act[env].lim)) { W->v = 0; W->reason = notice(S_UNBOUND); return; }
       for (uint32_t j = 1; j < c; ++j) {
         if (!a[j]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
@@ -990,11 +1048,11 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       if (!a[j] || nd[a[j]].comp) { fault(S_KIND); return; }
       if (j && geti(a[j], &arg[j-1])) continue;
       char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
-      if (j) arg[j-1] = (int64_t)(intptr_t)s; else arg[7] = (int64_t)(intptr_t)host.symbol(s);
+      if (j) arg[j-1] = (int64_t)(intptr_t)s; else fn = host.symbol(s);
     }
     if (W->mode == M_FAULT) { ntext = mark; return; }
-    if (!arg[7]) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
-    void *fn = (void *)(intptr_t)arg[7]; Ret r; arg[7] = 0;
+    if (!fn) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
+    Ret r;
     ntext = mark;                     /* given back before the call, since a crash does not return here */
     r = called(fn, arg); W->v = mki(r.v);
     return;
@@ -1157,7 +1215,7 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
 }
 
 static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
-  Status why; H a[8];
+  Status why; H *a = hand;
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
@@ -1166,7 +1224,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
-  for (;; W->step++) switch (W->mode) {
+  for (nhand = 0;; W->step++, nhand = 0) switch (W->mode) {
   case M_EVAL: {
     if (nafter && !ncp) {                 /* every choice is closed: what was held back for that is done now */
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
@@ -1188,7 +1246,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
      * an instance of a recipe, or the step's, which is given every node. A step or a lazy gets x
      * itself; when its code declines, what lies beneath runs. */
     while ((nbind || nout) && (b = bound(nd[x].comp && (op >= QUOTE || op < 0) ? nd[x].bp : 0, E(STEP), lim)) && (B(b)->entry == E(STEP) || is_lazy(B(b)->impl))) {
-      a[0] = x; if ((given = apply(b, lim, a, 1, W->env, x))) break;
+      a = in_hand(1); a[0] = x; if ((given = apply(b, lim, a, 1, W->env, x))) break;
       lim = under(b, lim); b = 0;
     }
     if (given) break;
@@ -1238,9 +1296,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++;
       W->k = push(F_OUTCOME, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
-      if (c > 8) { fault(S_ARITY); break; }
       if (!c) {
-        while (b && !apply(b, lim, a, 0, W->env, 0)) b = bound(nd[x].bp, 0, lim = under(b, lim));
+        while (b && !apply(b, lim, hand, 0, W->env, 0)) b = bound(nd[x].bp, 0, lim = under(b, lim));
         if (!b) { if (op == CLOCK) answer(mki(host.clock())); else fault(S_ARITY); }
         break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, lim); W->x = KID(x, 0); break;
@@ -1292,7 +1349,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       cp[f.aux].coll = W->v ? seen_as(S_NODE, W->v) : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_ANSWER));
       ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break;
     case F_HANDLER: {
-      H full[MOST]; uint32_t n = 1; full[0] = f.node; H to = callee(W->v, full, &n);
+      const H *full; H node = f.node; uint32_t n; H to = callee(W->v, &node, 1, &full, &n);
       if (!to) { fault(S_NOT_A_RECIPE); break; }
       W->env = enter(W->v, full, n, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break; }
     case F_ARGS: {
@@ -1300,7 +1357,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       uint32_t c = nd[f.node].n;
       if (f.i < c) { W->k = push(F_ARGS, f.node, f.i + 1, f.env, f.cut, vals, W->k, f.aux);
         W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL; break; }
-      for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
+      a = in_hand(c); for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp);
       uint32_t b = 0, lim = f.aux;        /* code that declines leaves the values to what lies beneath it. So does a */
@@ -1315,8 +1372,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         W->x = a[0]; W->mode = M_EVAL; break;
       }
       if (op == AFTER) {                  /* a call held back until every choice now open is closed; a fail that */
-        H none[MOST]; uint32_t n0 = 0;
-        if (!callee(a[0], none, &n0)) { fault(S_NOT_A_RECIPE); break; }        /* returns past here first drops it */
+        if (!recipe_of(a[0])) { fault(S_NOT_A_RECIPE); break; }                /* returns past here first drops it */
         if (!ncp) op = CALL;
         else {
           for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
@@ -1326,8 +1382,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         }
       }
       if (op == CALL) {
-        H full[MOST]; uint32_t n = c - 1, on = act[f.env].lim; memcpy(full, a + 1, sizeof(H) * n);
-        H to = callee(a[0], full, &n);    /* a call its own code declined runs wholly on what lies beneath that code */
+        const H *full; uint32_t n, on = act[f.env].lim;
+        H to = callee(a[0], a + 1, c - 1, &full, &n);    /* a call its own code declined runs wholly on what lies beneath that code */
         if (!to) { fault(S_NOT_A_RECIPE); break; }
         for (lim = f.aux; (nbind || nout) && (b = bound(to, 0, lim)) && !apply(b, lim, full, n, f.env, 0); b = 0) { lim = under(b, lim); on = (lim & ~OWN) | (on & OWN); }
         if (b) break;
@@ -1383,12 +1439,12 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     if (!j) { W->v = 0; W->outcome = 'f'; W->mode = M_DONE; return; }
     Frame f = fr[j];
     if (f.t == F_OUTCOME) { cp[f.aux].coll = seen_as(S_FAULT, W->reason); ncoll = f.i; ncp = f.aux + 1; W->mode = M_FAILED; break; }
-    if (ncp > f.aux) ncp = f.aux;
-    nfr = j + 1; if (f.mlink < nlink) nlink = f.mlink;     /* the faulted body's frames, values and calls are given back */
+    while (ncp && cp[ncp-1].mfr > j) ncp--;   /* the choices the body opened close, though a cut in it closed older ones */
+    nfr = j; if (f.mlink < nlink) nlink = f.mlink;     /* the faulted body's frames, values and calls are given back, */
     if (f.mact < nact) { nargp = act[f.mact].off; nact = f.mact; }
     nafter = f.i;                         /* what the faulted body held back is dropped with it */
     ncoll = f.vals;                       /* what the alls inside it had gathered goes with them */
-    W->k = push(F_HANDLER, W->reason, 0, f.env, f.cut, 0, f.k, 0);
+    W->k = push(F_HANDLER, W->reason, 0, f.env, f.cut, 0, f.k, 0);      /* and the handler takes the recover's frame */
     W->env = f.env; W->cut = f.cut; W->x = KID(f.node, 1); W->mode = M_EVAL; break; }
   default: return;
   }
@@ -1476,10 +1532,11 @@ static int execute_image(const char *path) {
   run(KID(image, 0));
   if (W->outcome != 'n') { send_outcome(); return 1; }
   for (;;) {
-    uint8_t count, id[32]; H refs[8], args[8]; ssize_t n = read(0, &count, 1);
+    uint8_t count, id[32]; ssize_t n = read(0, &count, 1);
     if (!n) return 0;
     if (n < 0 && errno == EINTR) continue;
-    if (n < 0 || count >= 8) { send_answer(2, notice(S_ARITY)); return 1; }
+    if (n < 0) { send_answer(2, notice(S_SHORT)); return 1; }
+    nhand = 0; H *refs = in_hand((uint64_t)count + 1), *args = in_hand((uint64_t)count + 1);
     int missing = 0;
     for (unsigned j = 0; j <= count; ++j) {
       if (!recv_bytes(id, sizeof id)) { send_answer(2, notice(S_SHORT)); return 1; }
