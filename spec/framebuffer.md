@@ -66,7 +66,10 @@ function of what was read, and is saved once; every later start with the same na
   `region/layout.ck`, but the words of `fb.own`. Anything else counts in `member.taken` and the
   start is not saved: a call of the host, `clock`, `look`, any other `peek`, any code a program
   runs (code reads what it likes, and is given the region's address), a read of a file not there,
-  a read under a choice, more than 64 files.
+  a read under a choice, more than 64 files. So does any fault whose coming follows the process
+  and not the program, caught or not: `full` of any area, which follows the allowance, the stack
+  and the host's free memory, and `crash`, which follows how deep the native stack goes. A fault
+  the program alone decides, as `irreversible`, `arity` or its own, leaves the start at rest.
 - **The name** is made from nothing read from a file: whether the port is numeric, the start's
   paths as given, and the device and inode of the directory they are read from, through SHA-256.
   The file is `<name>.image` in the directory `CK_IMAGES` names. Without `CK_IMAGES` nothing is

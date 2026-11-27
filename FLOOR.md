@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,196 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,197 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -347,8 +347,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   each case that must not be entered is not: a start file changed, changed with its size and
   times put back, another executable, another layout version, an allowance smaller than the image
   charges, `CK_SHARE`, an image cut short, a builder's file left mid-save, and a start that read
-  the clock, which saves nothing, and so do a start that reads the stack and one that runs code
-  that reads the processor's counter; a start whose last file reads the clock saves and later
+  the clock, which saves nothing, and so do a start that reads the stack, one that runs code
+  that reads the processor's counter, one that catches `full` at an allowance of 40 MiB, whose
+  image a start at 60 MiB would have entered and answered as at 40, and one that catches code
+  falling off the stack; a start whose last file reads the clock saves and later
   enters the image of the files before it, the same bytes as that part alone saves, and once that
   file is pure the whole start is saved from the part it entered, and is not entered after its
   first file changes. Measured on this M4 Max under `/usr/bin/time -l` (medians of

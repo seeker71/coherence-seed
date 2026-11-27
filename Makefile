@@ -11,8 +11,8 @@ LDLIBS ?= -pthread -ldl -lrt
 endif
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
-# Images of starts at rest that a check makes lie in the user's cache, and the check that made them removes them.
-IMAGES = "$$HOME/Library/Caches/coherence-seed/check.$$$$"
+# Images of starts at rest that a check makes lie in a folder of its own in the tree, ignored by git, which it removes.
+IMAGES = "$$(mktemp -d "$$PWD/.ck-images.XXXXXX")"
 
 all: ck fb kg seed-run
 
@@ -250,6 +250,11 @@ check-ice: ck fb
 	  is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 2 'the whole start saved after its part was entered'; whole=$$(ls -i "$$CK_IMAGES"); \
 	  printf '(#71 #4096 (#36 [#4 07]))' > "$$d/start.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the first file of a whole start changed'; \
 	  is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the whole start entered'; [ "$$(ls -i "$$CK_IMAGES")" != "$$whole" ] || { echo "  a whole start saved from an entered part does not check that part's files"; fail=1; }; \
+	  rm -f "$$CK_IMAGES"/*.image; printf '(#89 [#2 76] (#45 (#39 (#115 #5 [#4 80f0fa02]) [#2 626967]) (#36 [#2 736d616c6c])))' > "$$d/big.ck"; printf '(#90 [#2 76])' > "$$d/v.ck"; \
+	  is "$$(CK_MEMORY_BYTES=41943040 ./ck run "$$d/v.ck" "$$d/big.ck")" 'node [#2 736d616c6c]' 'a start that caught full at 40 MiB'; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 0 'a start that met the end of its allowance'; \
+	  is "$$(CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" "$$(CK_IMAGES= CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" 'the same start at 60 MiB, as a cold start answers there'; is "$$(CK_MEMORY_BYTES=41943040 ./ck run "$$d/v.ck" "$$d/big.ck")" 'node [#2 736d616c6c]' 'its image offered at 40 MiB'; \
+	  if [ "$$(uname -m)" = arm64 ]; then rm -f "$$CK_IMAGES"/*.image; printf '(#89 [#2 64] (#45 (#51 [#52 fd7bbfa9ffffff97]) (#36 (#35 [#3]))))' > "$$d/deep.ck"; printf '(#90 [#2 64])' > "$$d/d.ck"; \
+	    is "$$(./ck run "$$d/d.ck" "$$d/deep.ck")" 'node [#2 6372617368]' 'a start that caught code falling off the stack'; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 0 'a start that met the depth of its stack'; fi; \
 	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest"; \
 	  [ $$fail = 0 ]
 

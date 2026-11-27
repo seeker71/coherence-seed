@@ -268,7 +268,9 @@ static const char *const AREA_NAME[A_COUNT + S_COUNT] = { FB_AREA_NAMES FB_SUBST
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
 static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full, parting; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
-static void area_full(int a) {
+static int reading;                       /* a start is running: what it takes from the host or the process is counted in member.taken */
+static void area_full(int a) {            /* how far memory goes follows the process, not the program: a start that met it is not saved */
+  fb->me.taken += reading;
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
 }
@@ -334,7 +336,6 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OMOST 127u
 #define OWN 0x80000000u
 static void read_seen(const char *path, uint64_t at, uint64_t n, H name, H content); static int as_saved(uint64_t o, uint64_t n);
-static int reading;                       /* a start is running: what it takes from the host or the process is counted in member.taken */
 static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
 static const uint64_t SPAN = (uint64_t)1 << 32;   /* a named substrate: the handles its lanes share */
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
@@ -1542,7 +1543,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
-  case 1: coding = 0; ntk = left; nnoted = 0; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
+  case 1: coding = 0; ntk = left; nnoted = 0; fb->me.taken += reading; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
   case 2: while (ntk) { H h = tk[--ntk]; if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0; }
     coding = 0; ntb = 0; ntext = text_base; W->reason = full_at[full]; W->mode = M_FAULT; break;
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
