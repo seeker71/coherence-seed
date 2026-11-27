@@ -1,23 +1,11 @@
-/* ck.c - the bootstrap: framebuffer, node store, canonical reader and printer, walker, code pages.
- *
- *   make            builds ./ck and fails when the bootstrap is over its line budget
- *   ./ck run F [B..] read the canonical print in F, evaluate it, print the outcome; each B is
- *                   evaluated first and the bindings it makes stay in place for F
- *   ./ck text F [B..] the same, and an answer that is a leaf is written as its own bytes
- *
- * Everything else, the lens, the ice and the checks among it, is a program these two run.
- *
- * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md. The header
- * fb.h is made from nodes (region/header.ck); it is not written by hand.
- * Everything this program reads and writes lives in one shared region laid out by fb.h; its nodes
- * lie in its lane of a substrate: inside that region, or with CK_SHARE the named one every member
- * maps at one offset. CK_FB publishes the region by name; an anonymous run's pages go back when it ends.
- * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close usleep atexit
- * getenv getpid exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp proc_pidinfo
- * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp sysconf
- * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
- * pthread_jit_write_protect_np and sys_icache_invalidate; the memory share uses getrlimit and,
- * on macOS, sysctlbyname and Mach VM statistics.
+/* The Seed bootstrap keeps nodes in substrate lane 0 of the shared framebuffer.
+ * ck run evaluates the input after its optional preludes. ck text emits a leaf's bytes.
+ * seed-run opens a numeric image and accepts requests by content ID.
+ * CK_FB publishes a region for observers. Anonymous regions end with their process.
+ * CK_SHARE names a substrate that every member maps at one offset; each member has a lane of it.
+ * The host provides virtual memory, files, threads, timing and native dispatch.
+ * The node encoding, core operations and framebuffer specs describe the interfaces.
+ * region/header.ck derives fb.h from the numeric catalogue and layout.
  */
 #if !defined(__APPLE__)
 #define _GNU_SOURCE
@@ -35,6 +23,7 @@
 #include <sys/mman.h>
 #ifdef __APPLE__
 #include <mach/mach.h>
+#include <libkern/OSCacheControl.h>
 #include <dispatch/dispatch.h>
 #include <sys/sysctl.h>
 #include <libproc.h>
@@ -49,6 +38,7 @@
 #include <signal.h>
 #include <setjmp.h>
 #include "fb.h"
+#include "metal.h"
 /* Code leaves name the Seed calling convention and the processor that implements it. */
 #if defined(__aarch64__) && defined(__APPLE__)
 #define HOST_ABI TARGET_AAPCS64
@@ -56,9 +46,6 @@
 #define HOST_ABI TARGET_AMD64_SYSV
 #else
 #define HOST_ABI 0
-#endif
-#ifdef __APPLE__
-#include <libkern/OSCacheControl.h>
 #endif
 
 static int send_fd(int fd, const uint8_t *p, uint64_t n) {   /* a write takes at most 2^31 - 1 bytes */
@@ -695,7 +682,7 @@ static inline H found(const H *t, uint64_t c, uint64_t *i, int comp, H bp, const
 /* A search sees of another lane what was settled when it began (opening, below), so going an option again meets the same nodes. now: none runs. */
 COLD int seenp(H h, int now) { uint64_t j = (uint64_t)h >> LS; if (j == fb->me.lane) return 1; if (now) lsw(j, (uint64_t)h + 1); return now || h < seen[j]; }
 static H known(int64_t v) { H h = (H)v; uint64_t j = (uint64_t)h >> LS;   /* the node a number names here: one of this lane's, or a settled one of another's this run may see */
-  return v > 0 && v >> 32 == 0 && (h >= lb && h < nn ? !shared || h >= sw || nd[h].settled : shared && j != fb->me.lane && h < (ncp || nn > sw ? seen[j] : lsw(j, 0)) && nd[h].settled) ? h : 0;
+  return v > 0 && v >> 32 == 0 && ((h >= lb && h < nn) || (shared && j != fb->me.lane && h < (ncp || nn > sw ? seen[j] : lsw(j, 0)))) ? h : 0;
 }
 COLD H met(uint64_t *s, int comp, H bp, const void *payload, uint64_t n) { return found(ftab, sub->a[S_BY_CONTENT].cap, s, comp, bp, payload, n, 1); }   /* in a named substrate's index */
 COLD H publish(H h, uint64_t s) { Node *x = &nd[h]; H o, e = 0; x->settled = 1;   /* a settled record, whole, enters a named substrate's index by one swap; equal content met there answers */
@@ -913,6 +900,27 @@ static uint64_t code_target(H leaf) {
   long long abi = bp && nd[bp].comp && nd[bp].bp == E(CODE) && nd[bp].n == 1 ? catn(KID(bp, 0)) : -1;
   return abi > 0 ? (uint64_t)abi : 0;
 }
+/* A map receives two equally long packed word vectors and returns one fresh byte leaf. */
+static Status mapped(H kernel, const H *args, uint32_t count) {
+  if (count != 2) return S_ARITY;
+  if (!args[0] || !args[1]) return S_KIND;
+  Node a = nd[args[0]], b = nd[args[1]];
+  if (a.comp || b.comp || a.bp != E(BYTES) || b.bp != E(BYTES)) return S_KIND;
+  if (a.n != b.n || a.n % 8 || a.n / 8 > UINT32_MAX) return S_RANGE;
+#ifdef __APPLE__
+  Node lib = nd[kernel]; uint64_t mark = ntext;
+  if (!lib.n) return S_NO_NATIVE;
+  uint8_t *out = talloc(a.n);
+  uint64_t need = pages_for(a.n) * 3 + pages_for(lib.n);
+  if (need > remaining_memory() || need > host.memory()) { ntext = mark; return S_DECLINED; }
+  int ok = metal_map(bytes + lib.off, lib.n, bytes + a.off, bytes + b.off, a.n, out);
+  Status why; ntext = mark;
+  if (ok) { W->v = mk(0, E(BYTES), out, a.n, &why); return W->v ? S_OK : why; }
+#else
+  (void)kernel;
+#endif
+  return S_NO_NATIVE;
+}
 static int local_code(H leaf) { return HOST_ABI && code_target(leaf) == HOST_ABI; }
 static void *birth(H leaf) {              /* the leaf's instructions, runnable; NULL if this host cannot */
   uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint64_t n = nd[leaf].n;
@@ -1073,7 +1081,7 @@ static void reclaim(ChoicePoint *q) {
       uint64_t at; memcpy(&at, bytes + nd[h].off, 8);
       if (at >= q->mtake && at < N(A_ROOMS)) { root(((Room *)(rooms + at))->bp); if (at + roomlen(at) > rtop) rtop = at + roomlen(at); }
     }
-    else if (code_target(h) && icap) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
+    else if (icap && code_target(h) && code_target(h) != TARGET_METAL_MAP64) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
   }
   for (uint32_t i = q->mtrail; i < ntrail; i++) if (trail[i].bp == E(NOTE) && trail[i].key >= fm && trail[i].key < ftop) fw[trail[i].key - fm] |= 2;
   H to = fm; uint64_t pages = 0, last = ~0ull;   /* where each kept node goes, and each page not yet used that */
@@ -1155,13 +1163,31 @@ COLD void commit(void) {
     if (nd[h].ida) { if (!shared) index_id(h); for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
       if (idtab[i] == h) idtab[i] = TOMB; }
   }
-  for (H h = from; shared && h < top; h++) {             /* oldest first: a node that met equal content is forwarded to it in those made after it */
-    Node *x = &nd[h]; H o; uint32_t z = 0;
-    if (any) { FW(x->bp); FW(x->by); for (uint64_t i = 0; x->comp && i < x->n; i++) FW(kids[x->off + i]); }
-    if ((o = publish(h, hash(x->comp, x->bp, payload_of(h), x->n))) != h) { fw[h - fm] = o; any = 1; ln->forwarded++;      /* its cell and its bindings go with it */
-      if (USED(A_CELLS, h) && held[h]) { charge(A_CELLS, o); held[o] = held[h]; held[h] = 0; } if (USED(A_BOUND_BY_NODE, h) && bykey[h]) { charge(A_BOUND_BY_NODE, o); bykey[o] = bykey[h]; bykey[h] = 0; } }
-    if (x->ida) { if (o != h) { memcpy(ids + (uint64_t)x->ida * IDREC, &o, 4); CAS(nd[o].ida, &z, x->ida); } index_id(o); }
+  /* A member settles oldest first, since another may have settled equal content since the search began. A node that
+   * meets it is forwarded to the settled one and gives its place back: those made after it move down, as a fail's
+   * giving back moves what it keeps, with their parts, their cells, their bindings and their ids, and are settled
+   * where they come to lie. k and b: where the next kept children and bytes go, once a node of each kind was met. */
+  H to = from; uint64_t k = ~0ull, b = ~0ull;
+  for (H h = from; shared && h < top; h++) {
+    Node x = nd[h]; H o; uint32_t z = 0; uint64_t *c = x.comp ? &k : &b;
+    if (*c == ~0ull) *c = x.off;
+    if (any) {
+      FW(x.bp); FW(x.by); for (uint64_t i = 0; x.comp && i < x.n; i++) FW(kids[x.off + i]);
+      if (x.comp) memmove(kids + k, kids + x.off, (size_t)x.n * sizeof(H)); else memmove(bytes + b, bytes + x.off, x.n);
+      x.off = *c; nd[to] = x;
+    }
+    if ((o = publish(to, hash(x.comp, x.bp, payload_of(to), x.n))) == to) *c += x.n; else ln->forwarded++;
+    if (o != h) {
+      if (!any) { any = 1; room(A_GIVES, 4); gives[0]++; gives[1] = 0; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4; nn = to; ST(ln->n, to); }   /* a watcher sees places given back */
+      fw[h - fm] = o;
+      if (USED(A_CELLS, h) && held[h]) { charge(A_CELLS, o); held[o] = held[h]; held[h] = 0; }
+      if (USED(A_BOUND_BY_NODE, h) && bykey[h]) { charge(A_BOUND_BY_NODE, o); bykey[o] = bykey[h]; bykey[h] = 0; }
+      if (x.ida) memcpy(ids + (uint64_t)x.ida * IDREC, &o, 4);
+    }
+    if (x.ida) { if (o != to) CAS(nd[o].ida, &z, x.ida); index_id(o); }
+    to += o == to;
   }
+  if (any) { nn = to; if (k != ~0ull) nkids = k; if (b != ~0ull) nbytes = b; ST(ln->n, to); top = to; }
   if (any) {                              /* and in all the run holds, as a fail's giving back forwards what it keeps; no fail is left for the trail to serve */
     FW(W->x); FW(W->v); FW(W->reason); FW(W->at); ntrail = 0;
     for (uint32_t i = 1; i < nfr; i++) { FW(fr[i].node); if (fr[i].t == F_ASIDE) FW(fr[i].vals); }
@@ -1180,11 +1206,8 @@ static void opening(void) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1); if (ncp) r
 /* A cut closes the choices opened since c, but not a running outcome's: its body is failed out of,
  * and what the body did, a cut in it too, does not stay. So no choice ever opens again. */
 static void cutto(uint32_t c) { uint32_t i = ncp; while (i > c && cp[i-1].all != 2) i--; ncp = i; if (!i && shared && nn > sw) commit(); }
-/* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
- * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
- * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
-/* Code a program gave is called under watch: when the processor faults inside it, the walker goes
- * on and the program has a fault, crash, like any other. A fault anywhere else ends the process. */
+/* A processor fault inside CPU code returns to the walker. Other processor faults end the process.
+ * CPU returns carry a number (0), a truth value (1), a decline (3), or a node handle (4). */
 static void crashed(int sig) {
   (void)sig; if (coding && pthread_equal(pthread_self(), walker)) siglongjmp(in_code, 1);   /* only on the walker's own thread */
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
@@ -1192,7 +1215,6 @@ static void crashed(int sig) {
 static uint32_t left;
 static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
 static int landed(void *fn, int64_t *arg) {
-  if (!fn) { W->v = 0; W->reason = notice(S_NO_NATIVE); return 1; }
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address as its seventh argument */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
   if (r.k == 3 || (r.k == 4 && !r.v)) { nnoted = 0; return 0; }    /* and the notes of code that declined are dropped: the walker */
@@ -1213,6 +1235,17 @@ static int given(const H *a, uint32_t c, int64_t *arg) {
   arg[7] = c; for (uint32_t j = 0; j < c; j++) if (!geti(a[j], &arg[j])) { arg[j] = a[j]; arg[7] |= 256 << j; }
   return 1;
 }
+/* Every invocation, direct or attached to a recipe, uses the ABI carried by the leaf. */
+static Status execute_code(H leaf, const H *values, uint32_t count, H node, uint32_t from) {
+  uint64_t abi = code_target(leaf);
+  if (abi == TARGET_METAL_MAP64) return node ? S_DECLINED : mapped(leaf, values, count);
+  int64_t args[8] = {0};
+  if (!abi) return S_KIND;
+  if (node) { args[0] = node; args[1] = from; args[7] = count; }
+  else if (!given(values, count, args)) return S_KIND;
+  void *fn = HOST_ABI && abi == HOST_ABI ? birth(leaf) : NULL;
+  return !fn ? S_NO_NATIVE : landed(fn, args) ? S_OK : S_DECLINED;
+}
 /* Something bound from outside sits on an operation of the bootstrap or on an entry the program defines:
  * while it does, a binding's faster form steps aside, so what watches sees every use. */
 static int watched(void) {
@@ -1225,7 +1258,7 @@ static int watched(void) {
  * itself, unevaluated: a lazy keeps the cut scope, code gets the node's handle and the
  * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from, H node) {
-  H impl = B(b)->impl; int64_t arg[8] = {0};
+  H impl = B(b)->impl;
   if (!nd[impl].comp && !code_target(impl)) {       /* another kind of implementation: what its blueprint */
     uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
     if (!r || !nd[B(r)->impl].comp) { fault(S_KIND); return 1; }
@@ -1233,12 +1266,9 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
   if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
-    if (local_code(B(b)->fast) && given(a, c, arg)) {
-      void *fn = birth(B(b)->fast);
-      if (fn && landed(fn, arg)) { W->mode = M_RET; return 1; }
-      cool = COOL;
-    }      /* Where it declines, what the recipe */
-    memset(arg, 0, sizeof arg);           /* calls does not try faster forms again: the reason to decline is still there */
+    Status result = execute_code(B(b)->fast, a, c, 0, from);
+    if (result == S_OK) { W->mode = M_RET; return 1; }
+    if (result == S_DECLINED || (result == S_NO_NATIVE && local_code(B(b)->fast))) cool = COOL;
   }
   if (nd[impl].comp) {
     uint32_t up = node ? from : act[from].up, cut = node ? W->cut : act[from].cut;      /* given answers, it has no user */
@@ -1249,10 +1279,7 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
     W->env = enter(impl, a, c, sees, up, cut); if (!node || !is_lazy(impl)) W->cut = ncp;
     W->x = KID(impl, 0); W->mode = M_EVAL; return 1;
   }
-  if (node) { arg[0] = node; arg[1] = from; arg[7] = c; }
-  else if (!given(a, c, arg)) return 0;
-  void *fn = local_code(impl) ? birth(impl) : NULL;
-  if (!fn || !landed(fn, arg)) return 0;
+  if (execute_code(impl, a, c, node, from) != S_OK) return 0;
   W->mode = M_RET; return 1;
 }
 /* Entries 64 to 71: a node taken apart, a node built from parts, and an entry bound. A build
@@ -1309,6 +1336,12 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
 static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   Status why; int64_t m, n, r = 0;
   if (op == HOST_TARGET) { if (c) fault(S_ARITY); else W->v = catalogue(HOST_ABI ? HOST_ABI : NO); return; }
+  if (op == HAS_TARGET) {
+    if (c != 1) fault(S_ARITY);
+    else { long long target = catn(a[0]); W->v = (target > 0 && ((uint64_t)target == HOST_ABI ||
+      ((uint64_t)target == TARGET_METAL_MAP64 && metal_available()))) ? E(YES) : E(NO); }
+    return;
+  }
   if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
     if (!recipe_of(a[0])) { fault(S_NOT_A_RECIPE); return; }
     for (uint32_t j = 1; j < c && a[0]; j++) if (!a[j]) a[0] = 0;
@@ -1404,7 +1437,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (op == HANDLE) { W->v = mki(a[0]); return; }
     if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
-    if (op == AT && !known(o) && o > 0 && o >> 32 == 0 && (H)o < lsw((uint64_t)o >> LS, 0) && nd[o].settled) { fault(S_IRREVERSIBLE); return; }   /* settled since this search began */
+    if (op == AT && !known(o) && o > 0 && o >> 32 == 0 && (H)o < lsw((uint64_t)o >> LS, 0)) { fault(S_IRREVERSIBLE); return; }   /* settled since this search began */
     if (op == AT ? !known(o) : (o < 0 || n < 0 || ((uint64_t)o + (uint64_t)n > fb->bytes && ((uint64_t)o < fb->me.share || (uint64_t)o + (uint64_t)n > fb->me.share + sub->bytes))
                                           || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = notice(S_RANGE); return; }
     if (op == AT) { W->v = (H)o; return; }
@@ -1498,7 +1531,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
  * asked as a number: k 0, or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
  * nothing. A fault goes to the walker and does not come back here. */
 static int basic(long long op) {
-  return op >= ADD && op <= HOST_TARGET && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
+  return op >= ADD && op <= LAST && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
       && op != OUTCOME && op != LAYER && !(op >= RANGE && op <= OUTSIDE) && op != AFTER;
 }
 static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
@@ -1576,7 +1609,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       lim = under(b, lim); b = 0;
     }
     if (given) break;
-    if (!b && (is_data(op) || op > HOST_TARGET)) { answer(x); break; }/* data, or past these an entry with no meaning yet */
+    if (!b && (is_data(op) || op > LAST)) { answer(x); break; }/* data, or past these an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault(S_ARITY); else answer(KID(x, 0)); break;
     case ARG: {
@@ -1718,12 +1751,12 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
       if (op == NATIVE_OP) {
-        int64_t arg[8] = {0};
-        if (!code_target(a[0]) || !given(a + 1, c - 1, arg)) { fault(S_KIND); break; }
-        if (!landed(local_code(a[0]) ? birth(a[0]) : NULL, arg)) { W->v = 0; W->reason = notice(S_DECLINED); }
+        Status result = execute_code(a[0], a + 1, c - 1, 0, f.env);
+        if (result == S_KIND || result == S_ARITY) fault(result);
+        else if (result != S_OK) { W->v = 0; W->reason = notice(result); }
         break;
       }
-      if (op > HOST_TARGET) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
+      if (op > LAST) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
       base(op, a, c, f.env, f.node); break; }
     }
     break; }

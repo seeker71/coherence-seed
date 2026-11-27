@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start stays under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,108 lines now, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -54,6 +54,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
   nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
   this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
+- **Metal runs a word map by ID.** On the M4 Max, both the arm64 and Rosetta x86-64 runtimes
+  dispatched the same packed library to the GPU. A 65-lane recipe combining arithmetic and
+  bitwise operations matched frames byte for byte in both operand orders. The image ran from
+  a directory containing only that image. [Metal word maps](spec/nums.md#metal-word-maps)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -186,19 +190,20 @@ Each line here is held by a program in `make check-full`, or names how it was se
   enters the one index by a compare-and-swap of its handle, with no lock; a lane is claimed and
   retired the same way, and a member is a process id and the instant the host started it. A search
   sees of another lane what was settled when it began, and a commit forwards a working node onto
-  equal content another member settled meanwhile. `make check-full` holds this with two flows.
+  equal content another member settled meanwhile and gives its place back. `make check-full` holds this with two flows.
   In the first, all 77 ground programs ran as members of one substrate, six at a time, each ending
   as expected, while one more member, the long recursion, was killed with `kill -9` in mid-run and
   its lane was retired by those that joined after; the member that held the substrate open then
-  made every settled node of all 79 lanes again from its parts: 319,738 nodes, each answered
-  its own handle, 90,545 of the members' nodes having been forwarded at a commit; and when the
+  made every settled node of all 79 lanes again from its parts: 322,485 nodes, each answered
+  its own handle, 91,731 of the members' nodes having been forwarded at a commit; and when the
   last member left, the name was gone. Then every member of a second substrate was killed, the
   object stayed, and the next process to open it buried it, made a new one and answered 42. In the
   second, a member thaws a frozen node and answers its handle, and the member that made the
   substrate prints the same node from that number alone. Seen once by hand and held by no check: a
   member that outgrew a substrate of 4 MiB had the fault `full` with `nodes` and went on, and one
   that joined after it still answered. A
-  process without `CK_SHARE` runs what it ran: against the build of 01db529 in alternating rounds
+  process without `CK_SHARE` runs what it ran: measured before main was merged in, against the
+  build of 01db529 in alternating rounds
   under `/usr/bin/time -l`, one process at a time, medians of seven, seven and three rounds, the
   long recursion took +0.01% instructions and +0.43% cycles, `ground/gives-back.ck` +0.19% and
   +2.12%, and `ground/nums-compiled-agrees.ck` +0.07% and −1.44%. Two members that made the same
@@ -241,25 +246,50 @@ Each line here is held by a program in `make check-full`, or names how it was se
   handler. A call passes as many values as memory holds: forty in `ground/closes-over.ck`.
 - **The host is reached through one door, and its functions are rows** (graph node 5.14.60).
   Entry 98 calls a name or an address, and the address of the host's own lookup is a word of the
-  region's head. The package `host/` holds 24 host functions as rows, each with a slot for every
-  value and a result, a calling-convention row, and six small machine-code leaves written as
-  instruction rows for `nums/arm.ck`; seven encodings they needed are rows as well. One leaf,
-  the berth, runs any row. `make check-native` runs `ground/host-refused.ck` by itself, with `ck`
-  as built and with a copy signed for the hardened runtime: a file is written, read back three
-  ways and removed; four numbers are sorted by the host through a callback that is leaf code;
-  the square root of 4 and of 2 and 2 to the tenth come back as floats; two varying values are
-  formatted; a page is mapped, written through an absolute store, read and unmapped; a raw
-  supervisor call answers the process id. Where entry 98 can carry a call, by name, by address
-  and through the berth answer the same; a value of the wrong kind for its slot, a call with more
-  values than slots and a function with no row answer nothing. Of the 24 rows, 19 are run by the
-  flow; `memcpy`, `mprotect`, `dlopen`, `dlsym` and `sysctlbyname` are not run as rows, and of
-  the six leaves the one that answers the region's address is not run. Inside the ground catalogue's search
-  the same program is the refusal `irreversible`, at its first call, which is by address.
-  Planting two wrong place rows by hand made the run name the five cases they break.
-- A crash inside code or a host function is a fault the
-  program can catch, a recursion in machine code that falls off the stack among them. So is a
-  request no area of the region can hold: a room larger than memory, asked for a thousand calls
-  deep, is caught twice, the frames come back each time, and the program goes on.
+  region's head. The package `host/` holds as rows: 24 host functions, each with a slot for
+  every value and the kind of its result; the calling convention of this host, which is Apple's
+  variant of the arm64 convention (a varying value goes on the stack); which blueprint a slot
+  takes and how it becomes a word; how each kind of result is read; the host's two lookup
+  constants; seven instruction encodings; and six small machine-code leaves as instruction
+  rows for `nums/arm.ck`. One leaf, the berth, runs any function row. Its layout is one row,
+  and the leaf's offsets, the places of the convention and the recipes are all derived from
+  it. The berth is one room of the region, taken once when the door is opened, so it lies
+  inside the allowance and a call that faults midway strands nothing.
+- **The flow.** `make check-native` runs `ground/host-refused.ck` by itself, with `ck` as built
+  and with a copy signed for the hardened runtime: a file is written, read back three ways and
+  removed; four words, two of them differing only above bit 31, are sorted by the host through
+  a callback that is leaf code; the square root of 4 and of 2 and 2 to the tenth come back as
+  floats; two varying values are formatted; a page is mapped, written through an absolute
+  store, read and unmapped; a raw supervisor call answers the process id, and one that fails
+  answers no. Where entry 98 can carry a call, by name, by address and through the berth
+  answer the same. A value of the wrong kind for its slot, a composite where an address goes,
+  a call with more values than slots and a function with no row answer nothing. A supervisor
+  call and an absolute store inside a search are the fault `irreversible`, as entry 98 is, and
+  the store is not made. Forty calls that crash inside the host leave the host's heap with the
+  bytes in use it had. Of the 24 rows, 19 are run by the flow; `memcpy`, `mprotect`, `dlopen`,
+  `dlsym` and `sysctlbyname` are not run as rows. Inside the ground catalogue's search the same
+  program is the refusal `irreversible`, at its first call, which is by address. By hand, not
+  held by a check: two wrong place rows made the run name the five cases they break; a row
+  naming a library that is not there is a fault that names the library; a call before the door
+  is opened is a fault that names `host.open`.
+- **Limits of a row.** A text or bytes value in an address slot is copied into the berth with a
+  zero after it and may hold at most 127 bytes; a longer one answers nothing. At most eight
+  values go to the integer registers, eight to the float registers and eight to the stack, and
+  sixteen in all. Of the results only the first integer word or the first float is read; the
+  second result word and the other three floats are stored by the leaf and read by no row. A
+  failed supervisor call answers no and does not give the host's error number. The berth is
+  one per process, so a callback cannot itself call a row.
+- **On the numeric port a call by address ran**, by hand, in eight small images under
+  `seed-run`: the address of `getpid`, found through the `symbol` word, answered the process id
+  in the region's head, with no values and with eight; address 0 answered nothing, `no-symbol`;
+  an address with no code was the fault `crash` and could be recovered from; a call inside an
+  `all` was the fault `irreversible`; nine values were the fault `arity`. No check holds this.
+- **A crash inside code or a host function is a fault the program can catch** when the
+  processor faults: a bad address, a bad instruction, a recursion in machine code that falls
+  off the stack. A host function that ends the process itself is not caught: `(host "abort")`
+  and `free` of an address the host never gave end the process with exit 134. A request no
+  area of the region can hold is caught as well: a room larger than memory, asked for a
+  thousand calls deep, is caught twice, the frames come back each time, and the program goes on.
 
 **Replacing what runs**
 
@@ -400,8 +430,8 @@ running compiled code against frames all the way down).
 - **More of the host.** Rows and leaves exist for `aapcs64` only; on any other target
   `ground/host-refused.ck` does not apply. A structure passed by value in more than two words,
   the indirect-result register (its place is in the berth, no row uses it), sockets, processes,
-  signals, Objective-C and the GPU have no rows. A call by address was not run on the numeric
-  port. The berth's bytes come from the host's `calloc`, outside the allowance. What the host
+  signals, Objective-C and the GPU have no rows. Memory a host function hands out is outside
+  the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. No host
   function of the bootstrap has left C. The compiler does not yet emit a row as moves and a call.
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
@@ -410,8 +440,7 @@ running compiled code against frames all the way down).
   built, and asking still goes by print through `asked`. The numeric port does not answer by
   handle, and under `CK_SHARE` its replies still mark a closure by walking every handle below the
   value. A lane is never used again, so a named substrate has 256 members in its life; its
-  indexes never grow; what a lane charged is never given back; and a node a commit forwarded
-  keeps its record. The observer shows a member but does not record one. The lane rows count the
+  indexes never grow; and what a lane charged is never given back. The observer shows a member but does not record one. The lane rows count the
   nodes forwarded, not those settled in place or refused. On Linux the instant a process started
   is read from `/proc`, which was compiled for x86-64 on this Mac but not run.
 - **A stack limit above the default.** The case of `ground/code-on-nodes.ck` that recurses a

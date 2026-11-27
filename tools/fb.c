@@ -41,6 +41,17 @@ static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
 static const uint8_t *far; static const Substrate *sub; static const Lane *lanes;   /* a named substrate, mapped beside the frame; the substrate; its lanes */
 static Frame *fr; static Activation *act; static ChoicePoint *cp; static Binding *bd;
 static void stop(const char *m, const char *n) { fprintf(stderr, "fb: %s%s\n", m, n); exit(2); }
+static void require_layout(const Head *h) {
+  if (size < FB_PAGE || memcmp(h->magic, FB_MAGIC, 8) || h->version != FB_VERSION || h->areas != A_COUNT)
+    stop("incompatible framebuffer layout", "");
+  if (h->bytes != size || h->me.share < FB_PAGE || h->me.share % FB_PAGE || (!h->me.name[0] && h->me.share > size - FB_PAGE))
+    stop("invalid framebuffer extent", "");       /* a member's substrate lies beyond its region, in an object of its own */
+}
+static void require_substrate(const Head *h, const Substrate *s) {
+  if (memcmp(s->magic, FB_SUBSTRATE_MAGIC, 8) || s->version != FB_VERSION || s->areas != S_COUNT ||
+      s->share != h->me.share || (!far && s->bytes != size - h->me.share))
+    stop("incompatible substrate layout", "");
+}
 static void *at(int i) {                  /* a table in a named substrate is read where it lies, not from the frame */
   return hd->a[i].off >= hd->me.share && far ? (void *)(far + (hd->a[i].off - hd->me.share)) : (void *)(img + hd->a[i].off);
 }
@@ -76,8 +87,9 @@ static const uint8_t *attach(const char *name, double wait_ms) {   /* waits for 
     if (src != MAP_FAILED) {
       const Head *h = (const Head *)src; int live = h->pid && (!kill((pid_t)h->pid, 0) || errno == EPERM);
       if (!memcmp(h->magic, FB_MAGIC, 8) && (live || now_ms() - t0 >= wait_ms)) {
-        uint64_t n; char name[33] = {0}; memcpy(name, h->me.name, 32);
+        uint64_t n; char name[33] = {0}; require_layout(h); memcpy(name, h->me.name, 32);
         if (name[0] && !(far = substrate(name, &n))) stop("its substrate is gone: ", name);
+        if (far) require_substrate(h, (const Substrate *)far);
         return src;
       }
       munmap((void *)src, size); src = MAP_FAILED;
@@ -91,7 +103,7 @@ static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
   static uint8_t head[FB_PAGE], shead[FB_PAGE]; static uint64_t *list; static uint32_t cap; uint32_t n = 0;
   memcpy(head, src, FB_PAGE);                             /* the counts are read once, first */
   const Head *h = (const Head *)head; const Substrate *s = (const Substrate *)shead;
-  if (!far) memcpy(shead, src + h->me.share, FB_PAGE);    /* and the substrate's, which lies at share */
+  if (!far) { memcpy(shead, src + h->me.share, FB_PAGE); require_substrate(h, s); }   /* and the substrate's, which lies at share */
   for (int i = -1; i <= (far ? A_COUNT - 1 : A_COUNT + S_COUNT); i++) {
     uint64_t off = 0, len = FB_PAGE;
     if (far && i >= 0 && h->a[i].off >= h->me.share) continue;   /* a named substrate's tables are not in the frame */
@@ -238,7 +250,7 @@ static void image(void) {
   flags |= MAP_NORESERVE;  /* only the pages present in the recorded frame are copied */
 #endif
   img = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, -1, 0);
-  if (img == MAP_FAILED) stop("cannot hold a frame", ""); bind();
+  if (img == MAP_FAILED) stop("cannot hold a frame", "");
 }
 static int record(const char *name, const char *path, double every) {
   const uint8_t *src = attach(name, 5000); image();
@@ -268,8 +280,12 @@ static int play(const char *path, int want, int detailed, H h) {
   for (;; i++) {
     double m2; uint64_t a2, off; uint32_t n2;
     if (fread(&m2, 8, 1, f) != 1 || fread(&a2, 8, 1, f) != 1 || fread(&n2, 4, 1, f) != 1) break;
-    for (uint32_t j = 0; j < n2; j++)
-      if (fread(&off, 8, 1, f) != 1 || off > size - FB_PAGE || fread(img + off, 1, FB_PAGE, f) != FB_PAGE) stop("the recording is cut short: ", path);
+    for (uint32_t j = 0; j < n2; j++) {
+      if (fread(&off, 8, 1, f) != 1 || size < FB_PAGE || off % FB_PAGE || off > size - FB_PAGE || fread(img + off, 1, FB_PAGE, f) != FB_PAGE) stop("the recording is cut short: ", path);
+      if (off == 0) require_layout((const Head *)img);
+    }
+    require_layout((const Head *)img);
+    require_substrate((const Head *)img, (const Substrate *)(img + ((const Head *)img)->me.share));
     ms = m2; after = a2; n = n2; any = 1; bind();
     if (!detailed) line(i, ms, after, n);
     else if (i == want) break;

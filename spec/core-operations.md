@@ -63,7 +63,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 46, 47, 48 | add, sub, mul | a, b | integer arithmetic on `int` leaves |
 | 49 | eq | a, b | yes if a and b are the same node, otherwise no |
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
-| 51 | native | code, arguments | runs a machine-code leaf on up to six values |
+| 51 | native | code, arguments | runs a CPU code leaf on up to six values, or a Metal map on two packed word vectors |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
 
 ## Fail, choice and cut
@@ -106,11 +106,18 @@ Dividing by zero answers nothing with the reason `zero`.
 
 `(host-target)` (entry 124) returns the numeric ABI identity of the running process, or
 `no` on a host with the generic runtime alone. A leaf with blueprint `(code abi)` carries
-machine bytes for that ABI. The original bare `code` blueprint identifies AArch64.
+an executable payload for that ABI. The original bare `code` blueprint identifies AArch64.
 `native` answers nothing with reason `no-native` when the identities differ. A binding
 declines that implementation and can continue with its recipe.
 
-The call has six value positions, followed by the framebuffer address and the argument-count
+`(has-target abi)` (entry 125) answers whether the process can use that target. It recognizes
+the current CPU ABI and probes the default Metal device for the 64-bit integer arithmetic used by `metal-map64`.
+For that ABI the leaf holds a compiled single-kernel Metal library. Its two arguments are
+byte leaves of equal length containing little-endian 64-bit words. Dispatch completes before
+the runtime returns a fresh byte leaf. Unequal lengths or partial words answer `range`.
+A device or pipeline that cannot run the library answers `no-native`.
+
+The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
 x0 and x1. On System V AMD64 the values occupy RDI, RSI, RDX, RCX, R8 and R9. The seventh
 and eighth arguments are at entry RSP+8 and RSP+16. RAX and RDX return value and kind.
@@ -496,8 +503,9 @@ handle of a settled node names that node in every member for as long as the subs
 is open it admits of another lane only what was settled when the oldest open choice began; a
 number that names what was settled since is the fault `irreversible`, as `host` is, and a node
 found by id that was settled since is not found. `handle` of a node made under a choice gives a
-number no other member can use, and one a commit may leave behind when it forwards the node onto
-equal content another member settled; take a handle to pass on when no choice is open. A handle
+number no other member can use, and one the commit may change: it forwards the node onto equal
+content another member settled, or moves it down past one that was; take a handle to pass on
+when no choice is open. A handle
 means nothing in a stored node. `peek` reaches the member's region and, from the head's `share`
 on, the substrate. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
@@ -515,15 +523,23 @@ know answers nothing with the reason `no-symbol`, and so does the address 0. A c
 where no code lies is the fault `crash`, like a crash inside code.
 
 The address of the host's own lookup, `dlsym`, is the word `symbol` of the region's head
-(`spec/framebuffer.md`), so `(host symbol -2 name)` answers the address of any function and a
-program that holds no name as text can still reach the host. On the numeric port a first value
-that is not an `int` is, as before, a call of the entry bound to it; an `int` is an address there
-too. This was read in the code and compiled into `seed-run`; it was not run on the port.
+(`spec/framebuffer.md`). With `symbol` bound to that word, `(host symbol -2 name)` answers the
+address of the function the host knows by that name: -2 is what this host calls the default
+handle, every library loaded so far, and the package `host/` holds it as a row
+(`host.default-handle`) since another host has another number. So a program that holds no name
+as text can still reach the host. On the numeric port a first value that is not an `int` is, as
+before, a call of the entry bound to it; an `int` is an address there too, run by hand under
+`seed-run` (`FLOOR.md`).
 
 What the eight registers cannot carry is carried by the package `host/` (graph node 5.14.60): a
 host function is a row with a slot for each value, and one machine-code leaf, the berth, lays
 integers, floats, addresses and varying values where the host's calling convention wants them
-and brings back a float or an integer result. `host/all.ck` loads it.
+and brings back a float, an integer or no result. `host/all.ck` loads it, and `host.open`, given
+the `symbol` word and where the rooms lie, takes the one room the berth lives in. An address
+slot takes an `int` as the address it is, or a text or bytes leaf of at most 127 bytes, copied
+for the length of the call; each register class and the stack take eight values, a call sixteen
+in all. A raw supervisor call and a store at an absolute address are refused while a choice is
+open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is
 open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over

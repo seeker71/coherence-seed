@@ -8,6 +8,10 @@ each object, and a record can name who last wrote it.
 This page fixes how the bootstrap does that. `bootstrap/fb.h` is the layout in C, `bootstrap/ck.c`
 is the only writer, and `tools/fb.c` is the observer.
 
+The observer reads the layout version and area count before following any region offsets.
+Live regions and recordings from another layout close with an incompatibility message.
+The substrate header also identifies its version and extent within the region.
+
 ## The region
 
 - The bootstrap reserves a shared region with stable addresses. An ordinary run uses an
@@ -111,8 +115,8 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   claimed, 2 live or 3 gone; `start`, the instant the host started that process; `n`, how far the
   lane's records are made, stored with release as the member makes a node or a fail gives nodes
   back; `sw`; what the lane has charged; and how many of its nodes a commit forwarded.
-- **Settled and working.** Every node of a lane below its `sw` was settled there or forwarded, and
-  a settled record's `settled` byte is 1. A node made while no choice is open, when no working node
+- **Settled and working.** Every node of a lane below its `sw` is settled, and its record's
+  `settled` byte is 1. A node made while no choice is open, when no working node
   stands, is settled as it is made. Any other is working: it is found by the process's own
   by-content and by-id, no other member can hold it, and a fail gives it back as it always did. A
   settled node lies below every choice point's mark, so no fail reaches it, and the substrate's
@@ -134,10 +138,11 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   working index forgets them, and ends if it finds equal content already settled, which nothing in
   it can cause. A member does it at once where its last choice closes, and oldest first, because
   another member may have settled equal content since the search began: such a node is forwarded
-  to the settled one. Its record stays where it is, unsettled and found by nothing; the nodes made
-  after it have their blueprint, writer and children forwarded before they are settled in turn;
-  its cell, its bindings and its id go to the settled node; and everything the run holds is
-  forwarded: the machine's registers, frames, links, activations, arguments, what was gathered,
+  to the settled one and gives its place back. The nodes made after it move down, as a fail's
+  giving back moves what it keeps, with their parts, cells, bindings and ids, their blueprint,
+  writer and children forwarded, and each is settled where it comes to lie; the forwarded node's
+  cell, bindings and id go to the settled node; `gives` counts it, the lane's count drops before
+  anything moves, and everything the run holds is forwarded: the machine's registers, frames, links, activations, arguments, what was gathered,
   bindings, born code, held-back calls, the heads of rooms and every cell. The lane's row counts
   the nodes forwarded.
 - **What a search sees.** While a choice is open or working nodes stand, a member sees of another
@@ -171,8 +176,8 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   four tables. Nothing a lane charged is given back while the substrate lives.
 - `fb.check` reads the substrate's head, its areas and the member's own lane row through the
   description, and checks that `share` and the substrate's nodes area put the nodes where the head
-  says. It runs inside a choice, so it also checks that `seen` holds the lane's `sw`, that no node
-  above `sw` has its `settled` byte set, and, in a process alone, that every node below has.
+  says. It runs inside a choice, so it also checks that `seen` holds the lane's `sw`, and that every
+  node below `sw` has its `settled` byte at 1 and every other at 0.
   `fb.one-handle` walks every lane that was ever claimed, makes each settled node again from its
   blueprint and its parts, and answers how many it made and which were not answered their own
   handle: none, when each content has one handle.
@@ -421,10 +426,12 @@ in it was complete when its count was read.
 - **A named substrate is not yet a channel.** Members share settled nodes and can name them by
   handle, but nothing carries a handle from one to another: shared rooms, `swap`, the inbox and the
   bell are not built, nor the side front. A lane is never used again, so a substrate has 256
-  members in its life; its indexes never grow; and what a forwarded node occupied stays occupied.
+  members in its life; and its indexes never grow. The id record of a forwarded node, and of a node given back under a
+  search after a settled node's id was asked, keeps its 36 bytes.
   The numeric port does not answer by handle. A member is shown but not recorded. The counts of
   nodes settled in place and refused are not kept, only those forwarded. A commit that forwards
-  charges the page of cells a forwarded cell moves onto without asking the allowance first. A
+  charges the page of cells a cell moves onto without asking the allowance first, and forwards
+  the writer of a node but not the writers stamped on frames and links. A
   process that dies while it buries a substrate is taken over by the next opener when its process
   id is gone; an id the host has given again meanwhile holds the name until `fb drop`.
 - **Two statics lie outside the region**: where each keyed table's page bits begin and the key
