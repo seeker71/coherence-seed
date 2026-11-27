@@ -35,8 +35,10 @@ expands module imports once per image and freezes the resulting graph in depende
 a file that a statement of the initialization reads as data, such as a package handed to
 `part.load`, is read when the image is packed, since the image runs where there are no files.
 The export list can carry arbitrary user data. Argument names and the lexicon live in the
-authoring lens. The generic NUMS library with its float definition, both AArch64 compilers and the example
-exports pack together as 14,523 nodes containing zero text leaves.
+authoring lens. The `nums.image` method `image.then(dependency, application)` in
+`nums/images.ck` composes two manifests. Initialization runs in that order, and public
+entries from both manifests keep their content IDs. The generic NUMS library with its float
+definition, both AArch64 compilers and the example exports pack together as 14,523 nodes containing zero text leaves.
 
 ```sh
 make
@@ -118,7 +120,8 @@ the CPU compiler. Other expressions decline during lowering.
 
 ```sh
 make metal-image METAL_RECIPE=ground/metal-polynomial.ck \
-  METAL_INPUTS=ground/metal-vectors.ck METAL_IMAGE=/tmp/words.image
+  METAL_INPUTS=ground/metal-vectors.ck METAL_APPLICATION=ground/metal-application.ck \
+  METAL_IMAGE=/tmp/words.image
 ./ck text ground/metal-requests.ck | ./seed-run /tmp/words.image | ./ck run ground/metal-replies.ck
 ```
 
@@ -127,6 +130,9 @@ and library linker. The image holds the compiled library, the numeric map entry
 `(b.instance b.gpu declaration)` and the supplied operands. A request addresses that entry
 and two operands by content ID. Each operand packs one 64-bit word per lane. The entry ID
 depends on the declaration and stays the same across builds of its Metal library.
+The optional `METAL_APPLICATION` supplies a `nums.image` manifest. In this example its
+caller receives the map entry and two byte operands by ID. One search calls the map in
+both operand orders and returns the two vectors in a single reply.
 
 The `metal-map64` ABI binds one shared word buffer at index 0 and the unsigned 32-bit lane count
 at index 1. For `n` lanes the two inputs start at words 0 and `n`, and the output starts at word
