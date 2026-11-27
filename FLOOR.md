@@ -85,6 +85,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and Q6_K projections share packed weights across streams within a dispatch.
   Numeric function constants select Metal pipelines. A resident eight-stream Llama
   image ran llama.cpp’s packed matrix kernels and weighted RMS normalization by ID.
+  One binary map per contiguous activation panel covers all eight streams for
+  residual addition and SwiGLU. Grouping those rows reduced a decode turn from
+  2,070 dispatches to 1,482. A four-history replay preserved every logit on both
+  process architectures. The upstream weighted RMS kernel also matched all 96
+  reference values on a 2 × 3 × 4 grid.
   Only the selected result ranges cross the port.
   A live worker mounted the Llama model once, kept all 255 weight mappings across turns
   for two distinct KV histories, and released them on retirement while the worker stayed
