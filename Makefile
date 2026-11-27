@@ -68,7 +68,7 @@ check-bml: ck
 	  echo "BML: the source expression 10 - 3 - 2 ran as numeric nodes and returned 9"
 
 # Build-time lens and Apple toolchain. The resulting image runs on its own.
-export METAL_RECIPE METAL_INPUTS METAL_IMAGE
+export METAL_RECIPE METAL_INPUTS METAL_APPLICATION METAL_IMAGE
 metal-image: ck
 	@set -eu; : "$${METAL_RECIPE:?set METAL_RECIPE to a NUMS declaration}" "$${METAL_INPUTS:?set METAL_INPUTS to a list of byte leaves}" "$${METAL_IMAGE:?set METAL_IMAGE to the output path}"; \
 	  work=$$(mktemp -d); out=; trap 'rm -rf "$$work"; if [ -n "$$out" ]; then rm -f "$$out"; fi' EXIT; \
@@ -76,7 +76,9 @@ metal-image: ck
 	  xcrun -sdk macosx metal -std=macos-metal2.4 -c "$$work/kernel.metal" -o "$$work/kernel.air"; \
 	  xcrun -sdk macosx metallib "$$work/kernel.air" -o "$$work/kernel.metallib"; \
 	  out=$$(mktemp "$$METAL_IMAGE.XXXXXX"); \
-	  printf '%s\n' "$$METAL_RECIPE" "$$METAL_INPUTS" "$$work/kernel.metallib" | ./ck text nums/metal-pack.ck > "$$out" || { cat "$$out" >&2; exit 1; }; \
+	  set -- "$$METAL_RECIPE" "$$METAL_INPUTS" "$$work/kernel.metallib"; \
+	  if [ -n "$$METAL_APPLICATION" ]; then set -- "$$@" "$$METAL_APPLICATION"; fi; \
+	  printf '%s\n' "$$@" | ./ck text nums/metal-pack.ck > "$$out" || { cat "$$out" >&2; exit 1; }; \
 	  mv -f "$$out" "$$METAL_IMAGE"
 
 check-image: seed-run
@@ -91,11 +93,11 @@ check-image: seed-run
 	  if [ "$$(uname -s)" = Darwin ] && xcrun -sdk macosx metal -v >/dev/null 2>&1; then \
 	    printf '(has-target metal-map64)' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/target"; \
 	    gpu=$$(./ck run "$$work/target"); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
-	    $(MAKE) --no-print-directory metal-image METAL_RECIPE=ground/metal-polynomial.ck METAL_INPUTS=ground/metal-vectors.ck METAL_IMAGE="$$work/run/image"; \
+	    $(MAKE) --no-print-directory metal-image METAL_RECIPE=ground/metal-polynomial.ck METAL_INPUTS=ground/metal-vectors.ck METAL_APPLICATION=ground/metal-application.ck METAL_IMAGE="$$work/run/image"; \
 	    ./ck text ground/metal-requests.ck > "$$work/requests"; \
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
-	    echo "Metal: packed word maps by ID agree with frames in both operand orders"; \
+	    echo "Metal: direct and backtracking calls by ID agree with NUMS frames"; \
 	  fi
 
 check-live: ck fb
