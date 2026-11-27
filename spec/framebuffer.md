@@ -70,13 +70,19 @@ function of what was read, and is saved once; every later start with the same na
   and not the program, caught or not: `full` of any area, which follows the allowance, the stack
   and the host's free memory, and `crash`, which follows how deep the native stack goes. A fault
   the program alone decides, as `irreversible`, `arity` or its own, leaves the start at rest.
-- **The name** is made from nothing read from a file: whether the port is numeric, the start's
-  paths as given, and the device and inode of the directory they are read from, through SHA-256.
-  The file is `<name>.image` in the directory `CK_IMAGES` names. Without `CK_IMAGES` nothing is
-  saved or entered: nothing yet keeps that directory small. Only macOS has it, since the
-  executable's identity is its `LC_UUID`.
+- **The name** is `region/rest.ck`'s, made from nothing read from a file: the id of a list of
+  whether the port is numeric, the device and inode of the directory the start's paths are read
+  from, and the paths as given. The file is `<name>.image` in the directory `CK_IMAGES` names, or
+  else in `~/Library/Caches/coherence-seed/images` on macOS and `$XDG_CACHE_HOME` or `~/.cache`,
+  then `coherence-seed/images`, elsewhere; `CK_IMAGES` set empty keeps no image. Only macOS has
+  it yet, since the executable's identity is its `LC_UUID`, the one fact the bootstrap gives.
+- **The directory is held small.** After it saves an image, `region/rest.ck` lists the
+  directory and removes the images read longest ago, never the one just saved, until they hold
+  no more than 64 MB (`CK_IMAGES_BYTES` sets another) and a sixteenth of the disk's free space.
+  The host keeps when an image was last read: APFS moves the time when a start reads an image's
+  head, and a Linux mount with `relatime` moves it at most once a day.
 - **The image** is a head, its extents, the region's pages that hold anything, each at its place,
-  and a node in the canonical print. The head repeats the whole key, the layout version and the
+  and the rows of the files the start read, in the canonical print. The head repeats the whole key, the layout version and the
   executable's `LC_UUID`. The words of `fb.own` are saved as 0; the born-code table, the working
   indexes and the text past the guard's stack are saved empty, so code is born again at its first
   call.
@@ -89,14 +95,18 @@ function of what was read, and is saved once; every later start with the same na
   over its own region, so that it goes on exactly as a later start. The text area is saved as it
   was before the start, its count and its high mark, since how far it reached follows the command
   line.
-- **Entering.** A later start reads the head and checks it in C: owned by this user, not writable
-  by others, its length, the key, the version, the executable, every extent inside the region
-  below the stack, every area laid out as this process lays it out, and room in the allowance for
-  what it charges. Then the image's node runs in a fresh region, which has nothing but the
-  catalogue: one `stat` through the host for each file. Only if it answers yes is the region made
-  zero again and the pages mapped copy-on-write (`CK_FB`: read into the shared object instead);
-  then the words of `fb.own` are this process's again. Any other answer makes the region what
-  `fb_open` made, and the start runs cold and saves a new image.
+- **Entering.** A later start runs `region/rest.ck` in a fresh region, which has nothing but
+  the catalogue, given the executable's identity, the port, the start's paths and the layout's
+  facts. For the start's files, then for fewer, it makes the name, and of an image there checks:
+  owned by this user and not writable by others, its length, the key, the version, the
+  executable, every extent inside the region below the stack and apart from the text, in order
+  and inside the file, every area laid out as this process lays it out (compared by the host,
+  record by record), no code saved, and room in the allowance for what it charges; then it reads
+  the rows the image keeps and asks one `stat` for each file. It answers the open file and the
+  extents, and only then does the bootstrap make the region zero again and map the pages
+  copy-on-write (`CK_FB`: read into the shared object instead), and the words of `fb.own` are
+  this process's again. Any other answer makes the region what `fb_open` made, and the start
+  runs cold and saves a new image.
 - **What runs after.** A node a start leaves in the cell under the entry `after` runs once the
   start is over, in every process, whether the start ran or was entered: a package's opening, the
   door, the device, the join, follows its loading and is not saved with it. `share/all.ck` and

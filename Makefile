@@ -13,6 +13,8 @@ BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 # Images of starts at rest that a check makes lie in a folder of its own in the tree, ignored by git, which it removes.
 IMAGES = "$$(mktemp -d "$$PWD/.ck-images.XXXXXX")"
+# A start saves its images in the user's cache unless CK_IMAGES says where; what make runs keeps them in the tree.
+export CK_IMAGES ?= $(CURDIR)/.ck-images
 
 all: ck fb kg seed-run
 
@@ -249,7 +251,10 @@ check-ice: ck fb
 	  is "$$(CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" "$$(CK_IMAGES= CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" 'the same start at 60 MiB, as a cold start answers there'; is "$$(CK_MEMORY_BYTES=41943040 ./ck run "$$d/v.ck" "$$d/big.ck")" 'node [#2 736d616c6c]' 'its image offered at 40 MiB'; \
 	  if [ "$$(uname -m)" = arm64 ]; then rm -f "$$CK_IMAGES"/*.image; printf '(#89 [#2 64] (#45 (#51 [#52 fd7bbfa9ffffff97]) (#36 (#35 [#3]))))' > "$$d/deep.ck"; printf '(#90 [#2 64])' > "$$d/d.ck"; \
 	    is "$$(./ck run "$$d/d.ck" "$$d/deep.ck")" 'node [#2 6372617368]' 'a start that caught code falling off the stack'; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 0 'a start that met the depth of its stack'; fi; \
-	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest"; \
+	  rm -f "$$CK_IMAGES"/*.image; for k in 1 2 3; do printf '(#71 #4096 (#36 [#4 0%s]))' $$k > "$$d/e$$k.ck"; CK_IMAGES_BYTES=700000 ./ck run "$$d/program.ck" "$$d/e$$k.ck" > /dev/null; done; \
+	  last=$$(ls -t "$$CK_IMAGES"/*.image | head -1); kept=$$(ls -i "$$last"); is "$$(cat "$$CK_IMAGES"/*.image | wc -c | awk '{print ($$1 <= 700000)}')" 1 'a directory of images over its cap after a save'; \
+	  is "$$(CK_IMAGES_BYTES=700000 ./ck run "$$d/program.ck" "$$d/e3.ck")" 'node [#4 03]' 'the start whose image was saved last'; is "$$(ls -i "$$last")" "$$kept" 'the image saved last, kept and entered'; \
+	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept"; \
 	  [ $$fail = 0 ]
 
 check-native: ck
@@ -288,5 +293,6 @@ check-bare: ck
 
 clean:
 	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
+	rm -rf .ck-images
 
 .PHONY: all metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header

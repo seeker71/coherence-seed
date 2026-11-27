@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,195 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,181 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -355,11 +355,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   enters the image of the files before it, the same bytes as that part alone saves, and once that
   file is pure the whole start is saved from the part it entered, and is not entered after its
   first file changes. Measured on this M4 Max under `/usr/bin/time -l` (medians of
-  five) and from outside (median wall of thirty), cold against warm: the lens flow 269.6 M
-  instructions, 3.67 MB and 11.3 ms against 18.0 M, 2.13 MB and 1.53 ms; the image flow of
-  `check-image` 946.4 M, 5.60 MB and 40.0 ms against 114.0 M, 2.59 MB and 5.6 ms, and its start
-  with no request 851.0 M and 35.4 ms against 15.7 M and 1.37 ms. A process that does nothing
-  takes 14.1 M instructions where main took 14.7 M, and 13.76 M at 64 MiB where main took 13.59 M.
+  five) and from outside (median wall of thirty), cold against warm: the lens flow 117.7 M
+  instructions and 6.8 ms against 28.2 M and 2.29 ms, where main took 269.4 M and 12.8 ms cold:
+  the reader of the print marks each node it meets, so a node met twice is one look where it was
+  a search of all those met before. The image flow of `check-image` cold 946.4 M and 40.0 ms
+  against 114.0 M and 5.6 ms warm (measured with the gate in C), and its start with no request
+  851.0 M and 35.4 ms against 15.7 M and 1.37 ms. A process that does nothing takes 13.6 M
+  instructions where main took 14.7 M, and 13.37 M at 64 MiB where main took 13.59 M.
 
 **Replacing what runs**
 
@@ -469,13 +471,13 @@ running compiled code against frames all the way down).
 - **More of the warm start.** Only macOS has it: the executable's identity is its `LC_UUID`, and
   on Linux no build id is read, so every start there is cold. The Metal package, the Metal
   image's first part and `share/all.ck` load, are saved, and leave their opening to run after the
-  start; the opening itself is not saved, so a warm Metal image start still asks the device (829 M
-  instructions and 29.5 ms against 1,284 M and 52.7 ms cold). A start that runs any code is cold,
+  start; the opening itself is not saved, so a warm Metal image start still asks the device (839 M
+  instructions and 29.7 ms against 1,360 M and 51.7 ms cold). A start that runs any code is cold,
   compiled code too: nothing yet tells code the compiler made, which reads only what it is given,
-  from code that reads anything. The saver is a recipe of `region/rest.ck` over a snapshot the
-  bootstrap takes; the name, the gate's checks of the head, the extents and the layout, and the
-  reading of the check an entered part carries are still C. Images are kept only where `CK_IMAGES` says,
-  since nothing yet holds that directory to a size or removes an image no start uses. A page of
+  from code that reads anything. The name, the gate, the saver and the directory's size are
+  recipes of `region/rest.ck`, which every start with files before its program reads: a warm lens
+  flow takes 28.2 M instructions and 2.29 ms where the gate in C took 18 M and 1.53 ms. Images are kept by default in the user's cache, held
+  to 64 MB or a sixteenth of the free disk by removing those read longest ago. A page of
   an image is trusted as written: one byte changed in it is answered from, where a cold start
   answers otherwise; hashing every page of the lens image would cost 0.26 to 0.6 ms of its 1.67
   ms and read every page in. The node an image runs before it is entered may use only the
@@ -550,9 +552,10 @@ running compiled code against frames all the way down).
   Apple silicon. A member the host kills outright does not leave; its row and, if it was the
   last, the name stay until the next process looks. A member that leaves a full substrate takes
   about a page above the allowance to do it.
-  A member's start with no image (`CK_IMAGES` unset) loads the two packages through the search,
-  about 600 M instructions, where reading the door as one bound node took 109 M; with an image it
-  makes a substrate in 86.5 M and joins one in 65 M. A process that has given out a handle above the catalogue is refused
+  A member's first start loads the two packages through the search, about 545 M instructions,
+  where reading the door as one bound node took 109 M; every later one enters their image and
+  makes a substrate in 98.9 M and 5.4 ms, or joins one in 77.5 M and 5.4 ms, against 109 M and 93 M
+  on main. A process that has given out a handle above the catalogue is refused
   when it would join as other than the maker, since that number would name the maker's node at
   that place after; a number computed and not given by `handle` has no such claim and may name
   another node, as a number kept across a fail can. The joiner's catalogue is compared by a digest
