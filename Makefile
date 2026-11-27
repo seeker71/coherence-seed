@@ -9,10 +9,7 @@ CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 ifeq ($(shell uname -s),Linux)
 LDLIBS ?= -pthread -ldl -lrt
 endif
-ifeq ($(shell uname -s),Darwin)
-METAL_LIBS = -framework Metal -framework Foundation -lobjc
-endif
-BOOT = bootstrap/ck.c bootstrap/fb.h bootstrap/metal.h
+BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
 all: ck fb kg seed-run
@@ -20,10 +17,10 @@ all: ck fb kg seed-run
 ck: $(BOOT)
 	@n=$$(cat $(BOOT) | wc -l); if [ $$n -gt $(BUDGET) ]; then \
 	  echo "the bootstrap has $$n lines; its budget is $(BUDGET)"; exit 1; fi
-	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS) $(METAL_LIBS)
+	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS)
 
 seed-run: ck $(BOOT)
-	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c $(LDLIBS) $(METAL_LIBS)
+	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c $(LDLIBS)
 
 # The observer: a second process that shows, records and replays a framebuffer.
 fb: tools/fb.c bootstrap/fb.h
@@ -91,7 +88,7 @@ check-image: seed-run
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image"; \
 	  if [ "$$(uname -s)" = Darwin ] && xcrun -sdk macosx metal -v >/dev/null 2>&1; then \
 	    printf '(has-target metal-map64)' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/target"; \
-	    gpu=$$(./ck run "$$work/target"); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
+	    gpu=$$(./ck run "$$work/target" host/metal-all.ck); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
 	    $(MAKE) --no-print-directory metal-image METAL_RECIPE=ground/metal-polynomial.ck METAL_INPUTS=ground/metal-vectors.ck METAL_IMAGE="$$work/run/image"; \
 	    ./ck text ground/metal-requests.ck > "$$work/requests"; \
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \

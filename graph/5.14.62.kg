@@ -1,0 +1,31 @@
+# Design: Metal through the host door. The pages spec/core-operations.md and spec/nums.md are the authority; these nodes say what was chosen and why.
+
+n: 5.14.62
+name: metal-through-the-door
+kind: hub
+is: The GPU is reached from Form: a target the processor does not run is a bound blueprint, and what the C header did is a component package over rows of the host.
+at: 2026-11-27
+
+n: 5.14.62.1
+name: a-target-is-a-bound-blueprint
+kind: decision
+is: The bootstrap holds no Metal. A code leaf of a target the processor does not run is run by what its blueprint is bound to, given the leaf and the values, whether native names it or a binding holds it. has-target answers for the processor alone, and a target binds the entry to answer for itself.
+status: inferred
+from: 5.14.60 5.19.37 7.21 5.9.2
+conf: mid
+why: Run on 2026-11-27 on an M4 Max: the image flow of make check answered the bytes the C dispatch gave for the same five requests, a 65-lane map in both operand orders, the empty vector and two invalid shapes, from a directory holding only the image. The bootstrap went from 2,000 lines, the whole budget, to 1,906.
+flip: A dispatch walked through rows takes about 10 ms where the C took about 4, and a start 18 ms where it took 3. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
+limit: Rows exist for Apple's arm64 convention only, so under Rosetta, where the C dispatch ran, has-target now answers no and a map answers no-native. A map or a first has-target while a choice is open is the fault irreversible. One machine.
+at: 2026-11-27
+
+n: 5.14.62.2
+name: what-a-dispatch-makes-lies-in-a-room
+kind: decision
+is: The package host/metal.ck runs a map through seven host functions and 28 Objective-C messages, each a row. Every object it makes is written into a slot of one room as it is made, and let go by a row when the dispatch ends, when a fault leaves it and before the next begins. The two sizes of three words go by reference from that room. The package reaches the host only through seven recipes it is handed.
+status: inferred
+from: 5.14.62.1 5.14.60
+conf: mid
+why: By hand on 2026-11-27: a fault raised at the first copy into the buffer came out as itself with all eight slots empty, and a device left in a slot was let go by the next map. The package written as Python by the writer parses.
+flip: A host object that must outlive a dispatch, such as a pipeline kept between maps, needs a slot that is not let go at the end.
+limit: The fault path is held by no check. The check of the buffer against the allowance takes and gives back a room of that size, which raises the peak the allowance counts. The buffer itself is the host's memory.
+at: 2026-11-27

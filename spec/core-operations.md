@@ -63,7 +63,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 46, 47, 48 | add, sub, mul | a, b | integer arithmetic on `int` leaves |
 | 49 | eq | a, b | yes if a and b are the same node, otherwise no |
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
-| 51 | native | code, arguments | runs a CPU code leaf on up to six values, or a Metal map on two packed word vectors |
+| 51 | native | code, arguments | runs a code leaf of this processor on up to six values; a leaf of another target is run by what its blueprint is bound to, given the leaf and the values |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
 
 ## Fail, choice and cut
@@ -110,12 +110,26 @@ an executable payload for that ABI. The original bare `code` blueprint identifie
 `native` answers nothing with reason `no-native` when the identities differ. A binding
 declines that implementation and can continue with its recipe.
 
-`(has-target abi)` (entry 125) answers whether the process can use that target. It recognizes
-the current CPU ABI and probes the default Metal device for the 64-bit integer arithmetic used by `metal-map64`.
-For that ABI the leaf holds a compiled single-kernel Metal library. Its two arguments are
-byte leaves of equal length containing little-endian 64-bit words. Dispatch completes before
-the runtime returns a fresh byte leaf. Unequal lengths or partial words answer `range`.
-A device or pipeline that cannot run the library answers `no-native`.
+`(has-target abi)` (entry 125) answers whether the process can use that target. The bootstrap
+answers yes for the current CPU ABI and no for every other; a target that is not the
+processor's is added by binding the entry, as `host/metal-bind.ck` does for `metal-map64`.
+
+A leaf whose target is not this processor's is not run by the bootstrap. Where its blueprint,
+`(code abi)`, is bound to a recipe, `native` calls that recipe with the leaf and the values,
+and so does a binding whose implementation is such a leaf. With no binding the answer is
+nothing, `no-native`. This is how a target is added without C: `metal-map64` is bound to
+`metal.map` of the package `host/metal.ck`, which runs a compiled single-kernel Metal library
+through the rows of the package `host/` ([Metal word maps](nums.md#metal-word-maps)). Its two
+arguments are byte leaves of equal length containing little-endian 64-bit words, and it
+answers a fresh byte leaf once the dispatch has completed. Unequal lengths or partial words
+answer nothing, `range`; a value that is not a byte leaf is the fault `e.kind`; a device or
+pipeline that cannot run the library, and a host with no rows, answer `no-native`; a buffer
+the allowance cannot hold answers `declined`. With one value it is the fault `arg`, and a
+third value is not read, where the C refused both as `arity`. These reasons are the catalogue's entries in
+both ports, where the bootstrap's own reasons are words in the authoring tool. Since it calls
+the host, a map while a choice is open is the fault `irreversible`, and so is the first
+`(has-target metal-map64)` of a process; the answer is then kept, and asking again inside a
+search answers from what is kept.
 
 The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
@@ -528,7 +542,11 @@ and brings back a float, an integer or no result. `host/all.ck` loads it, and `h
 the `symbol` word and where the rooms lie, takes the one room the berth lives in. An address
 slot takes an `int` as the address it is, or a text or bytes leaf of at most 127 bytes, copied
 for the length of the call; each register class and the stack take eight values, a call sixteen
-in all. A raw supervisor call and a store at an absolute address are refused while a choice is
+in all. An Objective-C message is a row too: its selector, a slot for each value after the
+receiver and the selector, and the kind of its result; `host.send` lays them after the two
+slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A structure of more
+than two words goes by reference, as the convention says: the caller lays it in a room and
+passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf. A raw supervisor call and a store at an absolute address are refused while a choice is
 open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is

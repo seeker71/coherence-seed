@@ -36,7 +36,6 @@
 #include <signal.h>
 #include <setjmp.h>
 #include "fb.h"
-#include "metal.h"
 /* Code leaves name the Seed calling convention and the processor that implements it. */
 #if defined(__aarch64__) && defined(__APPLE__)
 #define HOST_ABI TARGET_AAPCS64
@@ -830,27 +829,6 @@ static uint64_t code_target(H leaf) {
   long long abi = bp && nd[bp].comp && nd[bp].bp == E(CODE) && nd[bp].n == 1 ? catn(KID(bp, 0)) : -1;
   return abi > 0 ? (uint64_t)abi : 0;
 }
-/* A map receives two equally long packed word vectors and returns one fresh byte leaf. */
-static Status mapped(H kernel, const H *args, uint32_t count) {
-  if (count != 2) return S_ARITY;
-  if (!args[0] || !args[1]) return S_KIND;
-  Node a = nd[args[0]], b = nd[args[1]];
-  if (a.comp || b.comp || a.bp != E(BYTES) || b.bp != E(BYTES)) return S_KIND;
-  if (a.n != b.n || a.n % 8 || a.n / 8 > UINT32_MAX) return S_RANGE;
-#ifdef __APPLE__
-  Node lib = nd[kernel]; uint64_t mark = ntext;
-  if (!lib.n) return S_NO_NATIVE;
-  uint8_t *out = talloc(a.n);
-  uint64_t need = pages_for(a.n) * 3 + pages_for(lib.n);
-  if (need > remaining_memory() || need > host.memory()) { ntext = mark; return S_DECLINED; }
-  int ok = metal_map(bytes + lib.off, lib.n, bytes + a.off, bytes + b.off, a.n, out);
-  Status why; ntext = mark;
-  if (ok) { W->v = mk(0, E(BYTES), out, a.n, &why); return W->v ? S_OK : why; }
-#else
-  (void)kernel;
-#endif
-  return S_NO_NATIVE;
-}
 static int local_code(H leaf) { return HOST_ABI && code_target(leaf) == HOST_ABI; }
 static void *birth(H leaf) {              /* the leaf's instructions, runnable; NULL if this host cannot */
   uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint64_t n = nd[leaf].n;
@@ -1131,7 +1109,6 @@ static int given(const H *a, uint32_t c, int64_t *arg) {
 /* Every invocation, direct or attached to a recipe, uses the ABI carried by the leaf. */
 static Status execute_code(H leaf, const H *values, uint32_t count, H node, uint32_t from) {
   uint64_t abi = code_target(leaf);
-  if (abi == TARGET_METAL_MAP64) return node ? S_DECLINED : mapped(leaf, values, count);
   int64_t args[8] = {0};
   if (!abi) return S_KIND;
   if (node) { args[0] = node; args[1] = from; args[7] = count; }
@@ -1152,10 +1129,11 @@ static int watched(void) {
  * activation it stands in. Answers 0 when code declined. */
 static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from, H node) {
   H impl = B(b)->impl;
-  if (!nd[impl].comp && !code_target(impl)) {       /* another kind of implementation: what its blueprint */
-    uint32_t r = bound(nd[impl].bp, 0, lim = under(b, lim));       /* is bound to runs it, given the leaf and the values */
-    if (!r || !nd[B(r)->impl].comp) { fault(S_KIND); return 1; }
-    H *t = in_hand((uint64_t)c + 1); t[0] = impl; if (c) memcpy(t + 1, a, sizeof(H) * c); a = t; c++; b = r; impl = B(r)->impl;
+  if (!nd[impl].comp && !local_code(impl)) {        /* another kind of implementation, code for another target too: what */
+    uint32_t r = bound(nd[impl].bp, 0, under(b, lim));              /* its blueprint is bound to runs it, given the leaf and the values */
+    if (r && nd[B(r)->impl].comp) {
+      H *t = in_hand((uint64_t)c + 1); t[0] = impl; if (c) memcpy(t + 1, a, sizeof(H) * c); a = t; c++; lim = under(b, lim); b = r; impl = B(r)->impl;
+    } else if (!code_target(impl)) { fault(S_KIND); return 1; }
   }
   uint32_t cool = node ? 0 : act[from].lim & COOL;
   if (nd[impl].comp && !node && B(b)->fast && !cool && !watched()) {       /* the recipe has a faster form: tried first, */
@@ -1231,8 +1209,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == HOST_TARGET) { if (c) fault(S_ARITY); else W->v = catalogue(HOST_ABI ? HOST_ABI : NO); return; }
   if (op == HAS_TARGET) {
     if (c != 1) fault(S_ARITY);
-    else { long long target = catn(a[0]); W->v = (target > 0 && ((uint64_t)target == HOST_ABI ||
-      ((uint64_t)target == TARGET_METAL_MAP64 && metal_available()))) ? E(YES) : E(NO); }
+    else { long long target = catn(a[0]); W->v = target > 0 && (uint64_t)target == HOST_ABI ? E(YES) : E(NO); }
     return;
   }
   if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
@@ -1642,7 +1619,9 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
         W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
-      if (op == NATIVE_OP) {
+      if (op == NATIVE_OP) {              /* a leaf this processor does not run is run by what its blueprint is bound to, */
+        b = c && a[0] && !nd[a[0]].comp && !local_code(a[0]) ? bound(nd[a[0]].bp, 0, f.aux) : 0;     /* given the leaf and the values */
+        if (b && nd[B(b)->impl].comp && apply(b, f.aux, a, c, f.env, 0)) break;
         Status result = execute_code(a[0], a + 1, c - 1, 0, f.env);
         if (result == S_KIND || result == S_ARITY) fault(result);
         else if (result != S_OK) { W->v = 0; W->reason = notice(result); }
