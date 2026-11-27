@@ -83,6 +83,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   Qwen projection directly from its file region on both Mac process architectures.
   A resident Llama model can present compact activation panels to the GPU. Q4_K
   and Q6_K projections share packed weights across streams within a dispatch.
+  Numeric function constants select Metal pipelines. A resident eight-stream Llama
+  image ran llama.cpp’s packed matrix kernels and weighted RMS normalization by ID.
   Only the selected result ranges cross the port.
   A live worker mounted the Llama model once, kept all 255 weight mappings across turns
   for two distinct KV histories, and released them on retirement while the worker stayed
