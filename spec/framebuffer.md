@@ -364,10 +364,11 @@ in it was complete when its count was read.
 - 2026-11-27, version 23, the member's start in Form against the start in C of version 22 (the
   build of 4ea5ec2), each the answer to `#33`, with an allowance of 64 MiB for the process and for
   the substrate, under `/usr/bin/time -l`: instructions and peak footprint the medians of five
-  runs, time the mean of thirty. A process alone: 24.0 M instructions, 2.7 ms, 2.05 MB, the same
-  as the build of origin/main (6f93c2c). The door read and nothing joined: 49.8 M, 4.2 ms, 2.78 MB.
-  The maker of a substrate: 85.0 M, 6.5 ms and 20.5 MB, against 134.8 M, 17 ms and 5.24 MB. A
-  joiner: 69.7 M, 6.8 ms and 6.8 MB, against 133.3 M, 16 ms and 3.14 MB. What the start in C spent
+  runs, time the mean of thirty. A process alone: 13.8 M instructions, 1.7 ms, 1.50 MB, the same
+  as the build of origin/main (8f3e52b), where Metal has left C; at 4ea5ec2 24.1 M, 2.4 ms, 2.05 MB.
+  The door read and nothing joined: 43.7 M, 3.1 ms, 2.25 MB.
+  The maker of a substrate: 78.4 M, 5.3 ms and 20.3 MB, against 134.8 M, 14 ms and 5.24 MB. A
+  joiner: 63.0 M, 5.5 ms and 6.3 MB, against 133.3 M, 14 ms and 3.14 MB. What the start in C spent
   was the reservation: this host takes about 6.6 M instructions for each TiB of addresses a
   process reserves, whatever kind, and 0.78 ms (a process that reserves and ends: 10.2 M and 1.4 ms
   for 2^34 bytes, 11.6 M and 1.6 ms for 2^38, 16.1 M and 2.2 ms for 2^40, 117.8 M and 14.1 ms for

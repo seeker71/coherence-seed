@@ -260,10 +260,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   commit, and between writing `buried` and unlinking left nothing the next members or the next
   opener did not finish. A member that outgrew a substrate of 8 MiB had the fault `full` with
   `nodes`, the substrate's charge standing at its allowance and not above it.
-  On this Mac a process alone starts as it did, 24.0 M instructions and 2.05 MB; the maker of a
-  substrate starts in 85 M instructions and 6.5 ms where the start in C took 135 M and 17 ms, and
-  a joiner in 70 M and 6.8 ms against 133 M and 16 ms; their peak footprints rose, to 20.5 MB
-  and 6.8 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
+  On this Mac a process alone starts as main's does, 13.8 M instructions and 1.50 MB; the maker of a
+  substrate starts in 78 M instructions and 5.3 ms where the start in C took 135 M and 14 ms, and
+  a joiner in 63 M and 5.5 ms against 133 M and 14 ms; their peak footprints rose, to 20.3 MB
+  and 6.3 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
   region, laid out as version 23 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
@@ -514,7 +514,7 @@ running compiled code against frames all the way down).
   stage 5. A process becomes a member only where the host's package has rows: macOS on Apple
   silicon. A member that ends by one of the bootstrap's own refusals, cannot write its answer,
   or is in a substrate with no room left, does not leave; its row and, if it was the last, the name stay until the next process looks. A
-  member's start still reads and binds the door, twice a lone start in instructions; the
+  member's start still reads and binds the door, three lone starts in instructions; the
   substrate holds those nodes already, and nothing yet lets a joiner take the bindings from
   there. A handle taken before a process became a member names nothing after. The observer shows
   a member but does not record one. The lane rows count the nodes forwarded, not those settled in
