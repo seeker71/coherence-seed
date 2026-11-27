@@ -336,9 +336,9 @@ limit: The two-process check is still one line of the Makefile's shell.
 at: 2026-11-25
 
 n: 5.14.33
-name: code-reads-fixed-places-of-the-head
+name: code-reads-the-head-by-its-rows
 kind: decision
-is: Code that reads the region may count on three places in its head whatever else moves: at byte 28 the floor, the lowest page the machine stack may reach; at byte 128 the address it calls to ask the bootstrap (5.18.6); and at byte 160 where the nodes area starts. Emitted code reads the floor for its stack check. Found by review: it had read the stack's entry in the area table by position, and adding an area before it made that entry another area's with no check failing. They stayed put when the area entry and the node record widened; the step leaf, which reads a node's record, was rewritten.
+is: Code that reads the region takes each place in its head from the layout's rows when the code is made: the emitter the floor, the lowest page the machine stack may reach, and the address it calls to ask the bootstrap (5.18.6); the step leaf where the nodes area starts and a node's record. Three places held fixed before kept a word nothing used in the machine. fb.misplaced names a field the rows lay out where C would not.
 status: inferred
 from: 5.14.28 5.7.6 5.14.10
 src: 2.30.7 2.30.9 2.30.11

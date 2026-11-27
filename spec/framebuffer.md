@@ -137,27 +137,27 @@ function of what was read, and is saved once; every later start with the same na
 
 ## What is in it
 
-The first page is the **head**: a magic word, the layout version (24), the writer's process id, the
+The first page is the **head**: a magic word, the layout version (28), the writer's process id, the
 walker's registers (the **machine**), one **area** entry per table, the doors, and the **member** part: where
 the substrate lies (`share`), how many pages the tables keyed by handle have charged, the
 process's lane, the node a member runs last (`leave`), and the name of the substrate it is a member of, empty for a process alone. An area entry says what its records are, how large one is, the most it has held,
 where the table starts, how many fit and how many are in use; the last four are counted by 64 bits.
 
-Machine code reads the region too, and three places in the head are kept for it whatever else
-moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
-16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
-to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
-code); and at byte 160 where the nodes area starts. The machine's word `unused`, where the
-address of a watched region lay before another region was read in Form, holds the second and
-third where code reads them. After the last area entry lie the **doors**: addresses the host
+Machine code reads the region too, at places it takes from the layout's rows when it is made,
+not at offsets written into it. `make header` writes them from the rows as numbers into
+`region/places.ck`, which `make check-full` compares as it does the header, so code made from them
+holds no words: the emitter (`form/compile.aarch64.ck`) reads the **floor**, the
+lowest page the machine stack may reach, counted in pages of 16,384 bytes from the region's start,
+and the machine's `serve`, the address code calls to have the bootstrap do an operation on values
+in hand (`spec/core-operations.md`, Native code); the step leaf of `form/step.leaf.aarch64.ck` is
+made from the rows of where the nodes area starts and of a node's record. A change of the layout
+raises its version, and code made from it is made again. `fb.misplaced` names any field the rows
+put where C would not, each at a multiple of its width and each record a multiple of its widest
+field, so the rows and the C header lay a record out alike. After the last area entry lie the **doors**: addresses the host
 gave this process, for code that has no walker to ask. The first is `symbol`,
 the address of the host's lookup of a name (`dlsym`); the second is `adopt`, the address of the
-bootstrap's own function by which a process becomes a member (below). They come after the area table so that the
-three places above do not move when a door is added; a reader finds them at the end of the area
-table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
-to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 26 lays it
-out.
+bootstrap's own function by which a process becomes a member (below). They come after the area table; a reader finds them at the end of the area
+table, by the layout's rows, and the member part after them.
 
 | Area | Records | Holds |
 | --- | --- | --- |
@@ -200,7 +200,7 @@ seeded catalogue, and whatever else its maker had made before it became a member
 
 A member's nodes, their parts and their ids lie in its lane. Its own area entries for those four
 tables point at the substrate's tables, with its lane's part as their count and their room, so the
-head's byte 160 still says where node h lies: at that offset plus 32·h, in every member. The
+nodes area's entry still says where node h lies: at its offset plus h records, in every member. The
 substrate begins with its own head: a magic word, the layout version, how many areas and lanes it
 has, its maker's process id, in `start` its maker's member word (below), the instant it was made,
 `share`, its size, its allowance and how much of it is charged, `buried`, the `tide`, and `catalogue`,

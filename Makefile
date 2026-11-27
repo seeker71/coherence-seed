@@ -37,9 +37,16 @@ kg: tools/kg.c
 views: ck
 	git config diff.ck.textconv "sh -c './ck text lens/to-words.ck lens/all.ck < \"\$$0\"'"
 
-# bootstrap/fb.h is made from nodes: the catalogue's words and the layout of the region's records.
+# bootstrap/fb.h is made from nodes: the catalogue's words and the layout of the region's records. So is
+# region/places.ck, the places of the head that machine code reads, as numbers, so code made from it holds no words.
+PLACES = printf '(seq (step (read (file "region/layout.ck"))) (fb.places))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-places.run && ./ck run .ck-places.run | sed 's/^node //' | $(NODES)
+# form/print.ck, the printer of the answer line, is made by form/printer.ck: the walked printer and, beside it, the leaf
+# the emitter compiles of the printer for AArch64, run where the layout version is the one it was made for.
+PRINTER = ./ck run form/printer.ck | sed 's/^node //' | $(NODES)
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
+	$(PLACES) > .ck-places && mv .ck-places region/places.ck; rm -f .ck-places.run
+	$(PRINTER) > .ck-print && mv .ck-print form/print.ck
 
 # Wait until the region named $name stands, for at most ten seconds.
 up = n=0; until ./fb show $$name > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
@@ -151,8 +158,8 @@ check-full: check
 	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
 
 check-header: ck
-	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && echo "header: bootstrap/fb.h is what the nodes generate" || \
-	  { echo "header: bootstrap/fb.h is not what region/header.ck writes; run make header"; exit 1; }
+	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && rm -f .ck-places.run && echo "header: bootstrap/fb.h, region/places.ck and form/print.ck are what the nodes generate" || \
+	  { rm -f .ck-places.run; echo "header: bootstrap/fb.h, region/places.ck or form/print.ck is not what the nodes write; run make header"; exit 1; }
 
 
 # A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which loads the host's and
@@ -251,7 +258,7 @@ check-ice: ck fb
 	  rm -f "$$one"; dd if="$$d/first" of="$$one.ab12cd" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'a builder killed mid-save'; cmp -s "$$one" "$$d/first" && [ -e "$$one.ab12cd" ] || { echo "  a young builder's file was taken for an image, or removed"; fail=1; }; \
 	  rm -f "$$one"; touch -t 202001010000 "$$one.ab12cd"; is "$$(ask)" 'node [#4 01]' 'a builder killed long ago'; cmp -s "$$one" "$$d/first" && [ ! -e "$$one.ab12cd" ] || { echo "  an old builder's file was not removed"; fail=1; }; \
 	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' | $(NODES) > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
-	  printf '(#100 (#35 [#3]) (#36 (#40 (#39 (#42 (#44 (#49 (#35 [#3 01]) (#65 ^1)))) [#4]) (#108 (#67 ^1 ^9) (#110 (#37 (#38) ^1 (#46 ^9 [#4 01])) [#4 08])))) (#100 ^9 (#37 ^1 (#94 [#4 c004] ^20) ^12) (#100 (#35 [#3 02]) (#37 ^1 (#94 [#4 c804] ^20) ^12) (#70 #89 (#70 #16 (#43 (#40 [#2 73] (#70 #94 (#70 #16 (#43 (#40 (#47 (#46 ^9 ^26) [#4 0010]) ^42)))))))))))' | $(NODES) > "$$d/top.ck"; ./ck run "$$d/top.ck" | sed 's/^node //' | $(NODES) > "$$d/stack.ck"; printf '(#90 [#2 73])' | $(NODES) > "$$d/held.ck"; one1=$$(./ck run "$$d/held.ck" "$$d/stack.ck"); \
+	  printf '(#100 (#35 [#3]) (#36 (#40 (#39 (#42 (#44 (#49 (#35 [#3 01]) (#65 ^1)))) [#4]) (#108 (#67 ^1 ^9) (#110 (#37 (#38) ^1 (#46 ^9 [#4 01])) [#4 08])))) (#100 ^9 (#37 ^1 (#94 [#4 b804] ^20) ^12) (#100 (#35 [#3 02]) (#37 ^1 (#94 [#4 c004] ^20) ^12) (#70 #89 (#70 #16 (#43 (#40 [#2 73] (#70 #94 (#70 #16 (#43 (#40 (#47 (#46 ^9 ^26) [#4 0010]) ^42)))))))))))' | $(NODES) > "$$d/top.ck"; ./ck run "$$d/top.ck" | sed 's/^node //' | $(NODES) > "$$d/stack.ck"; printf '(#90 [#2 73])' | $(NODES) > "$$d/held.ck"; one1=$$(./ck run "$$d/held.ck" "$$d/stack.ck"); \
 	  is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that read the stack'; [ "$$one1" != "$$(./ck run "$$d/held.ck" "$$d/stack.ck")" ] || { echo "  two starts read the same bytes of the stack: one was entered"; fail=1; }; \
 	  if [ "$$(uname -m)" = arm64 ]; then printf '(#89 [#2 74] (#51 [#52 40e03bd5010080d2c0035fd6]))' | $(NODES) > "$$d/code.ck"; printf '(#90 [#2 74])' | $(NODES) > "$$d/counter.ck"; one1=$$(./ck run "$$d/counter.ck" "$$d/code.ck"); \
 	    is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that ran code'; [ "$$one1" != "$$(./ck run "$$d/counter.ck" "$$d/code.ck")" ] || { echo "  two starts read one count of the clock in code: one was entered"; fail=1; }; fi; \

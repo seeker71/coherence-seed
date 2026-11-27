@@ -166,7 +166,7 @@ leaf into executable memory on its first use.
 
 ### Code asks the bootstrap
 
-The machine's `serve`, at byte 128 of the region, is the address of one function of the
+The machine's `serve`, at the place of the region's head the layout's rows give it, is the address of one function of the
 bootstrap that does an operation on values in hand. Code calls it as it is called itself: the
 values in x0 to x5, numbers as they are and nodes as handles, x7 saying how many and which; x6
 holds the operation's number.

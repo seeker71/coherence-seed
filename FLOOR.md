@@ -1,6 +1,6 @@
 # Floor
 
-What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
+What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -404,15 +404,33 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `make check-full` was printed by both and compared: no line differed; the printer as it stands
   was held to the C of 5bfb416 over 28 answers, bindings of `pack`, `leaf`, `choice` and the step
   among them, and three of 1,000 to 20,000 nodes, byte for byte. The printer writes into a
-  room in two passes, so it is linear in the size of the print at any depth, but slow: it adds
-  1.0 M instructions to a run answering 42 (14.2 M to 15.2 M) and 7 M to `ground/held-back.ck`; a
-  list of 3,000 numbers takes 1,549 M where the C took 21 M, and a chain 10,000 deep 3.5 G where it
-  took 29 M. The answer line may take 16 MiB past the allowance, so a run that ends with an area
+  room in two passes, so it is linear in the size of the print at any depth. Where the processor
+  is AArch64 it runs as machine code (below); walked, a list of 3,000 numbers takes 1,555 M
+  instructions in all where the C took 21 M. The answer line may take 16 MiB past the allowance, so a run that ends with an area
   full still says its fault: `(all (range 0 300000000))` at 4, 8, 16 and 32 MiB ended with
   `fault (full ...)`, where at 4 to 32 MiB the C ended with no room left for the print. `ck` finds
   its folder from the host (`_NSGetExecutablePath`, `/proc/self/exe`), through `PATH` and links. An
   asked answer is written by `bin.write` beneath the asked run's bindings, and its marks are holds
   that the outcome takes back; an outside binding of `pack` or `leaf` no longer changes it.
+- **The answer line runs code the emitter made of the printer.** `form/printer.ck` holds the
+  walked printer and a second one written for the emitter, which keeps the nodes it has met in a
+  table in a room where the walked one notes them; `make header` compiles it to a leaf of 16 KB
+  and writes `form/print.ck` with it, the layout version it was made for and the nodes whose ids
+  it names, and `make check-full` holds that the file is what the nodes make now. The leaf runs
+  only on AArch64 and only under its layout version, by `native`, so where it declines the walked
+  printer answers. Measured as whole `ck run`s (instructions retired): answering 42, 16.0 M against
+  15.1 M walked and 14.0 M for the C of 5bfb416; 3,000 numbers, 152 M against 1,555 M and 21 M; a
+  chain 10,000 deep, 426 M against 3,587 M and 83 M; 20,000 triples, 2.3 G against 24.0 G and
+  204 M; a chain 200,000 deep declines at the machine stack's floor and is walked, 72.8 G against
+  71.6 G and 1.4 G. The three printed every case byte for byte alike. `ground/encoding-in-form.ck`
+  holds the two printers alike over every kind of leaf, shared parts, a recursion 300 deep and a
+  table that grows, and that the code answered. Under Rosetta the printer is walked.
+- **Code reads the head at places the layout's rows give.** `make header` writes them as numbers
+  into `region/places.ck`; the emitter's call of `serve`, its stack check, the step leaf and the
+  room operations take them there, and the machine's `pcount` and `unused` left the layout
+  (version 28) with every compiled ground program unchanged. A room's `load` and `store` compile to
+  the C's checks as instructions and its bytes read or written in place; a case they do not take
+  calls `serve` as before. A store is compiled only into a leaf `native` runs.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
@@ -562,8 +580,10 @@ running compiled code against frames all the way down).
   of an `if`, and nothing nested deeper than seven registers; a definition that answers more
   than once is compiled only where another searches it. 170 of the system's 377 definitions
   wait on those. A third of the emitter itself is among them, the part that searches. Code for a recipe that
-  is no entry's does not see what the program binds after it was made. Each operation on a node is a call into
-  the bootstrap and not instructions.
+  is no entry's does not see what the program binds after it was made. Each operation on a node but a room's `load`
+  and `store` is a call into the bootstrap and not instructions; `take`, and a room's operations
+  anywhere but in a leaf `native` runs, are not compiled. The emitter writes AArch64 only: on
+  x86-64 the answer line is walked.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 221
