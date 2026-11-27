@@ -10,21 +10,22 @@ is the only writer, and `tools/fb.c` is the observer.
 
 ## The region
 
-- The bootstrap reserves one region when it starts and never moves or grows it. It is POSIX shared
-  memory, named by the variable `CK_FB` when that is set.
-- A region named by `CK_FB` is kept after the run ends, so its last state can be read afterwards,
-  until `fb drop` removes it; a run that another process is to watch is named so. Without a name
-  the region is unlinked as soon as it is mapped, so it lives exactly as long as its process and
-  its memory is given back however the process ends, killed by the host included.
-- The bootstrap keeps no heap. Its tables, its working lists, the files it reads and its machine
-  stack are all inside the region. It starts on the host's stack only long enough to move onto the
-  region's.
-- The region is sized by the machine's memory, which the host says (`hw.memsize` on macOS). Each
-  area has room for as many of its records as that memory holds, or as its count can number where
-  that is fewer: 32 bits for records named by a handle or an index of 32 bits, 64 for bytes,
-  children and the two indexes. Pages are taken from the host as they are first touched, so
-  reserving costs nothing: with 128 GiB of memory the region is 2.3 TiB of addresses, reserved in
-  a few microseconds, and a small run's whole process holds under two megabytes.
+- The bootstrap reserves a shared region with stable addresses. An ordinary run uses an
+  anonymous mapping, which the OS releases even if the process is killed. Set `CK_FB` to
+  publish a run by name. A published run remains available after exit until `fb drop NAME`.
+- The runtime gives all tables one allowance for touched memory. It charges their page-rounded
+  high-water marks, the header, the thread's entire stack and the executable copy of code.
+  Backtracking can reuse charged pages. Each table retains space to grow into the common pool.
+  `fb show NAME` reports both the virtual reservation and the shared memory allowance.
+- At startup, available memory is divided by the number of online CPUs plus one, leaving room
+  for other work. On macOS this uses free and inactive pages under normal pressure, free pages
+  at warning, and zero at critical pressure. Other supported Unix builds use available physical
+  pages. Linux also consults free backing space for a named region. A finite address-space
+  limit constrains the layout. `CK_MEMORY_BYTES` can lower the allowance in decimal bytes.
+- A request past the allowance follows Form's existing `full` fault for the growing area.
+  As an area's high-water mark crosses a MiB boundary, the runtime samples the host again
+  before admitting growth. File input is read in bounded chunks and reports a full text area
+  if the complete input will not fit.
 - Each area but the stack begins as many lines of the data cache into its first page as there are
   areas before it, so the first records of no two areas fall on one set of that cache; the host
   says how long a line is (`hw.cachelinesize`, 128 bytes here), and where it does not say, every
@@ -240,26 +241,20 @@ in it was complete when its count was read.
 - **A frame is a sample.** What a cell held between two frames is not kept, apart from its last
   writer. The journal that undo needs (stage 5) will keep old values inside the region.
 - **The stack is recorded as raw bytes**, its newest 256 KiB, and the observer does not yet read it.
-- **The host bounds the areas together.** Each area may take the machine's memory, and all of
-  them together what the host can spare: each time they have reached a further step, as many
-  pages as the host's VM keeps free, the host is asked how much it can still give
-  (`kern.memorystatus_level` of `hw.memsize`), and nothing while its pressure is at warning or
-  worse (`kern.memorystatus_vm_pressure_level`). The fault `full`, with the area's name, is met by
-  a growth the host cannot spare, by a request no area can hold, or by a count of 32 bits that is
-  spent; a `recover` that catches it gets the frames, values and activations back, and no nodes.
-  The machine stack is not counted with the areas, and a host that says nothing is not asked.
+- **The allowance covers runtime-managed pages.** The live ground process runs with a 32 MiB
+  allowance. It catches a room request that fits the room table's address range but exceeds the
+  shared allowance, accepts the observer's binding, and completes its recursion. Multiple
+  processes sample the same host independently. Raw host calls and other processes own their
+  own allocations.
+
 - **What is still counted by 32 bits or fewer**: a node's handle, so at most 2^32 − 1 nodes; the
   indexes of frames, links, activations, arguments, choice points, gathered values, born code,
   trails, room trails, held-back calls, notes, values in hand, and the nodes the reader opened and
   the children it gathers, so a composite has at most 2^32 − 1 children and a call as many values; the limit word, 2^23 − 1 of the program's
   own bindings and 127 from outside; the offset of born code, 4 GiB of it; and the floor, pages of
-  16 KiB, so the stack lies within the region's first 64 TiB. On this machine 128 GiB of node
-  records hold 2^32 nodes, so memory and the handle bind together.
-- **The stack holds as much as memory.** Emitted code checks it against the floor and declines
-  when it has no room; a recursion in emitted code now fills memory before that, and no program
-  reaches the check.
-- A process that is killed leaves its region behind until `fb drop NAME`.
-- One hand wrote the layout, the writer and the observer, and only this Mac ran them.
+  16 KiB, so the stack lies within the region's first 64 TiB. The native stack is sized from
+  host thread and stack limits and occupies at most half of the run's allowance.
+- The runtime, live reader and observer were exercised together on macOS arm64.
 - **One asker at a time.** Two processes asking at once can overwrite each other's request. The
   asker waits by looking, not by an event. A request is answered between two steps of the walker,
   so code that runs long without returning to it, emitted or the host's, delays the answer; a

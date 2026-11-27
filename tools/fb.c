@@ -69,8 +69,9 @@ static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
     if (i >= 0) {
       const Area *a = &h->a[i]; uint64_t full = (uint64_t)a->cap * a->size;
       len = (uint64_t)a->n * a->size; off = a->off;
-      if (i == A_STACK) { len = STACK_TOP; off = a->off + full - len; }
+      if (i == A_STACK) { len = full < STACK_TOP ? full : STACK_TOP; off = a->off + full - len; }
       if (len > full) len = full;
+      if (len) { uint64_t prefix = off % FB_PAGE; off -= prefix; len += prefix; }
     }
     for (uint64_t p = off; p < off + len; p += FB_PAGE) {
       const uint8_t *from = i < 0 ? head : src + p;
@@ -138,6 +139,7 @@ static void node(H h) {
 static void detail(void) {
   const Machine *m = &hd->m;
   printf("framebuffer version %u, writer pid %u, %llu bytes reserved\n", hd->version, hd->pid, (unsigned long long)hd->bytes);
+  if (hd->version >= 19) printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
   printf("machine  mode %s  step %llu  env %u  cut %u  k %u\n", MODE[m->mode <= M_DONE ? m->mode : 0], (unsigned long long)m->step, m->env, m->cut, m->k);
   printf("  at      %s\n", str(m->at, 160));
   printf("  x       %s\n", str(m->x, 160));

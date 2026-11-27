@@ -9,7 +9,7 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
 | Bootstrap | [`bootstrap/`](bootstrap) | 1,604 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
-| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region sized by the machine's memory, each record with its blueprint and writer |
+| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
@@ -235,18 +235,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   one; gathering only its own took the lens's showing of itself from 0.28 s to 0.09 s.
 - **Being seen costs little.** Registers and writers kept in the region cost about a quarter of
   the walker's speed; being recorded every millisecond, up to about 4%.
-- **Only memory sizes the region, and the host what it takes.** Each area has room for as many
-  records as the machine's memory holds, or as its count of 32 bits numbers where that is fewer:
-  with 128 GiB the region is 2.3 TiB of addresses, reserved in a few microseconds, and an area's
-  entry keeps the most it has held. As the areas grow, the host is asked what it can spare, and a
-  growth it cannot spare is `full`: a room of all the machine's memory less a page is refused
-  untouched (`ground/full-is-a-fault.ck`). A region without a name goes with its process: a run
-  killed by a signal gave back its 2.9 GB at once, where before its region kept them until the
-  machine restarted. Against the same bootstrap with fixed capacities, under `/usr/bin/time -l`, the long
-  recursion took 0.99 s of CPU where it took 0.97, the sweep of compiled code 8.29 s where it took
-  8.15, and every ground program in one process 57.5 s where it took 56.7: the 64-bit hash and
-  counts. The sweep held 6.6 MB at most where it held 7.3, a node's record being 32 bytes where it
-  was 52; the page tables of the wider range of addresses add a quarter of a megabyte.
+- **One allowance covers the runtime's memory.** The framebuffer tables draw from a common
+  pool sized from available host memory. The stack and executable pages count toward it.
+  The live run under `make check` recovers from a room request beyond its 32 MiB allowance
+  and finishes with the expected answer. Ordinary runs use anonymous shared memory. A named
+  run can be read after exit. See [the framebuffer](spec/framebuffer.md#the-region).
 
 **Writing**
 
@@ -289,7 +282,7 @@ running compiled code against frames all the way down).
   instruction and not by the conditions' rows, so a condition kept again later is not seen by a
   word kept before.
 - **A store bounded by what is live.** A run with no choice open keeps every node it makes until
-  a fail returns past it, so a loop that counts long enough spends the machine's memory. A handle
+  a fail returns past it, so a loop that counts long enough can spend the run's allowance. A handle
   kept as a number across a fail back past where its node was made can name another node
   afterwards.
 - **Expectations of meaning only.** Some ground programs still answer values that move without a
@@ -330,14 +323,9 @@ running compiled code against frames all the way down).
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.
 - **An answer to what a node's id is.** SHA-256 was chosen without being asked for (6.1.31).
-- **A bound on the machine stack.** The areas together take only what the host can spare, but the
-  machine stack is not counted with them, so a recursion in emitted code can still take what the
-  host cannot spare before emitted code's check of the floor. A
-  handle and the indexes of the walker's records are 32 bits, so at most 2^32 − 1 nodes and as
-  many frames or children; the limit word holds 2^23 − 1 bindings and 127 from outside; born code
-  is reached by a 32-bit offset, 4 GiB. The stack holds as much as memory, so no program reaches
-  emitted code's check of the floor. `region/asking.ck` writes a request's count as four bytes
-  of the eight the layout gives it, which holds for a request below 4 GiB, since the walker keeps
+- **Limits of host accounting.** Each process samples headroom independently. The allowance
+  covers runtime-managed pages. Foreign code can allocate memory through the host. The
+  observer's request count uses four bytes of the eight in the layout; the walker keeps
   the high four at zero.
 
 ## Guidance

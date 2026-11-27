@@ -153,10 +153,7 @@ caught by `recover` and seen by `outcome`, and the run goes on (`ground/crash-is
 fault of the processor anywhere else, in the bootstrap's own code, ends the process.
 
 `full` is the fault of an area of the region that has no room for what is asked of it; its reason
-is `(list "full" name)`, the area's name beside it. An area has room for as much as the machine's
-memory holds, or as its count of 32 bits numbers, and the areas together for what the host can
-spare (`spec/framebuffer.md`), so what ends this way is a request larger than that, and not the
-process or the machine. Where a `recover` catches a fault, the frames,
+is `(list "full" name)`, the area's name beside it. All areas draw on the run's host memory allowance (see `spec/framebuffer.md`). Where a `recover` catches a fault, the frames,
 the gathered values, the activations and the choices of the body that faulted are given back, and
 the handler takes the frame of the `recover` itself, so the program goes on in the room it had
 (`ground/full-is-a-fault.ck` asks a thousand calls deep for a room larger than memory, twice, and
@@ -891,5 +888,5 @@ not be what the walker does there.
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing
   inside may name another reason than the bootstrap's.
 - A binding has no name of its own: `unbind` takes the newest of an entry, not one in the middle.
-- Nothing bounds a run but the machine's memory: a wrong recipe under a recursion gives no answer
-  and goes on until memory is spent, and nothing ends it with a fault before the host pages.
+- A growing recursion shares the run's memory allowance with all other areas. Reaching it
+  raises the area's existing `full` fault. A loop that reuses its pages can still run indefinitely.

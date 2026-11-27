@@ -9,15 +9,14 @@
  *
  * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md. The header
  * fb.h is made from nodes (region/header.ck); it is not written by hand.
- * Everything this program reads and writes lives in one shared region laid out by fb.h, named by
- * the variable CK_FB and kept, or else unlinked as soon as it is mapped, so that it lives as long as
- * the process however that ends; it keeps no heap and its stack is in the region. The areas take
- * only what the host can give: it is asked how much memory it has to spare as they grow.
+ * Everything this program reads and writes lives in one shared region laid out by fb.h.
+ * CK_FB publishes it by name; an anonymous run's pages go back when its process ends.
  * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
  * getenv getpid exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
  * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp sysconf
  * pthread_attr_init pthread_attr_setstack pthread_create pthread_join, and on Apple silicon
- * pthread_jit_write_protect_np and sys_icache_invalidate; on Apple, sysctlbyname.
+ * pthread_jit_write_protect_np and sys_icache_invalidate; the memory share uses getrlimit and,
+ * on macOS, sysctlbyname and Mach VM statistics.
  */
 #if !defined(__APPLE__)
 #define _GNU_SOURCE
@@ -32,7 +31,13 @@
 #include <pthread.h>
 #include <sys/mman.h>
 #ifdef __APPLE__
+#include <mach/mach.h>
+#include <dispatch/dispatch.h>
 #include <sys/sysctl.h>
+#endif
+#include <sys/resource.h>
+#ifdef __linux__
+#include <sys/statvfs.h>
 #endif
 #include <sys/stat.h>
 #include <time.h>
@@ -62,30 +67,33 @@ static void say(const char *a, const char *b) { put(1, a); put(1, b); put(1, "\n
 
 /* ---- the host: every capability the floor takes from it, one function each ------- */
 typedef struct { int64_t v, k; } Ret;              /* what code answers: v, and k saying what v is */
-typedef struct { uint64_t bytes, step; } Spare;    /* what the host can give: all ones where it does not say */
 typedef struct {
   void *(*region)(const char *name, uint64_t n);   /* the one shared region, zeroed */
   void *(*code_map)(size_t);                       /* reserve the one executable region */
   void (*code_write)(int on);                      /* this thread may write code / may run it */
   void (*code_flush)(void *, size_t);              /* instruction cache */
-  int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap);
+  int64_t (*file_read)(const char *, uint8_t *to, uint64_t cap, uint64_t *written);
   Ret (*call)(void *fn, const int64_t *a);
   int64_t (*clock)(void);                          /* nanoseconds that only move forward */
   void *(*watch)(const char *name);                /* another process's region, mapped to be read only */
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
   void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
-  uint64_t (*memory)(void);                        /* how many bytes of memory the machine has */
+  uint64_t (*memory)(void);                        /* available bytes on this host now */
   uint64_t (*line)(void);                          /* how many bytes a line of its data cache holds; 0 when it does not say */
-  Spare (*spare)(void);                            /* how many bytes it can give now without pressing on others, none when it is
-                                                      short of memory, and how many more it lets be taken before it is asked again */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
+  if (!name) {
+    void *p = mmap(NULL, n, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, -1, 0);
+    return p == MAP_FAILED ? NULL : p;
+  }
   shm_unlink(name);
   int fd = shm_open(name, O_CREAT | O_EXCL | O_RDWR, 0600);
-  if (fd < 0 || ftruncate(fd, (off_t)n)) return NULL;
-  void *p = mmap(NULL, n, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  close(fd); return p == MAP_FAILED ? NULL : p;
+  if (fd < 0) return NULL;
+  void *p = ftruncate(fd, (off_t)n) ? MAP_FAILED : mmap(NULL, n, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  close(fd);
+  if (p == MAP_FAILED) { shm_unlink(name); return NULL; }
+  return p;
 }
 static void *h_code_map(size_t n) {
 #if NATIVE
@@ -109,20 +117,19 @@ static void h_code_flush(void *p, size_t n) {
   (void)p; (void)n;
 #endif
 }
-static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap) {
-  int fd = open(path, O_RDONLY); int64_t n = 0; ssize_t r = 0;
-  if (fd < 0) return -1;
-  while ((uint64_t)n < cap && (r = read(fd, to + n, cap - (uint64_t)n < (1u << 30) ? cap - (uint64_t)n : (1u << 30))) > 0) n += r;   /* a read takes at most 2^31 - 1 */
-  close(fd); return r < 0 ? -1 : n;
-}
 static Ret h_call(void *fn, const int64_t *a) {
   return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
 static void *h_watch(const char *name) {
+  static void *previous; static size_t previous_size;
   int fd = shm_open(name, O_RDONLY, 0); struct stat st;
   if (fd < 0) return NULL;
-  void *p = fstat(fd, &st) ? MAP_FAILED : mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  close(fd); return p == MAP_FAILED ? NULL : p;
+  void *p = fstat(fd, &st) || st.st_size < (off_t)FB_PAGE ? MAP_FAILED : mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  close(fd);
+  if (p == MAP_FAILED) return NULL;
+  if (memcmp(p, FB_MAGIC, 8) || ((const Head *)p)->bytes != (uint64_t)st.st_size) { munmap(p, (size_t)st.st_size); return NULL; }
+  if (previous) munmap(previous, previous_size);
+  previous = p; previous_size = (size_t)st.st_size; return p;
 }
 static void *h_symbol(const char *name) { return dlsym(RTLD_DEFAULT, name); }
 static void h_guard(void (*on)(int), void *stack, size_t n) {
@@ -131,12 +138,58 @@ static void h_guard(void (*on)(int), void *stack, size_t n) {
   sigaltstack(&ss, NULL); sigaction(SIGSEGV, &sa, NULL); sigaction(SIGBUS, &sa, NULL); sigaction(SIGILL, &sa, NULL); sigaction(SIGFPE, &sa, NULL);
 }
 static uint64_t h_memory(void) {
+  long size = sysconf(_SC_PAGESIZE);
+  if (size <= 0) return 0;
+  uint64_t available;
 #ifdef __APPLE__
-  uint64_t m = 0; size_t len = sizeof m;
-  if (!sysctlbyname("hw.memsize", &m, &len, NULL, 0) && m) return m;
+  int pressure = 0; size_t len = sizeof pressure;
+  if (sysctlbyname("kern.memorystatus_vm_pressure_level", &pressure, &len, NULL, 0)) pressure = 0;
+  if (pressure & DISPATCH_MEMORYPRESSURE_CRITICAL) return 0;
+  vm_statistics64_data_t vm; mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+  mach_port_t port = mach_host_self();
+  kern_return_t rc = host_statistics64(port, HOST_VM_INFO64, (host_info64_t)&vm, &count);
+  mach_port_deallocate(mach_task_self(), port);
+  if (rc != KERN_SUCCESS) return 0;
+  uint64_t pages = vm.free_count;
+  if (!(pressure & DISPATCH_MEMORYPRESSURE_WARN)) pages += vm.inactive_count;
+  available = pages * (uint64_t)size;
+#else
+  long pages = sysconf(_SC_AVPHYS_PAGES);
+  available = pages > 0 ? (uint64_t)pages * (uint64_t)size : 0;
 #endif
-  long pages = sysconf(_SC_PHYS_PAGES), size = sysconf(_SC_PAGESIZE);
-  return pages > 0 && size > 0 ? (uint64_t)pages * (uint64_t)size : 0;   /* 0: the host does not say */
+  long cpus = sysconf(_SC_NPROCESSORS_ONLN);
+  available /= 1 + (uint64_t)(cpus > 0 ? cpus : 1);
+#ifdef __linux__
+  struct statvfs fs;
+  if (getenv("CK_FB") && !statvfs("/dev/shm", &fs)) {
+    uint64_t backing = (uint64_t)fs.f_bavail * fs.f_frsize / 2;
+    if (backing < available) available = backing;
+  }
+#endif
+  return available;
+}
+#define GROW_CHUNK (1u << 20)     /* resample host headroom as new memory is touched */
+static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap, uint64_t *written) {
+  int fd = open(path, O_RDONLY); uint64_t n = 0, admitted = 0; uint8_t extra;
+  if (fd < 0) return -1;
+  struct stat st;
+  if (!fstat(fd, &st) && S_ISREG(st.st_mode) && st.st_size > 0 && (uint64_t)st.st_size > cap) {
+    off_t offset = lseek(fd, 0, SEEK_CUR);
+    if (offset >= 0 && offset < st.st_size && (uint64_t)(st.st_size - offset) > cap) { close(fd); return -2; }
+  }
+  int64_t result;
+  for (;;) {
+    if (n == admitted && n < cap) {
+      uint64_t more = cap - n < GROW_CHUNK ? cap - n : GROW_CHUNK;
+      if (!n || more <= h_memory()) admitted += more;
+    }
+    uint64_t chunk = admitted - n;
+    ssize_t r = read(fd, chunk ? to + n : &extra, chunk ? (size_t)chunk : 1);
+    if (r < 0 && errno == EINTR) continue;
+    if (r <= 0 || !chunk) { result = r < 0 ? -1 : r == 0 ? (int64_t)n : -2; break; }
+    n += (uint64_t)r;
+  }
+  *written = n; close(fd); return result;
 }
 static uint64_t h_line(void) {
 #ifdef __APPLE__
@@ -148,23 +201,7 @@ static uint64_t h_line(void) {
 #endif
   return 0;
 }
-static Spare h_spare(void) {
-  Spare s = { ~0ull, ~0ull };
-#ifdef __APPLE__
-  int level = 0, avail = 0, target = 0; uint64_t page = 0; size_t len = sizeof avail;
-  if (!sysctlbyname("kern.memorystatus_level", &avail, &len, NULL, 0) && avail > 0) s.bytes = h_memory() / 100 * (uint64_t)avail;
-  len = sizeof level;                                /* the share of memory it can still give, then its pressure: */
-  if (!sysctlbyname("kern.memorystatus_vm_pressure_level", &level, &len, NULL, 0) && level > 1) s.bytes = 0;   /* warning or worse */
-  len = sizeof target;                               /* asked again after as many pages as its VM keeps free */
-  if (!sysctlbyname("kern.vm_page_free_target", &target, &len, NULL, 0) && target > 0 && (len = sizeof page, !sysctlbyname("hw.pagesize", &page, &len, NULL, 0)))
-    s.step = (uint64_t)target * page;
-#else
-  long avail = sysconf(_SC_AVPHYS_PAGES), size = sysconf(_SC_PAGESIZE);
-  if (avail > 0 && size > 0) s.bytes = (uint64_t)avail * (uint64_t)size;
-#endif
-  return s;
-}
-static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory, h_line, h_spare };
+static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_read, h_call, h_clock, h_watch, h_symbol, h_guard, h_memory, h_line };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -209,20 +246,34 @@ static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
 static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
-static uint64_t reached, ask_at;         /* bytes the areas have reached together, and where the host is asked again */
-static void no_room(int a, const char *why) {
+static void area_full(int a) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
-  put(2, "ck: "); put(2, why); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
+  put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
+}
+static int host_has_growth(uint64_t old, uint64_t next) {
+  if (old / GROW_CHUNK == next / GROW_CHUNK) return 1;
+  uint64_t growth = next - old;
+  return (growth < GROW_CHUNK ? GROW_CHUNK : growth) <= host.memory();
+}
+static uint64_t pages_for(uint64_t bytes_needed) { return (bytes_needed + FB_PAGE - 1) & ~(uint64_t)(FB_PAGE - 1); }
+static uint64_t area_extent(const Area *a, uint64_t count) {
+  return count ? a->off % FB_PAGE + count * a->size : 0;
+}
+/* Touched pages can remain resident after backtracking. The peaks already in the region
+ * account for them. Charge the whole native stack up front since it grows without room(). */
+static uint64_t remaining_memory(void) {
+  uint64_t used = FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode);
+  for (int i = 0; i < A_COUNT; i++) used += pages_for(area_extent(&fb->a[i], fb->a[i].peak));
+  return used < fb->a[A_ROOMS].cap ? fb->a[A_ROOMS].cap - used : 0;
+}
+static int fits_growth(uint64_t old, uint64_t next) {
+  uint64_t extra = pages_for(next) - pages_for(old);
+  return !extra || (extra <= remaining_memory() && host_has_growth(old, next));
 }
 static void further(int a, uint64_t need) {
-  if (need > fb->a[a].cap) { no_room(a, "the framebuffer has no room left for "); return; }
-  uint64_t more = (need - fb->a[a].peak) * fb->a[a].size;
-  if (more >= ask_at - reached) {         /* a further step: the host says what it can still give */
-    Spare s = host.spare();
-    if (more > s.bytes) { no_room(a, "the host has no memory to spare for "); return; }
-    ask_at = s.step > ~0ull - reached - more ? ~0ull : reached + more + s.step;
-  }
-  reached += more; fb->a[a].peak = need;
+  Area *area = &fb->a[a];
+  if (need > area->cap || !fits_growth(area_extent(area, area->peak), area_extent(area, need))) area_full(a);
+  area->peak = need;
 }
 static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) further(a, need); }
 /* The limit word an activation runs under counts bindings: 23 bits for the program's own, 7 for
@@ -232,12 +283,8 @@ static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) furthe
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
-static char fbname[64];
 static void fb_open(void) {
-  /* An area may grow until the machine's memory is spent: it has room for as many records as that
-   * memory holds, or as its count can number where that is fewer. Records named by a handle or an
-   * index of 32 bits are counted by 32 bits; bytes, children and the two indexes by 64. Pages are
-   * taken from the host only as they are first touched, so room not used costs nothing. */
+  /* Each table has stable addresses into which it can grow. Their pages share one allowance. */
   static const struct { uint32_t of, size; uint8_t wide; } L[A_COUNT] = {
     [A_NODES] = { NODE, sizeof(Node), 0 },          [A_LEAF_BYTES] = { BYTE_TABLE, 1, 1 },
     [A_CHILDREN] = { WORD_TABLE, 4, 1 },            [A_BY_CONTENT] = { WORD_TABLE, 4, 1 },
@@ -256,26 +303,38 @@ static void fb_open(void) {
     [A_ROOMS] = { BYTE_TABLE, 1, 1 },               [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 0 },
     [A_GIVES] = { WORD_TABLE, 4, 0 },               [A_IDS] = { BYTE_TABLE, 1, 1 },
     [A_VALUES] = { WORD_TABLE, 4, 0 } };
-  uint64_t mem = host.memory(), line = host.line(), cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
-  if (!mem) die("the host does not say how much memory it has");
+  uint64_t budget = host.memory(), line = host.line();
+  struct rlimit limit;
+  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / (A_COUNT + 3) < budget) budget = limit.rlim_cur / (A_COUNT + 3);
+  const char *setting = getenv("CK_MEMORY_BYTES");
+  if (setting) {
+    char *end; errno = 0; unsigned long long requested = strtoull(setting, &end, 10);
+    if (*setting < '0' || *setting > '9' || *end || errno || !requested) die("CK_MEMORY_BYTES takes a positive byte count");
+    if (requested < budget) budget = requested;
+  }
+  uint64_t cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
+  uint64_t mem = budget / FB_PAGE * FB_PAGE;
+  if (mem < (1u << 17) + 4 * FB_PAGE) die("insufficient host memory for the framebuffer");
   for (int i = 0; i < A_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
   if (cap[A_BY_ID] > (uint64_t)1 << 33) cap[A_BY_CONTENT] = cap[A_BY_ID] = (uint64_t)1 << 33;   /* twice the most nodes a handle names */
   cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = cap[A_NODES] + 8;   /* one for each node */
   cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* numbered inside a limit word: */
   cap[A_OUTSIDE] = OMOST;                                       /* 23 bits for the program's, 7 from outside */
   cap[A_GIVES] = 4;                                             /* a record, not a table */
+  pthread_attr_t attr; size_t stack;
+  if (pthread_attr_init(&attr) || pthread_attr_getstacksize(&attr, &stack)) die("cannot size the host stack");
+  pthread_attr_destroy(&attr);
+  if (!getrlimit(RLIMIT_STACK, &limit) && limit.rlim_cur != RLIM_INFINITY && limit.rlim_cur > stack) stack = limit.rlim_cur;
+  cap[A_STACK] = pages_for(stack) < mem / 2 ? pages_for(stack) : mem / 2 / FB_PAGE * FB_PAGE;
+  if (cap[A_STACK] < (uint64_t)PTHREAD_STACK_MIN) die("insufficient host memory for the stack");
   for (int i = 0; i < A_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
     uint64_t hue = i == A_STACK || line * A_COUNT > FB_PAGE ? 0 : line * (uint64_t)i;   /* each area's first records on a */
     off[i] = at + hue; at += (L[i].size * cap[i] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;  /* cache set no other's first use */
   }
-  const char *e = getenv("CK_FB");
-  if (e) snprintf(fbname, sizeof fbname, "%s", e); else snprintf(fbname, sizeof fbname, "/ck.%d", (int)getpid());
-  if (!(fb = host.region(fbname, at))) die("cannot make the framebuffer");
-  if (!e) shm_unlink(fbname);             /* unnamed, the region goes with the process, killed by the host included */
-  ask_at = host.spare().step;             /* the first step is taken before the host is asked */
+  if (!(fb = host.region(getenv("CK_FB"), at))) die("cannot make the framebuffer");
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i], cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = 18; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 19; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -294,10 +353,24 @@ static void kept(H kind, uint32_t key, H v) {
   if (!ncp) return;
   room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ kind, W->at, key, v };
 }
+static uint64_t text_limit(void) {
+  const Area *text_area = &fb->a[A_TEXT];
+  uint64_t extent = pages_for(area_extent(text_area, text_area->peak)) + remaining_memory();
+  uint64_t skip = text_area->off % FB_PAGE, limit = extent > skip ? extent - skip : 0;
+  return limit < fb->a[A_TEXT].cap ? limit : fb->a[A_TEXT].cap;
+}
+static int64_t read_text(const char *path) {
+  room(A_TEXT, ntext + 16);
+  uint64_t written = 0;
+  int64_t result = host.file_read(path, text + ntext, text_limit() - ntext - 16, &written);
+  if (ntext + written > fb->a[A_TEXT].peak) fb->a[A_TEXT].peak = ntext + written;
+  return result;
+}
 static uint8_t *load(const char *path, size_t *len) {      /* a file read straight into the region, a zero after it */
-  room(A_TEXT, (uint64_t)ntext + 32); uint8_t *b = text + ntext; uint64_t cap = fb->a[A_TEXT].cap - ntext - 16;
-  int64_t n = host.file_read(path, b, cap);
-  if (n < 0 || (uint64_t)n >= cap) { put(2, "ck: "); put(2, path); put(2, ": cannot read\n"); exit(2); }
+  uint8_t *b = text + ntext;
+  int64_t n = read_text(path);
+  if (n == -2) area_full(A_TEXT);
+  if (n < 0) { put(2, "ck: "); put(2, path); put(2, ": cannot read\n"); exit(2); }
   b[n] = 0; room(A_TEXT, ntext + (uint64_t)n + 1); ntext += (uint64_t)(n + 8) & ~7ull; *len = (size_t)n; return b;
 }
 
@@ -660,13 +733,19 @@ static const char *print(H x) {
 static void *birth(H leaf) {              /* the leaf's instructions, runnable; NULL if this host cannot */
   uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint64_t n = nd[leaf].n;
   for (uint32_t i = 0; i < nborn; i++) if (born[i].leaf == leaf) return code + born[i].off;
-  if (!code) { if (!(code = host.code_map(CODE_REGION))) return NULL; W->code = (uint64_t)(uintptr_t)code; }
-  if (!n || (uint64_t)W->ncode + n > CODE_REGION) return NULL;
+  uint64_t cap = fb->a[A_TEXT].cap < CODE_REGION ? fb->a[A_TEXT].cap : CODE_REGION;
+  if (!n) return NULL;
+  uint64_t next = W->ncode + ((n + 15) & ~15ull);
+  if (next > cap) area_full(A_BORN_CODE);
+  room(A_BORN_CODE, (uint64_t)nborn + 1);
+  if (ncp) room(A_TRAIL, (uint64_t)ntrail + 1);
+  if (!fits_growth(W->ncode, next)) area_full(A_BORN_CODE);
+  if (!code) { if (!(code = host.code_map((size_t)cap))) return NULL; W->code = (uint64_t)(uintptr_t)code; }
   void *fn = code + W->ncode;
   host.code_write(1); memcpy(fn, bytes + nd[leaf].off, n); host.code_write(0);
   host.code_flush(fn, n);
-  room(A_BORN_CODE, (uint64_t)nborn + 1); born[nborn] = (Code){ E(CODE), W->at, leaf, W->ncode }; kept(E(CODE), nborn, leaf); nborn++;
-  W->ncode += (uint32_t)((n + 15u) & ~15ull);
+  born[nborn] = (Code){ E(CODE), W->at, leaf, W->ncode }; W->ncode = (uint32_t)next;
+  kept(E(CODE), nborn, leaf); nborn++;
   return fn;
 }
 
@@ -791,7 +870,9 @@ static H byfwd(H h) { return h >= fm && h < ftop ? (fw[h - fm] ? fw[h - fm] : fn
 static uint64_t roomlen(uint64_t at) { return sizeof(Room) + ((((Room *)(rooms + at))->size + 7) & ~7ull); }
 static void reclaim(ChoicePoint *q) {
   fm = q->mnode; ftop = nn; fnode = q->node;
-  if (ftop <= fm || ntext + (uint64_t)(ftop - fm) * 4 + 64 > fb->a[A_TEXT].cap) return;
+  if (ftop <= fm) return;
+  uint64_t need = ntext + (uint64_t)(ftop - fm) * 4 + 64;
+  if (need > fb->a[A_TEXT].peak && (need > fb->a[A_TEXT].cap || !fits_growth(area_extent(&fb->a[A_TEXT], fb->a[A_TEXT].peak), area_extent(&fb->a[A_TEXT], need)))) return;
   uint64_t mark = ntext, rtop = q->mtake, k = q->mkids, b = q->mbytes; fw = talloc((size_t)(ftop - fm) * 4);
   if (q->all == 2) root(q->coll);
   if (q->all == 3) { root(q->i); root(q->coll); }
@@ -818,7 +899,7 @@ static void reclaim(ChoicePoint *q) {
       if (idtab[i] == h) idtab[i] = TOMB; }
     if (h < N(A_CELLS) && !fw[h - fm]) held[h] = 0;
     if (h < N(A_BOUND_BY_NODE)) bykey[h] = 0;
-    pnum[h] = 0;
+    if (h < fb->a[A_PRINT_NUMBERS].peak) pnum[h] = 0;
   }
   H to = fm;
   for (H h = fm; h < ftop; h++) if (fw[h - fm]) fw[h - fm] = to++;
@@ -945,7 +1026,8 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     if (nd[x].comp) { fault(S_KIND); return; }
     uint64_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
     if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = notice(why); }
-    else { int64_t got = host.file_read(s, text + ntext, fb->a[A_TEXT].cap - ntext - 16);
+    else { int64_t got = read_text(s);
+      if (got == -2) area_full(A_TEXT);
       if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); } }
     ntext = m; return;
   }
@@ -1066,7 +1148,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (held[E(LOOK)] != a[0]) {
       char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
       void *p = host.watch(s); ntext = mark;
-      if (!p || memcmp(p, FB_MAGIC, 8)) { W->v = 0; W->reason = notice(S_NO_REGION); return; }
+      if (!p) { W->v = 0; W->reason = notice(S_NO_REGION); return; }
       W->watch = (uint64_t)(uintptr_t)p; held[E(LOOK)] = a[0]; kept(E(NOTE), E(LOOK), a[0]);
     }
     const Head *far = (const Head *)(uintptr_t)W->watch;
@@ -1216,12 +1298,13 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
 
 static void walk(H top) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   Status why; H *a = hand;
+  const uint64_t text_base = ntext;
   W->serve = (uint64_t)(uintptr_t)serve; W->x = top; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; ntk = left; nnoted = 0; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
-  case 2: while (ntk) pnum[tk[--ntk]] = 0;                /* an area is full: what was half made is left, a print's marks */
-    coding = 0; ntb = 0; W->reason = full_at[full]; W->mode = M_FAULT; break;      /* are taken back, and the program has a fault */
+  case 2: while (ntk) { H h = tk[--ntk]; if (h < fb->a[A_PRINT_NUMBERS].peak) pnum[h] = 0; }
+    coding = 0; ntb = 0; ntext = text_base; W->reason = full_at[full]; W->mode = M_FAULT; break;
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
   for (nhand = 0;; W->step++, nhand = 0) switch (W->mode) {

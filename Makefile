@@ -75,15 +75,15 @@ check-image: seed-run
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image"
 
 check-live: ck fb
-	@name=/ck.ask.$$$$; (CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); \
+	@name=/ck.ask.$$$$; budget=33554432; (CK_MEMORY_BYTES=$$budget CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); \
 	  ask() { printf '%s\n%s' "$$name" "$$1" | ./ck text region/ask.ck | tr -d '()\n'; }; \
-	  on=$$(ask '(bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $$0))))'); \
+	  on=$$(ask '(seq (need ((recover (seq (take u8 '"$$((budget - 4096))"') no) {reason | reason}) = (list "full" "rooms"))) (bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $$0)))))'); \
 	  one=$$(ask '(held #1002)'); two=$$(ask '(held #1002)'); off=$$(ask '(unbind add)'); three=$$(ask '(held #1002)'); four=$$(ask '(held #1002)'); \
 	  n=0; until ./fb show $$name | grep -q 'mode done'; do n=$$((n+1)); [ $$n -gt 1200 ] && break; sleep 0.05; done; \
 	  last=$$(./fb show $$name | grep '^outcome'); ./fb drop $$name; n1=$${one##* }; n2=$${two##* }; \
 	  case "$$last" in "outcome  node 2178309 "*) ok=1;; *) ok=0;; esac; \
 	  if [ $$ok = 1 ] && [ "$$on" = 'list "node" yes' ] && [ "$$off" = "$$on" ] && [ "$${n1:-0}" -gt 0 ] && [ "$${n2:-0}" -gt "$$n1" ] && [ "$$three" = "$$four" ]; \
-	  then echo "live: a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
+	  then echo "live: a room beyond the shared allowance recovered; a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
 	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last'"; exit 1; fi
 
 check-full: check
