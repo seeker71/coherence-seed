@@ -193,6 +193,39 @@ matrix extent must match its file region and each vector must fit its view. An u
 format answers `e.kind`. A different library can supply its own matching rows. The
 compiled library is an input to `make metal-image` through `METAL_LIBRARY`.
 
+A `metal.projection-panel` pairs a projection with a stream count. Its input is
+a compact Float32 array indexed by stream and column. Its output is a disjoint
+writable array indexed by stream and row. Each view can start at a byte offset.
+With `metal.gguf-batched` as the plan catalogue, the image builder chooses an entry
+for the stored GGML type and the panel width. A fixed-width kernel can handle a
+prefix and the remaining streams can use another entry. A scalar-only catalogue
+runs the same panel using individual views. Dependent work sees the barrier before
+the first dispatch. A single stream can use the ordinary projection directly. On the
+M4 Max Llama replay that path was faster than a width-one QMV panel.
+
+For Q6_K, one 256-thread group processes an output row using vLLM Metal's raw-block
+QMV kernel. Each lane unpacks a group of weights once and contributes to every active
+stream before reduction. Q4_K uses the same flow with the affine dot product and the
+index and bit expressions in `nums/packed-gguf.ck`. The image builder supports
+specializations for one through eight streams. The catalogue also describes the Q4_K
+32-row matrix tile for wider panels and the Q8_0 eight-row, eight-stream tile.
+One dispatch receives the weight, input and output views followed by the row count,
+column count, stream count and output row stride.
+
+The Metal lens reads the prologue, epilogue, Q6_K body and common affine dot from
+the vLLM Metal source used for the comparison. To build the Q4_K and Q6_K
+specializations from that checkout, run the following commands from Seed.
+
+```sh
+./ck text nums/qmv-source.ck < "$VLLM_METAL/vllm_metal/gguf/raw_block.py" > "$TMPDIR/qmv.metal"
+xcrun -sdk macosx metal -std=metal3.1 -O3 -c "$TMPDIR/qmv.metal" -o "$TMPDIR/qmv.air"
+```
+
+Link the AIR object with the scalar and tiled entries used by the model and supply
+the resulting library through `METAL_LIBRARY`. The imported source was verified at
+[vLLM Metal commit 7119049](https://github.com/vllm-project/vllm-metal/blob/71190490ba5fce4cfbc450f579e3a6e46f39cb96/vllm_metal/gguf/raw_block.py).
+The BMF literal matcher reads the named triple-quoted fragments at build time.
+
 Views bind in order, followed by the constants. A thread grid accepts a width of zero to
 choose one that fits the pipeline and extent. A group grid takes an explicit width within
 the pipeline limit. A concurrent batch can place a buffer barrier before a dependent stage.

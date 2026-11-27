@@ -81,6 +81,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   matched the sampled GGUF weights. Image construction resolves Q8_0, Q4_K and Q6_K
   projections from the stored matrix layout. The two-row Q8_0 kernel read a complete
   Qwen projection directly from its file region on both Mac process architectures.
+  A resident Llama model can present compact activation panels to the GPU. Q4_K
+  and Q6_K projections share packed weights across streams within a dispatch.
   Only the selected result ranges cross the port.
   A live worker mounted the Llama model once, kept all 255 weight mappings across turns
   for two distinct KV histories, and released them on retirement while the worker stayed
