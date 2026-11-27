@@ -32,6 +32,9 @@
 #include <sys/statvfs.h>
 #endif
 #include <sys/stat.h>
+#ifdef __APPLE__
+#include <mach-o/loader.h>
+#endif
 #include <time.h>
 #include <dlfcn.h>
 #include <signal.h>
@@ -281,11 +284,13 @@ static uint64_t area_extent(const Area *a, uint64_t count) {
 /* Touched pages can remain resident after backtracking. The peaks already in the region, the
  * substrate's among them, and the pages the tables keyed by handle charged (below) account for
  * them. Charge the whole native stack and both heads up front since they grow without room(). */
-static uint64_t remaining_memory(void) {
-  uint64_t used = 2 * FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode) + fb->me.charged * FB_PAGE;
-  for (int i = 0; i < A_COUNT + S_COUNT; i++) if (!shared || (i < A_COUNT && !LANED[i])) used += pages_for(area_extent(AR(i), AR(i)->peak));
-  return used < fb->me.allowance ? fb->me.allowance - used : 0;
+static uint64_t used_in(const Head *h, const Substrate *s) {   /* what a region with these heads charges: this process's stack */
+  uint64_t used = 2 * FB_PAGE + fb->a[A_STACK].cap + pages_for(h->m.ncode) + h->me.charged * FB_PAGE;
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) if (i != A_STACK && (!shared || (i < A_COUNT && !LANED[i]))) {
+    const Area *a = i < A_COUNT ? &h->a[i] : &s->a[i - A_COUNT]; used += pages_for(area_extent(a, a->peak)); }
+  return used;
 }
+static uint64_t remaining_memory(void) { uint64_t used = used_in(fb, sub); return used < fb->me.allowance ? fb->me.allowance - used : 0; }
 static int fits_growth(uint64_t old, uint64_t next) {
   uint64_t extra = pages_for(next) - pages_for(old);
   return !extra || (extra <= remaining_memory() && host_has_growth(old, next));
@@ -328,6 +333,7 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
+static void read_seen(const char *path, uint64_t at, uint64_t n, H name, H content); static int owned(uint64_t o, uint64_t n);
 static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
 static const uint64_t SPAN = (uint64_t)1 << 32;   /* a named substrate: the handles its lanes share */
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
@@ -548,7 +554,9 @@ typedef enum { STATUS_ROWS(STATUS_VALUE) } Status;
 #undef STATUS_VALUE
 #ifdef NUMERIC_PORT
 #define numeric_io 1
+#define NUMERIC_PORT_FLAG 1
 #else
+#define NUMERIC_PORT_FLAG 0
 static int numeric_io;
 #endif
 static H notice(Status status); static H make_far(int comp, H bp, const void *payload, uint64_t n);
@@ -690,7 +698,9 @@ static const uint8_t *idof(H h) {         /* section 3 */
   if (!nd[h].ida) { uint64_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), id[32]; sha256(b, len, id); ntext = m; setid(h, id); }
   return NID(h);
 }
-static H byid(const uint8_t *id) {        /* a working node first, then a settled one */
+static int catalogued;
+static H byid(const uint8_t *id) {        /* a working node first, then a settled one; the catalogue's ids are made when first asked */
+  if (!catalogued) { catalogued = 1; for (H h = 1; h <= SEEDED; h++) idof(h); }
   H h = icap ? idtab[idslot(idtab, icap, id)] : 0; if (!h && sicap) h = sidt[idslot(sidt, sicap, id)];
   return h && shared && !seenp(h, !ncp && nn == sw) ? 0 : h;          /* one a search may not see is not there for it */
 }
@@ -726,7 +736,6 @@ static void store_init(void) {
   Status why; uint8_t b[4];
   mk(0, 0, "", 0, &why);                                  /* the root: blueprint nothing, no bytes */
   for (uint32_t n = 1; n < SEEDED; n++) { b[0] = (uint8_t)n; mk(0, ROOT, b, 1, &why); }
-  for (H h = 1; h <= SEEDED; h++) idof(h);
   memcpy(sub->magic, FB_SUBSTRATE_MAGIC, 8); memcpy(fb->magic, FB_MAGIC, 8);   /* from here a reader can make sense of the region */
 }
 static H txt(const char *s) { Status why; return mk(0, E(TEXT), s, strlen(s), &why); }
@@ -1247,7 +1256,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = notice(why); }
     else { int64_t got = read_text(s);
       if (got == -2) area_full(A_TEXT);
-      if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); } }
+      if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); read_seen(0, 0, 0, 0, 0); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); read_seen(0, 0, 0, x, W->v); } }
     ntext = m; return;
   }
   if (op == BIND) {                       /* x: an entry that is not data, or a composite such as a recipe or an */
@@ -1358,6 +1367,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       arg[j] = (int64_t)(intptr_t)(j ? (void *)s : host.symbol(s));
     }
     if (W->mode == M_FAULT) { ntext = mark; return; }
+    fb->me.taken++;                   /* the start took something from the host: it is not saved */
     if (!arg[0]) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
     Ret r;
     ntext = mark;                     /* given back before the call, since a crash does not return here */
@@ -1369,7 +1379,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (c != 3) { fault(S_ARITY); return; }
     if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault(S_KIND); return; }
-    touch(A_CELLS, E(LOOK));
+    touch(A_CELLS, E(LOOK)); fb->me.taken++;
     if (held[E(LOOK)] != a[0]) {
       char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
       void *p = host.watch(s); ntext = mark;
@@ -1391,6 +1401,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (op == AT ? !known(o) : (o < 0 || n < 0 || ((uint64_t)o + (uint64_t)n > fb->bytes && ((uint64_t)o < fb->me.share || (uint64_t)o + (uint64_t)n > fb->me.share + sub->bytes))
                                           || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = notice(S_RANGE); return; }
     if (op == AT) { W->v = (H)o; return; }
+    if (owned((uint64_t)o, (uint64_t)n)) fb->me.taken++;   /* a word of this process's own */
     uint64_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
     W->v = mk(0, E(BYTES), copy, (uint64_t)n, &why); ntext = mark; return;
   }
@@ -1607,7 +1618,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
       if (!c) {
         while (b && !apply(b, lim, hand, 0, W->env, 0)) b = bound(nd[x].bp, 0, lim = under(b, lim));
-        if (!b) { if (op == CLOCK) answer(mki(host.clock())); else if (op == HOST_TARGET) answer(catalogue(HOST_ABI ? HOST_ABI : NO)); else fault(S_ARITY); }
+        if (!b) { if (op == CLOCK) { fb->me.taken++; answer(mki(host.clock())); } else if (op == HOST_TARGET) answer(catalogue(HOST_ABI ? HOST_ABI : NO)); else fault(S_ARITY); }
         break; }
       W->k = push(F_ARGS, x, 1, W->env, W->cut, 0, W->k, lim); W->x = KID(x, 0); break;
     }
@@ -1784,8 +1795,9 @@ static H notice(Status status) {
 }
 #ifndef NUMERIC_PORT
 static H file_node(const char *path) {      /* a print file: one node on its first line */
-  size_t len; Status why;
-  H x = read_print((char *)load(path, &len), &why);
+  size_t len; Status why; uint8_t *b = load(path, &len);
+  read_seen(path, (uint64_t)(b - text), len, 0, 0);
+  H x = read_print((char *)b, &why);
   if (!x) { say("refused ", status_words[why]); exit(1); }
   return x;
 }
@@ -1844,11 +1856,163 @@ static int send_answer(uint8_t status, H value) {
 static int send_outcome(void) {
   return W->outcome == 'n' ? send_answer(1, W->v) : send_answer(W->outcome == 'f' ? 2 : 0, W->reason);
 }
-static int execute_image(const char *path) {
-  size_t len; Status why; uint8_t *raw = load(path, &len); H image = open_image(raw, len, &why);
-  if (!image) { send_answer(2, notice(why)); return 1; }
-  run(KID(image, 0));
-  if (W->outcome != 'n') { send_outcome(); return 1; }
+
+/* ---- the region at rest: saved once, entered by every later start ------------------------------
+ * A start is the files run before the program, or the image seed-run opens with its first part. When it has run and
+ * the region is at rest, nothing open, held back, asked, bound from outside or taken from the host or the process, the
+ * region is a function of what was read. Its pages are then saved under a name made of the start and the place it ran
+ * in, and a later start of that name maps them copy-on-write instead of running it. What was read, and whether it still
+ * is, is region/rest.ck's: the builder hands it the files the start read, it answers the node the image carries, and a
+ * later start runs that node in a fresh region, before anything is mapped, to learn whether the image may be entered.
+ * The words of the process's own (FB_OWN) are saved as 0 and are this process's after the map. */
+typedef struct { uint8_t magic[8]; uint32_t version, extents; uint8_t uuid[16], key[32]; uint64_t bytes, blob, nblob; } Image;
+typedef struct { uint64_t off, n, at; } Extent;          /* n bytes of the region at off, in the file at at */
+#define READS 64
+static struct { const char *path; uint64_t at, n; H name, content; } reads[READS]; static uint32_t nreads; static int reading;
+static uint64_t text_base; static const char *rest_path; static char rest_buf[PATH_MAX];
+static void read_seen(const char *path, uint64_t at, uint64_t n, H name, H content) {   /* a file the start read */
+  if (!reading) return;
+  if (nreads == READS || ncp || (!path && !content)) { fb->me.taken++; return; }   /* under a choice, what was read may be given back; */
+                                                                                  /* a file not there is not a file the image can check */
+  reads[nreads].path = path; reads[nreads].at = at; reads[nreads].n = n; reads[nreads].name = name; reads[nreads++].content = content;
+}
+#define OWN_SIZE(w) + sizeof(w)
+#define OWN_KEEP(w) memcpy(k, &(w), sizeof(w)); k += sizeof(w);
+#define OWN_PUT(w) memcpy(&(w), k, sizeof(w)); k += sizeof(w);
+#define OWN_ZERO(w) memset(&(w), 0, sizeof(w));
+#define OWN_HIT(w) hit |= o < (uint64_t)((uint8_t *)&(w) - (uint8_t *)fb) + sizeof(w) && (uint64_t)((uint8_t *)&(w) - (uint8_t *)fb) < o + n;
+static uint8_t own_words[0 FB_OWN(OWN_SIZE)];
+static void keep_own(void) { uint8_t *k = own_words; FB_OWN(OWN_KEEP) }
+static void put_own(void) { uint8_t *k = own_words; FB_OWN(OWN_PUT) }
+static int owned(uint64_t o, uint64_t n) { int hit = 0; FB_OWN(OWN_HIT) return hit; }
+static int self_uuid(uint8_t u[16]) {     /* the executable's identity, as the linker made it */
+#ifdef __APPLE__
+  extern const struct mach_header_64 _mh_execute_header; const struct load_command *c = (const void *)(&_mh_execute_header + 1);
+  for (uint32_t i = 0; i < _mh_execute_header.ncmds; i++, c = (const void *)((const uint8_t *)c + c->cmdsize))
+    if (c->cmd == LC_UUID) { memcpy(u, ((const struct uuid_command *)c)->uuid, 16); return 1; }
+#endif
+  (void)u; return 0;
+}
+/* The name of the start's image, made of nothing read from a file: the port, the start's paths as given and the
+ * directory they are read from. The image's head repeats the whole key and the executable's identity. */
+static int image_key(int n, char **paths, char *path, Image *want) {
+  const char *dir = getenv("CK_IMAGES"), *home = getenv("HOME"); char made[PATH_MAX]; struct stat st;
+  if (!n || !self_uuid(want->uuid) || stat(".", &st)) return 0;
+  if (!dir) { int at = home ? snprintf(made, sizeof made, "%s/Library/Caches/coherence-seed", home) : -1;   /* the host keeps an executable's */
+    if (at < 0 || at > PATH_MAX - 64 || (mkdir(made, 0700) && errno != EEXIST)) return 0;                     /* identity on macOS alone */
+    snprintf(made + at, sizeof made - (size_t)at, "/images"); dir = made; }
+  if (!*dir || (mkdir(dir, 0700) && errno != EEXIST)) return 0;
+  uint64_t mark = ntext, len = 2 + sizeof st.st_dev + sizeof st.st_ino; uint8_t *k;
+  for (int i = 0; i < n; i++) len += strlen(paths[i]) + 1;
+  k = talloc(len); k[0] = (uint8_t)numeric_io; k[1] = (uint8_t)NUMERIC_PORT_FLAG; len = 2;
+  memcpy(k + len, &st.st_dev, sizeof st.st_dev); len += sizeof st.st_dev; memcpy(k + len, &st.st_ino, sizeof st.st_ino); len += sizeof st.st_ino;
+  for (int i = 0; i < n; i++) { size_t m = strlen(paths[i]) + 1; memcpy(k + len, paths[i], m); len += m; }
+  sha256(k, len, want->key); ntext = mark;
+  memcpy(want->magic, "CKREST1\n", 8); want->version = FB_VERSION;
+  int w = snprintf(path, PATH_MAX, "%s/", dir);
+  for (int i = 0; i < 16 && w < PATH_MAX - 3; i++) { path[w++] = HEX[want->key[i] >> 4]; path[w++] = HEX[want->key[i] & 15]; }
+  return snprintf(path + w, (size_t)(PATH_MAX - w), ".image") < PATH_MAX - w;
+}
+/* Every page this process wrote, but the stack's and the text's, is zero again, and so are the heads. */
+static void wipe(void) {
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) {
+    Area *a = AR(i); uint8_t *b = (uint8_t *)fb + (i < A_COUNT ? 0 : share) + a->off; uint64_t m = a->peak > a->n ? a->peak : a->n, hue = a->off % FB_PAGE;
+    if (i == A_STACK || i == A_TEXT) continue;
+    if (i < A_COUNT && L[i].reserve == FB_HANDLES) { for (uint64_t j = 0; j <= (hue + 4 * a->n) / FB_PAGE; j++) if (tbits[(tbit[i] + j) >> 3] >> ((tbit[i] + j) & 7) & 1) memset(b - hue + j * FB_PAGE, 0, FB_PAGE); }
+    else memset(b, 0, (size_t)(m * a->size));
+  }
+  memset(fb, 0, sizeof(Head)); memset(sub, 0, sizeof(Substrate)); memset(dense, 0, sizeof dense); handed = 0; handeds = 0;
+}
+/* A start that will not use an image begins as fb_open left the region; what a look at an image did is gone. */
+static void fresh(Area t) { keep_own(); wipe(); put_own(); fb_reset(); fb->a[A_TEXT] = t; store_init(); }
+/* The image's pages over a region made zero. After its checks nothing stops it half way. */
+static void image_load(int fd, const Extent *e, uint32_t n) {
+  keep_own(); wipe();
+  for (uint32_t i = 0; i < n; i++)
+    if (getenv("CK_FB") ? pread(fd, (uint8_t *)fb + e[i].off, (size_t)e[i].n, (off_t)e[i].at) != (ssize_t)e[i].n     /* a region others see is filled */
+        : mmap((uint8_t *)fb + e[i].off, (size_t)e[i].n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, (off_t)e[i].at) == MAP_FAILED) die("an image could not be mapped");
+  put_own();
+}
+static int64_t file_at(const Extent *e, uint32_t n, uint64_t o) {   /* where the file holds byte o of the region */
+  for (uint32_t i = 0; i < n; i++) if (e[i].off <= o && o < e[i].off + e[i].n) return (int64_t)(e[i].at + o - e[i].off);
+  return -1;
+}
+/* Whether the image at path is this start's and holds: the gate is C's, what was read and still is region/rest.ck's. */
+static int image_enter(const char *path, const Image *want) {
+  Image h; struct stat st; Head ih; Substrate is; Status why; Area t = fb->a[A_TEXT]; int ok = 0, ran = 0, fd = open(path, O_RDONLY | O_CLOEXEC); Extent *e = 0;
+  if (fd < 0) return 0;
+  if (!fstat(fd, &st) && S_ISREG(st.st_mode) && st.st_uid == getuid() && !(st.st_mode & 022) && pread(fd, &h, sizeof h, 0) == (ssize_t)sizeof h
+      && !memcmp(h.magic, want->magic, 8) && h.version == want->version && !memcmp(h.uuid, want->uuid, 16) && !memcmp(h.key, want->key, 32)
+      && h.bytes == (uint64_t)st.st_size && h.extents >= 2 && h.extents < (1u << 16) && h.nblob < (1u << 24) && h.nblob <= h.bytes && h.blob == h.bytes - h.nblob) {
+    uint64_t low = pages_for(sizeof h + h.extents * sizeof *e), top = off[A_STACK] - FB_PAGE, t0 = off[A_TEXT] / FB_PAGE * FB_PAGE, t1 = pages_for(off[A_TEXT] + cap[A_TEXT]);
+    e = talloc(h.extents * sizeof *e); ok = low <= h.blob && pread(fd, e, h.extents * sizeof *e, sizeof h) == (ssize_t)(h.extents * sizeof *e);
+    for (uint32_t i = 0; ok && i < h.extents; i++) ok = e[i].n && !(e[i].off % FB_PAGE) && !(e[i].n % FB_PAGE) && !(e[i].at % FB_PAGE)   /* below the stack, apart from */
+        && e[i].off <= top && e[i].n <= top - e[i].off && e[i].at >= low && e[i].at <= h.blob && e[i].n <= h.blob - e[i].at      /* the text, in order, inside the file */
+        && (e[i].off + e[i].n <= t0 || e[i].off >= t1) && (!i || e[i].off >= e[i-1].off + e[i-1].n);
+    int64_t head = ok ? file_at(e, h.extents, 0) : -1, shead = ok ? file_at(e, h.extents, share) : -1;   /* the two heads, as they were saved */
+    ok = head >= 0 && shead >= 0 && pread(fd, &ih, sizeof ih, (off_t)head) == (ssize_t)sizeof ih && pread(fd, &is, sizeof is, (off_t)shead) == (ssize_t)sizeof is;
+    for (int i = 0; ok && i < A_COUNT + S_COUNT; i++) { const Area *x = i < A_COUNT ? &ih.a[i] : &is.a[i - A_COUNT], *y = AR(i);   /* the layout this process has */
+      ok = i == A_STACK || (x->of == y->of && x->size == y->size && x->off == y->off && x->cap == y->cap && x->n <= x->cap && x->peak <= x->cap); }
+    ok = ok && !ih.m.ncode && ih.me.charged <= cap[A_TOUCHED] * 8;   /* code is never saved; no more pages charged than there are bits */
+    ok = ok && used_in(&ih, &is) <= fb->me.allowance;        /* and room for what it charges */
+    char *blob = ok ? talloc((size_t)h.nblob + 1) : 0; H check = 0;
+    if (ok && pread(fd, blob, (size_t)h.nblob, (off_t)h.blob) == (ssize_t)h.nblob && (check = read_print(blob, &why))) {
+      ran = 1; run(check); ok = W->outcome == 'n' && W->v == E(YES); } else ok = 0;
+  }
+  if (ok) image_load(fd, e, h.extents); else if (ran) fresh(t); else fb->a[A_TEXT] = t;   /* as if no image had been looked at */
+  close(fd); return ok;
+}
+/* The start has run: if the region is at rest it is saved, and this process goes on from the image as a later start would. */
+static void image_rest(const char *path, const Image *want) {
+  if (nn > sw) commit();
+  ntrail = nrtrail = 0;                                     /* no choice is open: nothing on the trails can be undone */
+  if (fb->me.taken || nafter || nout || nnoted || N(A_ASKED) || N(A_ANSWERED) || shared || !rest_path) return;
+  uint64_t was = ntext;
+  nborn = 0; W->ncode = 0; tcap = icap = 0; W->ids = 0;   /* no code born, no working index: a later start makes them */
+  uint64_t from[A_COUNT + S_COUNT + 2], to[A_COUNT + S_COUNT + 2], pages = 0; int m = 2, fd; struct stat st; char part[PATH_MAX + 8];
+  from[0] = 0; to[0] = FB_PAGE; from[1] = share; to[1] = share + FB_PAGE;
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) { const Area *a = AR(i); uint64_t b = (i < A_COUNT ? 0 : share) + a->off;
+    if (i != A_STACK && i != A_TEXT && a->n) { from[m] = b / FB_PAGE * FB_PAGE; to[m++] = pages_for(b + a->n * a->size); } }
+  for (int i = 1; i < m; i++) for (int j = i; j > 0 && from[j] < from[j-1]; j--) { uint64_t f = from[j], t = to[j]; from[j] = from[j-1]; to[j] = to[j-1]; from[j-1] = f; to[j-1] = t; }
+  for (int i = 0; i < m; i++) pages += (to[i] - from[i]) / FB_PAGE;
+  Extent *e = talloc((size_t)pages * sizeof *e); uint32_t n = 0; uint64_t done = 0, live = ntext; static uint8_t zero[FB_PAGE];
+  for (int i = 0; i < m; i++) for (uint64_t o = from[i] > done ? from[i] : done; o < to[i]; done = o += FB_PAGE)   /* the pages that hold anything */
+    if (!o || memcmp((uint8_t *)fb + o, zero, FB_PAGE)) { if (n && e[n-1].off + e[n-1].n == o) e[n-1].n += FB_PAGE; else e[n++] = (Extent){ o, FB_PAGE, 0 }; }
+  snprintf(part, sizeof part, "%s.part", path);           /* written aside, then named: a reader sees a whole image or none */
+  if ((fd = open(part, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600)) < 0 && errno == EEXIST && !stat(part, &st) && st.st_mtime + 10 < time(NULL) && !unlink(part))
+    fd = open(part, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600);    /* another builder's, left long ago */
+  if (fd < 0) { ntext = was; return; }
+  Image h = *want; h.extents = n; uint64_t at = pages_for(sizeof h + n * sizeof *e); int ok = 1;
+  signal(SIGXFSZ, SIG_IGN);                                 /* a file too large is refused, not a signal */
+  keep_own(); FB_OWN(OWN_ZERO) ntext = text_base;          /* the process's own words as 0, and the text as it was before the start */
+  for (uint32_t i = 0; i < n; i++) { e[i].at = at; ok = ok && pwrite(fd, (uint8_t *)fb + e[i].off, (size_t)e[i].n, (off_t)at) == (ssize_t)e[i].n; at += e[i].n; }
+  put_own(); ntext = live;
+  if (!ok) { close(fd); unlink(part); ntext = was; return; }
+  H list[READS + 1], pair[2], fact[3], q[3]; Status why; size_t len; uint32_t c = 0; uint8_t *b;
+  for (uint32_t i = 0; ok && i < nreads; i++) {            /* what the start read, each path with the bytes it gave */
+    pair[0] = reads[i].path ? txt(reads[i].path) : reads[i].name; pair[1] = reads[i].path ? mk(0, E(BYTES), text + reads[i].at, reads[i].n, &why) : reads[i].content;
+    list[c++] = mk(1, E(LIST), pair, 2, &why); }
+  b = ok ? load(rest_path, &len) : 0; H maker = b ? read_print((char *)b, &why) : 0;
+  if (maker) { pair[0] = txt(rest_path); pair[1] = mk(0, E(BYTES), b, len, &why); list[c++] = mk(1, E(LIST), pair, 2, &why); run(maker); maker = W->outcome == 'n' ? W->v : 0; }
+  fact[0] = mki((int64_t)(offsetof(Head, d) + offsetof(Doors, symbol))); fact[1] = mki((int64_t)(offsetof(Head, d) + offsetof(Doors, region))); fact[2] = mki((int64_t)(fb->a[A_ROOMS].off + sizeof(Room)));
+  if (maker) { q[0] = maker; q[1] = mk(1, E(LIST), list, c, &why); q[2] = mk(1, E(LIST), fact, 3, &why); for (int i = 0; i < 3; i++) q[i] = mk(1, E(QUOTE), &q[i], 1, &why);
+    run(mk(1, E(CALL), q, 3, &why)); }
+  if (maker && W->outcome == 'n' && nd[W->v].comp) {      /* the node a later start runs to know the image holds */
+    print(W->v); h.blob = at; h.nblob = nob; h.bytes = at + nob;
+    ok = ok && pwrite(fd, ob, nob, (off_t)at) == (ssize_t)nob && pwrite(fd, &h, sizeof h, 0) == (ssize_t)sizeof h && pwrite(fd, e, n * sizeof *e, sizeof h) == (ssize_t)(n * sizeof *e);
+  } else ok = 0;
+  ok = ok && !rename(part, path);
+  image_load(fd, e, n); close(fd); if (!ok) unlink(part);   /* the pages saved, as a later start has them */
+}
+static int execute_image(const char *path, int warm, const char *saved, const Image *want) {
+  Status why;
+  if (!warm) {
+    size_t len; uint8_t *raw = load(path, &len); reading = 1; read_seen(path, (uint64_t)(raw - text), len, 0, 0); H image = open_image(raw, len, &why);
+    if (!image) { send_answer(2, notice(why)); return 1; }
+    run(KID(image, 0)); reading = 0;
+    if (W->outcome != 'n') { send_outcome(); return 1; }
+    if (saved) image_rest(saved, want);
+  }
   for (;;) {
     uint8_t count, id[32]; ssize_t n = read(0, &count, 1);
     if (!n) return 0;
@@ -1878,14 +2042,23 @@ static int command(int argc, char **argv) {
   const char *cmd = argc > 1 ? argv[1] : "";
   numeric_io = argc == 3 && !strcmp(cmd, "execute");
 #endif
-  store_init();
+  text_base = ntext; store_init();
+  Image want; char path[PATH_MAX];                          /* the start: the image seed-run opens, or the files before the program */
+#ifdef NUMERIC_PORT
+  int start = 1, starts = argc == 2;
+#else
+  int start = numeric_io ? 2 : 3, starts = numeric_io ? 1 : argc > 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text")) ? argc - 3 : 0;
+#endif
+  int keyed = image_key(starts, argv + start, path, &want), warm = keyed && image_enter(path, &want);
   for (int i = 0; i < A_COUNT + S_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
 #ifdef NUMERIC_PORT
-  return argc == 2 ? execute_image(argv[1]) : 2;
+  return argc == 2 ? execute_image(argv[1], warm, keyed ? path : 0, &want) : 2;
 #else
-  if (numeric_io) return execute_image(argv[2]);
+  if (numeric_io) return execute_image(argv[2], warm, keyed ? path : 0, &want);
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
-    for (int i = 3; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
+    reading = !warm;
+    for (int i = 3; i < argc && !warm; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
+    reading = 0; if (keyed && !warm) image_rest(path, &want);
     run(file_node(argv[2]));
     if (cmd[0] == 't' && W->outcome == 'n' && !nd[W->v].comp) {      /* a leaf answer leaves as its own bytes */
       return send_fd(1, bytes + nd[W->v].off, nd[W->v].n) ? 0 : 2;
@@ -1914,7 +2087,8 @@ static void *on_region(void *p) {
   s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {
-  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at;
+  Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; const char *slash = strrchr(argv[0], '/');   /* region/rest.ck beside the executable */
+  if (slash && (size_t)(slash - argv[0]) + 16 < sizeof rest_buf) { snprintf(rest_buf, sizeof rest_buf, "%.*s/region/rest.ck", (int)(slash - argv[0]), argv[0]); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
   fb_open();
   pthread_attr_init(&at);
   if (pthread_attr_setstack(&at, (uint8_t *)fb + fb->a[A_STACK].off, fb->a[A_STACK].cap)

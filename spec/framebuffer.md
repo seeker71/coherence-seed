@@ -50,6 +50,46 @@ The substrate header also identifies its version and extent within the region.
   says how long a line is (`hw.cachelinesize`, 128 bytes here), and where it does not say, every
   area begins on a page. A reader finds each area by its offset in the head.
 
+## A region at rest
+
+A start is what runs before the program: the files given after it (`ck run F B..`), or the image
+`seed-run` opens with its first part. When the start has run and the region is at rest, it is a
+function of what was read, and is saved once; every later start with the same name maps it.
+
+- **At rest** means: no choice open, nothing held back (`after`), nothing asked from outside, no
+  binding made from outside, no note of code kept back, not a member of a named substrate, and
+  nothing taken from the host or the process since the start began. The bootstrap counts what was
+  taken in `member.taken`: a raw call of the host (entry 98), `clock`, `look`, and a `peek` that
+  reads a word of the process's own. A start that read a file under an open choice, or more than
+  64 files, counts too. A start that took anything is not saved and runs as before.
+- **The name** is made from nothing read from a file: whether the port is numeric, the start's
+  paths as given, and the device and inode of the directory they are read from, through SHA-256.
+  The file is `<name>.image` in the directory `CK_IMAGES` names, or else
+  `~/Library/Caches/coherence-seed/images`; `CK_IMAGES` set empty turns this off. Only macOS has
+  it, since the executable's identity is its `LC_UUID`.
+- **The image** is a head, its extents, the region's pages that hold anything, each at its place,
+  and a node in the canonical print. The head repeats the whole key, the layout version and the
+  executable's `LC_UUID`. The words of `fb.own` are saved as 0; the born-code table, the working
+  indexes and the text past the guard's stack are saved empty, so code is born again at its first
+  call.
+- **The builder** writes the pages, then hands `region/rest.ck`, found beside the executable,
+  every file the start read with the bytes it gave. `region/rest.ck` asks the host for each
+  file's device, inode, size and both times, refuses one that is not a regular file or does not
+  read the same bytes again, and answers a node that checks those signatures again. That node is
+  the image's last part; the file is written under `<name>.image.part` and then renamed. The
+  builder then maps the image over its own region, so that it goes on exactly as a later start.
+- **Entering.** A later start reads the head and checks it in C: owned by this user, not writable
+  by others, its length, the key, the version, the executable, every extent inside the region
+  below the stack, every area laid out as this process lays it out, and room in the allowance for
+  what it charges. Then the image's node runs in a fresh region, which has nothing but the
+  catalogue: one `stat` through the host for each file. Only if it answers yes is the region made
+  zero again and the pages mapped copy-on-write (`CK_FB`: read into the shared object instead);
+  then the words of `fb.own` are this process's again. Any other answer makes the region what
+  `fb_open` made, and the start runs cold and saves a new image.
+- **Two builds of one start are the same bytes.** A `.part` file older than ten seconds is the
+  remains of a builder that ended mid-save and is replaced; a younger one belongs to a builder at
+  work, and the start does not save.
+
 ## What is in it
 
 The first page is the **head**: a magic word, the layout version (24), the writer's process id, the
@@ -390,6 +430,19 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
+- 2026-11-27, version 25 against origin/main at 0c9f8c6 (version 24), under `/usr/bin/time -l`,
+  instructions and peak footprint the medians of five runs, wall time the median of thirty from
+  outside; a warm start has its image in the cache. A process that does nothing: main 14.7 M,
+  1.54 MB, 1.43 ms (13.7 M, 1.49 MB, 1.29 ms with an allowance of 64 MiB); here 13.8 M and
+  1.39 MB, with any allowance, since the layout no longer follows it: 49 GB of addresses where
+  main reserved 195 GB, or 2 GB at 64 MiB. The lens flow (`ck text lens/to-nodes.ck lens/all.ck`
+  on `(add 1 2)`): main 269.4 M, 3.92 MB, 12.8 ms; cold 269.7 M, 3.75 MB, 12.4 ms; warm 17.8 M,
+  2.05 MB, 1.67 ms. The image flow of `check-image`: main 946.5 M, 5.77 MB, 42.6 ms; cold 946.1 M,
+  5.60 MB, 42.4 ms; warm 113.8 M, 2.59 MB, 6.2 ms; its start with no request 851.1 M and 38.1 ms on
+  main, 15.5 M, 1.84 MB and 1.49 ms warm. The lens image is 1.9 MB: 117 pages in 16 extents and a check of 2.7 kB; what a warm
+  process maps it shares with every other until it writes a page. Starts that take from the host
+  are cold as before: the Metal image's start 1,284 M and 51 ms on both, the maker of a substrate 109.0 M
+  and 6.3 ms, a joiner 93.3 M and 6.1 ms.
 - 2026-11-27, version 24, after the review, merged with origin/main at b7c76e5: the maker 107.6 M
   instructions, 6.4 ms and 12.7 MB, a joiner 92.3 M, 6.8 ms and 6.5 MB, the door read and nothing
   joined 55.6 M and 2.30 MB, a process alone 13.9 M and 1.48 MB against main's 13.7 M and 1.48 MB; the indexes at half their size, the member word

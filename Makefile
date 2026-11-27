@@ -11,6 +11,8 @@ LDLIBS ?= -pthread -ldl -lrt
 endif
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
+# Images of starts at rest that a check makes lie in the user's cache, and the check that made them removes them.
+IMAGES = "$$HOME/Library/Caches/coherence-seed/check.$$$$"
 
 all: ck fb kg seed-run
 
@@ -86,17 +88,21 @@ metal-image: ck
 	  printf '%s\n' "$$@" | ./ck text nums/metal-pack.ck > "$$out" || { cat "$$out" >&2; exit 1; }; \
 	  mv -f "$$out" "$$METAL_IMAGE"
 
+# The image flow runs cold, as the reference, then saves its start at rest and is entered from that image: the replies are the same bytes.
 check-image: seed-run
-	@set -e; root=$$PWD; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/run"; \
+	@set -e; root=$$PWD; work=$$(mktemp -d); images=$(IMAGES); trap 'rm -rf "$$work" "$$images"' EXIT; mkdir "$$work/run"; \
 	  ./ck text nums/pack.ck < ground/nums-image.ck > "$$work/run/image"; \
 	  ./ck text ground/nums-requests.ck > "$$work/requests"; test -s "$$work/requests"; \
-	  ./ck text ground/nums-native-requests.ck >> "$$work/requests"; \
-	  (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
+	  ./ck text ground/nums-native-requests.ck >> "$$work/requests"; export CK_IMAGES="$$images"; mkdir -p "$$images"; \
+	  (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" image) < "$$work/requests" > "$$work/cold"; \
+	  (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; saved=$$(ls -i "$$images"); test -n "$$saved"; \
+	  (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/warm"; \
+	  cmp -s "$$work/cold" "$$work/replies" && cmp -s "$$work/cold" "$$work/warm" && [ "$$saved" = "$$(ls -i "$$images")" ] || { echo "image: the replies of a start entered from its image differ from a cold start's, or it was not entered"; exit 1; }; \
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
-	  echo "image: the standalone runtime answered by content id from a directory containing only the image"; \
+	  echo "image: the standalone runtime answered by content id from a directory containing only the image, cold and entered from its start saved at rest, the same bytes"; \
 	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
-	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | ./ck text /dev/stdin; }; \
+	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work" "$$images"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | ./ck text /dev/stdin; }; \
 	    ./ck text share/pack.ck < ground/nums-image.ck > "$$work/member"; \
 	    { printf '\003'; idof 16; idof 77; idof 78; idof 79; } > "$$work/part"; ./seed-run "$$work/member" < "$$work/part" > "$$work/part.reply"; \
 	    { printf '\001'; idof 16; dd if="$$work/part.reply" bs=1 skip=1 count=32 2>/dev/null; } > "$$work/holder"; \
@@ -192,11 +198,19 @@ ground-isolated: ck fb
 	  [ "$$(cat $(G).stale)" = 'node (#16)' ] && ! $(call shown,$$stale) > /dev/null 2>&1 || { echo "ground: burying through a stale mapping: $$(cat $(G).stale)"; exit 1; }; \
 	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; and a process that buried through its mapping of a substrate already ended left the live one of that name alone"
 
+# All of them in one process, which is entered from the image of its start region/all.ck, saved at rest by the process
+# before it; the image must be the one that process saved, not one made again: so each expectation is held cold, as a
+# member, above, and warm, here.
 ground-together: ck
-	@got=$$(./ck run ground/check.ck 2>&1); \
-	  if [ "$$got" = "node (#16)" ]; then echo "one run: all of them in one process end as expected, since a fail gives back what it returns past"; \
-	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got"; exit 1; fi
+	@d=$(IMAGES); mkdir -p "$$d"; export CK_IMAGES="$$d"; trap 'rm -rf "$$d"' EXIT; \
+	  ./ck run ground/add.ck region/all.ck > /dev/null; saved=$$(ls -i "$$d"); \
+	  got=$$(./ck run ground/check.ck region/all.ck 2>&1); \
+	  if [ "$$got" = "node (#16)" ] && [ -n "$$saved" ] && [ "$$saved" = "$$(ls -i "$$d")" ]; then echo "one run: all of them in one process, entered from the image of its start, end as expected, since a fail gives back what it returns past"; \
+	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got; the image before '$$saved', after '$$(ls -i "$$d")'"; exit 1; fi
 
+# A region saved at rest by one process is entered by the next, and each case where it must not be is not, pinned by
+# what a cold start answers there: a start file binds entry 4096 to a recipe and the program answers it. Two builds of
+# one start are the same bytes, and an image replaced after a case is the one a build makes.
 # A node is frozen by one process and thawed by a member of a substrate, which answers the node's handle; a second
 # member, the one that made the substrate, names the node by that handle alone and prints it.
 check-ice: ck fb
@@ -205,6 +219,28 @@ check-ice: ck fb
 	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck $(MEMBER) lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin $(MEMBER)); \
 	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(cat .ck-check.named), by a second member: the same node"; \
 	  else echo "ice: named '$$(cat .ck-check.named)', which is '$$b'"; exit 1; fi
+	@d=$(IMAGES); mkdir -p "$$d/images"; export CK_IMAGES="$$d/images"; trap 'rm -rf "$$d"' EXIT; \
+	  bind() { printf '(#71 #4096 (#36 [#4 0%s]))' "$$1" > "$$d/start.ck"; }; \
+	  printf '(#4096)' > "$$d/program.ck"; \
+	  ask() { ./ck run "$$d/program.ck" "$$d/start.ck" 2>&1; }; \
+	  image() { ls "$$CK_IMAGES"/*.image 2>/dev/null; }; \
+	  fail=0; is() { [ "$$1" = "$$2" ] || { echo "  $$3: '$$1', not '$$2'"; fail=1; }; }; \
+	  bind 1; is "$$(ask)" 'node [#4 01]' 'built'; one=$$(image); [ -n "$$one" ] || { echo "  no image was saved"; fail=1; }; \
+	  cp "$$one" "$$d/first"; is "$$(ask)" 'node [#4 01]' 'entered'; cmp -s "$$one" "$$d/first" || { echo "  an entered image changed"; fail=1; }; \
+	  rm -f "$$one"; is "$$(ask)" 'node [#4 01]' 'built again'; cmp -s "$$one" "$$d/first" || { echo "  two builds of one start differ"; fail=1; }; \
+	  bind 2; is "$$(ask)" 'node [#4 02]' 'a start file changed'; \
+	  cp -p "$$d/start.ck" "$$d/before"; bind 3; touch -r "$$d/before" "$$d/start.ck"; is "$$(ask)" 'node [#4 03]' 'changed with its size and times put back'; \
+	  bind 1; ask > /dev/null; cp "$$one" "$$d/first"; \
+	  printf '\377\377\377\377' | dd of="$$one" bs=1 seek=16 conv=notrunc 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'another executable'; cmp -s "$$one" "$$d/first" || { echo "  the image of another executable was not replaced"; fail=1; }; \
+	  printf '\000\000\000\000' | dd of="$$one" bs=1 seek=8 conv=notrunc 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'another layout'; cmp -s "$$one" "$$d/first" || { echo "  the image of another layout was not replaced"; fail=1; }; \
+	  cold=$$(CK_IMAGES= CK_MEMORY_BYTES=262144 ./ck run "$$d/program.ck" "$$d/start.ck" 2>&1); is "$$(CK_MEMORY_BYTES=262144 ./ck run "$$d/program.ck" "$$d/start.ck" 2>&1)" "$$cold" 'an allowance smaller than the image charges'; \
+	  is "$$(CK_SHARE=/ck.stale.$$$$ ask)" 'node [#4 01]' 'another layout by the setting CK_SHARE'; \
+	  dd if="$$d/first" of="$$one" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'an image cut short'; cmp -s "$$one" "$$d/first" || { echo "  an image cut short was not replaced"; fail=1; }; \
+	  rm -f "$$one"; dd if="$$d/first" of="$$one.part" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'a builder killed mid-save'; [ -z "$$(image)" ] || { echo "  a young part was taken for an image"; fail=1; }; \
+	  touch -t 202001010000 "$$one.part"; is "$$(ask)" 'node [#4 01]' 'a builder killed long ago'; cmp -s "$$one" "$$d/first" && [ ! -e "$$one.part" ] || { echo "  an old part was not replaced by an image"; fail=1; }; \
+	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
+	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered"; \
+	  [ $$fail = 0 ]
 
 check-native: ck
 	@set -e; if [ "$$(uname -s)" = Darwin ] && ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/native-add.ck; then \
