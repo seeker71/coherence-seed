@@ -38,7 +38,9 @@ Where coherence-seed is going. [`FLOOR.md`](FLOOR.md) says what stands today.
   the result of its call in the same stream.
 - **The host's own speed.** Compiled code reaches what the hardware allows: scalar code first, then
   matrix instructions and the GPU, with a model reading and choosing nodes inline on the same
-  substrate.
+  substrate. One resident owner serves each model. Concurrent streams share immutable weights,
+  keep their own working state, and use spare GPU time and memory. They yield these resources
+  as other work arrives and resume from their own progress.
 - **Knowledge as a graph.** What is known, decided and open is held as claims, each with its
   source, its date, its limits and the assumptions it stands on.
 
