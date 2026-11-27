@@ -44,7 +44,7 @@ The substrate header also identifies its version and extent within the region.
 
 ## What is in it
 
-The first page is the **head**: a magic word, the layout version (22), the writer's process id, the
+The first page is the **head**: a magic word, the layout version (23), the writer's process id, the
 walker's registers (the **machine**), one **area** entry per table, the doors, and the **member** part: where
 the substrate lies (`share`), how many pages the tables keyed by handle have charged, the
 process's lane, and the name of the substrate it is a member of, empty for a process alone. An area entry says what its records are, how large one is, the most it has held,
@@ -60,7 +60,7 @@ the address of the host's lookup of a name (`dlsym`). They come after the area t
 three places above do not move when a door is added; a reader finds them at the end of the area
 table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 22 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 23 lays it
 out.
 
 | Area | Records | Holds |
@@ -108,7 +108,7 @@ tables point at the substrate's tables, with its lane's part as their count and 
 head's byte 160 still says where node h lies: at that offset plus 32·h, in every member. The
 substrate begins with its own head: a magic word, the layout version, how many areas and lanes it
 has, its maker's process id and the instant the host started that process, the instant it was made,
-`share`, its size, its allowance and how much of it is charged, and `buried`; then one area entry
+`share`, its size, its allowance and how much of it is charged, `buried`, and the `tide`; then one area entry
 per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
 
 - **A lane's row** is 64 bytes: `who`, the member's process id in its upper half and below it 1
@@ -147,7 +147,10 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
   the nodes forwarded.
 - **What a search sees.** While a choice is open or working nodes stand, a member sees of another
   lane only what lay below that lane's `sw` when its oldest choice opened: `seen` keeps each lane's
-  `sw` from that moment. A settled node of another lane beyond it is, for the maker of nodes and
+  `sw` from that moment. It is one moment for all lanes: the substrate's `tide` is a count that is
+  raised before any lane's `sw` is, by whoever raises it, and the opening reads the tide, every
+  lane and the tide again, and reads again when it moved. A node's parts were below their lanes'
+  `sw` before its own lane's tide moved for it, so a search never sees a node without its parts. A settled node of another lane beyond it is, for the maker of nodes and
   for finding by id, not there, so the search makes its own working node and the commit forwards
   it; `at` on its number is the fault `irreversible`. So going an option again meets the same
   nodes, and no run holds two handles for one content. A node in the index is settled together
@@ -170,8 +173,8 @@ per table: lanes, nodes, leaf-bytes, children, ids, by-content and by-id.
 - **The allowance.** `CK_SHARE_BYTES`, or else what the host could spare when the substrate was
   made, is in its head and never changes. The two indexes and the head are charged in full when it
   is made, and each lane's first pages when it is claimed. A lane's growth is charged by whole
-  pages, added to the head's count and the lane's with a fetch-and-add; a growth past the allowance
-  is taken back and is the fault `full` with the area's name, and the host is asked again at each
+  pages: the head's count is read, and the growth is added by one compare-and-swap only when it
+  fits, so a growth with no room never counts against another member's; it is the fault `full` with the area's name, and the host is asked again at each
   MiB step as for any area. A member's own allowance (`CK_MEMORY_BYTES`) no longer counts those
   four tables. Nothing a lane charged is given back while the substrate lives.
 - `fb.check` reads the substrate's head, its areas and the member's own lane row through the

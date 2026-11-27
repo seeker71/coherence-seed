@@ -211,7 +211,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   cycles, against 6.88 G and 1.04 G for a process alone and 7.26 G and 1.20 G for one member
   alone, medians of five rounds; 21,675 of their nodes were forwarded in the last round.
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 22 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 23 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273

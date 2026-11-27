@@ -9,7 +9,7 @@ at: 2026-11-27
 n: 5.14.61.1
 name: a-lone-process-settles
 kind: decision
-is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 22 now, with the doors and then the member part after the area table. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. In a process alone a handle is local to it.
+is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 23 now, with the doors and then the member part after the area table. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. In a process alone a handle is local to it.
 status: observed
 from: 5.14.57 5.7.8 5.7.3
 src: 2.30.19
