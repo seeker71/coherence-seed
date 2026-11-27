@@ -139,17 +139,56 @@ both operand orders and returns the two vectors in a single reply.
 
 The `metal-map64` ABI binds one shared word buffer at index 0 and the unsigned 32-bit lane count
 at index 1. For `n` lanes the two inputs start at words 0 and `n`, and the output starts at word
-`2*n`. The host selects devices advertising Apple GPU family 3 or Metal family 3 for 64-bit
+`2*n`. The device must advertise Apple GPU family 3 or Metal family 3 for 64-bit
 integer arithmetic. [Metal feature tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf)
 
-The hardware port chooses the threadgroup width from the pipeline. The kernel checks its lane
-against the supplied count. Each synchronous dispatch places the two inputs and the output in one shared buffer.
-It accounts for that allocation
-against Seed's remaining allowance, host memory and the device's reported working set.
-The buffer, command queue and pipeline are released after use. On a Mac with the compiler and
-a Metal device, the image flow compares both orders of 65 inputs with their frame results,
-including wraparound, the empty vector and two invalid shapes. The compiler is a build-time
-dependency. Floating-point layouts, reductions and pipeline reuse are open.
+No C knows Metal. The component package `host/metal.ck` runs the map through the host door
+(`spec/core-operations.md`, entry 98): the seven host functions it calls and the 28 messages it
+sends are rows of `host/host.ck`, the two device families, the eight objects it holds and how
+each is let go are rows of its own, and it reaches the host only through seven recipes it is
+handed as a `metal.door`. `host/metal-bind.ck` makes that door, binds the blueprint
+`(code metal-map64)` to `metal.map` and `has-target` to a recipe that asks `metal.ready` for
+that target; `host/metal-all.ck` also reads where the door's words lie from the region's
+layout and opens the door. An image carries `host/metal-bind.ck` linked in and those places as
+numbers, with the layout version they were read under, and faults `metal.open` on another.
+
+The door is opened ahead, by `metal.open`, while no choice is open: it resolves every function
+row of this host and keeps the row beside its address, registers every message's selector and
+keeps its row, finds the pool's class, checks that a leaf's bytes are where the layout says by
+reading one back. The device is asked whether it has the families at the first
+`has-target`, once, and the answer is kept. After that a map asks the host
+nothing by name. The library and the two operands are read where they lie in the region, by
+their addresses, and are not copied on the way. This is what lets the application of the
+example call the map inside a search, once for each operand order.
+
+Every object a dispatch makes is noted under its name as it is made: the autorelease pool,
+the device, the library's data, the library, the kernel, the pipeline, the queue and the
+buffer. Whatever is noted is let go, by the row that says how, when the dispatch ends, when a
+fault or a fail leaves it, and before the next dispatch begins, and its note is cleared only
+after the host has answered. A message or a function with no row is a fault. The two sizes,
+three words each, and the lane count lie in one room, the bench, taken once per process, and
+are passed by their addresses. The output is copied from the shared buffer into a second
+room, which grows to the largest output asked for, and leaves as a leaf of the region's own
+bytes.
+
+The door runs each dispatch under a choice of its own, notes the answer, and fails back: the
+frames, links and nodes the walked calls made are given back, and only the answer stays. So a
+hundredth map leaves in the region what a second leaves, which `ground/metal-holds.ck` holds
+inside `make check-image`, with the fault and the fail midway.
+
+The threadgroup width comes from the pipeline, and the kernel checks its lane against the
+supplied count. Before any host object is made, what the map takes of the allowance at its
+peak is taken: the room for the output, for good, and the leaf that will leave, made once and
+given back by a fail, which leaves its place. Where the allowance cannot hold them the map
+answers `declined`. The shared buffer is the host's memory and outside the allowance; it is
+checked against the device's longest buffer and its reported working set, and no longer
+against the allowance as the C did. On a Mac with the compiler and a Metal device, the image
+flow compares both orders of 65 inputs with their frame results, including wraparound, the
+empty vector and two invalid shapes. The compiler is a build-time dependency. Rows exist for
+Apple's arm64 convention only: under Rosetta and on Linux x86-64 the door does not open,
+`has-target` answers no and a map answers `no-native` after the same checks of shape, so the
+search of the example answers a list of nothing there. A map makes its device and pipeline
+anew each time, as the C did. Floating-point layouts, reductions and pipeline reuse are open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the

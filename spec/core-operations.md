@@ -63,7 +63,7 @@ every `all` and `choice` on the way to the nearest `recover` or `outcome`.
 | 46, 47, 48 | add, sub, mul | a, b | integer arithmetic on `int` leaves |
 | 49 | eq | a, b | yes if a and b are the same node, otherwise no |
 | 50 | lt | a, b | yes if integer a is less than integer b, otherwise no |
-| 51 | native | code, arguments | runs a CPU code leaf on up to six values, or a Metal map on two packed word vectors |
+| 51 | native | code, arguments | runs a code leaf of this processor on up to six values; a leaf of another target is run by what its blueprint is bound to, given the leaf and the values |
 | 52 | code-aarch64 | | data: the blueprint of a leaf of AArch64 machine code |
 
 ## Fail, choice and cut
@@ -110,12 +110,39 @@ an executable payload for that ABI. The original bare `code` blueprint identifie
 `native` answers nothing with reason `no-native` when the identities differ. A binding
 declines that implementation and can continue with its recipe.
 
-`(has-target abi)` (entry 125) answers whether the process can use that target. It recognizes
-the current CPU ABI and probes the default Metal device for the 64-bit integer arithmetic used by `metal-map64`.
-For that ABI the leaf holds a compiled single-kernel Metal library. Its two arguments are
-byte leaves of equal length containing little-endian 64-bit words. Dispatch completes before
-the runtime returns a fresh byte leaf. Unequal lengths or partial words answer `range`.
-A device or pipeline that cannot run the library answers `no-native`.
+`(has-target abi)` (entry 125) answers whether the process can use that target. The bootstrap
+answers yes for the current CPU ABI and no for every other; a target that is not the
+processor's binds the entry, as `host/metal-bind.ck` does for `metal-map64`. Its answer for
+that target is found at the first asking, by one question to the device, and kept. The
+count of values is checked as before: two are the fault `arity`.
+
+A code leaf whose target is not this processor's is not run by the bootstrap. Where its
+blueprint, `(code abi)`, is bound to a recipe, `native` calls that recipe with the leaf and
+the list of the values. With no binding the answer is nothing, `no-native`. A leaf that is not
+code is the fault `kind` under `native`, bound blueprint or not. As a binding's
+implementation such a leaf declines, and the binding continues with the recipe beneath; a map
+is reached by `native`. This is how a target is added without C: `metal-map64` is bound to
+`metal.map` of the package `host/metal.ck`, which runs a compiled single-kernel Metal library
+through the rows of the package `host/` ([Metal word maps](nums.md#metal-word-maps)). Its two
+values are byte leaves of equal length containing little-endian 64-bit words, and it answers
+a fresh byte leaf once the dispatch has completed. One value or three are the fault
+`e.arity`; a value that is not a byte leaf is the fault `e.kind`; unequal lengths or partial
+words answer nothing, `range`; a device or pipeline that cannot run the library, and a host
+with no rows, answer `no-native`; an output the allowance cannot hold answers `declined`,
+before any host object is made. These reasons are the catalogue's entries in both ports,
+where the bootstrap's own reasons are words in the authoring tool.
+
+A map may run while a choice is open, as code of the processor may, and a search can gather
+maps: the door is opened ahead. Everything the host is asked by name, and so through entry
+98, is asked when `metal.open` runs with no choice open: the address of each function row,
+the registered name of each message and the pool's class. A dispatch then makes no call of
+entry 98. It runs machine code through the berth on addresses it holds, reads its operands
+where they lie in the region, and lets go of every object it made before it answers. What it
+holds meanwhile is noted, and a note is what no fail undoes: a fault midway and a fail midway
+both find the objects and let them go, the fail as the fault `metal.guard`. A dispatch cannot
+be failed into from outside, since it answers once and holds no choice open when it does. So
+a fail that returns past a map finds nothing of it to undo. Entry 98 is refused under a
+choice as before, and so are the package's supervisor call and absolute store.
 
 The CPU call has six value positions, followed by the framebuffer address and the argument-count
 and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
@@ -271,7 +298,13 @@ have.
   given; a recipe called with answers has no user of its own and passes on its caller's
   (`ground/user-kept.ck`). Under `base` the node's own entry means what it meant
   beneath this binding, and everything inside it is as the user sees it: a `lazy` that records
-  something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation.
+  something and ends in `(base (arg 0))` adds a diagnostic to every use of an operation. A
+  `lazy` that needs a child's answer runs the child once with `up`, binds it in a `let` that
+  stands under no choice of the `lazy`'s own, and hands what lies beneath a node built from
+  the answer, quoted: testing `(up child)` in a condition and then calling `(base (arg 0))`
+  would run the child twice and keep only its first answer. The binding of `has-target` in
+  `host/metal-bind.ck` is written so, and `ground/metal-holds.ck` holds it: a value that
+  counts is counted once, and a choice of three targets gives three answers.
 - **An implementation runs on the bindings beneath its own.** Inside i, and inside whatever i
   calls, e means what it meant before this binding. So a new `add` can use the `add` it replaces,
   and `add` and `sub` can each be written with the other.
@@ -540,7 +573,23 @@ and brings back a float, an integer or no result. `host/all.ck` loads it, and `h
 the `symbol` word and where the rooms lie, takes the one room the berth lives in. An address
 slot takes an `int` as the address it is, or a text or bytes leaf of at most 127 bytes, copied
 for the length of the call; each register class and the stack take eight values, a call sixteen
-in all. A raw supervisor call and a store at an absolute address are refused while a choice is
+in all. An Objective-C message is a row too: its selector, a slot for each value after the
+receiver and the selector, and the kind of its result; `host.send` lays them after the two
+slots of the `objc_msgSend` row and reads a one-byte truth as yes or no. A structure of more
+than two words goes by reference, as the convention says: the caller lays it in a room and
+passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a leaf.
+`host.run` runs a row on an address already in hand: it looks nothing up, so it makes no call
+of entry 98. The refusal is a property of the call all the same: `host.launch`, which every
+call through a row passes, asks the guard first, a call of entry 98 that does nothing, so a
+row run while a choice is open is the fault `irreversible` whether it was looked up or not.
+It is not asked inside a guard that a row of `host.guards` declares, with the reason it may:
+one row today, the Metal door's, which lets go of every object it made when it ends, on a
+fault and on a fail, and leaves only a note. The door notes the guard it is in under
+`host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
+program that lays the berth out by hand and runs its leaf passes no row and is not refused:
+no node can yet ask whether a choice is open except by calling entry 98. The
+berth's word for the function is cleared after each call, so running the berth leaf again
+calls nothing and is the fault `crash`. A raw supervisor call and a store at an absolute address are refused while a choice is
 open, as entry 98 is.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is

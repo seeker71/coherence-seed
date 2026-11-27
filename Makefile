@@ -9,20 +9,17 @@ CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 ifeq ($(shell uname -s),Linux)
 LDLIBS ?= -pthread -ldl -lrt
 endif
-ifeq ($(shell uname -s),Darwin)
-METAL_LIBS = -framework Metal -framework Foundation -lobjc
-endif
-BOOT = bootstrap/ck.c bootstrap/fb.h bootstrap/metal.h
+BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
 
 all: ck fb kg seed-run
 
 ck: $(BOOT)
 	@echo "bootstrap: $$(cat $(BOOT) | wc -l | tr -d ' ') lines of C"
-	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS) $(METAL_LIBS)
+	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS)
 
 seed-run: ck $(BOOT)
-	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c $(LDLIBS) $(METAL_LIBS)
+	$(CC) $(CFLAGS) -DNUMERIC_PORT -o $@ bootstrap/ck.c $(LDLIBS)
 
 # The observer: a second process that shows, records and replays a framebuffer.
 fb: tools/fb.c bootstrap/fb.h
@@ -109,12 +106,15 @@ check-image: seed-run
 	  fi; \
 	  if [ "$$(uname -s)" = Darwin ] && xcrun -sdk macosx metal -v >/dev/null 2>&1; then \
 	    printf '(has-target metal-map64)' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/target"; \
-	    gpu=$$(./ck run "$$work/target"); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
+	    gpu=$$(./ck run "$$work/target" host/metal-all.ck); case "$$gpu" in 'node #32') exit 0;; 'node #33') ;; *) echo "$$gpu"; exit 1;; esac; \
 	    $(MAKE) --no-print-directory metal-image METAL_RECIPE=ground/metal-polynomial.ck METAL_INPUTS=ground/metal-vectors.ck METAL_APPLICATION=ground/metal-application.ck METAL_IMAGE="$$work/run/image"; \
 	    ./ck text ground/metal-requests.ck > "$$work/requests"; \
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
 	    echo "Metal: direct and backtracking calls by ID agree with NUMS frames"; \
+	    printf '(note "rounds" %s)' "$(METAL_ROUNDS)" | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/rounds"; \
+	    got=$$(./ck run ground/metal-holds.ck "$$work/rounds" < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
+	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave in the region what $(METAL_ROUNDS) leave, has-target runs its value once, and a fault or a fail midway lets every object go"; \
 	  fi
 
 check-live: ck fb
@@ -129,6 +129,9 @@ check-live: ck fb
 	  then echo "live: a room beyond the shared allowance recovered; a second process installed an addition counter, read $$n1 and $$n2, removed it, and observed the final answer 2178309"; \
 	  else echo "live: on '$$on', counts '$$one' '$$two', off '$$off', after '$$three' '$$four', final '$$last'"; exit 1; fi
 
+# How many maps ground/metal-holds.ck compares with twice as many: few under make check, more here.
+METAL_ROUNDS ?= 2
+check-full: METAL_ROUNDS = 25
 check-full: check
 	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
 

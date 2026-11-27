@@ -583,6 +583,6 @@ status: inferred
 from: 5.8.3 7.21 5.14.59
 conf: mid
 why: Run on 2026-11-27 on macOS arm64, plain and under the hardened runtime: a file written, read back and removed, a sort through a callback that is leaf code, square root and power with float values, a formatted varying value, a raw supervisor call, forty crashing calls that leave the heap as it was, each equal to its expected answer and, where entry 98 can carry it, equal by name, by address and through the berth. Two wrong place rows planted by hand were named by the run.
-flip: A host whose convention the berth's fixed slots cannot hold, such as a structure passed by value in more than two words, needs another leaf or a copy.
+flip: A host whose convention the berth's fixed slots cannot hold needs another leaf. A structure of more than two words goes by reference from a room, as Metal's sizes do (5.14.62.2).
 limit: Rows and leaves exist for Apple's arm64 convention only. On the numeric port a call by address was run by hand and no check holds it. Memory the host hands out is outside the allowance. A host function that ends the process itself is not caught. What the host ties to the process's first thread is out of reach, since the walker is not that thread.
 at: 2026-11-27

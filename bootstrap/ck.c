@@ -37,7 +37,6 @@
 #include <signal.h>
 #include <setjmp.h>
 #include "fb.h"
-#include "metal.h"
 /* Code leaves name the Seed calling convention and the processor that implements it. */
 #if defined(__aarch64__) && defined(__APPLE__)
 #define HOST_ABI TARGET_AAPCS64
@@ -854,27 +853,6 @@ static uint64_t code_target(H leaf) {
   long long abi = bp && nd[bp].comp && nd[bp].bp == E(CODE) && nd[bp].n == 1 ? catn(KID(bp, 0)) : -1;
   return abi > 0 ? (uint64_t)abi : 0;
 }
-/* A map receives two equally long packed word vectors and returns one fresh byte leaf. */
-static Status mapped(H kernel, const H *args, uint32_t count) {
-  if (count != 2) return S_ARITY;
-  if (!args[0] || !args[1]) return S_KIND;
-  Node a = nd[args[0]], b = nd[args[1]];
-  if (a.comp || b.comp || a.bp != E(BYTES) || b.bp != E(BYTES)) return S_KIND;
-  if (a.n != b.n || a.n % 8 || a.n / 8 > UINT32_MAX) return S_RANGE;
-#ifdef __APPLE__
-  Node lib = nd[kernel]; uint64_t mark = ntext;
-  if (!lib.n) return S_NO_NATIVE;
-  uint8_t *out = talloc(a.n);
-  uint64_t need = pages_for(a.n) * 3 + pages_for(lib.n);
-  if (need > remaining_memory() || need > host.memory()) { ntext = mark; return S_DECLINED; }
-  int ok = metal_map(bytes + lib.off, lib.n, bytes + a.off, bytes + b.off, a.n, out);
-  Status why; ntext = mark;
-  if (ok) { W->v = mk(0, E(BYTES), out, a.n, &why); return W->v ? S_OK : why; }
-#else
-  (void)kernel;
-#endif
-  return S_NO_NATIVE;
-}
 static int local_code(H leaf) { return HOST_ABI && code_target(leaf) == HOST_ABI; }
 static void *birth(H leaf) {              /* the leaf's instructions, runnable; NULL if this host cannot */
   uint8_t *code = (uint8_t *)(uintptr_t)W->code; uint64_t n = nd[leaf].n;
@@ -1232,7 +1210,6 @@ static int given(const H *a, uint32_t c, int64_t *arg) {
 /* Every invocation, direct or attached to a recipe, uses the ABI carried by the leaf. */
 static Status execute_code(H leaf, const H *values, uint32_t count, H node, uint32_t from) {
   uint64_t abi = code_target(leaf);
-  if (abi == TARGET_METAL_MAP64) return node ? S_DECLINED : mapped(leaf, values, count);
   int64_t args[8] = {0};
   if (!abi) return S_KIND;
   if (node) { args[0] = node; args[1] = from; args[7] = count; }
@@ -1332,8 +1309,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == HOST_TARGET) { if (c) fault(S_ARITY); else W->v = catalogue(HOST_ABI ? HOST_ABI : NO); return; }
   if (op == HAS_TARGET) {
     if (c != 1) fault(S_ARITY);
-    else { long long target = catn(a[0]); W->v = (target > 0 && ((uint64_t)target == HOST_ABI ||
-      ((uint64_t)target == TARGET_METAL_MAP64 && metal_available()))) ? E(YES) : E(NO); }
+    else { long long target = catn(a[0]); W->v = target > 0 && (uint64_t)target == HOST_ABI ? E(YES) : E(NO); }
     return;
   }
   if (op == CLOSE) {                  /* a recipe and values: the recipe closed over them, a node that can be called */
@@ -1578,7 +1554,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   }
   for (nhand = 0;; W->step++, nhand = 0) switch (W->mode) {
   case M_EVAL: {
-    if (!ncp && nn > sw) commit();        /* every choice is closed: what was made under one settles before */
+    if (!ncp) { ntrail = 0; nrtrail = 0; if (nn > sw) commit(); }        /* every choice is closed: what was made under one settles before */
     if (nafter && !ncp) {                 /* anything runs, and what was held back for that is done now */
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
     }
@@ -1665,7 +1641,8 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->outcome = W->v ? 'n' : '0'; W->mode = M_DONE; return;
     }
     uint32_t k = W->k; Frame f = fr[k]; W->at = f.node;
-    if (k == nfr - 1 && (!ncp || k >= cp[ncp-1].mfr)) nfr--;       /* nothing can return to it */
+    if (!ncp || k >= cp[ncp-1].mfr) {     /* nothing can return to it, nor to the frames a commit left above it, */
+      nfr = k; if (f.mlink < nlink && (!ncp || f.mlink >= cp[ncp-1].mlink)) nlink = f.mlink; }      /* nor to the values linked since */
     uint32_t keep = (ncp && cp[ncp-1].mact > f.mact) ? cp[ncp-1].mact : f.mact;
     if (keep < nact) { nargp = act[keep].off; nact = keep; }       /* calls made since the frame have returned */
     W->k = f.k;
@@ -1744,7 +1721,12 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         uint32_t up = act[f.env].up, cut = act[f.env].cut; last(up);
         W->env = enter(a[0], full, n, on, up, cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break;
       }
-      if (op == NATIVE_OP) {
+      if (op == NATIVE_OP) {              /* code for a target this processor does not run is run by what its blueprint */
+        b = c && code_target(a[0]) && !local_code(a[0]) ? bound(nd[a[0]].bp, 0, f.aux) : 0;       /* is bound to, given the leaf */
+        if (b && nd[B(b)->impl].comp) {                                                           /* and the list of the values */
+          H two[2] = { a[0], mk(1, E(LIST), a + 1, c - 1, &why) };
+          if (!two[1]) fault(why); else apply(b, f.aux, two, 2, f.env, 0);
+          break; }
         Status result = execute_code(a[0], a + 1, c - 1, 0, f.env);
         if (result == S_KIND || result == S_ARITY) fault(result);
         else if (result != S_OK) { W->v = 0; W->reason = notice(result); }
@@ -1756,7 +1738,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     break; }
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = notice(S_NO_PATH); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
-    ChoicePoint *q = &cp[ncp-1]; W->at = q->node;
+    ChoicePoint *q = &cp[ncp-1]; W->at = q->node; W->v = 0;      /* a fail carries no answer: what the failed path last answered is not kept */
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
     for (uint32_t t = ntrail; t > q->mtrail; t--)                      /* and cells hold what they held, */

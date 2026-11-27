@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,105 lines now, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,014 lines now that Metal and the joining of a substrate have left it and the substrate has come, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -21,7 +21,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it. A named substrate and its lanes are shown by `share/show.ck`, in Form |
 | Substrate | [`share/`](share) | written in form, a component package over the host's rows: making or joining a named substrate, claiming a lane, telling whether a member stands, retiring, burying, leaving, and listing one |
-| Claim graph | [`graph/`](graph) | 1,456 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,461 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -39,6 +39,16 @@ Each line here is held by a program in `make check-full`, or names how it was se
   the bytes of rooms, and give back the nodes and rooms made since; a note is kept, with what it
   holds. A call held back with `after` is made when every choice open at the time is
   closed, and never if a fail returns past it.
+- **A return and a fail give back the walker's own.** A fail carries no answer, so what the
+  failed path last answered is not kept: a room taken and failed over is given back, where it
+  stayed when the take was the last thing answered. A return to a frame gives back the frames
+  a commit left above it and the values linked since, where only the newest frame was given
+  back: a hundred cuts, a hundred host calls and a hundred maps in one recursion end with the
+  5 frames and 2 links they began with, where the maps alone had left 432,965 frames. Both
+  trails are empty at every step with no choice open. Seen by reading the areas' counts from
+  the region; `ground/metal-holds.ck` holds it for the maps. The deepest case of
+  `ground/code-on-nodes.ck` needs the stack `make` gives: run from a shell with an 8 MB stack
+  it declines, on main as here.
 - **A fail gives back what it returns past.** As a backtracking machine gives back its heap,
   every node made since a choice point goes when a fail returns to it, except what no fail
   undoes and what that holds, which moves down in the order it was made, its id with it. The
@@ -55,10 +65,41 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
   nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
   this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
-- **Metal runs a word map by ID.** On the M4 Max, both the arm64 and Rosetta x86-64 runtimes
-  dispatched the same packed library to the GPU. A 65-lane recipe combining arithmetic and
-  bitwise operations matched frames byte for byte in both operand orders. The image ran from
-  a directory containing only that image. [Metal word maps](spec/nums.md#metal-word-maps)
+- **Metal runs a word map by ID, from Form.** The bootstrap runs no Metal: the component
+  package `host/metal.ck` makes the device, the library, the pipeline and the buffer and
+  dispatches the kernel through rows of the package `host/`, and the blueprint
+  `(code metal-map64)` is bound to it. One line of C still names the target: the collector
+  does not look for ids in a Metal library's bytes. On the M4 Max a 65-lane recipe combining
+  arithmetic and bitwise operations matched frames byte for byte, with the empty vector and
+  two invalid shapes, and an application composed with it called the map inside one search in
+  both operand orders, from a directory containing only the image; the five replies are the
+  bytes the C dispatch of main gave for the same requests. The map runs under the open choice
+  because the door is opened ahead: every lookup by name is made at the start, and a dispatch
+  lets go of all it made before it answers.
+- **A hundredth map leaves what a second leaves.** `ground/metal-holds.ck`, run by
+  `make check-image` on the image itself, compares four maps with two, and under
+  `make check-full` fifty with twenty-five, 176 maps in one process: twice the maps leave as
+  many nodes and as much in every area of the walker as half as many; `has-target` runs its
+  value once and answers each target of a choice; a fault raised at the first
+  copy into the buffer comes out as itself with no object held; a fail at the same place
+  under an open choice is the fault `metal.guard` with no object held; the map answers the
+  same afterwards. By hand, with the case that differed before: twelve maps of 4 MB under an
+  allowance of 128 MB all answer, within 51 MB resident; one of 16 MB under 128 MB answers;
+  201 maps of one lane under 64 MB all answer, within 19 MB; a fault on the buffer's
+  `release` leaves the buffer noted and the next map lets it go; a message with no row is a
+  fault; a library leaf as a binding's implementation declines to the recipe beneath; three
+  values and one are the fault `e.arity`; running the berth leaf again after a call is the
+  fault `crash`.
+- **What the walked dispatch costs.** Timed one process at a time, medians of 15 runs against
+  the C of main: the flow of five requests takes 72 ms where C takes 46, and each further map
+  of 65 lanes about 6.6 ms where C takes 3.8. A start with no request takes 22 ms where C
+  takes 5: 2 ms for an image that does nothing, 11 ms to load the host package and assemble
+  its leaves, 4 ms for the Metal package and its binds, and 6 ms to open the door; the device
+  is asked at the first `has-target` or the first map. The image is 423,434 bytes where it
+  was 93,187. `make check` takes 2.0 s of wall time with four maps compared with two;
+  `make check-full` compares fifty with twenty-five. Under Rosetta the x86-64 build answers
+  `has-target` no and a map `no-native`, where the C dispatch ran there: rows exist for
+  Apple's arm64 convention only. [Metal word maps](spec/nums.md#metal-word-maps)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -259,10 +300,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   handler. A call passes as many values as memory holds: forty in `ground/closes-over.ck`.
 - **The host is reached through one door, and its functions are rows** (graph node 5.14.60).
   Entry 98 calls a name or an address, and the address of the host's own lookup is a word of the
-  region's head. The package `host/` holds as rows: 24 host functions, each with a slot for
-  every value and the kind of its result; the calling convention of this host, which is Apple's
+  region's head. The package `host/` holds as rows: 30 host functions, each with a slot for
+  every value and the kind of its result; 28 Objective-C messages, each a selector, its slots
+  and its result; the calling convention of this host, which is Apple's
   variant of the arm64 convention (a varying value goes on the stack); which blueprint a slot
-  takes and how it becomes a word; how each kind of result is read; the host's two lookup
+  takes and how it becomes a word; how each kind of result is read, a one-byte truth among them; the host's two lookup
   constants; seven instruction encodings; and six small machine-code leaves as instruction
   rows for `nums/arm.ck`. One leaf, the berth, runs any function row. Its layout is one row,
   and the leaf's offsets, the places of the convention and the recipes are all derived from
@@ -279,8 +321,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   a call with more values than slots and a function with no row answer nothing. A supervisor
   call and an absolute store inside a search are the fault `irreversible`, as entry 98 is, and
   the store is not made. Forty calls that crash inside the host leave the host's heap with the
-  bytes in use it had. Of the 24 rows, 19 are run by the flow; `memcpy`, `mprotect`, `dlopen`,
-  `dlsym` and `sysctlbyname` are not run as rows. Inside the ground catalogue's search the same
+  bytes in use it had. An object made by the message `new` is let go by `release`, and a
+  message with no row answers nothing. Of the 30 function rows, 22 are run by the flow and
+  four more by the Metal flow of `make check-image`; `mprotect`, `dlopen`, `dlsym` and
+  `sysctlbyname` are not run as rows. Of the 28 messages the flow sends two and the Metal
+  flow all 28. Inside the ground catalogue's search the same
   program is the refusal `irreversible`, at its first call, which is by address. By hand, not
   held by a check: two wrong place rows made the run name the five cases they break; a row
   naming a library that is not there is a fault that names the library; a call before the door
@@ -434,7 +479,7 @@ running compiled code against frames all the way down).
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
-  graph as 56 text files, and the axioms' text. The Makefile still drives cross-process checks.
+  graph as 57 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
 - **Threads.** One walker runs on one thread. A fault on a thread the host made ends the process
@@ -442,12 +487,21 @@ running compiled code against frames all the way down).
   of `pthread_create`; no check holds it.
 - **More of the host.** Rows and leaves exist for `aapcs64` only; on any other target
   `ground/host-refused.ck` does not apply. A structure passed by value in more than two words,
-  the indirect-result register (its place is in the berth, no row uses it), sockets, processes,
-  signals, Objective-C and the GPU have no rows. Memory a host function hands out is outside
-  the allowance. What the host
+  the indirect-result register (its place is in the berth, no row uses it), sockets, processes
+  and signals have no rows; a structure of more than two words goes by reference from a room.
+  Memory a host function hands out is outside the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. Of the
-  bootstrap's own host functions only those a member needed have left C; the eleven a process
-  alone starts with are still there. The compiler does not yet emit a row as moves and a call.
+  bootstrap's own host functions Metal and those a member needed have left C; the eleven a
+  process alone starts with are still there. A call through a row is walked: a
+  Metal map makes about forty, and costs about 2.8 ms more than the C it replaced. A call of
+  A row run while a choice is open is refused where every row passes, looked up or not
+  (`ground/host-refused.ck`), except inside a guard that a row of `host.guards` declares: the
+  Metal door's. A program that lays the berth out by hand and runs its leaf is not refused.
+  A dispatch is not reentrant: entering the door's guard from inside it is a fault.
+  A library leaf bound as an entry's implementation does not run the map, where the C ran it
+  for operands of the right shape: it declines, and the map is reached by `native`. A map makes
+  its device and pipeline anew each time, as the C did. The compiler does not yet emit a row
+  as moves and a call.
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
   names the same node in each, but nothing yet carries a handle from one to another: `swap`,
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
