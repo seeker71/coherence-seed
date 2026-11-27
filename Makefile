@@ -239,9 +239,17 @@ check-ice: ck fb
 	  rm -f "$$one"; dd if="$$d/first" of="$$one.part" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'a builder killed mid-save'; [ -z "$$(image)" ] || { echo "  a young part was taken for an image"; fail=1; }; \
 	  touch -t 202001010000 "$$one.part"; is "$$(ask)" 'node [#4 01]' 'a builder killed long ago'; cmp -s "$$one" "$$d/first" && [ ! -e "$$one.part" ] || { echo "  an old part was not replaced by an image"; fail=1; }; \
 	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
+	  printf '(#100 (#35 [#3]) (#36 (#40 (#39 (#42 (#44 (#49 (#35 [#3 01]) (#65 ^1)))) [#4]) (#108 (#67 ^1 ^9) (#110 (#37 (#38) ^1 (#46 ^9 [#4 01])) [#4 08])))) (#100 ^9 (#37 ^1 (#94 [#4 f004] ^20) ^12) (#100 (#35 [#3 02]) (#37 ^1 (#94 [#4 f804] ^20) ^12) (#70 #89 (#70 #16 (#43 (#40 [#2 73] (#70 #94 (#70 #16 (#43 (#40 (#47 (#46 ^9 ^26) [#4 0010]) ^42)))))))))))' > "$$d/top.ck"; ./ck run "$$d/top.ck" | sed 's/^node //' > "$$d/stack.ck"; printf '(#90 [#2 73])' > "$$d/held.ck"; one1=$$(./ck run "$$d/held.ck" "$$d/stack.ck"); \
+	  is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'a start that read the stack'; [ "$$one1" != "$$(./ck run "$$d/held.ck" "$$d/stack.ck")" ] || { echo "  two starts read the same bytes of the stack: one was entered"; fail=1; }; \
+	  if [ "$$(uname -m)" = arm64 ]; then printf '(#89 [#2 74] (#51 [#52 40e03bd5010080d2c0035fd6]))' > "$$d/code.ck"; printf '(#90 [#2 74])' > "$$d/counter.ck"; one1=$$(./ck run "$$d/counter.ck" "$$d/code.ck"); \
+	    is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'a start that ran code'; [ "$$one1" != "$$(./ck run "$$d/counter.ck" "$$d/code.ck")" ] || { echo "  two starts read one count of the clock in code: one was entered"; fail=1; }; fi; \
 	  rm -f "$$one"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start whose last file read the clock'; \
 	  is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'the part of a start before a file that read the clock'; cmp -s "$$one" "$$d/first" || { echo "  the part of a start at rest was not saved as that part alone is"; fail=1; }; \
 	  saved=$$(ls -i "$$one"); is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start entered at its part at rest'; is "$$(ls -i "$$one")" "$$saved" 'the image of the part entered'; \
+	  printf '(#71 #4096 (#36 [#4 06]))' > "$$d/impure.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the rest of a start made pure'; \
+	  is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 2 'the whole start saved after its part was entered'; whole=$$(ls -i "$$CK_IMAGES"); \
+	  printf '(#71 #4096 (#36 [#4 07]))' > "$$d/start.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the first file of a whole start changed'; \
+	  is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the whole start entered'; [ "$$(ls -i "$$CK_IMAGES")" != "$$whole" ] || { echo "  a whole start saved from an entered part does not check that part's files"; fail=1; }; \
 	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest"; \
 	  [ $$fail = 0 ]
 

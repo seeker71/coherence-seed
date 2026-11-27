@@ -30,11 +30,12 @@ The substrate header also identifies its version and extent within the region.
   page not yet used is never read, since reading it would take it.
   Backtracking can reuse charged pages. Each table retains space to grow into the common pool.
   `fb show NAME` reports both the virtual reservation and the shared memory allowance.
-- Each area reserves what `region/layout.ck` says for it (`fb.reserve`), so the layout is the
-  same in every process whatever memory it may use: 1 GiB for most of the walker's tables, 4 GiB
+- Each area reserves what `region/layout.ck` says for it (`fb.reserve`), or the power of two at
+  or above the allowance where that is less, so the layout stands still while the memory a process
+  may use moves below it: 1 GiB for most of the walker's tables, 4 GiB
   for the store's and the rooms, 256 MiB for the small ones, one word for each handle a lane has
   for the three tables keyed by handle, and the stack last, as large as the host's, under a page
-  nothing may touch. A process alone reserves about 49 GB of addresses. The allowance is a word
+  nothing may touch. A process alone reserves about 49 GB of addresses, and 2 GB with an allowance of 64 MiB. The allowance is a word
   of its own, `member.allowance`, not an area's capacity.
 - At startup, available memory is divided by the number of online CPUs plus one, leaving room
   for other work. On macOS this uses free and inactive pages under normal pressure, free pages
@@ -58,15 +59,19 @@ function of what was read, and is saved once; every later start with the same na
 
 - **At rest** means: no choice open, nothing held back (`after`), nothing asked from outside, no
   binding made from outside, no note of code kept back, not a member of a named substrate, and
-  nothing taken from the host or the process since the start began. The bootstrap counts what was
-  taken in `member.taken`: a raw call of the host (entry 98), `clock`, `look`, and a `peek` that
-  reads a word of the process's own. A start that read a file under an open choice, or more than
-  64 files, counts too. A start that took anything is not saved and runs as before.
+  nothing taken from the host or the process since the start began. What a start may do and stay at
+  rest is what is known to keep the region a function of the files it read: the walker's work on
+  nodes, cells, rooms and bindings, reading a file with no choice open, and a `peek` of bytes an
+  image keeps as they were, which are the two heads and the areas `fb.kept` names in
+  `region/layout.ck`, but the words of `fb.own`. Anything else counts in `member.taken` and the
+  start is not saved: a call of the host, `clock`, `look`, any other `peek`, any code a program
+  runs (code reads what it likes, and is given the region's address), a read of a file not there,
+  a read under a choice, more than 64 files.
 - **The name** is made from nothing read from a file: whether the port is numeric, the start's
   paths as given, and the device and inode of the directory they are read from, through SHA-256.
-  The file is `<name>.image` in the directory `CK_IMAGES` names, or else
-  `~/Library/Caches/coherence-seed/images`; `CK_IMAGES` set empty turns this off. Only macOS has
-  it, since the executable's identity is its `LC_UUID`.
+  The file is `<name>.image` in the directory `CK_IMAGES` names. Without `CK_IMAGES` nothing is
+  saved or entered: nothing yet keeps that directory small. Only macOS has it, since the
+  executable's identity is its `LC_UUID`.
 - **The image** is a head, its extents, the region's pages that hold anything, each at its place,
   and a node in the canonical print. The head repeats the whole key, the layout version and the
   executable's `LC_UUID`. The words of `fb.own` are saved as 0; the born-code table, the working
@@ -76,7 +81,8 @@ function of what was read, and is saved once; every later start with the same na
   every file the start read with the bytes it gave. `region/rest.ck` asks the host for each
   file's device, inode, size and both times, refuses one that is not a regular file or does not
   read the same bytes again, and answers a node that checks those signatures again. That node is
-  the image's last part; the file is written under `<name>.image.part` and then renamed. The
+  the image's last part; the file is written under `<name>.image.part`, synced to the disk and
+  then renamed. The
   builder then maps the image over its own region, so that it goes on exactly as a later start.
 - **Entering.** A later start reads the head and checks it in C: owned by this user, not writable
   by others, its length, the key, the version, the executable, every extent inside the region
@@ -86,8 +92,8 @@ function of what was read, and is saved once; every later start with the same na
   zero again and the pages mapped copy-on-write (`CK_FB`: read into the shared object instead);
   then the words of `fb.own` are this process's again. Any other answer makes the region what
   `fb_open` made, and the start runs cold and saves a new image.
-- **The part at rest.** A start run from its beginning saves itself after each of its files
-  that leaves the region at rest, under the name of the files so far, and drops the image of the
+- **The part at rest.** A start saves itself after each of its files that leaves the region at
+  rest, also after the part of it an image stood for, whose checks then go into the longer image, under the name of the files so far, and drops the image of the
   part before; so a start whose last file takes from the host keeps the image of the files before
   it. A later start tries the image of all its files, then of fewer, and runs the files after the
   part it entered. A start file is checked by the node its first line reads to, a file read with
@@ -439,13 +445,17 @@ in it was complete when its count was read.
 - 2026-11-27, version 25 against origin/main at 0c9f8c6 (version 24), under `/usr/bin/time -l`,
   instructions and peak footprint the medians of five runs, wall time the median of thirty from
   outside; a warm start has its image in the cache. A process that does nothing: main 14.7 M,
-  1.54 MB, 1.43 ms (13.7 M, 1.49 MB, 1.29 ms with an allowance of 64 MiB); here 13.8 M and
-  1.39 MB, with any allowance, since the layout no longer follows it: 49 GB of addresses where
-  main reserved 195 GB, or 2 GB at 64 MiB. The lens flow (`ck text lens/to-nodes.ck lens/all.ck`
-  on `(add 1 2)`): main 269.4 M, 3.92 MB, 12.8 ms; cold 269.7 M, 3.75 MB, 12.4 ms; warm 17.8 M,
-  2.05 MB, 1.67 ms. The image flow of `check-image`: main 946.5 M, 5.77 MB, 42.6 ms; cold 946.1 M,
-  5.60 MB, 42.4 ms; warm 113.8 M, 2.59 MB, 6.2 ms; its start with no request 851.1 M and 38.1 ms on
-  main, 15.5 M, 1.84 MB and 1.49 ms warm. The lens image is 1.9 MB: 117 pages in 16 extents and a check of 2.7 kB; what a warm
+  1.54 MB, 1.43 ms (13.7 M, 1.49 MB, 1.29 ms with an allowance of 64 MiB); here 14.1 M, 1.28 MB
+  and 1.25 ms (13.8 M, 1.26 MB, 1.11 ms at 64 MiB): 49 GB of addresses where main reserved 195 GB,
+  2 GB at 64 MiB as on main; in alternating runs at 64 MiB 13.76 M against main's 13.59 M, the
+  17 KB the executable grew by. The lens flow (`ck text lens/to-nodes.ck lens/all.ck` on
+  `(add 1 2)`): main 269.4 M, 3.92 MB, 12.8 ms; cold 269.6 M, 3.67 MB, 11.3 ms; warm 18.0 M,
+  2.13 MB, 1.53 ms. The image flow of `check-image`: main 946.5 M, 5.77 MB, 42.6 ms; cold 946.4 M,
+  5.60 MB, 40.0 ms; warm 114.0 M, 2.59 MB, 5.6 ms; its start with no request 851.1 M and 38.1 ms on
+  main, 15.7 M, 1.84 MB and 1.37 ms warm. The long programs run cold as on main, in instructions:
+  `ground/gives-back.ck` 31.359 G against 31.356 G, the long recursion 26.947 G against 26.948 G,
+  `ground/nums-compiled-agrees.ck` 206.411 G against 206.410 G; a lookup by id had cost 2.5% while
+  it asked first whether the catalogue's ids were made. The lens image is 1.9 MB: 117 pages in 16 extents and a check of 2.7 kB; what a warm
   process maps it shares with every other until it writes a page. Starts that take from the host
   are cold as before: the Metal image's start 1,284 M and 51 ms on both, the maker of a substrate 109.0 M
   and 6.3 ms, a joiner 93.3 M and 6.1 ms.

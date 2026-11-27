@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,181 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,196 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -347,13 +347,16 @@ Each line here is held by a program in `make check-full`, or names how it was se
   each case that must not be entered is not: a start file changed, changed with its size and
   times put back, another executable, another layout version, an allowance smaller than the image
   charges, `CK_SHARE`, an image cut short, a builder's file left mid-save, and a start that read
-  the clock, which saves nothing; a start whose last file reads the clock saves and later enters
-  the image of the files before it, the same bytes as that part alone saves. Measured on this M4 Max under `/usr/bin/time -l` (medians of
-  five) and from outside (median wall of thirty), cold against warm: the lens flow 269.7 M
-  instructions, 3.75 MB and 12.4 ms against 17.8 M, 2.05 MB and 1.67 ms; the image flow of
-  `check-image` 946.1 M, 5.60 MB and 42.4 ms against 113.8 M, 2.59 MB and 6.2 ms, and its start
-  with no request 850.7 M and 37.6 ms against 15.5 M and 1.49 ms. A process that does nothing
-  takes 13.8 M instructions and 1.39 MB, as on main.
+  the clock, which saves nothing, and so do a start that reads the stack and one that runs code
+  that reads the processor's counter; a start whose last file reads the clock saves and later
+  enters the image of the files before it, the same bytes as that part alone saves, and once that
+  file is pure the whole start is saved from the part it entered, and is not entered after its
+  first file changes. Measured on this M4 Max under `/usr/bin/time -l` (medians of
+  five) and from outside (median wall of thirty), cold against warm: the lens flow 269.6 M
+  instructions, 3.67 MB and 11.3 ms against 18.0 M, 2.13 MB and 1.53 ms; the image flow of
+  `check-image` 946.4 M, 5.60 MB and 40.0 ms against 114.0 M, 2.59 MB and 5.6 ms, and its start
+  with no request 851.0 M and 35.4 ms against 15.7 M and 1.37 ms. A process that does nothing
+  takes 14.1 M instructions where main took 14.7 M, and 13.76 M at 64 MiB where main took 13.59 M.
 
 **Replacing what runs**
 
@@ -466,12 +469,22 @@ running compiled code against frames all the way down).
   saved: the Metal image's start (51 ms here, as on main) and a member's start are cold. The part of a start
   before its first file that takes from the host is saved, but a file that loads and then opens
   is one file, and nothing yet runs after a map what a package must make again for the process
-  (a `reborn` list). The saver is C,
-  not a recipe. A file is checked by its signature and not its content, and the image is not
-  synced to the disk before it is named. Images gather in the cache, one for each start and
-  directory, and nothing removes them. The node an image runs before it is entered may use only
-  the operations of the bootstrap and the values it carries, since nothing is bound in the
-  region it runs in.
+  (a `reborn` list). A start that runs any code is cold, compiled code too: nothing yet tells code
+  the compiler made, which reads only what it is given, from code that reads anything. The saver
+  is C, not a recipe; a copy-on-write snapshot of the region's pages (`vm_copy`, 36 to 46 µs for
+  2 MB here, seen by a probe) would let it be one. Images are kept only where `CK_IMAGES` says,
+  since nothing yet holds that directory to a size or removes an image no start uses. A page of
+  an image is trusted as written: one byte changed in it is answered from, where a cold start
+  answers otherwise; hashing every page of the lens image would cost 0.26 to 0.6 ms of its 1.67
+  ms and read every page in. The node an image runs before it is entered may use only the
+  operations of the bootstrap and the values it carries, since nothing is bound where it runs, so
+  `region/rest.ck` is a `let` of recipes and not a component package, and it is not among the
+  files `make check-bare` counts.
+- **An area larger than its reservation.** Each area holds at most what `region/layout.ck`
+  reserves for it, however large the allowance: 1 GiB for the text, the print, the frames, links,
+  activations and most of the walker's tables, 256 MiB for the asked and answered bytes, born code
+  and the bindings. A file of more than 1 GiB is the fault `full` with `text` here, where on main
+  it was read when the allowance held it.
 - **A neutral store.** What is stored should be meaning in the numeric space with every word
   beside it. One step is taken: the 74 operations describe themselves as nodes, what each
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
