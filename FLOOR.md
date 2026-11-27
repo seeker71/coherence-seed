@@ -433,8 +433,9 @@ running compiled code against frames all the way down).
   Memory a host function hands out is outside the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. Of the
   bootstrap's own host functions only Metal has left C. Metal prepares its message signatures when it opens. On the M4 Max, the same 481-stage
-  Llama graph with layout-matched kernels took about 142 ms to encode with prepared calls.
-  The general row path took about 874 ms. Both produced the reference token histories.
+  Llama graph with layout-matched kernels took about 108 ms to encode with prepared
+  calls and prebound buffer views. The general row path took about 874 ms. The two
+  paths returned byte-identical logits across four turns in two stream histories.
   The native call observes the host choice scope (`ground/host-refused.ck`). A program that lays the berth out by hand and runs its leaf is not refused.
   A dispatch is not reentrant: entering the door's guard from inside it is a fault.
   A library leaf bound as an entry's implementation does not run the map, where the C ran it

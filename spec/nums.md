@@ -214,8 +214,11 @@ allocation descriptors. It returns the content ID of that declaration. Within a 
 mounting the same declaration again returns the same ID and keeps the existing state.
 The caller keeps the mapped weight file stable for the lifetime of the model.
 `metal.advance` takes that ID, a batch with an empty library field, and the desired
-readbacks. Turns reuse the device, library, pipeline cache, buffers and queue. The
-stage views select each stream's own scratch and KV allocations. `metal.retire`
+readbacks. At mount, each allocation gets a numeric binding with its Metal buffer
+handle, logical length and starting byte offset. Both stage views and readbacks
+resolve ranges through that binding. Turns reuse the device, library, pipeline
+cache, buffers and queue. Each turn binds its command encoder once. The stage
+views select each stream's own scratch and KV allocations. `metal.retire`
 releases the worker's ownership and makes the ID available for a fresh mount.
 
 Each resident turn runs at a committed boundary. Before encoding, a host memory
