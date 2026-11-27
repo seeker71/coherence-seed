@@ -135,9 +135,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   where a host wants a narrower type; in C# about half are an entry compared with `is`, which
   takes only a constant. A member read is cast to the shape it reads, and a value of unknown
   type to the type its place declares. Numbers the package names are written by name, and long
-  argument lists are broken at the language's width. The old
-  kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
-  BML rows do not yet keep a search's meaning where a choice is a search. The encoder's package,
+  argument lists are broken at the language's width. The BML is
+  written as `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first
+  lines say it reads as Form reads its nodes, where `choice` answers every option; no reader yet
+  lowers those searches to recipes. The encoder's package,
   `nums/arm.ck`, is written by the same writer in all five.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
