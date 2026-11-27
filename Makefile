@@ -3,7 +3,7 @@
 # Nothing here needs more than a C compiler: no part of the old kernel builds or runs this repository.
 # How many times the stored nodes may still read a part of a node by a bare number (graph node
 # 7.22). The count is of the nodes, whatever names lie beside them. It is lowered, never raised.
-BARE = 464
+BARE = 461
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 ifeq ($(shell uname -s),Linux)
@@ -103,7 +103,7 @@ check-image: seed-run
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image, cold and entered from its start saved at rest, the same bytes"; \
 	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
-	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work" "$$images"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | ./ck text /dev/stdin; }; \
+	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work" "$$images"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | $(NODES) | ./ck text /dev/stdin; }; \
 	    ./ck text share/pack.ck < ground/nums-image.ck > "$$work/member"; \
 	    { printf '\003'; idof 16; idof 77; idof 78; idof 79; } > "$$work/part"; ./seed-run "$$work/member" < "$$work/part" > "$$work/part.reply"; \
 	    { printf '\001'; idof 16; dd if="$$work/part.reply" bs=1 skip=1 count=32 2>/dev/null; } > "$$work/holder"; \
@@ -159,6 +159,8 @@ check-header: ck
 # the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
 # it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
+# A canonical print written here is read by the reader in form and stored as the records ck reads.
+NODES = ./ck text form/from-print.ck
 shown = printf %s $(1) | ./ck text share/show.ck share/load.ck
 # Wait until the substrate named $(1) has a member, for at most ten seconds.
 joined = n=0; until $(call shown,$(1)) > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
@@ -194,9 +196,9 @@ ground-isolated: ck fb
 	    $(call shown,$$dead) | head -1 > $(G).new; cat ground/add.ck; } | ./ck run /dev/stdin $(MEMBER)); new=$$(cat $(G).new); \
 	  [ "$$got" = 'node [#4 2a]' ] && [ -n "$$old" ] && [ -n "$$new" ] && [ "$$new" != "$$old" ] && ! $(call shown,$$dead) > /dev/null 2>&1 || \
 	    { echo "ground: after every member was killed the next answered '$$got'; the substrate before: '$$old', after: '$$new'"; exit 1; }; \
-	  export CK_SHARE=$$stale; ( (sleep 1; echo '#33') | ./ck run /dev/stdin $(MEMBER) > /dev/null 2>&1 &); $(call joined,$$stale); \
+	  export CK_SHARE=$$stale; ( (sleep 1; cat ground/add.ck) | ./ck run /dev/stdin $(MEMBER) > /dev/null 2>&1 &); $(call joined,$$stale); \
 	  (printf %s $$stale | env -u CK_SHARE ./ck run ground/substrate-stale.ck > $(G).stale 2>&1 &); sleep 1.3; \
-	  ( (sleep 2; echo '#33') | ./ck run /dev/stdin $(MEMBER) > /dev/null 2>&1 &); sleep 3.2; \
+	  ( (sleep 2; cat ground/add.ck) | ./ck run /dev/stdin $(MEMBER) > /dev/null 2>&1 &); sleep 3.2; \
 	  [ "$$(cat $(G).stale)" = 'node (#16)' ] && ! $(call shown,$$stale) > /dev/null 2>&1 || { echo "ground: burying through a stale mapping: $$(cat $(G).stale)"; exit 1; }; \
 	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; and a process that buried through its mapping of a substrate already ended left the live one of that name alone"
 
@@ -219,11 +221,11 @@ check-ice: ck fb
 	@name=/ck.ice.$$$$; export CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456; trap './fb drop '$$name' 2>/dev/null; rm -f .ck-check.ice .ck-check.named' EXIT; \
 	  ./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck $(MEMBER) lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin $(MEMBER)); \
-	  if [ "$$b" = "node $$(./ck text lens/to-print.ck < ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(cat .ck-check.named), by a second member: the same node"; \
-	  else echo "ice: named '$$(cat .ck-check.named)', which is '$$b'"; exit 1; fi
+	  if [ "$$b" = "node $$(./ck text lens/to-print.ck < ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by a member of a substrate, and named by its handle alone, $$(./ck text lens/to-print.ck < .ck-check.named), by a second member: the same node"; \
+	  else echo "ice: named '$$(./ck text lens/to-print.ck < .ck-check.named)', which is '$$b'"; exit 1; fi
 	@d=$(IMAGES); mkdir -p "$$d/images"; export CK_IMAGES="$$d/images"; I="$$CK_IMAGES/coherence-seed-images"; trap 'rm -rf "$$d"' EXIT; \
-	  bind() { printf '(#71 #4096 (#36 [#4 0%s]))' "$$1" > "$$d/start.ck"; }; \
-	  printf '(#4096)' > "$$d/program.ck"; \
+	  bind() { printf '(#71 #4096 (#36 [#4 0%s]))' "$$1" | $(NODES) > "$$d/start.ck"; }; \
+	  printf '(#4096)' | $(NODES) > "$$d/program.ck"; \
 	  ask() { ./ck run "$$d/program.ck" "$$d/start.ck" 2>&1; }; \
 	  image() { ls "$$I"/*.image 2>/dev/null; }; \
 	  fail=0; is() { [ "$$1" = "$$2" ] || { echo "  $$3: '$$1', not '$$2'"; fail=1; }; }; \
@@ -234,7 +236,7 @@ check-ice: ck fb
 	    od -A n -t u8 -j 88 -N $$((n * 24)) "$$1"; dd if="$$1" bs=16384 skip=$$((low / 16384)) count=$$(((spot - low + 16383) / 16384)) 2>/dev/null | head -c $$((spot - low)); }; \
 	  pages "$$one" > "$$d/pages"; rm -f "$$one"; CK_MEMORY_BYTES=67108864 ./ck run "$$d/program.ck" "$$d/start.ck" > /dev/null; \
 	  pages "$$one" | cmp -s - "$$d/pages" || { echo "  a start saved at another allowance saved other pages"; fail=1; }; \
-	  if [ "$$(uname -m)" = arm64 ] && arch -x86_64 /usr/bin/true 2>/dev/null && mkdir -p "$$d/x86/region" && cp region/rest.ck "$$d/x86/region/" && $(CC) -arch x86_64 $(CFLAGS) -o "$$d/x86/ck" bootstrap/ck.c 2>/dev/null; then \
+	  if [ "$$(uname -m)" = arm64 ] && arch -x86_64 /usr/bin/true 2>/dev/null && mkdir -p "$$d/x86/region" "$$d/x86/form" && cp region/rest.ck "$$d/x86/region/" && cp form/nodes.ck form/print.ck "$$d/x86/form/" && $(CC) -arch x86_64 $(CFLAGS) -o "$$d/x86/ck" bootstrap/ck.c 2>/dev/null; then \
 	    rm -f "$$one"; is "$$(arch -x86_64 "$$d/x86/ck" run "$$d/program.ck" "$$d/start.ck" 2>&1)" 'node [#4 01]' 'built for x86-64'; \
 	    pages "$$one" | cmp -s - "$$d/pages" || { echo "  the executable built for x86-64 saved other pages"; fail=1; }; fi; \
 	  rm -f "$$one"; ask > /dev/null; cmp -s "$$one" "$$d/first" || { echo "  a build after the others differs from the first"; fail=1; }; \
@@ -248,42 +250,42 @@ check-ice: ck fb
 	  dd if="$$d/first" of="$$one" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'an image cut short'; cmp -s "$$one" "$$d/first" || { echo "  an image cut short was not replaced"; fail=1; }; \
 	  rm -f "$$one"; dd if="$$d/first" of="$$one.ab12cd" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'a builder killed mid-save'; cmp -s "$$one" "$$d/first" && [ -e "$$one.ab12cd" ] || { echo "  a young builder's file was taken for an image, or removed"; fail=1; }; \
 	  rm -f "$$one"; touch -t 202001010000 "$$one.ab12cd"; is "$$(ask)" 'node [#4 01]' 'a builder killed long ago'; cmp -s "$$one" "$$d/first" && [ ! -e "$$one.ab12cd" ] || { echo "  an old builder's file was not removed"; fail=1; }; \
-	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
-	  printf '(#100 (#35 [#3]) (#36 (#40 (#39 (#42 (#44 (#49 (#35 [#3 01]) (#65 ^1)))) [#4]) (#108 (#67 ^1 ^9) (#110 (#37 (#38) ^1 (#46 ^9 [#4 01])) [#4 08])))) (#100 ^9 (#37 ^1 (#94 [#4 f004] ^20) ^12) (#100 (#35 [#3 02]) (#37 ^1 (#94 [#4 f804] ^20) ^12) (#70 #89 (#70 #16 (#43 (#40 [#2 73] (#70 #94 (#70 #16 (#43 (#40 (#47 (#46 ^9 ^26) [#4 0010]) ^42)))))))))))' > "$$d/top.ck"; ./ck run "$$d/top.ck" | sed 's/^node //' > "$$d/stack.ck"; printf '(#90 [#2 73])' > "$$d/held.ck"; one1=$$(./ck run "$$d/held.ck" "$$d/stack.ck"); \
+	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' | $(NODES) > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
+	  printf '(#100 (#35 [#3]) (#36 (#40 (#39 (#42 (#44 (#49 (#35 [#3 01]) (#65 ^1)))) [#4]) (#108 (#67 ^1 ^9) (#110 (#37 (#38) ^1 (#46 ^9 [#4 01])) [#4 08])))) (#100 ^9 (#37 ^1 (#94 [#4 f004] ^20) ^12) (#100 (#35 [#3 02]) (#37 ^1 (#94 [#4 f804] ^20) ^12) (#70 #89 (#70 #16 (#43 (#40 [#2 73] (#70 #94 (#70 #16 (#43 (#40 (#47 (#46 ^9 ^26) [#4 0010]) ^42)))))))))))' | $(NODES) > "$$d/top.ck"; ./ck run "$$d/top.ck" | sed 's/^node //' | $(NODES) > "$$d/stack.ck"; printf '(#90 [#2 73])' | $(NODES) > "$$d/held.ck"; one1=$$(./ck run "$$d/held.ck" "$$d/stack.ck"); \
 	  is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that read the stack'; [ "$$one1" != "$$(./ck run "$$d/held.ck" "$$d/stack.ck")" ] || { echo "  two starts read the same bytes of the stack: one was entered"; fail=1; }; \
-	  if [ "$$(uname -m)" = arm64 ]; then printf '(#89 [#2 74] (#51 [#52 40e03bd5010080d2c0035fd6]))' > "$$d/code.ck"; printf '(#90 [#2 74])' > "$$d/counter.ck"; one1=$$(./ck run "$$d/counter.ck" "$$d/code.ck"); \
+	  if [ "$$(uname -m)" = arm64 ]; then printf '(#89 [#2 74] (#51 [#52 40e03bd5010080d2c0035fd6]))' | $(NODES) > "$$d/code.ck"; printf '(#90 [#2 74])' | $(NODES) > "$$d/counter.ck"; one1=$$(./ck run "$$d/counter.ck" "$$d/code.ck"); \
 	    is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'a start that ran code'; [ "$$one1" != "$$(./ck run "$$d/counter.ck" "$$d/code.ck")" ] || { echo "  two starts read one count of the clock in code: one was entered"; fail=1; }; fi; \
 	  rm -f "$$one"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start whose last file read the clock'; \
 	  is "$$(ls "$$I" | wc -l | tr -d ' ')" 1 'the part of a start before a file that read the clock'; cmp -s "$$one" "$$d/first" || { echo "  the part of a start at rest was not saved as that part alone is"; fail=1; }; \
 	  saved=$$(ls -i "$$one"); is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start entered at its part at rest'; is "$$(ls -i "$$one")" "$$saved" 'the image of the part entered'; \
-	  printf '(#71 #4096 (#36 [#4 06]))' > "$$d/impure.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the rest of a start made pure'; \
+	  printf '(#71 #4096 (#36 [#4 06]))' | $(NODES) > "$$d/impure.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the rest of a start made pure'; \
 	  is "$$(ls "$$I" | wc -l | tr -d ' ')" 2 'the whole start saved after its part was entered'; whole=$$(ls -i "$$I"); \
-	  printf '(#71 #4096 (#36 [#4 07]))' > "$$d/start.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the first file of a whole start changed'; \
+	  printf '(#71 #4096 (#36 [#4 07]))' | $(NODES) > "$$d/start.ck"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the first file of a whole start changed'; \
 	  is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 06]' 'the whole start entered'; [ "$$(ls -i "$$I")" != "$$whole" ] || { echo "  a whole start saved from an entered part does not check that part's files"; fail=1; }; \
-	  rm -f "$$I"/*.image; printf '(#89 [#2 76] (#45 (#39 (#115 #5 [#4 80f0fa02]) [#2 626967]) (#36 [#2 736d616c6c])))' > "$$d/big.ck"; printf '(#90 [#2 76])' > "$$d/v.ck"; \
+	  rm -f "$$I"/*.image; printf '(#89 [#2 76] (#45 (#39 (#115 #5 [#4 80f0fa02]) [#2 626967]) (#36 [#2 736d616c6c])))' | $(NODES) > "$$d/big.ck"; printf '(#90 [#2 76])' | $(NODES) > "$$d/v.ck"; \
 	  is "$$(CK_MEMORY_BYTES=41943040 ./ck run "$$d/v.ck" "$$d/big.ck")" 'node [#2 736d616c6c]' 'a start that caught full at 40 MiB'; is "$$(ls "$$I" | wc -l | tr -d ' ')" 0 'a start that met the end of its allowance'; \
 	  is "$$(CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" "$$(CK_IMAGES= CK_MEMORY_BYTES=62914560 ./ck run "$$d/v.ck" "$$d/big.ck")" 'the same start at 60 MiB, as a cold start answers there'; is "$$(CK_MEMORY_BYTES=41943040 ./ck run "$$d/v.ck" "$$d/big.ck")" 'node [#2 736d616c6c]' 'its image offered at 40 MiB'; \
-	  if [ "$$(uname -m)" = arm64 ]; then rm -f "$$I"/*.image; printf '(#89 [#2 64] (#45 (#51 [#52 fd7bbfa9ffffff97]) (#36 (#35 [#3]))))' > "$$d/deep.ck"; printf '(#90 [#2 64])' > "$$d/d.ck"; \
+	  if [ "$$(uname -m)" = arm64 ]; then rm -f "$$I"/*.image; printf '(#89 [#2 64] (#45 (#51 [#52 fd7bbfa9ffffff97]) (#36 (#35 [#3]))))' | $(NODES) > "$$d/deep.ck"; printf '(#90 [#2 64])' | $(NODES) > "$$d/d.ck"; \
 	    is "$$(./ck run "$$d/d.ck" "$$d/deep.ck")" 'node [#2 6372617368]' 'a start that caught code falling off the stack'; is "$$(ls "$$I" | wc -l | tr -d ' ')" 0 'a start that met the depth of its stack'; fi; \
-	  rm -f "$$I"/*.image; for k in 1 2 3; do printf '(#71 #4096 (#36 [#4 0%s]))' $$k > "$$d/e$$k.ck"; CK_IMAGES_BYTES=700000 ./ck run "$$d/program.ck" "$$d/e$$k.ck" > /dev/null; done; \
+	  rm -f "$$I"/*.image; for k in 1 2 3; do printf '(#71 #4096 (#36 [#4 0%s]))' $$k | $(NODES) > "$$d/e$$k.ck"; CK_IMAGES_BYTES=700000 ./ck run "$$d/program.ck" "$$d/e$$k.ck" > /dev/null; done; \
 	  last=$$(ls -t "$$I"/*.image | head -1); kept=$$(ls -i "$$last"); is "$$(cat "$$I"/*.image | wc -c | awk '{print ($$1 <= 700000)}')" 1 'a directory of images over its cap after a save'; \
 	  is "$$(CK_IMAGES_BYTES=700000 ./ck run "$$d/program.ck" "$$d/e3.ck")" 'node [#4 03]' 'the start whose image was saved last'; is "$$(ls -i "$$last")" "$$kept" 'the image saved last, kept and entered'; \
 	  s="$$d/shared"; mkdir -p "$$s/sub.image"; dd if=/dev/zero of="$$s/Pharo.image" bs=16384 count=128 2>/dev/null; printf 'tiny!' > "$$s/tiny.image"; printf 'notes' > "$$s/notes.txt"; ln -s "$$s/notes.txt" "$$s/link.image"; \
 	  mkdir -p "$$s/coherence-seed-images"; printf 'not an image' > "$$s/coherence-seed-images/0123456789abcdef0123456789abcdef.image"; ln -s "$$s/notes.txt" "$$s/coherence-seed-images/fedcba9876543210fedcba9876543210.image"; \
-	  for k in 4 5; do printf '(#71 #4096 (#36 [#4 0%s]))' $$k > "$$d/e$$k.ck"; CK_IMAGES="$$s" CK_IMAGES_BYTES=1 ./ck run "$$d/program.ck" "$$d/e$$k.ck" > /dev/null; done; \
+	  for k in 4 5; do printf '(#71 #4096 (#36 [#4 0%s]))' $$k | $(NODES) > "$$d/e$$k.ck"; CK_IMAGES="$$s" CK_IMAGES_BYTES=1 ./ck run "$$d/program.ck" "$$d/e$$k.ck" > /dev/null; done; \
 	  for f in Pharo.image tiny.image notes.txt link.image sub.image coherence-seed-images/0123456789abcdef0123456789abcdef.image coherence-seed-images/fedcba9876543210fedcba9876543210.image; do [ -e "$$s/$$f" ] || [ -L "$$s/$$f" ] || { echo "  eviction removed $$f, which is not its image"; fail=1; }; done; \
 	  [ "$$(cat "$$s/notes.txt")" = notes ] && [ "$$(ls "$$s/coherence-seed-images" | wc -l | tr -d ' ')" = 3 ] || { echo "  eviction under a shared folder: $$(ls "$$s/coherence-seed-images" | tr '\n' ' ')"; fail=1; }; \
 	  mkdir -m 777 "$$d/open" "$$d/open/coherence-seed-images"; chmod 777 "$$d/open/coherence-seed-images"; is "$$(CK_IMAGES="$$d/open" ask)" "$$(CK_IMAGES= ask)" 'a folder others may write'; is "$$(ls "$$d/open/coherence-seed-images" | wc -l | tr -d ' ')" 0 'images kept in a folder others may write'; \
 	  mkdir -m 777 "$$d/pub"; chmod 777 "$$d/pub"; is "$$(CK_IMAGES="$$d/pub" ask)" "$$(CK_IMAGES= ask)" 'a folder of images under one others may write'; is "$$(ls -A "$$d/pub" | wc -l | tr -d ' ')" 0 'images kept under a folder others may write'; \
 	  shared=$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l); is "$$(env -u CK_IMAGES HOME= ./ck run "$$d/program.ck" "$$d/start.ck")" "$$(CK_IMAGES= ask)" 'a start with no HOME'; is "$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l)" "$$shared" 'images kept without a HOME'; \
-	  printf '(#89 #103 (#34 (#89 [#2 61] [#4 01])))' > "$$d/a.ck"; printf '(#89 #103 (#34 (#89 [#2 62] [#4 02])))' > "$$d/b.ck"; printf '(#70 #16 (#43 (#40 (#90 [#2 61]) (#90 [#2 62]))))' > "$$d/ab.ck"; \
+	  printf '(#89 #103 (#34 (#89 [#2 61] [#4 01])))' | $(NODES) > "$$d/a.ck"; printf '(#89 #103 (#34 (#89 [#2 62] [#4 02])))' | $(NODES) > "$$d/b.ck"; printf '(#70 #16 (#43 (#40 (#90 [#2 61]) (#90 [#2 62]))))' | $(NODES) > "$$d/ab.ck"; \
 	  is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'two files each leaving what runs after'; is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'the same start entered'; \
 	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start saved at another allowance, and by the executable built for x86-64 where it runs, saved the same pages; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept, and nothing not its own touched"; \
 	  [ $$fail = 0 ]
 
 check-native: ck
 	@set -e; if [ "$$(uname -s)" = Darwin ] && ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/native-add.ck; then \
-	  binary=$$(mktemp); trap 'rm -f "$$binary"' EXIT; cp ck "$$binary"; chmod +x "$$binary"; \
+	  home=$$(mktemp -d); binary="$$home/ck"; trap 'rm -rf "$$home"' EXIT; mkdir "$$home/form"; cp form/print.ck "$$home/form/"; cp ck "$$binary"; chmod +x "$$binary"; \
 	  codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements "$$binary" 2>/dev/null; \
 	  test "$$("$$binary" run ground/native-add.ck)" = 'node [#4 2a]'; \
 	  echo "native: generated code and frames agree under the hardened runtime"; \

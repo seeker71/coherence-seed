@@ -1649,10 +1649,10 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (!f.aux) {                       /* it was asked from outside: the outcome goes back to who asked */
-        void *dst = (uint8_t *)fb + fb->a[A_ANSWERED].off;
-        if (numeric_io) { room(A_ANSWERED, 32); memcpy(dst, idof(W->v), 32); N(A_ANSWERED) = 32; }
-        else { print(W->v); uint64_t n = nob < fb->a[A_ANSWERED].cap ? nob : fb->a[A_ANSWERED].cap;
-          room(A_ANSWERED, n); memcpy(dst, ob, n); N(A_ANSWERED) = n; } N(A_ASKED) = 0;
+        H b = nd[W->v].comp && KID(W->v, 0) == notice(S_NODE) && !nd[KID(W->v, 1)].comp ? KID(W->v, 1) : 0;   /* in text: the bytes */
+        uint64_t n = numeric_io ? 32 : b && nd[b].n <= fb->a[A_ANSWERED].cap ? nd[b].n : 0;  /* the asked node answered, */
+        room(A_ANSWERED, n); memcpy((uint8_t *)fb + fb->a[A_ANSWERED].off, numeric_io ? idof(W->v) : bytes + nd[b].off, n);  /* or none */
+        N(A_ANSWERED) = n; N(A_ASKED) = 0;
       }
       W->env = f.env; W->cut = f.cut; W->x = f.node; W->one = f.i; W->reason = f.vals; W->mode = M_EVAL; break; }
     case F_LET: {                         /* a new activation: the one the let stands in, with one argument set */
@@ -1864,7 +1864,7 @@ static int send_outcome(void) {
 typedef struct { uint64_t off, n, at; } Extent;          /* n bytes of the region at off, in the file at at */
 #define READS 64
 static struct { const char *path; uint64_t at, n; H name, content; } reads[READS]; static uint32_t nreads;
-static uint64_t text_base; static const char *rest_path; static char rest_buf[PATH_MAX];
+static uint64_t text_base; static const char *rest_path; static char home[PATH_MAX], rest_buf[PATH_MAX];   /* the executable's folder */
 static void read_seen(const char *path, uint64_t at, uint64_t n, H name, H content) {   /* a file the start read */
   if (!reading) return;
   if (nreads == READS || ncp || (!path && !content)) { fb->me.taken++; return; }   /* under a choice, what was read may be given back; */
@@ -1913,9 +1913,10 @@ static void image_load(int fd, const Extent *e, uint32_t n) {
         : mmap((uint8_t *)fb + e[i].off, (size_t)e[i].n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, (off_t)e[i].at) == MAP_FAILED) die("an image could not be mapped");
   put_own();
 }
-/* What region/rest.ck is told of a start: the executable's identity, the port, the start's paths and the layout's facts. */
+/* What region/rest.ck is told of a start: the executable's identity, the port, the start's paths, the layout's facts and
+ * the executable's folder, where the files it reads lie. */
 static H told(int n, char **paths) {
-  uint8_t u[16]; Status why; H g[4]; if (!n || !rest_path || !self_uuid(u)) return 0;
+  uint8_t u[16]; Status why; H g[5]; if (!n || !rest_path || !self_uuid(u)) return 0;
   const int64_t f[] = { offsetof(Head, d) + offsetof(Doors, symbol), offsetof(Head, d) + offsetof(Doors, region), (int64_t)(fb->a[A_ROOMS].off + sizeof(Room)),
     sizeof(Head), offsetof(Head, a), sizeof(Area), (int64_t)share, sizeof(Substrate), offsetof(Substrate, a), A_COUNT, S_COUNT, A_STACK, (int64_t)(off[A_STACK] - FB_PAGE),
     (int64_t)(off[A_TEXT] / FB_PAGE * FB_PAGE), (int64_t)pages_for(off[A_TEXT] + cap[A_TEXT]), offsetof(Head, m) + offsetof(Machine, ncode), offsetof(Head, me) + offsetof(Member, charged),
@@ -1925,8 +1926,8 @@ static H told(int n, char **paths) {
   for (size_t i = 0; i < sizeof f / sizeof *f; i++) v[i] = mki(f[i]);
   for (int i = 0; i < n; i++) v[sizeof f / sizeof *f + (size_t)i] = txt(paths[i]);
   g[0] = mk(0, E(BYTES), u, 16, &why); g[1] = mki(numeric_io + 2 * NUMERIC_PORT_FLAG);
-  g[2] = mk(1, E(LIST), v + sizeof f / sizeof *f, (uint64_t)n, &why); g[3] = mk(1, E(LIST), v, sizeof f / sizeof *f, &why);
-  return mk(1, E(LIST), g, 4, &why);
+  g[2] = mk(1, E(LIST), v + sizeof f / sizeof *f, (uint64_t)n, &why); g[3] = mk(1, E(LIST), v, sizeof f / sizeof *f, &why); g[4] = txt(home);
+  return mk(1, E(LIST), g, 5, &why);
 }
 /* region/rest.ck, run: its recipes. The file and the bytes it gave are kept, for the saver's check. */
 static H rest_read;
@@ -2031,6 +2032,19 @@ static int execute_image(const char *path, int warm, int keyed, char **starts) {
     run(top); if (!send_outcome()) return 2;
   }
 }
+#ifndef NUMERIC_PORT
+/* The answer line: a word and the node's canonical print, made by form/print.ck beside the executable. It runs after the
+ * program, in its region, with what the program held back left for later; the machine then shows the program's end again. */
+static void show(const char *word, H v) {
+  char path[PATH_MAX]; size_t len; Status why; Machine m = *W; uint64_t later = nafter; H q = v ? mk(1, E(QUOTE), &v, 1, &why) : 0, p, t;
+  snprintf(path, sizeof path, "%sform/print.ck", home); uint8_t *b = load(path, &len);
+  nafter = 0; if ((p = read_any(b, len, &why))) run(p);
+  if (q && p && W->outcome == 'n') run(mk(1, E(PRINT), &q, 1, &why));
+  t = q && p && W->outcome == 'n' && !nd[W->v].comp ? W->v : 0; *W = m; nafter = later;
+  if (!t) die("form/print.ck beside the executable did not print the answer");
+  put(1, word); if (!send_fd(1, bytes + nd[t].off, nd[t].n)) exit(2); put(1, "\n");
+}
+#endif
 static int command(int argc, char **argv) {
 #ifndef NUMERIC_PORT
   const char *cmd = argc > 1 ? argv[1] : "";
@@ -2060,8 +2074,8 @@ static int command(int argc, char **argv) {
     if (cmd[0] == 't' && W->outcome == 'n' && !nd[W->v].comp) {      /* a leaf answer leaves as its own bytes */
       return send_fd(1, bytes + nd[W->v].off, nd[W->v].n) ? 0 : 2;
     }
-    if (W->outcome == 'n') say("node ", print(W->v)); else say(W->outcome == '0' ? "nothing " : "fault ", print(W->reason));
-    return W->outcome == 'f' || cmd[0] == 't';
+    char o = W->outcome; show(o == 'n' ? "node " : o == '0' ? "nothing " : "fault ", o == 'n' ? W->v : W->reason);
+    return o == 'f' || cmd[0] == 't';
   }
   put(2, "usage: ck execute IMAGE | run F [B..] | text F [B..]\n");
   return 2;
@@ -2085,7 +2099,8 @@ static void *on_region(void *p) {
 }
 int main(int argc, char **argv) {
   Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at; const char *slash = strrchr(argv[0], '/');   /* region/rest.ck beside the executable */
-  if (slash && (size_t)(slash - argv[0]) + 16 < sizeof rest_buf) { snprintf(rest_buf, sizeof rest_buf, "%.*s/region/rest.ck", (int)(slash - argv[0]), argv[0]); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
+  if (slash && (size_t)(slash - argv[0]) + 16 < sizeof home) { snprintf(home, sizeof home, "%.*s", (int)(slash - argv[0]) + 1, argv[0]);
+    snprintf(rest_buf, sizeof rest_buf, "%sregion/rest.ck", home); rest_path = access(rest_buf, R_OK) ? 0 : rest_buf; }
   fb_open();
   pthread_attr_init(&at);
   if (pthread_attr_setstack(&at, (uint8_t *)fb + fb->a[A_STACK].off, fb->a[A_STACK].cap)
