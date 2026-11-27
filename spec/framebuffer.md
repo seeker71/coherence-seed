@@ -76,7 +76,8 @@ function of what was read, and is saved once; every later start with the same na
   the folder `CK_IMAGES` names, or else `~/Library/Caches/coherence-seed/images` on macOS and
   `$XDG_CACHE_HOME` or `~/.cache`, then `coherence-seed/images`, elsewhere. `CK_IMAGES` set empty,
   or no `HOME` where it is not set, keeps no image, and so does a folder that is not this user's
-  alone (made with mode 0700, refused when another may write it). Only macOS has
+  alone, or that lies in one another may write (made with mode 0700; the folder above it is
+  checked too, before anything is made in it). Only macOS has
   it yet, since the executable's identity is its `LC_UUID`, the one fact the bootstrap gives.
 - **The directory is held small.** After it saves an image, `region/rest.ck` lists its folder
   and removes the images read longest ago, never the one just saved, and only what it wrote: a
@@ -104,7 +105,8 @@ function of what was read, and is saved once; every later start with the same na
 - **Entering.** A later start runs `region/rest.ck` in a fresh region, which has nothing but
   the catalogue, given the executable's identity, the port, the start's paths and the layout's
   facts. For the start's files, then for fewer, it makes the name, and of an image there checks:
-  owned by this user and not writable by others, its length, the key, the version, the
+  owned by this user and not writable by others, and once opened the same file again by its
+  device and inode (`fstat`), its length, the key, the version, the
   executable, every extent inside the region below the stack and apart from the text, in order
   and inside the file, every area laid out as this process lays it out (compared by the host,
   record by record), no code saved, and room in the allowance for what it charges; then it reads
