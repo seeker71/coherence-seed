@@ -178,6 +178,11 @@ Stages in the submission share the allocations and one pipeline per distinct ent
 | `metal.constant-value` | Metal function constant index, Metal scalar data type and its native payload bytes |
 | `launch.view` | Zero-based input buffer index, byte offset |
 | `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
+| `launch.dimensions` | Positive X, Y and Z sizes for the extent or the threadgroup |
+
+A scalar extent runs along X. An explicit threadgroup shape must fit the pipeline's
+thread limit as a whole. Both launch modes pass all six dimensions to Metal.
+The word-map lens uses the X-fastest linear index over the dispatched grid.
 
 A model image can take a `metal.projection-plan` with operations, a kernel catalogue and
 a concurrency flag. A projection identifies the GGML type from the tensor directory,
@@ -185,6 +190,13 @@ columns, rows and the allocation containing exactly that packed matrix. Its othe
 views address Float32 activations and results. `metal.resolve-plan` binds the matching
 entry, row geometry and buffer views once when the image is built. Ordinary Metal stages
 keep their place in the same sequence. A resident model can use the resolved batch by ID.
+
+A `metal.binary-map` declares an entry, two input views, an output view, columns,
+rows, thread cap and barrier. Its kernel takes three contiguous Float32 buffers
+and a UInt32 element count. Image construction binds all rows in one dispatch.
+Each participating range must fit its allocation. An input may coincide with the
+output or occupy disjoint bytes. This layout serves both in-place residual addition
+and SwiGLU with a separate destination.
 
 `nums/projection.ck` supplies `metal.gguf-simd32` for libraries with the 32-lane Q8_0,
 Q4_K and Q6_K matrix-vector entries. These read 34 bytes per 32 values, 144 per 256 and
