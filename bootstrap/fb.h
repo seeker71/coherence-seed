@@ -53,7 +53,7 @@ enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER
 #define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", "aside", 
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE, M_COUNT };
 #define FB_MODE_NAMES "eval", "ret", "failed", "fault", "done", 
-typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t one; uint32_t ncode; uint32_t unused; uint64_t step; uint64_t code; uint64_t serve; } Machine;
+typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t pcount; uint32_t one; uint32_t ncode; uint64_t unused; uint64_t step; uint64_t code; uint64_t serve; } Machine;
 typedef struct { H bp; H by; H of; uint32_t size; uint64_t peak; uint64_t off; uint64_t cap; uint64_t n; } Area;
 typedef struct { H bp; H by; uint32_t ida; uint8_t comp; uint8_t settled; uint8_t pad[2]; uint64_t n; uint64_t off; } Node;
 typedef struct { H bp; H by; uint32_t t; H node; uint32_t i; uint32_t env; uint32_t cut; uint32_t vals; uint32_t k; uint32_t aux; uint32_t mact; uint32_t mlink; } Frame;
