@@ -145,11 +145,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   as 2,949 lines of Python, 4,980 of C#, 3,374 of TypeScript, 3,522 of Java and 2,916 of BML.
   Python's parser takes the Python, and ruff finds in it no undefined name, redefinition, unused
   local or comparison with `None`, `True` or `False`. Against a stub of the runtime that types
-  every name `any`, Deno's checker refuses 84 places in the TypeScript, 77 of them a value of type
-  unknown used where a type is needed; javac and Roslyn were not run on this writing. A member
-  read is cast to the shape it reads where the receiver's static type is another, and a value of
-  unknown type to the type its place declares. Numbers the package names are written by name, and
-  long argument lists are broken at the language's width. The BML is written as
+  every name `any`, Deno's checker refuses 81 places in the TypeScript, 77 of them a value of type
+  unknown used where a type is needed; against small stubs, javac 21 refuses 121 and Roslyn 349.
+  A member read is cast to the shape it reads where the receiver's static type is another, and a
+  value of unknown type to the type its place declares. Numbers the package names are written by
+  name, and long argument lists are broken at the language's width. The BML is written as
   `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first lines say
   it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
   those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
