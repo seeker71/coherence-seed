@@ -154,6 +154,35 @@ only under a blueprint and over children it already has. It holds the root and e
 from the start, and may hold more; the bootstrap starts with entries 0 to 99. A node read from
 text is never `unknown`, because its blueprint and children are written before it closes.
 
+## 8. Stored nodes
+
+A node file can hold its node as records instead of a print. The records are content, not a
+region's pages, so they stand across layouts and catalogues. Little-endian throughout:
+
+| Bytes | What |
+| --- | --- |
+| 8 | `CKNODES` and a line end |
+| 4 | the format word, 1 |
+| 4 | how many records |
+| 4 | how many bytes the records take |
+| each record | its kind (0 a leaf, 1 a composite) in one byte, its blueprint in 4, how many parts in 4, then that many bytes, or that many parts of 4 bytes each |
+
+A blueprint or a part is a number: an entry of the catalogue below 128 (0 is the root), or 128
+more than the place of an earlier record. Every other node is a record, an entry from 128 up too
+(a leaf of blueprint root), and each is written once, after its blueprint and its parts. The last
+record is the node. What follows the records lies beside the node and is no part of it, as the
+second line of a print is. A reader refuses a part that names no earlier record (`forward`), a
+record that is a catalogue entry below 128 or one met before (`not-canonical`), a kind above 1
+(`kind`), records that run past their bytes or a format word that is not 1 (`short`), and bytes
+left between the last record and the count (`trailing`); a record the encoding refuses is refused
+for that rule.
+
+The bootstrap reads them by making each record through the store, which finds equal content, so
+reading needs no id and no hash: the ids are taken when asked for. `form/nodes.ck` writes them:
+`(bin.write x)` is the bytes of x stored. For every stored file, the node read from its print and
+the node read from the bytes `bin.write` makes of it are one node, and writing that node again
+gives the same bytes (`ground/lens-round-trip.ck`).
+
 ## Choices
 
 Made here, neither held as guidance nor measured. Each can be reopened; changing any changes ids.

@@ -787,6 +787,36 @@ static H read_print(const char *s, Status *why) {    /* s lies in the region */
   if (x && *r.p && *r.p != '\n') x = refuse(&r, S_SYNTAX);
   *why = r.err; return x;
 }
+/* Stored nodes (spec/node-encoding.md, section 8): CKNODES and a line end, the format word 1, how many records and how
+ * many bytes they take, then each record: its kind, its blueprint, how many parts, then its bytes or its parts. A part is
+ * an entry below 128, or 128 more than an earlier record. Each node is one record, written once; the last is the node,
+ * and what follows the records lies beside it. */
+#define LE4(p) ((uint32_t)(p)[0] | (uint32_t)(p)[1] << 8 | (uint32_t)(p)[2] << 16 | (uint32_t)(p)[3] << 24)
+static H read_nodes(const uint8_t *b, uint64_t len, Status *why) {
+  uint64_t count = len >= 20 ? LE4(b + 12) : 0, size = len >= 20 ? LE4(b + 16) : 0, at = 20; H x = 0; nopen = 0;
+  if (len < 20 || LE4(b + 8) != 1 || size > len - 20 || !count || count > size / 9) { *why = S_SHORT; return 0; }
+  room(A_READER_OPENED, count); *why = S_OK;
+  for (uint64_t i = 0; i < count && !*why; i++) {
+    if (size + 20 - at < 9 || b[at] > 1) { *why = size + 20 - at < 9 ? S_SHORT : S_KIND; break; }
+    uint32_t comp = b[at], r = LE4(b + at + 1), n = LE4(b + at + 5), base = ntk; at += 9;
+    if (size + 20 - at < (uint64_t)n * (comp ? 4 : 1)) { *why = S_SHORT; break; }
+    H refs[2] = { r, 0 }; const H *part = refs;
+    if (comp) { room(A_GATHERING_CHILDREN, ntk + n); for (uint32_t j = 0; j < n; j++) tk[ntk + j] = LE4(b + at + 4 * j); part = tk + ntk; ntk += n; }
+    for (uint32_t j = 0; j < (comp ? n : 0) + 1 && !*why; j++) {   /* the blueprint, then each part, from a number to a node */
+      H *p = j ? &tk[base + j - 1] : &refs[0], v = *p;
+      *p = v < SEEDED ? E(v) : v - SEEDED < nopen ? opened[v - SEEDED] : 0; if (!*p) *why = S_FORWARD; }
+    if (!*why && (x = mk((int)comp, refs[0], comp ? (const void *)part : b + at, n, why))) {
+      touch(A_PRINT_NUMBERS, x); if (x <= SEEDED || pnum[x]) { *why = S_NOT_CANONICAL; x = 0; } else { pnum[x] = 1; opened[nopen++] = x; } }
+    ntk = base; at += (uint64_t)n * (comp ? 4 : 1);
+  }
+  for (uint32_t j = 0; j < nopen; j++) pnum[opened[j]] = 0;
+  if (!*why && at != size + 20) *why = S_TRAILING;
+  return *why ? 0 : x;
+}
+static const uint8_t NODES_MAGIC[8] = { 'C', 'K', 'N', 'O', 'D', 'E', 'S', '\n' };
+static H read_any(const uint8_t *b, uint64_t len, Status *why) {   /* stored nodes, or a print; b has a zero after it */
+  return len >= 8 && !memcmp(b, NODES_MAGIC, 8) ? read_nodes(b, len, why) : read_print((const char *)b, why);
+}
 static void oput(const char *s) { size_t l = strlen(s); room(A_PRINT, nob + l + 1); memcpy(ob + nob, s, l + 1); nob += l; }
 static const char *dec(char t[24], uint64_t v) { char *e = t + 23; *e = 0; do *--e = (char)('0' + v % 10); while (v /= 10); return e; }
 static const char HEX[] = "0123456789abcdef";
@@ -1235,7 +1265,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as a print to read, or as the path of a file */
     if (nd[x].comp) { fault(S_KIND); return; }
     uint64_t m = ntext; char *s = talloc((size_t)nd[x].n + 1); memcpy(s, bytes + nd[x].off, nd[x].n);
-    if (op == READ) { if (!(W->v = read_print(s, &why))) W->reason = notice(why); }
+    if (op == READ) { if (!(W->v = read_any((uint8_t *)s, nd[x].n, &why))) W->reason = notice(why); }
     else { int64_t got = read_text(s);
       if (got == -2) area_full(A_TEXT);
       if (got < 0) { W->v = 0; W->reason = notice(S_NO_FILE); read_seen(0, 0, 0, 0, 0); } else { room(A_TEXT, ntext + (uint64_t)got); W->v = mk(0, E(BYTES), text + ntext, (uint64_t)got, &why); read_seen(0, 0, 0, x, W->v); } }
@@ -1521,7 +1551,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       if (n == ~0ull) { N(A_ASKED) = 0; exit(143); } if (n > fb->a[A_ASKED].cap) n = 0;
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
-      why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_print(s, &why);
+      why = S_ID; q = numeric_io ? (n == 32 ? (catalogue_ids(), byid((uint8_t *)s)) : 0) : read_any((uint8_t *)s, n, &why);
       if (!q) { p = notice(why); q = mk(1, E(FAULT), &p, 1, &why); }
       ntext = mark; q = mk(1, E(OUTSIDE), &q, 1, &why); q = mk(1, E(OUTCOME), &q, 1, &why);
       W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 0); W->x = q; W->env = W->one = 0; W->cut = ncp;
@@ -1763,7 +1793,7 @@ static H notice(Status status) {
 #ifndef NUMERIC_PORT
 static H file_node(const char *path) {      /* a print file: one node on its first line */
   size_t len; Status why; uint8_t *b = load(path, &len);
-  H x = read_print((char *)b, &why);
+  H x = read_any(b, len, &why);
   if (!x) { say("refused ", status_words[why]); exit(1); }
   read_seen(path, 0, 0, 0, x); return x;                  /* a start file is checked by the node it reads to */
 }
@@ -1901,7 +1931,7 @@ static H told(int n, char **paths) {
 /* region/rest.ck, run: its recipes. The file and the bytes it gave are kept, for the saver's check. */
 static H rest_read;
 static H rest_load(void) {
-  size_t len; Status why; uint8_t *b = load(rest_path, &len); H r = read_print((char *)b, &why), p[2] = { txt(rest_path), mk(0, E(BYTES), b, len, &why) };
+  size_t len; Status why; uint8_t *b = load(rest_path, &len); H r = read_any(b, len, &why), p[2] = { txt(rest_path), mk(0, E(BYTES), b, len, &why) };
   rest_read = mk(1, E(LIST), p, 2, &why); if (r) run(r);
   return r && W->outcome == 'n' && nd[W->v].comp && nd[W->v].n == 2 ? W->v : 0;
 }

@@ -7,7 +7,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 
 | Piece | Where | State |
 | --- | --- | --- |
-| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
+| Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; a node file can hold its node as records, which the bootstrap reads by making each through the store |
 | Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,148 lines, 39 fewer since another process's region is read in Form and the layout no longer asks the host, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
@@ -523,7 +523,7 @@ running compiled code against frames all the way down).
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
   a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
   instructions are rows of data. The rest is not there. The nodes read a part by a bare number
-  474 times, the budget `make check-full` holds: the shape of a part is said only in the name
+  464 times, the budget `make check-full` holds: the shape of a part is said only in the name
   beside the node, where the lens shows `mine.ints`, and not in the node. A definition is
   still an entry numbered by hand in one lexicon, not its content. The files store the
   lowered core, so an `if` is four nested nodes. The emitter's other cases, the lens and the
