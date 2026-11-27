@@ -226,6 +226,14 @@ check-ice: ck fb
 	  bind 1; is "$$(ask)" 'node [#4 01]' 'built'; one=$$(image); [ -n "$$one" ] || { echo "  no image was saved"; fail=1; }; \
 	  cp "$$one" "$$d/first"; is "$$(ask)" 'node [#4 01]' 'entered'; cmp -s "$$one" "$$d/first" || { echo "  an entered image changed"; fail=1; }; \
 	  rm -f "$$one"; is "$$(ask)" 'node [#4 01]' 'built again'; cmp -s "$$one" "$$d/first" || { echo "  two builds of one start differ"; fail=1; }; \
+	  pages() { low=$$(od -A n -t u8 -j 104 -N 8 "$$1" | tr -d ' '); spot=$$(od -A n -t u8 -j 72 -N 8 "$$1" | tr -d ' '); n=$$(od -A n -t u4 -j 12 -N 4 "$$1" | tr -d ' '); \
+	    od -A n -t u8 -j 88 -N $$((n * 24)) "$$1"; dd if="$$1" bs=16384 skip=$$((low / 16384)) count=$$(((spot - low + 16383) / 16384)) 2>/dev/null | head -c $$((spot - low)); }; \
+	  pages "$$one" > "$$d/pages"; rm -f "$$one"; CK_MEMORY_BYTES=67108864 ./ck run "$$d/program.ck" "$$d/start.ck" > /dev/null; \
+	  pages "$$one" | cmp -s - "$$d/pages" || { echo "  a start saved at another allowance saved other pages"; fail=1; }; \
+	  if [ "$$(uname -m)" = arm64 ] && arch -x86_64 /usr/bin/true 2>/dev/null && mkdir -p "$$d/x86/region" && cp region/rest.ck "$$d/x86/region/" && $(CC) -arch x86_64 $(CFLAGS) -o "$$d/x86/ck" bootstrap/ck.c 2>/dev/null; then \
+	    rm -f "$$one"; is "$$(arch -x86_64 "$$d/x86/ck" run "$$d/program.ck" "$$d/start.ck" 2>&1)" 'node [#4 01]' 'built for x86-64'; \
+	    pages "$$one" | cmp -s - "$$d/pages" || { echo "  the executable built for x86-64 saved other pages"; fail=1; }; fi; \
+	  rm -f "$$one"; ask > /dev/null; cmp -s "$$one" "$$d/first" || { echo "  a build after the others differs from the first"; fail=1; }; \
 	  bind 2; is "$$(ask)" 'node [#4 02]' 'a start file changed'; \
 	  cp -p "$$d/start.ck" "$$d/before"; bind 3; touch -r "$$d/before" "$$d/start.ck"; is "$$(ask)" 'node [#4 03]' 'changed with its size and times put back'; \
 	  bind 1; ask > /dev/null; cp "$$one" "$$d/first"; \
@@ -266,7 +274,7 @@ check-ice: ck fb
 	  shared=$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l); is "$$(env -u CK_IMAGES HOME= ./ck run "$$d/program.ck" "$$d/start.ck")" "$$(CK_IMAGES= ask)" 'a start with no HOME'; is "$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l)" "$$shared" 'images kept without a HOME'; \
 	  printf '(#89 #103 (#34 (#89 [#2 61] [#4 01])))' > "$$d/a.ck"; printf '(#89 #103 (#34 (#89 [#2 62] [#4 02])))' > "$$d/b.ck"; printf '(#70 #16 (#43 (#40 (#90 [#2 61]) (#90 [#2 62]))))' > "$$d/ab.ck"; \
 	  is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'two files each leaving what runs after'; is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'the same start entered'; \
-	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept, and nothing not its own touched"; \
+	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start saved at another allowance, and by the executable built for x86-64 where it runs, saved the same pages; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept, and nothing not its own touched"; \
 	  [ $$fail = 0 ]
 
 check-native: ck

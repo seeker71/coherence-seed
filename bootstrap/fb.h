@@ -73,9 +73,10 @@ typedef struct { H bp; H by; uint64_t who; uint64_t start; uint32_t n; uint32_t 
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; Member me; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
-#define FB_VERSION 25u
+#define FB_VERSION 26u
 #define FB_CATALOGUE UINT64_C(33329149175459548)
 #define FB_PAGE 16384u
+#define FB_HUE 128u
 enum { FB_LANE, FB_HANDLES, FB_STACK, FB_BITS };   /* a reservation made by the bootstrap */
 #define FB_AREA_ROWS {NODE, sizeof(Node), FB_LANE}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {FRAME, sizeof(Frame), 1073741824ull}, {LINK, sizeof(Link), 1073741824ull}, {ACTIVATION, sizeof(Activation), 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {CHOICE_POINT, sizeof(ChoicePoint), 1073741824ull}, {GATHERED, sizeof(Gathered), 1073741824ull}, {CODE, sizeof(Code), 268435456ull}, {BINDING, sizeof(Binding), 268435456ull}, {WORD_TABLE, 4, FB_HANDLES}, {BINDING, sizeof(Binding), 3556ull}, {WORD_TABLE, 4, FB_HANDLES}, {TRAIL, sizeof(Trail), 1073741824ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 1073741824ull}, {BYTE_TABLE, 1, 1073741824ull}, {BYTE_TABLE, 1, 1073741824ull}, {WORD_TABLE, 4, FB_HANDLES}, {BYTE_TABLE, 1, 1073741824ull}, {BYTE_TABLE, 1, FB_STACK}, {BYTE_TABLE, 1, 268435456ull}, {BYTE_TABLE, 1, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {BYTE_TABLE, 1, 4294967296ull}, {ROOM_TRAIL, sizeof(RoomTrail), 1073741824ull}, {WORD_TABLE, 4, 16ull}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1024ull}, {BYTE_TABLE, 1, FB_BITS}, {LANE, sizeof(Lane), 64ull}, {NODE, sizeof(Node), 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, 
 #define FB_OWN(X) X(fb->pid) X(fb->bytes) X(W->code) X(W->serve) X(fb->d.symbol) X(fb->d.adopt) X(fb->d.region) X(fb->me.allowance) X(fb->a[A_STACK]) X(sub->pid) X(sub->allowance) X(sub->bytes) X(ln->who) 

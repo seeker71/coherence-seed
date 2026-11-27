@@ -30,26 +30,27 @@ The substrate header also identifies its version and extent within the region.
   page not yet used is never read, since reading it would take it.
   Backtracking can reuse charged pages. Each table retains space to grow into the common pool.
   `fb show NAME` reports both the virtual reservation and the shared memory allowance.
-- Each area reserves what `region/layout.ck` says for it (`fb.reserve`), or the power of two at
-  or above the allowance where that is less, so the layout stands still while the memory a process
-  may use moves below it: 1 GiB for most of the walker's tables, 4 GiB
-  for the store's and the rooms, 256 MiB for the small ones, one word for each handle a lane has
-  for the three tables keyed by handle, and the stack last, as large as the host's, under a page
-  nothing may touch. A process alone reserves about 49 GB of addresses, and 2 GB with an allowance of 64 MiB. The allowance is a word
-  of its own, `member.allowance`, not an area's capacity.
+- Each area reserves what `region/layout.ck` says for it (`fb.reserve`), whatever the host or the
+  allowance, so the layout is a fact of the nodes alone, the same on every host and at every
+  allowance: 1 GiB for most of the walker's
+  tables, 4 GiB for the store's and the rooms, 256 MiB for the small ones, one word for each
+  handle a lane has for the three tables keyed by handle, and the stack last, as large as the
+  host's, under a page nothing may touch. A process alone reserves about 49 GB of addresses. The
+  allowance is a word of its own, `member.allowance`, not an area's capacity.
 - At startup, available memory is divided by the number of online CPUs plus one, leaving room
   for other work. On macOS this uses free and inactive pages under normal pressure, free pages
   at warning, and zero at critical pressure. Other supported Unix builds use available physical
   pages. Linux also consults free backing space for a named region. A finite address-space
-  limit lowers the allowance. `CK_MEMORY_BYTES` can lower the allowance in decimal bytes.
+  limit lowers the allowance; one below the layout's reservation leaves the region unmade. `CK_MEMORY_BYTES` can lower the allowance in decimal bytes.
 - A request past the allowance follows Form's existing `full` fault for the growing area.
   As an area's high-water mark crosses a MiB boundary, the runtime samples the host again
   before admitting growth. File input is read in bounded chunks and reports a full text area
   if the complete input will not fit.
-- Each area but the stack begins as many lines of the data cache into its first page as there are
-  areas before it, so the first records of no two areas fall on one set of that cache; the host
-  says how long a line is (`hw.cachelinesize`, 128 bytes here), and where it does not say, every
-  area begins on a page. A reader finds each area by its offset in the head.
+- Each area but the stack begins `fb.hue` bytes (128, the longest line of a data cache among the
+  hosts here) into its first page for each area before it, so the first records of no two areas
+  fall on one set of a cache whose line is at most that. It is a row of the layout and not asked
+  of the host, so a region is laid out alike on every host. A reader finds each area by its offset
+  in the head.
 
 ## A region at rest
 
@@ -155,7 +156,7 @@ bootstrap's own function by which a process becomes a member (below). They come 
 three places above do not move when a door is added; a reader finds them at the end of the area
 table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 25 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 26 lays it
 out.
 
 | Area | Records | Holds |

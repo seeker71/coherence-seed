@@ -74,7 +74,6 @@ typedef struct {
   void *(*symbol)(const char *name);               /* where the host keeps what it calls by that name */
   void (*guard)(void (*on)(int), void *stack, size_t n);   /* a fault of the processor is handed to on, on its own stack */
   uint64_t (*memory)(void);                        /* available bytes on this host now */
-  uint64_t (*line)(void);                          /* how many bytes a line of its data cache holds; 0 when it does not say */
 } Host;
 static int64_t h_clock(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (int64_t)t.tv_sec * 1000000000 + t.tv_nsec; }
 static void *h_region(const char *name, uint64_t n) {
@@ -188,17 +187,7 @@ static int64_t h_file_read(const char *path, uint8_t *to, uint64_t cap, uint64_t
   }
   *written = n; close(fd); return result;
 }
-static uint64_t h_line(void) {
-#ifdef __APPLE__
-  uint64_t l = 0; size_t len = sizeof l;
-  if (!sysctlbyname("hw.cachelinesize", &l, &len, NULL, 0) && l) return l;
-#endif
-#ifdef _SC_LEVEL1_DCACHE_LINESIZE
-  long l1 = sysconf(_SC_LEVEL1_DCACHE_LINESIZE); if (l1 > 0) return (uint64_t)l1;
-#endif
-  return 0;
-}
-static Host host = { h_region, h_code_map, h_code_publish, h_file_read, h_call, h_clock, h_symbol, h_guard, h_memory, h_line };
+static Host host = { h_region, h_code_map, h_code_publish, h_file_read, h_call, h_clock, h_symbol, h_guard, h_memory };
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
@@ -344,7 +333,7 @@ static void fb_reset(void) {             /* the region's head as fb_open made it
   room(A_SEEN, 1); N(A_SEEN) = 1; room(A_TOUCHED, cap[A_TOUCHED]); N(A_TOUCHED) = cap[A_TOUCHED];
 }
 static void fb_open(void) {
-  uint64_t budget = host.memory(), line = host.line(), bits = 0; struct rlimit limit;
+  uint64_t budget = host.memory(), bits = 0; struct rlimit limit;
   if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur < budget) budget = limit.rlim_cur;
   const char *setting = getenv("CK_MEMORY_BYTES");
   if (setting) {
@@ -354,9 +343,8 @@ static void fb_open(void) {
   }
   uint64_t mem = budget / FB_PAGE * FB_PAGE;
   if (mem < (1u << 17) + 4 * FB_PAGE) die("insufficient host memory for the framebuffer");
-  uint64_t ceiling = 1; while (ceiling < mem) ceiling <<= 1;   /* no area reserves more than the allowance could fill: a power of two, so */
-  for (int i = 0; i < A_COUNT + S_COUNT; i++)                    /* that the layout stands still while the allowance moves below it */
-    cap[i] = L[i].reserve > FB_BITS ? (L[i].reserve < ceiling ? L[i].reserve : ceiling) / L[i].size : 0;
+  for (int i = 0; i < A_COUNT + S_COUNT; i++)   /* what region/layout.ck reserves, whatever this host or its allowance: one layout on every host */
+    cap[i] = L[i].reserve > FB_BITS ? L[i].reserve / L[i].size : 0;
   for (int i = 0; i < A_COUNT; i++) {
     if (LANED[i]) cap[i] = cap[SA(LANED[i] - 1)];
     if (L[i].reserve == FB_HANDLES) { cap[i] = getenv("CK_SHARE") ? SPAN : cap[SA(S_NODES)] + 8;   /* one for each handle: of the lane, or of any lane */
@@ -375,7 +363,7 @@ static void fb_open(void) {
     if (i == A_STACK || (a < A_COUNT && LANED[a])) continue;   /* the stack comes last; a laned table lies in the lane, below */
     if (a == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
     if (a == SA(0)) { share = at; at += FB_PAGE; }        /* the substrate's head */
-    uint64_t hue = a == A_STACK || line * (A_COUNT + S_COUNT) > FB_PAGE ? 0 : line * (uint64_t)a;   /* each area's first records on a */
+    uint64_t hue = a == A_STACK ? 0 : FB_HUE * (uint64_t)a;   /* each area's first records on a */
     off[a] = at + hue; at += (L[a].size * cap[a] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;     /* cache set no other's first use */
   }
   for (int i = 0; i < A_COUNT; i++) if (LANED[i]) off[i] = off[SA(LANED[i] - 1)];

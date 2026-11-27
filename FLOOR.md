@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,159 lines, 28 fewer since another process's region is read in Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,148 lines, 39 fewer since another process's region is read in Form and the layout no longer asks the host, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -255,7 +255,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   a joiner in 92 M and 6.8 ms against 133 M and 14 ms; their peak footprints rose, to 12.7 MB
   and 6.5 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 25 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 26 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
@@ -367,6 +367,15 @@ Each line here is held by a program in `make check-full`, or names how it was se
   against 114.0 M and 5.6 ms warm (measured with the gate in C), and its start with no request
   851.0 M and 35.4 ms against 15.7 M and 1.37 ms. A process that does nothing takes 13.6 M
   instructions where main took 14.7 M, and 13.37 M at 64 MiB where main took 13.59 M.
+- **A region is laid out alike on every host.** Each area reserves what `region/layout.ck` says
+  and is offset into its page by `fb.hue`, a row, where it was clamped to the allowance and offset
+  by the cache line the host reported. So a start's image is the same pages at any allowance and
+  on either processor: the lens's start saved by this executable and by the same file built for
+  x86-64, run under Rosetta, gave the same 1,884,494 bytes of pages and the same name, where
+  before they differed in 885,298 bytes and an allowance of 64 MiB saved other pages too.
+  `check-ice` holds both, and a clamp or an offset that follows the processor planted in the
+  layout is reported. A process alone takes 14.0 M instructions as before; it reserves 49 GB of
+  addresses at every allowance.
 
 **Replacing what runs**
 
