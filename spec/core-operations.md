@@ -192,7 +192,7 @@ Everything the floor keeps in memory is a record whose first word is one of thes
 | 63 | byte-table | a table of bytes |
 | 72 | binding | one entry and the implementation that runs it |
 | 126 | substrate | the head of the substrate the node table lies in |
-| 127 | lane | one lane of the substrate: whose it is, and how far its nodes are settled |
+| 127 | lane | one lane of the substrate: whose it is, how far its nodes are made and settled, and what it charged |
 
 The table of code leaves that have a runnable copy uses entry 52.
 
@@ -484,13 +484,22 @@ there. The observer shows the bindings afterwards: watched, released, compiled, 
 | --- | --- | --- | --- |
 | 94 | peek | o, n | a bytes leaf holding n bytes of the region from byte o; nothing with `range` outside it or on the page kept under the stack |
 | 95 | handle | x | the number of x's place in the node table |
-| 96 | at | h | the node at that place; nothing with `range` when there is none |
+| 96 | at | h | the node at that place; nothing with `range` when there is none; the fault `irreversible` when another member settled it after this search began |
 | 97 | look | name, o, n | n bytes from byte o of the region another process made under that name, mapped to be read only; nothing with `no-region` when there is none |
 
 Diagnostics is reading the region, and these let a program do it for its own. What the bytes
-mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a place in this
-process's node table, which is lane 0 of a substrate inside its own region, and means nothing in
-another process or in a stored node. `look` reads a region that
+mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a place in the node
+table of a substrate. In a process alone that is lane 0 of a substrate inside its own region, and
+the handle means nothing in another process. In a member of a named substrate (`CK_SHARE`) the
+handle of a settled node names that node in every member for as long as the substrate lives, so
+`at` admits it: a node of the member's own lane, or one another lane has settled. While a choice
+is open it admits of another lane only what was settled when the oldest open choice began; a
+number that names what was settled since is the fault `irreversible`, as `host` is, and a node
+found by id that was settled since is not found. `handle` of a node made under a choice gives a
+number no other member can use, and one a commit may leave behind when it forwards the node onto
+equal content another member settled; take a handle to pass on when no choice is open. A handle
+means nothing in a stored node. `peek` reaches the member's region and, from the head's `share`
+on, the substrate. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
 
 ## Entry 98: the host, called by name or by address

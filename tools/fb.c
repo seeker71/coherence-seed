@@ -4,9 +4,12 @@
  *   fb record NAME FILE [MS]  copy a frame every MS milliseconds (default 5) until the writer is done
  *   fb play FILE              one line per recorded frame
  *   fb play FILE N [H]        frame N in detail (-1 is the last); with H, that node and its writer
- *   fb drop NAME              remove a kept region
+ *   fb drop NAME              remove a kept region, or a named substrate
+ *   fb share NAME             a named substrate (CK_SHARE): its head, and each lane that was ever claimed
  *
- * It maps the region read-only and never writes to it, signals its writer or holds a lock.
+ * It maps the region read-only and never writes to it, signals its writer or holds a lock. A member of a
+ * named substrate keeps its nodes there: show maps that object too and reads them in place, settled or the
+ * member's own. A recording holds the region only, so a member is not recorded yet.
  * A frame is a copy of the head page and of the used part of every area. A recording keeps
  * only the pages that differ from the frame before. The names it prints for catalogue
  * entries are for reading here; they are not part of any node.
@@ -35,12 +38,29 @@ static const char *const FKIND[] = { FB_FRAME_NAMES };
 
 static uint8_t *img; static uint64_t size;                /* a private copy of one frame, laid out as the region is */
 static Head *hd; static Node *nd; static uint8_t *bytes; static H *kids, *argp;
+static const uint8_t *far; static const Substrate *sub; static const Lane *lanes;   /* a named substrate, mapped beside the frame; the substrate; its lanes */
 static Frame *fr; static Activation *act; static ChoicePoint *cp; static Binding *bd;
 static void stop(const char *m, const char *n) { fprintf(stderr, "fb: %s%s\n", m, n); exit(2); }
-static void *at(int i) { return img + hd->a[i].off; }
+static void *at(int i) {                  /* a table in a named substrate is read where it lies, not from the frame */
+  return hd->a[i].off >= hd->me.share && far ? (void *)(far + (hd->a[i].off - hd->me.share)) : (void *)(img + hd->a[i].off);
+}
 static void bind(void) {
-  hd = (Head *)img; nd = at(A_NODES); bytes = at(A_LEAF_BYTES); kids = at(A_CHILDREN); argp = at(A_ARGUMENTS);
+  hd = (Head *)img; sub = far ? (const Substrate *)far : (const Substrate *)(img + hd->me.share);
+  lanes = (const Lane *)((const uint8_t *)sub + sub->a[S_LANES].off);
+  nd = at(A_NODES); bytes = at(A_LEAF_BYTES); kids = at(A_CHILDREN); argp = at(A_ARGUMENTS);
   fr = at(A_FRAMES); act = at(A_ACTIVATIONS); cp = at(A_CHOICE_POINTS); bd = at(A_BINDINGS);
+}
+/* A handle names a node of this frame: one of its own lane below its count, or one another lane has settled. */
+static int has(H h) {
+  uint32_t shift = (uint32_t)__builtin_clz(sub->lanes) + 1; uint64_t lane = (uint64_t)h >> shift;
+  return h && (lane == hd->me.lane ? h < hd->a[A_NODES].n : lane < sub->a[S_LANES].n && h < lanes[lane].sw);
+}
+static const uint8_t *substrate(const char *name, uint64_t *bytes_mapped) {     /* a named substrate, read only; NULL when none stands */
+  int fd = shm_open(name, O_RDONLY, 0); struct stat s; const uint8_t *p = MAP_FAILED;
+  if (fd >= 0 && !fstat(fd, &s) && s.st_size >= (off_t)FB_PAGE) p = mmap(NULL, (size_t)s.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  if (fd >= 0) close(fd);
+  if (p == MAP_FAILED || memcmp(p, FB_SUBSTRATE_MAGIC, 8)) return NULL;
+  *bytes_mapped = (uint64_t)s.st_size; return p;
 }
 static double now_ms(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec * 1e3 + t.tv_nsec / 1e6; }
 
@@ -55,7 +75,11 @@ static const uint8_t *attach(const char *name, double wait_ms) {   /* waits for 
     if (fd >= 0) close(fd);
     if (src != MAP_FAILED) {
       const Head *h = (const Head *)src; int live = h->pid && (!kill((pid_t)h->pid, 0) || errno == EPERM);
-      if (!memcmp(h->magic, FB_MAGIC, 8) && (live || now_ms() - t0 >= wait_ms)) return src;
+      if (!memcmp(h->magic, FB_MAGIC, 8) && (live || now_ms() - t0 >= wait_ms)) {
+        uint64_t n; char name[33] = {0}; memcpy(name, h->me.name, 32);
+        if (name[0] && !(far = substrate(name, &n))) stop("its substrate is gone: ", name);
+        return src;
+      }
       munmap((void *)src, size); src = MAP_FAILED;
     }
     if (now_ms() - t0 >= wait_ms) stop("no framebuffer named ", name);
@@ -67,9 +91,10 @@ static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
   static uint8_t head[FB_PAGE], shead[FB_PAGE]; static uint64_t *list; static uint32_t cap; uint32_t n = 0;
   memcpy(head, src, FB_PAGE);                             /* the counts are read once, first */
   const Head *h = (const Head *)head; const Substrate *s = (const Substrate *)shead;
-  memcpy(shead, src + h->me.share, FB_PAGE);              /* and the substrate's, which lies at share */
-  for (int i = -1; i <= A_COUNT + S_COUNT; i++) {
+  if (!far) memcpy(shead, src + h->me.share, FB_PAGE);    /* and the substrate's, which lies at share */
+  for (int i = -1; i <= (far ? A_COUNT - 1 : A_COUNT + S_COUNT); i++) {
     uint64_t off = 0, len = FB_PAGE;
+    if (far && i >= 0 && h->a[i].off >= h->me.share) continue;   /* a named substrate's tables are not in the frame */
     if (i == A_COUNT) off = h->me.share;                  /* the substrate's head; its tables in a lane are the process's own areas */
     else if (i > A_COUNT) { const Area *a = &s->a[i - A_COUNT - 1]; off = h->me.share + a->off; len = a->n * a->size;
       if (len) { uint64_t prefix = off % FB_PAGE; off -= prefix; len += prefix; } }
@@ -99,14 +124,14 @@ static void sp(const char *s) {           /* appends to the line being shown; a 
 }
 static long long catn(H h) {
   if (h >= 1 && h <= SEEDED) return h - 1;
-  if (!h || h >= hd->a[A_NODES].n || nd[h].comp || nd[h].bp != ROOT) return -1;
+  if (!has(h) || nd[h].comp || nd[h].bp != ROOT) return -1;
   long long v = 0; for (uint64_t i = nd[h].n; i > 0; i--) v = v << 8 | bytes[nd[h].off + i - 1];
   return v;
 }
 static void shown(H h, int depth) {
   char t[40];
   if (!h) { sp("nothing"); return; }
-  if (h >= hd->a[A_NODES].n) { sp("?"); return; }
+  if (!has(h)) { sp("?"); return; }
   long long c = catn(h); const Node *x = &nd[h]; const uint8_t *b = bytes + x->off;
   if (c >= 0) { if (c <= SEEDED && NAMES[c]) sp(NAMES[c]); else { snprintf(t, sizeof t, "#%lld", c); sp(t); } return; }
   if (x->comp) {
@@ -137,18 +162,37 @@ static void line(int i, double ms, uint64_t after, uint32_t pages) {
          (unsigned long long)hd->a[A_ACTIVATIONS].n, (unsigned long long)hd->a[A_CHOICE_POINTS].n, pages, str(m->at, 70));
 }
 static void node(H h) {
-  if (!h || h >= hd->a[A_NODES].n) { printf("node %u: not in this frame\n", h); return; }
+  if (!has(h)) { printf("node %u: not in this frame\n", h); return; }
   printf("node %u\n  is         %s\n", h, str(h, 2000));
   printf("  blueprint  %s\n", str(nd[h].bp, 200));
   printf("  %s, %llu %s\n  written by ", nd[h].comp ? "composite" : "leaf", (unsigned long long)nd[h].n, nd[h].comp ? "children" : "bytes");
   writer(nd[h].by); printf("\n");
 }
+/* A named substrate: what its head says, and each lane that was ever claimed. A member is a pid and the instant
+ * the host started it; here only the pid is asked after, so "runs" can be said of a pid the host gave again. */
+static void share(void) {
+  static const char *const STATE[] = { "free", "claimed", "live", "gone" };
+  printf("substrate version %u, made by pid %u at %llu, %llu bytes at byte %llu of each member\n", sub->version, sub->pid,
+         (unsigned long long)sub->made, (unsigned long long)sub->bytes, (unsigned long long)sub->share);
+  printf("  allowance %llu bytes, %llu charged, %u lanes of %llu handles, %llu ever claimed%s\n", (unsigned long long)sub->allowance,
+         (unsigned long long)sub->charged, sub->lanes, (unsigned long long)(((uint64_t)1 << 32) / sub->lanes),
+         (unsigned long long)sub->a[S_LANES].n, sub->buried ? ", being buried" : "");
+  for (uint64_t j = 0; j < sub->a[S_LANES].n && j < sub->lanes; j++) {
+    const Lane *l = &lanes[j]; uint32_t pid = (uint32_t)(l->who >> 32), state = (uint32_t)l->who & 3;
+    uint64_t base = j * (((uint64_t)1 << 32) / sub->lanes);
+    printf("  lane %-3llu %-7s pid %-7u %-8s nodes %-9llu settled %-9llu forwarded %-6llu charged %llu bytes\n", (unsigned long long)j, STATE[state], pid,
+           state == 3 || state == 0 ? "" : !kill((pid_t)pid, 0) || errno == EPERM ? "runs" : "is gone", (unsigned long long)(l->n - base),
+           (unsigned long long)(l->sw - base), (unsigned long long)l->forwarded, (unsigned long long)l->charged);
+  }
+}
 static void detail(void) {
   const Machine *m = &hd->m;
   printf("framebuffer version %u, writer pid %u, %llu bytes reserved\n", hd->version, hd->pid, (unsigned long long)hd->bytes);
   printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
-  const Substrate *s = (const Substrate *)(img + hd->me.share); const Lane *l = (const Lane *)((const uint8_t *)s + s->a[S_LANES].off);
-  printf("substrate at byte %llu, %u lane: lane 0 of pid %u settled below %u\n", (unsigned long long)hd->me.share, s->lanes, l->pid, l->sw);
+  const Lane *l = &lanes[hd->me.lane]; char name[33] = {0}; memcpy(name, hd->me.name, 32);
+  printf("substrate %s at byte %llu, %u lanes: lane %u of pid %u settled below %u\n", name[0] ? name : "of its own", (unsigned long long)hd->me.share,
+         sub->lanes, hd->me.lane, (uint32_t)(l->who >> 32), l->sw);
+  if (far) share();
   printf("machine  mode %s  step %llu  env %u  cut %u  k %u\n", MODE[m->mode <= M_DONE ? m->mode : 0], (unsigned long long)m->step, m->env, m->cut, m->k);
   printf("  at      %s\n", str(m->at, 160));
   printf("  x       %s\n", str(m->x, 160));
@@ -198,6 +242,7 @@ static void image(void) {
 }
 static int record(const char *name, const char *path, double every) {
   const uint8_t *src = attach(name, 5000); image();
+  if (far) stop("a member of a named substrate is not recorded yet: ", name);
   FILE *f = fopen(path, "wb"); if (!f) stop("cannot write ", path);
   fwrite(RMAGIC, 1, 8, f); fwrite(&size, 8, 1, f);
   double t0 = now_ms(); uint32_t frames = 0; uint64_t all = 0;
@@ -245,6 +290,10 @@ int main(int argc, char **argv) {
   if (argc == 3 && !strcmp(c, "play")) return play(argv[2], 0, 0, 0);
   if ((argc == 4 || argc == 5) && !strcmp(c, "play")) return play(argv[2], atoi(argv[3]), 1, argc == 5 ? (H)strtoul(argv[4], NULL, 10) : 0);
   if (argc == 3 && !strcmp(c, "drop")) { if (shm_unlink(argv[2])) stop("no framebuffer named ", argv[2]); return 0; }
-  fprintf(stderr, "usage: fb show NAME [H] | record NAME FILE [MS] | play FILE [N [H]] | drop NAME\n");
+  if (argc == 3 && !strcmp(c, "share")) {
+    uint64_t n; if (!(far = substrate(argv[2], &n))) stop("no substrate named ", argv[2]);
+    sub = (const Substrate *)far; lanes = (const Lane *)(far + sub->a[S_LANES].off); share(); return 0;
+  }
+  fprintf(stderr, "usage: fb show NAME [H] | record NAME FILE [MS] | play FILE [N [H]] | drop NAME | share NAME\n");
   return 2;
 }

@@ -9,18 +9,18 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
 | Bootstrap | [`bootstrap/`](bootstrap) | The C cold start stays under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
-| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is lane 0 of a substrate inside it |
+| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
-| Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
+| Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another, and a third names it by its handle |
 | Objects | [`spec/objects.md`](spec/objects.md), [`objects/`](objects) | written in form: parents composed into one shape, a reference as a cell and a view, send, super, and a view through an interface a shape fits by structure |
 | Engine | [`spec/nums.md`](spec/nums.md), [`nums/`](nums) | written in form: the NUMS catalogue at its numbers, cells made from blueprints, conversions between every numeric layout, templates and genetics, a generic runtime that runs declared functions as written, arithmetic on every float layout as one exact recipe, and a compiler written as components that writes AArch64 for whole functions and what they call, casts included, through an encoder written as components over rows of instructions |
 | Writer | [`spec/nums.md`](spec/nums.md), [`nums/write.ck`](nums/write.ck) | a component package that writes any component package as Python, C#, TypeScript, Java or BML from rows per language, with names kept beside the nodes and methods called on their receivers |
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
-| Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,449 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it, and shows a named substrate and its lanes |
+| Claim graph | [`graph/`](graph) | 1,453 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -178,8 +178,35 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).
+- **Two processes, one substrate.** With `CK_SHARE=name` a process is a member of a named
+  substrate that every member maps at byte 2^43 of 16 TiB of addresses it reserves once; this Mac
+  allowed reservations up to 64 TiB, a sparse object of 16 TiB, and both mappings at fixed places
+  in the reserved range (a probe written and run in the session, not kept in the repository). The substrate has 256 lanes of
+  2^24 handles each, so the handle of a settled node names it in every member. A settled record
+  enters the one index by a compare-and-swap of its handle, with no lock; a lane is claimed and
+  retired the same way, and a member is a process id and the instant the host started it. A search
+  sees of another lane what was settled when it began, and a commit forwards a working node onto
+  equal content another member settled meanwhile. `make check-full` holds this with two flows.
+  In the first, all 77 ground programs ran as members of one substrate, six at a time, each ending
+  as expected, while one more member, the long recursion, was killed with `kill -9` in mid-run and
+  its lane was retired by those that joined after; the member that held the substrate open then
+  made every settled node of all 79 lanes again from its parts: 319,738 nodes, each answered
+  its own handle, 90,545 of the members' nodes having been forwarded at a commit; and when the
+  last member left, the name was gone. Then every member of a second substrate was killed, the
+  object stayed, and the next process to open it buried it, made a new one and answered 42. In the
+  second, a member thaws a frozen node and answers its handle, and the member that made the
+  substrate prints the same node from that number alone. Seen once by hand and held by no check: a
+  member that outgrew a substrate of 4 MiB had the fault `full` with `nodes` and went on, and one
+  that joined after it still answered. A
+  process without `CK_SHARE` runs what it ran: against the build of 01db529 in alternating rounds
+  under `/usr/bin/time -l`, one process at a time, medians of seven, seven and three rounds, the
+  long recursion took +0.01% instructions and +0.43% cycles, `ground/gives-back.ck` +0.19% and
+  +2.12%, and `ground/nums-compiled-agrees.ck` +0.07% and −1.44%. Two members that made the same
+  content at once, `ground/region-describes-itself.ck`, each took 6.28 G instructions and 1.01 G
+  cycles, against 6.88 G and 1.04 G for a process alone and 7.26 G and 1.20 G for one member
+  alone, medians of five rounds; 21,675 of their nodes were forwarded in the last round.
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 21 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 22 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
@@ -377,10 +404,20 @@ running compiled code against frames all the way down).
   port. The berth's bytes come from the host's `calloc`, outside the allowance. What the host
   ties to the process's first thread cannot be reached: the walker is not that thread. No host
   function of the bootstrap has left C. The compiler does not yet emit a row as moves and a call.
-- **Handles across processes.** A handle is still local to its process: nobody else maps its
-  substrate. Joining another process's substrate, lane rows claimed by compare-and-swap, the
-  substrate's own allowance, the commit's path for content another lane settled, the side front
-  and the channel between members are not built.
+- **A channel between members.** Members of a named substrate share settled nodes, and a handle
+  names the same node in each, but nothing yet carries a handle from one to another: `swap`,
+  `share`, shared rooms, the inbox served between steps, the bell and the side front are not
+  built, and asking still goes by print through `asked`. The numeric port does not answer by
+  handle, and under `CK_SHARE` its replies still mark a closure by walking every handle below the
+  value. A lane is never used again, so a named substrate has 256 members in its life; its
+  indexes never grow; what a lane charged is never given back; and a node a commit forwarded
+  keeps its record. The observer shows a member but does not record one. The lane rows count the
+  nodes forwarded, not those settled in place or refused. On Linux the instant a process started
+  is read from `/proc`, which was compiled for x86-64 on this Mac but not run.
+- **A stack limit above the default.** The case of `ground/code-on-nodes.ck` that recurses a
+  hundred thousand deep in machine code declines under the 8 MiB stack limit this session's shell
+  gave, at 01db529 as well, and then differs from its expectation; the catalogue was run under
+  `ulimit -s 65520`.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30). The
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.

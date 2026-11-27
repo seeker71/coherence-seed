@@ -66,12 +66,12 @@ typedef struct { H bp; H by; H key; H old; } Trail;
 typedef struct { H bp; H by; uint32_t writes; uint8_t pad[4]; uint64_t size; } Room;
 typedef struct { H bp; H by; uint32_t old; uint8_t pad[4]; uint64_t at; } RoomTrail;
 typedef struct { uint64_t symbol; } Doors;
-typedef struct { uint64_t share; uint64_t charged; uint32_t lane; uint8_t pad[4]; } Member;
-typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t lanes; uint32_t pid; uint64_t share; uint64_t bytes; uint64_t ids; Area a[S_COUNT]; } Substrate;
-typedef struct { H bp; H by; uint32_t pid; uint32_t sw; } Lane;
+typedef struct { uint64_t share; uint64_t charged; uint32_t lane; uint8_t pad[4]; uint8_t name[32]; } Member;
+typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t lanes; uint32_t pid; uint64_t share; uint64_t bytes; uint64_t ids; uint64_t start; uint64_t made; uint64_t allowance; uint64_t charged; uint32_t buried; uint8_t pad[4]; Area a[S_COUNT]; } Substrate;
+typedef struct { H bp; H by; uint64_t who; uint64_t start; uint32_t n; uint32_t sw; uint64_t charged; uint64_t forwarded; uint8_t pad[16]; } Lane;
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; Member me; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
-#define FB_VERSION 21u
+#define FB_VERSION 22u
 #define FB_PAGE 16384u
 #endif
