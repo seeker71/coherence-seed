@@ -575,7 +575,7 @@ passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a
 of entry 98. The refusal is a property of the call all the same: `host.launch`, which every
 call through a row passes, asks the guard first, a call of entry 98 that does nothing, so a
 row run while a choice is open is the fault `irreversible` whether it was looked up or not.
-It is not asked inside a guard that a row of `host.guards` declares, with the reason it may:
+It is not asked inside a guard that a row of `host.guards` declares, with the numeric entry that owns cleanup:
 one row today, the Metal door's, which lets go of every object it made when it ends, on a
 fault and on a fail, and leaves only a note. The door notes the guard it is in under
 `host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
