@@ -5,7 +5,7 @@ section 4); a **composite** whose blueprint is one of these entries is executed,
 node answers itself. `bootstrap/ck.c` is the walker and `ground/` holds the programs that witness
 it.
 
-This page names 82 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
+This page names 84 entries. 32 to 52 are operations and data, and 53 to 63 with 72 the kinds of
 the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let a program replace
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
@@ -13,7 +13,8 @@ layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes
 94 to 97 read a region; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
 104 answers nothing with a reason, 105 with 106 close a recipe over values, 107 to 111 work on
-the bits of an integer, and 112 gives a binding a faster form. 128 is the first operation that
+the bits of an integer, and 112 gives a binding a faster form. 126 and 127 are the kinds of the
+substrate's head and of a lane's row; 124 and 125 have no meaning yet. 128 is the first operation that
 exists only in form: entries below 128 are the bootstrap's to name, and from 128 up they are
 named by modules written in form.
 
@@ -181,6 +182,8 @@ Everything the floor keeps in memory is a record whose first word is one of thes
 | 62 | word-table | a table of 32-bit words: handles or counts |
 | 63 | byte-table | a table of bytes |
 | 72 | binding | one entry and the implementation that runs it |
+| 126 | substrate | the head of the substrate the node table lies in |
+| 127 | lane | one lane of the substrate: whose it is, and how far its nodes are settled |
 
 The table of code leaves that have a runnable copy uses entry 52.
 
@@ -429,12 +432,15 @@ backtracking language gives back its heap, except what no fail undoes and what t
 
 What stays moves down in the order it was made, so its handle can change: a handle kept as a
 number across a fail back past where its node was made may name another node afterwards, while
-its id stays the same. A kept node whose writer was given back is written by the choice that
+its id stays the same. A node made while no choice was open, and every node that stood when the
+last open choice closed, is settled (`spec/framebuffer.md`, The substrate): it lies below every
+choice point's mark, so no fail gives it back or moves it. A kept node whose writer was given back is written by the choice that
 kept it. A choice that stays open begins again from where things stand after the fail. The area
 `gives` counts the times nodes were given back and names the choice, the mark and the top of the
 last time (`spec/framebuffer.md`). `ground/gives-back.ck` runs forty thousand outcomes of 64
 lists each, more nodes than the area holds, and ends with a note made in a failed branch, the
-answers gathered and an outcome's answer standing.
+answers gathered, an outcome's answer, a node made before the outcomes at its own handle and the
+lane's settled watermark where it stood before them.
 
 ## Entries 92 and 93: what is seen of a run, and a binding released
 
@@ -470,7 +476,8 @@ there. The observer shows the bindings afterwards: watched, released, compiled, 
 
 Diagnostics is reading the region, and these let a program do it for its own. What the bytes
 mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a place in this
-process's memory and means nothing in another or in a stored node. `look` reads a region that
+process's node table, which is lane 0 of a substrate inside its own region, and means nothing in
+another process or in a stored node. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
 
 ## Entry 98: the host, called by name

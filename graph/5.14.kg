@@ -565,7 +565,7 @@ at: 2026-11-27
 n: 5.14.59
 name: the-host-bounds-the-areas
 kind: decision
-is: At startup the runtime takes a share of available host memory, which CK_MEMORY_BYTES can lower. Page-rounded area peaks, the stack, the header and born code draw on it together. Large growth samples current headroom again. Anonymous shared memory returns to the host on process exit.
+is: At startup the runtime takes a share of available host memory, which CK_MEMORY_BYTES can lower. Page-rounded area peaks, the pages first used of the tables keyed by handle, the stack, the two heads and born code draw on it together. Large growth samples current headroom again. Anonymous shared memory returns to the host on process exit.
 status: inferred
 from: 5.14.58
 src: 2.30.7 2.30.11
@@ -573,4 +573,17 @@ conf: mid
 why: On 2026-11-26 macOS named ck as the largest process in a memory-pressure report. The later watchdog panic reported an exhausted compressor segment pool. The live ground shows a process can catch a memory fault and continue serving another process.
 flip: Available memory changes between samples. Reusing already charged pages lets a handler run even when the host declines new growth.
 limit: The allowance covers runtime-managed memory. Independent processes can sample the same headroom, and native host calls manage their own allocations. Verified on macOS arm64.
+at: 2026-11-27
+
+n: 5.14.60
+name: a-lone-process-settles
+kind: decision
+is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 20. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. A settled node lies below every choice point's mark, so no fail reaches it. A handle is still local to its process.
+status: observed
+from: 5.14.57 5.7.8 5.7.3
+src: 2.30.19
+conf: mid
+why: Observed on 2026-11-27: all 77 ground programs and the nine named checks end as before; a second process saw lane 0 of the long recursion settled below 273 of 273 nodes mid-run; ground/gives-back.ck holds that a node made before forty thousand outcomes keeps its handle and the lane's settled watermark stands; fb.check reported each of five faults planted in the description; a fault planted to move the watermark ended the run at the commit instead of going on. Against version 19, medians of five alternating rounds: instructions +7.0% on the long recursion, +4.4% on giving back, +14.3% on the compiled sweep.
+flip: Committing at the top of every step rather than every evaluation step cost the long recursion another 0.83 billion instructions.
+limit: One lane: no other process maps the substrate, and the commit's path for content settled meanwhile is not built, since a lone process cannot meet it. One machine.
 at: 2026-11-27

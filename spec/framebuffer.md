@@ -14,7 +14,10 @@ is the only writer, and `tools/fb.c` is the observer.
   anonymous mapping, which the OS releases even if the process is killed. Set `CK_FB` to
   publish a run by name. A published run remains available after exit until `fb drop NAME`.
 - The runtime gives all tables one allowance for touched memory. It charges their page-rounded
-  high-water marks, the header, the thread's entire stack and the executable copy of code.
+  high-water marks, the two heads, the thread's entire stack and the executable copy of code.
+  Cells, bound-by-node and print-numbers are keyed by handle, so they are charged by the pages
+  they use instead: a page is charged when it is first used, one bit for it in `touched`, and a
+  page not yet used is never read, since reading it would take it.
   Backtracking can reuse charged pages. Each table retains space to grow into the common pool.
   `fb show NAME` reports both the virtual reservation and the shared memory allowance.
 - At startup, available memory is divided by the number of online CPUs plus one, leaving room
@@ -33,10 +36,11 @@ is the only writer, and `tools/fb.c` is the observer.
 
 ## What is in it
 
-The first page is the **head**: a magic word, the layout version, the writer's process id, the
-walker's registers (the **machine**), and one **area** entry per table. An area entry says what its
-records are, how large one is, the most it has held, where the table starts, how many fit and how
-many are in use; the last four are counted by 64 bits.
+The first page is the **head**: a magic word, the layout version (20), the writer's process id, the
+walker's registers (the **machine**), one **area** entry per table, and the **member** part: where
+the substrate lies (`share`), how many pages the tables keyed by handle have charged, and the
+process's lane. An area entry says what its records are, how large one is, the most it has held,
+where the table starts, how many fit and how many are in use; the last four are counted by 64 bits.
 
 Machine code reads the region too, and three places in the head are kept for it whatever else
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
@@ -44,14 +48,14 @@ moves: at byte 28 the **floor**, the lowest page the machine stack may reach, co
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
 code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 18 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 20 lays it
 out.
 
 | Area | Records | Holds |
 | --- | --- | --- |
-| nodes | node | every node: blueprint, writer, where its content id lies once asked for, whether it is a composite, its child or byte count and where its payload is |
-| leaf-bytes, children | bytes, words | the payloads of leaves and composites |
-| by-content, by-id | words | the two indexes over nodes; they can be rebuilt from the nodes |
+| nodes | node | every node: blueprint, writer, where its content id lies once asked for, whether it is a composite, whether it is settled, its child or byte count and where its payload is; the table lies in the process's lane of the substrate |
+| leaf-bytes, children | bytes, words | the payloads of leaves and composites, in the lane |
+| by-content, by-id | words | the working index: the two indexes over the nodes not yet settled; they can be rebuilt from the nodes |
 | frames | frame | the walker's continuations |
 | links | link | values gathered for an operation that takes several |
 | activations, arguments | activation, words | each running recipe and its arguments; for an implementation, the limit it runs under, which counts the program's own bindings and those made from outside, and the activation and cut scope of whoever used it |
@@ -71,15 +75,43 @@ out.
 | rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, how many stores it has had and its size, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
 | room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, and its writer and count, so a fail puts them back |
 | gives | words | how many times a fail gave nodes back, and the choice, the mark and the top of the last time |
-| ids | bytes | each content id once asked for: the node's handle, then the id's 32 bytes; when a fail gives nodes back, the ids of those that stay move down with them |
+| ids | bytes | each content id once asked for: the node's handle, then the id's 32 bytes; when a fail gives nodes back, the ids of those that stay move down with them; in the lane |
 | values | words | the values in hand: those of a node's children while its operation runs, and what a call is given; all given back at the walker's next step |
+| seen | words | for each lane, how far it was settled when the oldest open choice was made |
+| touched | bytes | a bit for each page of cells, bound-by-node and print-numbers, set when the page is first used |
+
+## The substrate
+
+A node's handle is a place in a node table that lies in a **substrate**: a part of the region,
+after the process's own areas at the offset `share` its head records, that is laid out to be one
+object several processes could map. A process alone makes
+its own, with one **lane**, lane 0, and its nodes, their parts and their ids lie in that lane; the
+process's area entries for those four tables point there, so the head's byte 160 still says where
+the nodes are. The substrate begins with its own head: a magic word, the layout version, how many
+areas and lanes it has, its maker's process id, `share`, its size, and how many places its index
+by id holds; then one area entry per table: lanes, nodes, leaf-bytes, children, ids, by-content
+and by-id. Its tables divided into lanes keep their counts in the process's own entries.
+
+- **Settled and working.** A lane's row holds its process's id and `sw`: every node below `sw` is
+  settled, and its record's `settled` byte is 1. A node made while no choice is open, when no
+  working node stands, is settled as it is made. Any other is working: it is found by the process's
+  own by-content and by-id, and a fail gives it back as it always did. A settled node lies below
+  every choice point's mark, so no fail reaches it, and the substrate's by-content and by-id find it.
+- **The commit.** At the top of each evaluation step of the walker, when no choice is open and
+  working nodes stand, each is settled where it stands, the newest first, as the working index forgets it, and
+  `sw` rises past them. In a process alone nothing else settles while working nodes stand, so no
+  settled node can equal one; were one found, the walker's state would have to be moved onto it,
+  which is not built, and the process ends saying so.
+- **The snapshot.** When the first choice point opens, `seen` keeps each lane's `sw`.
+- `fb.check` reads the substrate's head, its areas and the lane row through the description, and
+  checks that `share` and the substrate's nodes area put the nodes where the head says.
 
 ## Rules
 
 1. **Every record starts with two handles**: its blueprint, and the program node that last wrote it.
    A writer of nothing means the bootstrap's own reader wrote it, before any program ran.
 2. **A record names its kind in the system's own numbers.** The kinds of the floor's records are
-   catalogue entries 53 to 63, 72, 91, 113 and 114 (`spec/core-operations.md`), so a reader needs no table that
+   catalogue entries 53 to 63, 72, 91, 113, 114, 126 and 127 (`spec/core-operations.md`), so a reader needs no table that
    is not itself in the catalogue.
 3. **A reference is a handle or an offset from the region's first byte, never an address.** A copy
    of the region reads the same in another process and at a later time.
@@ -113,8 +145,9 @@ A program reads its own region with `peek` (`spec/core-operations.md`, entries 9
 base)` is a field of a record, `(fb.show)` the text of a view of the region with every binding
 in words, and `(fb.check)` the list of places where the description and the running region
 disagree: the size of each kind of record against the size its area states, the count of areas,
-and the three places code relies on. `ground/region-describes-itself.ck` runs that check; a
-description with a field widened or two fields changed over is reported.
+the three places code relies on, the substrate's head and areas, the lane row, and where `share`
+puts the nodes. `ground/region-describes-itself.ck` runs that check; a description with a field
+widened or two fields changed over is reported.
 
 The same program reads another process's region. `look` maps it to be read only, and
 `region/watch.ck` shows it: every handle it meets is a place in the other process's node table,
@@ -205,6 +238,12 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
+- 2026-11-27, version 20 against version 19, in five alternating rounds under `/usr/bin/time -l`,
+  medians: the long recursion took 1.10 s of CPU against 1.04 s (instructions +7.0%, cycles
+  +4.9%), forty thousand outcomes given back 1.42 s against 1.36 s (+4.4%, +4.1%), and the
+  compiled sweep of 37,822 cases 9.89 s against 8.74 s (+14.3%, +13.0%). The test for a commit at
+  each evaluation step, a second index asked for nodes made under a choice and a page bit asked
+  before a handle-keyed read cost those instructions.
 - 2026-11-27, version 18 against version 17, in seven alternating rounds under `/usr/bin/time -l`,
   medians: the long recursion took 0.99 s of CPU against 1.01 s (cycles −1.6%, instructions
   +0.8%), three million steps of a choice 0.78 s against 0.83 s (cycles −5.9%), a million calls of
@@ -255,6 +294,9 @@ in it was complete when its count was read.
   16 KiB, so the stack lies within the region's first 64 TiB. The native stack is sized from
   host thread and stack limits and occupies at most half of the run's allowance.
 - The runtime, live reader and observer were exercised together on macOS arm64.
+- **One lane.** A handle is still local to its process: the substrate is inside the process's own
+  region and nobody else maps it. Joining a substrate of another process, the shared allowance, the
+  commit's path for content another lane settled, and the side front are later stages.
 - **One asker at a time.** Two processes asking at once can overwrite each other's request. The
   asker waits by looking, not by an event. A request is answered between two steps of the walker,
   so code that runs long without returning to it, emitted or the host's, delays the answer; a

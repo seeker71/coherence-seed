@@ -9,8 +9,9 @@
  *
  * Authority: spec/node-encoding.md, spec/core-operations.md and spec/framebuffer.md. The header
  * fb.h is made from nodes (region/header.ck); it is not written by hand.
- * Everything this program reads and writes lives in one shared region laid out by fb.h.
- * CK_FB publishes it by name; an anonymous run's pages go back when its process ends.
+ * Everything this program reads and writes lives in one shared region laid out by fb.h; its nodes
+ * lie in lane 0 of a substrate inside that region. CK_FB publishes the region by name; an
+ * anonymous run's pages go back when its process ends.
  * Host symbols used: shm_open shm_unlink ftruncate fstat mmap mprotect open read write close
  * getenv getpid exit _exit clock_gettime dlsym sigaction sigaltstack sigemptyset sigsetjmp
  * siglongjmp snprintf memcpy memmove memcmp memset strlen strcmp sysconf
@@ -205,12 +206,17 @@ static Host host = { h_region, h_code_map, h_code_write, h_code_flush, h_file_re
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
-static Head *fb;
-static Node *nd; static uint8_t *bytes, *tb, *text; static char *ob;
-static H *kids, *tab, *idtab, *argp, *opened, *tk, *aft, *noted, *hand; static uint32_t *pnum, *bykey; static H *held;
+static Head *fb; static Substrate *sub; static Lane *ln;     /* the substrate in the region, and this process's lane */
+static Node *nd; static uint8_t *bytes, *tb, *text, *tbits; static char *ob;
+static H *kids, *tab, *idtab, *stab, *sidt, *seen, *argp, *opened, *tk, *aft, *noted, *hand; static uint32_t *pnum, *bykey; static H *held;
 static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives; static uint8_t *ids;
 #define N(i) (fb->a[i].n)
+#define SA(s) (A_COUNT + (s))                 /* a substrate area, numbered after the process's own */
+#define AR(i) ((i) < A_COUNT ? &fb->a[i] : &sub->a[(i) - A_COUNT])
 #define W (&fb->m)
+#define sw (ln->sw)                           /* nodes below it are settled: no fail can reach them */
+#define scap (sub->a[S_BY_CONTENT].n)
+#define sicap (sub->a[S_BY_ID].n)
 #define nn N(A_NODES)
 #define nbytes N(A_LEAF_BYTES)
 #define nkids N(A_CHILDREN)
@@ -238,14 +244,14 @@ static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *c
 #define nhand N(A_VALUES)
 #define IDREC 36                          /* a node's id: whose it is, and its 32 bytes */
 #define NID(h) (ids + (uint64_t)nd[h].ida * IDREC + 4)
-static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
+static const char *const AREA_NAME[A_COUNT + S_COUNT] = { FB_AREA_NAMES FB_SUBSTRATE_AREA_NAMES };
 /* An area's peak is the most it has held, and room goes further only past it. The areas together
  * take what the host can give: each time they have reached a further step of the host's, it is
  * asked how much it can spare, and a growth it has no room for, or one past an area's count, is
  * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT + S_COUNT];
 static void area_full(int a) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
@@ -259,11 +265,12 @@ static uint64_t pages_for(uint64_t bytes_needed) { return (bytes_needed + FB_PAG
 static uint64_t area_extent(const Area *a, uint64_t count) {
   return count ? a->off % FB_PAGE + count * a->size : 0;
 }
-/* Touched pages can remain resident after backtracking. The peaks already in the region
- * account for them. Charge the whole native stack up front since it grows without room(). */
+/* Touched pages can remain resident after backtracking. The peaks already in the region, the
+ * substrate's among them, and the pages the tables keyed by handle charged (below) account for
+ * them. Charge the whole native stack and both heads up front since they grow without room(). */
 static uint64_t remaining_memory(void) {
-  uint64_t used = FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode);
-  for (int i = 0; i < A_COUNT; i++) used += pages_for(area_extent(&fb->a[i], fb->a[i].peak));
+  uint64_t used = 2 * FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode) + fb->me.charged * FB_PAGE;
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) used += pages_for(area_extent(AR(i), AR(i)->peak));
   return used < fb->a[A_ROOMS].cap ? fb->a[A_ROOMS].cap - used : 0;
 }
 static int fits_growth(uint64_t old, uint64_t next) {
@@ -271,11 +278,25 @@ static int fits_growth(uint64_t old, uint64_t next) {
   return !extra || (extra <= remaining_memory() && host_has_growth(old, next));
 }
 static void further(int a, uint64_t need) {
-  Area *area = &fb->a[a];
+  Area *area = AR(a);
   if (need > area->cap || !fits_growth(area_extent(area, area->peak), area_extent(area, need))) area_full(a);
   area->peak = need;
 }
-static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) further(a, need); }
+static inline void room(int a, uint64_t need) { if (need > AR(a)->peak) further(a, need); }
+/* Cells, bound-by-node and print-numbers are keyed by handle, so a peak would charge every page
+ * below the highest key. A page of theirs is charged when first used instead, a bit for each in
+ * touched; a page not yet used holds nothing and is not read, since reading it would take it. */
+static uint64_t tbit[A_COUNT];             /* where an area's bits begin in touched */
+static uint64_t page_bit(int a, uint64_t k) { return tbit[a] + (fb->a[a].off % FB_PAGE + 4 * k) / FB_PAGE; }
+static int on_page(int a, uint64_t k) { uint64_t b = page_bit(a, k); return tbits[b >> 3] >> (b & 7) & 1; }
+static void charge(int a, uint64_t k) {
+  uint64_t b = page_bit(a, k); if (N(a) <= k) N(a) = k + 1;
+  if (!(tbits[b >> 3] >> (b & 7) & 1)) { tbits[b >> 3] |= (uint8_t)(1u << (b & 7)); fb->me.charged++; }
+}
+static void touch(int a, uint64_t k) {
+  if (!on_page(a, k) && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + 1) * FB_PAGE)) area_full(a);
+  charge(a, k);
+}
 /* The limit word an activation runs under counts bindings: 23 bits for the program's own, 7 for
  * those made from outside (see bound, below). */
 #define PM 0x7fffffu
@@ -284,63 +305,88 @@ static inline void room(int a, uint64_t need) { if (need > fb->a[a].peak) furthe
 #define OMOST 127u
 #define OWN 0x80000000u
 static void fb_open(void) {
-  /* Each table has stable addresses into which it can grow. Their pages share one allowance. */
-  static const struct { uint32_t of, size; uint8_t wide; } L[A_COUNT] = {
+  /* Each table has stable addresses into which it can grow. Their pages share one allowance. After
+   * the process's own areas lies a substrate of one lane: its head, then its areas. The nodes, their
+   * parts and their ids lie in its lane, and the process's entries for them point there; its indexes
+   * find what is settled, the process's own by-content and by-id what is still working. */
+  static const struct { uint32_t of, size; uint8_t wide; } L[A_COUNT + S_COUNT] = {
     [A_NODES] = { NODE, sizeof(Node), 0 },          [A_LEAF_BYTES] = { BYTE_TABLE, 1, 1 },
-    [A_CHILDREN] = { WORD_TABLE, 4, 1 },            [A_BY_CONTENT] = { WORD_TABLE, 4, 1 },
+    [A_CHILDREN] = { WORD_TABLE, 4, 1 },            [A_IDS] = { BYTE_TABLE, 1, 1 },
+    [A_BOUND_BY_NODE] = { WORD_TABLE, 4, 0 },       [A_CELLS] = { WORD_TABLE, 4, 0 },
+    [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 0 },       [A_SEEN] = { WORD_TABLE, 4, 0 },
+    [A_TOUCHED] = { BYTE_TABLE, 1, 1 },             [SA(S_LANES)] = { LANE, sizeof(Lane), 0 },
+    [SA(S_NODES)] = { NODE, sizeof(Node), 0 },      [SA(S_LEAF_BYTES)] = { BYTE_TABLE, 1, 1 },
+    [SA(S_CHILDREN)] = { WORD_TABLE, 4, 1 },        [SA(S_IDS)] = { BYTE_TABLE, 1, 1 },
+    [SA(S_BY_CONTENT)] = { WORD_TABLE, 4, 1 },      [SA(S_BY_ID)] = { WORD_TABLE, 4, 1 },
+    [A_BY_CONTENT] = { WORD_TABLE, 4, 1 },
     [A_BY_ID] = { WORD_TABLE, 4, 1 },               [A_FRAMES] = { FRAME, sizeof(Frame), 0 },
     [A_LINKS] = { LINK, sizeof(Link), 0 },          [A_ACTIVATIONS] = { ACTIVATION, sizeof(Activation), 0 },
     [A_ARGUMENTS] = { WORD_TABLE, 4, 0 },           [A_CHOICE_POINTS] = { CHOICE_POINT, sizeof(ChoicePoint), 0 },
     [A_GATHERED] = { GATHERED, sizeof(Gathered), 0 }, [A_BORN_CODE] = { CODE, sizeof(Code), 0 },
-    [A_BINDINGS] = { BINDING, sizeof(Binding), 0 }, [A_BOUND_BY_NODE] = { WORD_TABLE, 4, 0 },
-    [A_OUTSIDE] = { BINDING, sizeof(Binding), 0 },  [A_CELLS] = { WORD_TABLE, 4, 0 },
+    [A_BINDINGS] = { BINDING, sizeof(Binding), 0 },
+    [A_OUTSIDE] = { BINDING, sizeof(Binding), 0 },
     [A_TRAIL] = { TRAIL, sizeof(Trail), 0 },        [A_READER_OPENED] = { WORD_TABLE, 4, 0 },
     [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 0 },  [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1 },
-    [A_PRINT] = { BYTE_TABLE, 1, 1 },               [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 0 },
+    [A_PRINT] = { BYTE_TABLE, 1, 1 },
     [A_TEXT] = { BYTE_TABLE, 1, 1 },                [A_STACK] = { BYTE_TABLE, 1, 1 },
     [A_ASKED] = { BYTE_TABLE, 1, 1 },               [A_ANSWERED] = { BYTE_TABLE, 1, 1 },
     [A_AFTER] = { WORD_TABLE, 4, 0 },               [A_NOTED] = { WORD_TABLE, 4, 0 },
     [A_ROOMS] = { BYTE_TABLE, 1, 1 },               [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 0 },
-    [A_GIVES] = { WORD_TABLE, 4, 0 },               [A_IDS] = { BYTE_TABLE, 1, 1 },
+    [A_GIVES] = { WORD_TABLE, 4, 0 },
     [A_VALUES] = { WORD_TABLE, 4, 0 } };
+  static const uint8_t KEYED[A_COUNT] = { [A_BOUND_BY_NODE] = 1, [A_CELLS] = 1, [A_PRINT_NUMBERS] = 1 };   /* charged by page */
+  static const uint8_t LANED[A_COUNT] = { [A_NODES] = S_NODES + 1, [A_LEAF_BYTES] = S_LEAF_BYTES + 1,      /* in the lane: */
+                                          [A_CHILDREN] = S_CHILDREN + 1, [A_IDS] = S_IDS + 1 };            /* which area, plus one */
   uint64_t budget = host.memory(), line = host.line();
   struct rlimit limit;
-  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / (A_COUNT + 3) < budget) budget = limit.rlim_cur / (A_COUNT + 3);
+  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / (A_COUNT + S_COUNT + 3) < budget) budget = limit.rlim_cur / (A_COUNT + S_COUNT + 3);
   const char *setting = getenv("CK_MEMORY_BYTES");
   if (setting) {
     char *end; errno = 0; unsigned long long requested = strtoull(setting, &end, 10);
     if (*setting < '0' || *setting > '9' || *end || errno || !requested) die("CK_MEMORY_BYTES takes a positive byte count");
     if (requested < budget) budget = requested;
   }
-  uint64_t cap[A_COUNT], off[A_COUNT], at = FB_PAGE;
+  uint64_t cap[A_COUNT + S_COUNT], off[A_COUNT + S_COUNT], at = FB_PAGE, share = 0, bits = 0;
   uint64_t mem = budget / FB_PAGE * FB_PAGE;
   if (mem < (1u << 17) + 4 * FB_PAGE) die("insufficient host memory for the framebuffer");
-  for (int i = 0; i < A_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
-  if (cap[A_BY_ID] > (uint64_t)1 << 33) cap[A_BY_CONTENT] = cap[A_BY_ID] = (uint64_t)1 << 33;   /* twice the most nodes a handle names */
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
+  if (cap[A_BY_ID] > (uint64_t)1 << 33)                 /* twice the most nodes a handle names */
+    cap[A_BY_CONTENT] = cap[A_BY_ID] = cap[SA(S_BY_CONTENT)] = cap[SA(S_BY_ID)] = (uint64_t)1 << 33;
   cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = cap[A_NODES] + 8;   /* one for each node */
   cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* numbered inside a limit word: */
   cap[A_OUTSIDE] = OMOST;                                       /* 23 bits for the program's, 7 from outside */
   cap[A_GIVES] = 4;                                             /* a record, not a table */
+  cap[A_SEEN] = cap[SA(S_LANES)] = 1;                           /* one lane: the process's own */
+  for (int i = 0; i < A_COUNT; i++) if (KEYED[i]) { tbit[i] = bits; bits += cap[i] * 4 / FB_PAGE + 2; }
+  cap[A_TOUCHED] = (bits + 7) / 8;
   pthread_attr_t attr; size_t stack;
   if (pthread_attr_init(&attr) || pthread_attr_getstacksize(&attr, &stack)) die("cannot size the host stack");
   pthread_attr_destroy(&attr);
   if (!getrlimit(RLIMIT_STACK, &limit) && limit.rlim_cur != RLIM_INFINITY && limit.rlim_cur > stack) stack = limit.rlim_cur;
   cap[A_STACK] = pages_for(stack) < mem / 2 ? pages_for(stack) : mem / 2 / FB_PAGE * FB_PAGE;
   if (cap[A_STACK] < (uint64_t)PTHREAD_STACK_MIN) die("insufficient host memory for the stack");
-  for (int i = 0; i < A_COUNT; i++) {
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) {
     if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
-    uint64_t hue = i == A_STACK || line * A_COUNT > FB_PAGE ? 0 : line * (uint64_t)i;   /* each area's first records on a */
+    if (i == SA(0)) { share = at; at += FB_PAGE; }        /* the substrate's head */
+    if (i < A_COUNT && LANED[i]) continue;               /* in the lane, below */
+    uint64_t hue = i == A_STACK || line * (A_COUNT + S_COUNT) > FB_PAGE ? 0 : line * (uint64_t)i;   /* each area's first records on a */
     off[i] = at + hue; at += (L[i].size * cap[i] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;  /* cache set no other's first use */
   }
+  for (int i = 0; i < A_COUNT; i++) if (LANED[i]) off[i] = off[SA(LANED[i] - 1)];
   if (!(fb = host.region(getenv("CK_FB"), at))) die("cannot make the framebuffer");
-  for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i], cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = 19; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  sub = (Substrate *)((uint8_t *)fb + share);
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) *AR(i) = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i] - (i < A_COUNT ? 0 : share), cap[i], 0 };
+  fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share;
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
   lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
   opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS); hand = PLACE(A_VALUES);
+  seen = PLACE(A_SEEN); tbits = PLACE(A_TOUCHED); stab = PLACE(SA(S_BY_CONTENT)); sidt = PLACE(SA(S_BY_ID)); ln = PLACE(SA(S_LANES));
   nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
+  *ln = (Lane){ E(LANE), 0, fb->pid, 1 }; room(SA(S_LANES), 1); sub->a[S_LANES].n = 1;   /* lane 0 is this process's, nothing settled yet */
+  room(A_SEEN, 1); N(A_SEEN) = 1; room(A_TOUCHED, cap[A_TOUCHED]); N(A_TOUCHED) = cap[A_TOUCHED];
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
 static void *talloc(size_t n) {
@@ -543,37 +589,50 @@ static uint64_t hash(int comp, H bp, const void *payload, uint64_t n) {   /* FNV
   return h;
 }
 static const void *payload_of(H h) { return nd[h].comp ? (const void *)(kids + nd[h].off) : (const void *)(bytes + nd[h].off); }
-static void tab_put(H h) {
-  uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
-  while (tab[i]) i = (i + 1) & (tcap - 1);
-  tab[i] = h;
+static void tab_put(H *t, uint64_t c, H h) {
+  uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (c - 1);
+  while (t[i]) i = (i + 1) & (c - 1);
+  t[i] = h;
 }
-/* The one node with this content. Refused content sets *why and answers nothing.
+static void regrow(int a, H *t, H from, H to, uint64_t want) {   /* a table by content made again for want, with [from, to) */
+  uint64_t c = AR(a)->n ? AR(a)->n : 4096; while (want * 2 > c) c *= 2;
+  room(a, c); memset(t, 0, (size_t)c * sizeof *t); AR(a)->n = c;
+  for (H h = from; h < to; h++) tab_put(t, c, h);
+}
+static inline H found(const H *t, uint64_t c, uint64_t *i, int comp, H bp, const void *payload, uint64_t n) {   /* or where it would go */
+  size_t sz = comp ? (size_t)n * sizeof(H) : n;
+  for (*i &= c - 1; t[*i]; *i = (*i + 1) & (c - 1)) { const Node *x = &nd[t[*i]];
+    if (x->comp == comp && x->bp == bp && x->n == n && !memcmp(payload_of(t[*i]), payload, sz)) return t[*i]; }
+  return 0;
+}
+/* The one node with this content. Refused content sets *why and answers nothing. A node made while
+ * no choice is open, and none made under one still stands, is settled at once: no fail can reach
+ * it. Any other is working and found by the process's own index until a commit settles it (walk).
+ * A settled node's parts are settled, so the settled index is asked only when this node's are.
  * A new record is whole before nn moves past it; its writer is the node now running. */
 static H mk(int comp, H bp, const void *payload, uint64_t n, Status *why) {
   if (bp || nn > 1) { if ((*why = rule(comp, bp, payload, n))) return 0; }
-  size_t sz = comp ? (size_t)n * sizeof(H) : n;
-  if (!tcap || nn * 2 > tcap) {                 /* the table by content grows where it lies */
-    uint64_t c = tcap ? tcap * 2 : 4096; room(A_BY_CONTENT, c); memset(tab, 0, (size_t)c * sizeof *tab); tcap = c;
-    for (H h = 1; h < nn; h++) tab_put(h);
-  }
-  uint64_t i = hash(comp, bp, payload, n) & (tcap - 1);
-  for (; tab[i]; i = (i + 1) & (tcap - 1)) {
-    Node *x = &nd[tab[i]];
-    if (x->comp == comp && x->bp == bp && x->n == n && !memcmp(payload_of(tab[i]), payload, sz)) return tab[i];
-  }
+  size_t sz = comp ? (size_t)n * sizeof(H) : n; int settle = !ncp && sw == nn, parts = bp < sw; H h;
+  if (settle && (!scap || nn * 2 > scap)) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);
+  if (!settle && (!tcap || (nn - sw + 1) * 2 > tcap)) regrow(A_BY_CONTENT, tab, sw, nn, nn - sw + 1);
+  uint64_t i = hash(comp, bp, payload, n), s = i;
+  if (!settle && (h = found(tab, tcap, &i, comp, bp, payload, n))) return h;
+  for (uint64_t j = 0; !settle && comp && parts && j < n; j++) parts = ((const H *)payload)[j] < sw;
+  if (parts && (h = found(stab, scap, &s, comp, bp, payload, n))) return h;
   room(A_NODES, nn + 1); Node *x = &nd[nn]; memset(x, 0, sizeof *x);
-  x->bp = bp; x->by = W->at; x->comp = (uint8_t)comp; x->n = n;
+  x->bp = bp; x->by = W->at; x->comp = (uint8_t)comp; x->n = n; x->settled = (uint8_t)settle;
   if (comp) { room(A_CHILDREN, nkids + n); x->off = nkids; memcpy(kids + nkids, payload, sz); nkids += n; }
   else { room(A_LEAF_BYTES, nbytes + n); x->off = nbytes; memcpy(bytes + nbytes, payload, sz); nbytes += n; }
-  tab[i] = (H)nn; return (H)nn++;
+  if (settle) stab[s] = (H)nn; else tab[i] = (H)nn;
+  h = (H)nn++; if (settle) sw = (uint32_t)nn;
+  return h;
 }
 #define KID(x, i) (kids[nd[x].off + (i)])
 #define TOMB 0xffffffffu                  /* a place in the table by id whose node was given back */
-static uint64_t idstart(const uint8_t *id) { uint64_t u; memcpy(&u, id, 8); return u & (icap - 1); }
-static uint64_t idslot(const uint8_t *id) {
-  uint64_t i = idstart(id);
-  while (idtab[i] && (idtab[i] == TOMB || memcmp(NID(idtab[i]), id, 32))) i = (i + 1) & (icap - 1);
+static uint64_t idstart(const uint8_t *id, uint64_t c) { uint64_t u; memcpy(&u, id, 8); return u & (c - 1); }
+static uint64_t idslot(const H *t, uint64_t c, const uint8_t *id) {
+  uint64_t i = idstart(id, c);
+  while (t[i] && (t[i] == TOMB || memcmp(NID(t[i]), id, 32))) i = (i + 1) & (c - 1);
   return i;
 }
 /* Section 2: canonical bytes of h, in working bytes the caller gives back. */
@@ -587,26 +646,38 @@ static uint8_t *cbytes(H h, size_t *len) {
   else memcpy(b + 33, bytes + nd[h].off, n);
   return b;
 }
-static void idmake(H skip) {              /* made again with only live places, larger while half would be taken */
-  uint64_t live = 0, c = icap ? icap : 4096;
-  for (H x = 1; x < nn; x++) live += nd[x].ida && x != skip;
+/* A table by id made again with only live places, larger while half would be taken: the settled one
+ * over the settled nodes, or the process's own over its working nodes. */
+static void idmake(int a, H *t, H from, H to, H skip) {
+  uint64_t live = 0, c = AR(a)->n ? AR(a)->n : 4096;
+  for (H x = from; x < to; x++) live += nd[x].ida && x != skip;
   while ((live + 1) * 2 >= c) c *= 2;
-  room(A_BY_ID, c); memset(idtab, 0, (size_t)c * sizeof *idtab); icap = c; W->ids = (uint32_t)live;
-  for (H x = 1; x < nn; x++) if (nd[x].ida && x != skip) idtab[idslot(NID(x))] = x;
+  room(a, c); memset(t, 0, (size_t)c * sizeof *t); AR(a)->n = c;
+  if (a == A_BY_ID) W->ids = (uint32_t)live; else sub->ids = live;
+  for (H x = from; x < to; x++) if (nd[x].ida && x != skip) t[idslot(t, c, NID(x))] = x;
 }
-/* A node's id lies beside it, in the area of ids, only once it is asked for. */
+/* A node's id lies beside it, in the area of ids, only once it is asked for. The table by id that
+ * finds it is the settled one or the process's own, as the node is; a place is counted when taken. */
+static void index_id(H h) {
+  int s = nd[h].settled; H *t = s ? sidt : idtab;
+  if (s ? !sicap || sub->ids * 2 >= sicap : !icap || (uint64_t)W->ids * 2 >= icap) s ? idmake(SA(S_BY_ID), sidt, 1, sw, h) : idmake(A_BY_ID, idtab, sw, nn, h);
+  uint64_t j = idslot(t, s ? sicap : icap, NID(h));
+  if (!t[j]) { if (s) sub->ids++; else W->ids++; }      /* ids counts the places taken, given back ones too */
+  t[j] = h;
+}
 static void setid(H h, const uint8_t *id) {
   if (nd[h].ida) return;
   room(A_IDS, nids + IDREC); memcpy(ids + nids, &h, 4); memcpy(ids + nids + 4, id, 32);
-  nd[h].ida = (uint32_t)(nids / IDREC); nids += IDREC;
-  if (!icap || (uint64_t)W->ids * 2 >= icap) idmake(h);     /* ids counts the places taken, given back ones too */
-  idtab[idslot(id)] = h; W->ids++;
+  nd[h].ida = (uint32_t)(nids / IDREC); nids += IDREC; index_id(h);
 }
 static const uint8_t *idof(H h) {         /* section 3 */
   if (!nd[h].ida) { uint64_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), id[32]; sha256(b, len, id); ntext = m; setid(h, id); }
   return NID(h);
 }
-static H byid(const uint8_t *id) { return icap ? idtab[idslot(id)] : 0; }
+static H byid(const uint8_t *id) {        /* a working node first, then a settled one */
+  H h = icap ? idtab[idslot(idtab, icap, id)] : 0;
+  return h ? h : sicap ? sidt[idslot(sidt, sicap, id)] : 0;
+}
 static const uint8_t ZERO[32];
 /* Section 2 read backwards: the node these canonical bytes are, every part already known. */
 static H from_bytes(const uint8_t *b, size_t len, Status *why) {
@@ -633,7 +704,7 @@ static void store_init(void) {
   mk(0, 0, "", 0, &why);                                  /* the root: blueprint nothing, no bytes */
   for (uint32_t n = 1; n < SEEDED; n++) { b[0] = (uint8_t)n; mk(0, ROOT, b, 1, &why); }
   for (H h = 1; h <= SEEDED; h++) idof(h);
-  memcpy(fb->magic, FB_MAGIC, 8);                         /* from here a reader can make sense of the region */
+  memcpy(sub->magic, FB_SUBSTRATE_MAGIC, 8); memcpy(fb->magic, FB_MAGIC, 8);   /* from here a reader can make sense of the region */
 }
 static H txt(const char *s) { Status why; return mk(0, E(TEXT), s, strlen(s), &why); }
 static int geti(H h, int64_t *out) {
@@ -711,6 +782,7 @@ static const char HEX[] = "0123456789abcdef";
 static void print_node(H x) {
   char t[24]; long long c = catn(x);
   if (c >= 0) { oput("#"); oput(dec(t, (uint64_t)c)); return; }
+  touch(A_PRINT_NUMBERS, x);
   if (pnum[x]) { oput("^"); oput(dec(t, pnum[x] - 1)); return; }
   pnum[x] = ++W->pcount; room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = x;
   oput(nd[x].comp ? "(" : "["); print_node(nd[x].bp);
@@ -720,7 +792,7 @@ static void print_node(H x) {
   oput(nd[x].comp ? ")" : "]");
 }
 static const char *print(H x) {
-  room(A_PRINT_NUMBERS, nn + 1); N(A_PRINT_NUMBERS) = nn; W->pcount = 0; nob = 0; oput("");
+  W->pcount = 0; nob = 0; oput("");
   uint64_t base = ntk; print_node(x);
   while (ntk > base) pnum[tk[--ntk]] = 0;         /* a print costs what it prints: only its own numbers are taken back */
   return ob;
@@ -786,7 +858,7 @@ static uint32_t enter(H recipe, const H *a, uint32_t n, uint32_t lim, uint32_t u
  * has declined above it: beneath that, faster forms are not tried again. 0: the bootstrap's code. */
 #define B(b) ((b) > OUT ? &out[(b) - OUT - 1] : &bd[(b) - 1])
 static uint32_t newest(H e, uint32_t lim) {             /* down the chain of e's own bindings, newest first */
-  uint32_t i = e < N(A_BOUND_BY_NODE) ? bykey[e] : 0;
+  uint32_t i = e < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, e) ? bykey[e] : 0;
   while (i > lim) i = bd[i-1].prev;
   return i;
 }
@@ -835,7 +907,7 @@ static H due(void) {
 static int is_recipe(H f) { return f && nd[f].comp && nd[f].bp == E(RECIPE) && nd[f].n == 1; }
 static int is_lazy(H f) { return f && nd[f].comp && nd[f].bp == E(LAZY) && nd[f].n == 1; }
 /* Entry e names data: a node under it answers itself and e cannot be bound. A leaf, e below 0, is data too. */
-static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED || e == ROOM || e == ROOM_TRAIL; }
+static int is_data(long long e) { return e < QUOTE || e == RECIPE || (e > NATIVE_OP && e < BLUEPRINT) || e == BINDING || e == LAZY || e == TRAIL || e == CLOSED || e == ROOM || e == ROOM_TRAIL || e == SUBSTRATE || e == LANE; }
 /* What is called is a recipe, or a recipe closed over values: those come first among its arguments.
  * Answers the recipe or nothing, and in full the n values of a made ready for it, in hand. */
 static int closed(H v) { return v && nd[v].comp && nd[v].bp == E(CLOSED) && nd[v].n; }
@@ -890,19 +962,21 @@ static void reclaim(ChoicePoint *q) {
     }
     else if (nd[h].bp == E(CODE) && icap) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
   }
-  for (H h = ftop; h-- > fm; ) {          /* the tables forget them all, the newest first as linear probing needs */
+  H to = fm; uint64_t pages = 0;          /* where each kept node goes, and the pages of cells that move there */
+  for (H h = fm; h < ftop; h++) if (fw[h - fm]) {
+    pages += h < N(A_CELLS) && on_page(A_CELLS, h) && held[h] && !on_page(A_CELLS, to); fw[h - fm] = to++; }
+  if (pages && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + pages) * FB_PAGE)) { ntext = mark; return; }
+  for (H h = ftop; h-- > fm; ) {          /* the working index forgets them all, the newest first as linear probing needs */
     uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n) & (tcap - 1);
     while (tab[i] && tab[i] != h) i = (i + 1) & (tcap - 1);
     if (tab[i] == h) tab[i] = 0;
     if (nd[h].ida) {
-      for (i = idstart(NID(h)); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+      for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
       if (idtab[i] == h) idtab[i] = TOMB; }
-    if (h < N(A_CELLS) && !fw[h - fm]) held[h] = 0;
-    if (h < N(A_BOUND_BY_NODE)) bykey[h] = 0;
-    if (h < fb->a[A_PRINT_NUMBERS].peak) pnum[h] = 0;
+    if (h < N(A_CELLS) && !fw[h - fm] && on_page(A_CELLS, h)) held[h] = 0;
+    if (h < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, h)) bykey[h] = 0;
+    if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0;
   }
-  H to = fm;
-  for (H h = fm; h < ftop; h++) if (fw[h - fm]) fw[h - fm] = to++;
   room(A_GIVES, 4); gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
   nn = fm;                                /* a watcher sees that places were given back, and none half moved */
   for (H h = fm; h < ftop; h++) {         /* each kept node moves down, its parts and cell with it */
@@ -911,7 +985,7 @@ static void reclaim(ChoicePoint *q) {
     if (x.comp) { for (uint64_t i = 0; i < x.n; i++) kids[k + i] = fwd(kids[x.off + i]); x.off = k; k += x.n; }
     else { memmove(bytes + b, bytes + x.off, x.n); x.off = b; b += x.n; }
     nd[n] = x;
-    if (h < N(A_CELLS)) { H v = held[h]; held[h] = 0; held[n] = fwd(v); }
+    if (h < N(A_CELLS) && on_page(A_CELLS, h)) { H v = held[h]; held[h] = 0; if (v) { charge(A_CELLS, n); held[n] = fwd(v); } }
   }
   nn = to; nkids = k; nbytes = b;
   uint64_t w = q->mids;                   /* ids made since stay for the nodes that stay, moved down with them */
@@ -922,8 +996,8 @@ static void reclaim(ChoicePoint *q) {
     memcpy(ids + w, &n, 4); nd[n].ida = (uint32_t)(w / IDREC); w += IDREC;
   }
   nids = w;
-  for (H h = fm; h < nn; h++) { tab_put(h); if (nd[h].ida) { idtab[idslot(NID(h))] = h; W->ids++; } }
-  if (icap && (uint64_t)W->ids * 2 >= icap) idmake(0);
+  for (H h = fm; h < nn; h++) { tab_put(tab, tcap, h); if (nd[h].ida) index_id(h); }
+  if (icap && (uint64_t)W->ids * 2 >= icap) idmake(A_BY_ID, idtab, sw, nn, 0);
   if (q->all == 2) q->coll = fwd(q->coll);
   if (q->all == 3) { q->i = fwd(q->i); q->coll = fwd(q->coll); }
   W->v = fwd(W->v); W->reason = fwd(W->reason);
@@ -944,6 +1018,28 @@ static void reclaim(ChoicePoint *q) {
 static void rise(ChoicePoint *q) {
   q->mnode = (uint32_t)nn; q->mkids = nkids; q->mbytes = nbytes; q->mcoll = (uint32_t)ncoll; q->mtrail = (uint32_t)ntrail;
   q->mtake = N(A_ROOMS); q->mids = nids; }
+/* No choice is open: no fail can reach what was made under one, and it is settled where it stands,
+ * the newest first as the working index forgets it. In a lone process nothing settles while working
+ * nodes stand but this, and mk found no equal settled content for any of them; finding one here would
+ * need the working state forwarded onto it, which is not built, so it ends the process. */
+static void commit(void) {
+  H from = sw, top = (H)nn;
+  if (nn * 2 > scap) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);
+  for (H h = top; h-- > from; ) {
+    uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n), s = i;
+    for (i &= tcap - 1; tab[i] && tab[i] != h; i = (i + 1) & (tcap - 1)) ;
+    if (tab[i] == h) tab[i] = 0;
+    if (found(stab, scap, &s, nd[h].comp, nd[h].bp, payload_of(h), nd[h].n)) die("a commit met content already settled");
+    stab[s] = h; nd[h].settled = 1;
+    if (nd[h].ida) { for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+      if (idtab[i] == h) idtab[i] = TOMB; }
+  }
+  sw = top;
+  for (H h = from; h < top; h++) if (nd[h].ida) index_id(h);
+}
+/* A choice point is about to be made. The first one open keeps in seen how far each lane was settled
+ * when the search began: one lane, the process's own. */
+static void opening(void) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1); if (!ncp) seen[0] = sw; }
 /* Call code and take its answer: k 0 a number, k 1 yes or no, k 4 the node whose handle v is,
  * any other k out of range. With k 3 the code declines and 0 is answered: what lies beneath runs.
  * So it does when code answers with no node: it met nothing, and the reason is for the walker to say. */
@@ -961,7 +1057,7 @@ static int landed(void *fn, int64_t *arg) {
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
   if (r.k == 3 || (r.k == 4 && !r.v)) { nnoted = 0; return 0; }    /* and the notes of code that declined are dropped: the walker */
   for (uint32_t j = 0; j < nnoted; j += 2) {                       /* writes them itself. Code that answered has them written now */
-    room(A_CELLS, (uint64_t)noted[j] + 1); if (N(A_CELLS) <= noted[j]) N(A_CELLS) = noted[j] + 1;
+    touch(A_CELLS, noted[j]);
     held[noted[j]] = noted[j+1]; kept(E(NOTE), noted[j], noted[j+1]);
   }
   nnoted = 0;
@@ -981,7 +1077,7 @@ static int given(const H *a, uint32_t c, int64_t *arg) {
  * while it does, a binding's faster form steps aside, so what watches sees every use. */
 static int watched(void) {
   for (uint32_t j = 0; j < nout; j++) { H e = out[j].entry; long long n = e ? catn(e) : -1;
-    if (e && ((n >= 0 && n < SEEDED) || (e < N(A_BOUND_BY_NODE) && bykey[e]))) return 1; }
+    if (e && ((n >= 0 && n < SEEDED) || (e < N(A_BOUND_BY_NODE) && on_page(A_BOUND_BY_NODE, e) && bykey[e]))) return 1; }
   return 0;
 }
 /* Run binding b: a recipe is entered on the bindings beneath b, a code leaf is called. With
@@ -1037,7 +1133,7 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
     if (!own) {                           /* bound from outside the run: seen at every limit, and no fail undoes it */
       if (nout == OMOST) { fault(S_FULL); return; }
       out[nout] = (Binding){ E(BINDING), W->at, x, l, 0, nout, 0 }; nout++; W->v = E(YES); return; }
-    room(A_BINDINGS, (uint64_t)nbind + 1); room(A_BOUND_BY_NODE, (uint64_t)x + 1); if (N(A_BOUND_BY_NODE) <= x) N(A_BOUND_BY_NODE) = x + 1;
+    room(A_BINDINGS, (uint64_t)nbind + 1); touch(A_BOUND_BY_NODE, x);
     bd[nbind] = (Binding){ E(BINDING), W->at, x, l, bykey[x], nbind, 0 }; bykey[x] = ++nbind; W->v = E(YES); return;
   }
   if (op == BLUEPRINT) { if (!(W->v = nd[x].bp)) W->reason = notice(S_ROOT); return; }
@@ -1144,7 +1240,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (c != 3) { fault(S_ARITY); return; }
     if (!a[0] || !a[1] || !a[2]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
     if (nd[a[0]].comp || !geti(a[1], &o) || !geti(a[2], &n)) { fault(S_KIND); return; }
-    room(A_CELLS, (uint64_t)E(LOOK) + 1); if (N(A_CELLS) <= E(LOOK)) N(A_CELLS) = E(LOOK) + 1;
+    touch(A_CELLS, E(LOOK));
     if (held[E(LOOK)] != a[0]) {
       char *s = talloc((size_t)nd[a[0]].n + 1); memcpy(s, bytes + nd[a[0]].off, nd[a[0]].n);
       void *p = host.watch(s); ntext = mark;
@@ -1197,7 +1293,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       if (j && a[0]) { out[j-1].entry = 0; while (nout && !out[nout-1].entry) nout--; }
       W->v = j && a[0] ? E(YES) : E(NO); return;
     }
-    if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !bykey[a[0]]) { W->v = E(NO); return; }
+    if (!a[0] || a[0] >= N(A_BOUND_BY_NODE) || !on_page(A_BOUND_BY_NODE, a[0]) || !bykey[a[0]]) { W->v = E(NO); return; }
     room(A_BINDINGS, (uint64_t)nbind + 1); bd[nbind] = (Binding){ E(BINDING), W->at, a[0], 0, bykey[a[0]], nbind, 0 }; nbind++;
     bykey[a[0]] = bd[bykey[a[0]] - 1].prev; W->v = E(YES); return;
   }
@@ -1205,8 +1301,8 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     H key = a[0];                     /* open, what it held before goes on the trail, and a fail puts it back */
     if (c != (op == HELD ? 1u : 2u)) { fault(S_ARITY); return; }
     if (!key || (op != HELD && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == HELD) { if (!(W->v = key < N(A_CELLS) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
-    room(A_CELLS, (uint64_t)key + 1); if (N(A_CELLS) <= key) N(A_CELLS) = key + 1;
+    if (op == HELD) { if (!(W->v = key < N(A_CELLS) && on_page(A_CELLS, key) ? held[key] : 0)) W->reason = notice(S_EMPTY); return; }
+    touch(A_CELLS, key);
     if (op == NOTE) kept(E(NOTE), key, a[1]);      /* a note is what was seen of a run, not part of it: no fail undoes it */
     else if (!ncp) ntrail = 0; else { room(A_TRAIL, (uint64_t)ntrail + 1); trail[ntrail++] = (Trail){ E(TRAIL), W->at, key, held[key] }; }
     W->v = held[key] = a[1]; return;
@@ -1218,8 +1314,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   if (op == LT) { W->v = m < n ? E(YES) : E(NO); return; }
   if (op == RANGE) {                  /* each integer from a up to b: a choice that counts instead of holding options */
     if (m >= n) { W->mode = M_FAILED; return; }
-    if (m + 1 < n) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
-      H next = mki(m + 1);
+    if (m + 1 < n) { H next = mki(m + 1); opening();
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), node, 3, node, next, env, W->k, nfr, nlink, nact, nargp, a[1], nbind, ntrail, nafter, nrtrail, MARKS }; ncp++; }
     W->v = a[0]; return;
   }
@@ -1256,7 +1351,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
  * asked as a number: k 0, or k 2 for nothing, or k 3 for a node that is no number. Otherwise k 4 and a handle, none for
  * nothing. A fault goes to the walker and does not come back here. */
 static int basic(long long op) {
-  return op >= ADD && op <= LAST && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
+  return op >= ADD && op <= UMOD && !is_data(op) && op != NATIVE_OP && op != UP && op != BASE && op != STEP
       && op != OUTCOME && op != LAYER && !(op >= RANGE && op <= OUTSIDE) && op != AFTER;
 }
 static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int64_t a5, int64_t op, int64_t cm) {
@@ -1303,13 +1398,14 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, ~COOL, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; ntk = left; nnoted = 0; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
-  case 2: while (ntk) { H h = tk[--ntk]; if (h < fb->a[A_PRINT_NUMBERS].peak) pnum[h] = 0; }
+  case 2: while (ntk) { H h = tk[--ntk]; if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0; }
     coding = 0; ntb = 0; ntext = text_base; W->reason = full_at[full]; W->mode = M_FAULT; break;
   case 3: coding = 0; ntk = left; nnoted = 0; break;                              /* an operation code asked for faulted: the fault is the program's */
   }
   for (nhand = 0;; W->step++, nhand = 0) switch (W->mode) {
   case M_EVAL: {
-    if (nafter && !ncp) {                 /* every choice is closed: what was held back for that is done now */
+    if (!ncp && nn > sw) commit();        /* every choice is closed: what was made under one settles before */
+    if (nafter && !ncp) {                 /* anything runs, and what was held back for that is done now */
       H q = due(); W->k = push(F_ASIDE, W->x, W->one, W->env, W->cut, W->reason, W->k, 1); W->x = q; W->env = W->one = 0; W->cut = 0;
     }
     if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
@@ -1333,7 +1429,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       lim = under(b, lim); b = 0;
     }
     if (given) break;
-    if (!b && (is_data(op) || op > LAST)) { answer(x); break; }/* data, or an entry with no meaning yet */
+    if (!b && (is_data(op) || op > UMOD)) { answer(x); break; }/* data, or past umod an entry with no meaning yet */
     switch (b ? -1 : op) {
     case QUOTE: if (c != 1) fault(S_ARITY); else answer(KID(x, 0)); break;
     case ARG: {
@@ -1351,7 +1447,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case CHOICE:
       if (!c) { W->mode = M_FAILED; break; }
       W->cut = ncp;
-      if (c > 1) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
+      if (c > 1) { opening();
         cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 0, x, 1, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++; }
       W->x = KID(x, 0); break;
     case FAIL:
@@ -1364,7 +1460,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
       W->k = push(F_CUT, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
     case ALL:
       if (c != 1) { fault(S_ARITY); break; }
-      room(A_CHOICE_POINTS, (uint64_t)ncp + 1);
+      opening();
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 1, x, ncoll, W->env, W->k, nfr, nlink, nact, nargp, ++W->gathers, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++;
       W->k = push(F_ALL, x, 0, W->env, W->cut, W->k, 0, W->gathers); W->cut = ncp; W->x = KID(x, 0); break;
     case NEED: if (c != 1) { fault(S_ARITY); break; } W->k = push(F_NEED, x, 0, W->env, W->cut, 0, W->k, 0); W->x = KID(x, 0); break;
@@ -1375,7 +1471,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     case LAYER: if (c != 1) { fault(S_ARITY); break; } W->k = push(F_LAYER, x, 0, W->env, W->cut, nout, W->k, nbind); W->x = KID(x, 0); break;
     case OUTCOME:                         /* x's first outcome is seen from behind a choice point, then failed into: */
       if (c != 1) { fault(S_ARITY); break; }      /* nothing x did stays, and the outcome is the answer */
-      room(A_CHOICE_POINTS, (uint64_t)ncp + 1); W->reason = 0;
+      opening(); W->reason = 0;
       cp[ncp] = (ChoicePoint){ E(CHOICE_POINT), x, 2, x, 0, W->env, W->k, nfr, nlink, nact, nargp, 0, nbind, ntrail, nafter, nrtrail, MARKS }; ncp++;
       W->k = push(F_OUTCOME, x, ncoll, W->env, W->cut, W->k, 0, ncp - 1); W->cut = ncp; W->x = KID(x, 0); break;
     default:                              /* call, arithmetic, eq, lt, native, parts: children first, in order */
@@ -1479,7 +1575,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
         if (!landed(birth(a[0]), arg)) { W->v = 0; W->reason = notice(S_DECLINED); }
         break;
       }
-      if (op > LAST) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
+      if (op > UMOD) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
       base(op, a, c, f.env, f.node); break; }
     }
     break; }
@@ -1590,16 +1686,16 @@ static int recv_bytes(uint8_t *p, size_t n) {
 /* Every part precedes its holder in the store. Mark its closure backwards, emit it forwards. */
 static int send_answer(uint8_t status, H value) {
   uint8_t header[37]; uint64_t size = sizeof ice_header;
-  room(A_PRINT_NUMBERS, (uint64_t)value + 1); N(A_PRINT_NUMBERS) = value + 1; pnum[value] = 1;
-  for (H h = value; h; --h) if (pnum[h]) {
+  touch(A_PRINT_NUMBERS, value); pnum[value] = 1;
+  for (H h = value; h; --h) if (on_page(A_PRINT_NUMBERS, h) && pnum[h]) {
     Node *x = nd + h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n);
-    if (x->bp > ROOT) pnum[x->bp] = 1;
-    if (x->comp) for (uint32_t j = 0; j < x->n; ++j) if (KID(h,j) > ROOT) pnum[KID(h,j)] = 1;
+    if (x->bp > ROOT) { touch(A_PRINT_NUMBERS, x->bp); pnum[x->bp] = 1; }
+    if (x->comp) for (uint32_t j = 0; j < x->n; ++j) if (KID(h,j) > ROOT) { touch(A_PRINT_NUMBERS, KID(h,j)); pnum[KID(h,j)] = 1; }
   }
   if (size > UINT32_MAX) return 0;
   header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
   if (!send_bytes(header, sizeof header) || !send_bytes(ice_header, sizeof ice_header)) return 0;
-  for (H h = 1; h <= value; ++h) if (pnum[h]) {
+  for (H h = 1; h <= value; ++h) if (on_page(A_PRINT_NUMBERS, h) && pnum[h]) {
     uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(h, &len); put4(header, (uint32_t)len);
     int sent = send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[h] = 0;
     if (!sent) return 0;
@@ -1644,7 +1740,7 @@ static int command(int argc, char **argv) {
   numeric_io = argc == 3 && !strcmp(cmd, "execute");
 #endif
   store_init();
-  for (int i = 0; i < A_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
 #ifdef NUMERIC_PORT
   return argc == 2 ? execute_image(argv[1]) : 2;
 #else

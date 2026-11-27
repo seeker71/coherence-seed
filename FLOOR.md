@@ -8,8 +8,8 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,604 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
-| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer |
+| Bootstrap | [`bootstrap/`](bootstrap) | 1,848 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is lane 0 of a substrate inside it |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
@@ -20,7 +20,7 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,444 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,445 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -175,6 +175,22 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A model layout carries its meaning.** Fixed-point, affine, codebook and block layouts
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).
+- **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
+  region, laid out as version 20 and described in `region/layout.ck`. A node made while no choice
+  is open is settled as it is made; one made under a choice is working, found by the process's
+  own index, and settled where it stands at the first evaluation step after the last choice
+  closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
+  nodes mid-run and below 274 at the end, the answer node 273 among them. `ground/gives-back.ck`
+  holds that a node made before its forty thousand outcomes keeps its handle and the lane's
+  settled watermark stands where it was; `ground/region-describes-itself.ck` checks the substrate
+  head, its areas, the lane row and where `share` puts the nodes, and five faults planted in the
+  description were each reported. A fault planted to move the watermark ended the run at the
+  commit, which found content already settled, rather than going on. Cells, bound-by-node and
+  print-numbers are charged by the pages they use. Measured against version 19 in five
+  alternating rounds under `/usr/bin/time -l`, medians: the long recursion 1.10 s of CPU against
+  1.04 s (instructions +7.0%, cycles +4.9%), `ground/gives-back.ck` as it stood before 1.42 s
+  against 1.36 s (+4.4%, +4.1%), and `ground/nums-compiled-agrees.ck` 9.89 s against 8.74 s
+  (+14.3%, +13.0%), where most nodes are made under a choice and asked of two indexes.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back the
   activations nothing can return to: three million rounds ended with 5 in use.
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
@@ -262,7 +278,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,261 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,262 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -293,7 +309,7 @@ running compiled code against frames all the way down).
   takes, gives and does to the world (`form/operations.ck`), and the emitter reads the kind of
   a value, which places are numbers and what to ask of the bootstrap from them; arithmetic's
   instructions are rows of data. The rest is not there. The nodes read a part by a bare number
-  475 times, the budget `make check-full` holds: the shape of a part is said only in the name
+  474 times, the budget `make check-full` holds: the shape of a part is said only in the name
   beside the node, where the lens shows `mine.ints`, and not in the node. A definition is
   still an entry numbered by hand in one lexicon, not its content. The files store the
   lowered core, so an `if` is four nested nodes. The emitter's other cases, the lens and the
@@ -314,11 +330,15 @@ running compiled code against frames all the way down).
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (663 lines of C under `tools/`), the Makefile, eleven pages, the claim
+  graph's checker (671 lines of C under `tools/`), the Makefile, eleven pages, the claim
   graph as 55 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
 - **Threads.** One walker runs on one thread.
+- **Handles across processes.** A handle is still local to its process: nobody else maps its
+  substrate. Joining another process's substrate, lane rows claimed by compare-and-swap, the
+  substrate's own allowance, the commit's path for content another lane settled, the side front
+  and the channel between members are not built.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30). The
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.

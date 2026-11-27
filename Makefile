@@ -3,7 +3,7 @@
 BUDGET = 2000
 # How many times the stored nodes may still read a part of a node by a bare number (graph node
 # 7.22). The count is of the nodes, whatever names lie beside them. It is lowered, never raised.
-BARE = 475
+BARE = 474
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 BOOT = bootstrap/ck.c bootstrap/fb.h

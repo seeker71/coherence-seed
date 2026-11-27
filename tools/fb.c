@@ -61,12 +61,16 @@ static const uint8_t *attach(const char *name, double wait_ms) {   /* waits for 
 }
 /* Copies the pages of one frame that differ from the image; lists their offsets in *pg. */
 static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
-  static uint8_t head[FB_PAGE]; static uint64_t *list; static uint32_t cap; uint32_t n = 0;
+  static uint8_t head[FB_PAGE], shead[FB_PAGE]; static uint64_t *list; static uint32_t cap; uint32_t n = 0;
   memcpy(head, src, FB_PAGE);                             /* the counts are read once, first */
-  const Head *h = (const Head *)head;
-  for (int i = -1; i < A_COUNT; i++) {
+  const Head *h = (const Head *)head; const Substrate *s = (const Substrate *)shead;
+  memcpy(shead, src + h->me.share, FB_PAGE);              /* and the substrate's, which lies at share */
+  for (int i = -1; i <= A_COUNT + S_COUNT; i++) {
     uint64_t off = 0, len = FB_PAGE;
-    if (i >= 0) {
+    if (i == A_COUNT) off = h->me.share;                  /* the substrate's head; its tables in a lane are the process's own areas */
+    else if (i > A_COUNT) { const Area *a = &s->a[i - A_COUNT - 1]; off = h->me.share + a->off; len = a->n * a->size;
+      if (len) { uint64_t prefix = off % FB_PAGE; off -= prefix; len += prefix; } }
+    else if (i >= 0) {
       const Area *a = &h->a[i]; uint64_t full = (uint64_t)a->cap * a->size;
       len = (uint64_t)a->n * a->size; off = a->off;
       if (i == A_STACK) { len = full < STACK_TOP ? full : STACK_TOP; off = a->off + full - len; }
@@ -74,7 +78,7 @@ static uint32_t grab(const uint8_t *src, uint64_t **pg, uint64_t *step_after) {
       if (len) { uint64_t prefix = off % FB_PAGE; off -= prefix; len += prefix; }
     }
     for (uint64_t p = off; p < off + len; p += FB_PAGE) {
-      const uint8_t *from = i < 0 ? head : src + p;
+      const uint8_t *from = i < 0 ? head : i == A_COUNT ? shead : src + p;
       if (!memcmp(img + p, from, FB_PAGE)) continue;
       memcpy(img + p, from, FB_PAGE);
       if (n == cap) { cap = cap ? cap * 2 : 1024; if (!(list = realloc(list, cap * sizeof *list))) stop("out of memory", ""); }
@@ -139,7 +143,9 @@ static void node(H h) {
 static void detail(void) {
   const Machine *m = &hd->m;
   printf("framebuffer version %u, writer pid %u, %llu bytes reserved\n", hd->version, hd->pid, (unsigned long long)hd->bytes);
-  if (hd->version >= 19) printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
+  printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
+  const Substrate *s = (const Substrate *)(img + hd->me.share); const Lane *l = (const Lane *)((const uint8_t *)s + s->a[S_LANES].off);
+  printf("substrate at byte %llu, %u lane: lane 0 of pid %u settled below %u\n", (unsigned long long)hd->me.share, s->lanes, l->pid, l->sw);
   printf("machine  mode %s  step %llu  env %u  cut %u  k %u\n", MODE[m->mode <= M_DONE ? m->mode : 0], (unsigned long long)m->step, m->env, m->cut, m->k);
   printf("  at      %s\n", str(m->at, 160));
   printf("  x       %s\n", str(m->x, 160));
