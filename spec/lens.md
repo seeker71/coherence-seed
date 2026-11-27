@@ -174,6 +174,20 @@ A known source meaning survives a missing target wording or an unsupported targe
 A reader who chooses one interpretation can refer to its complete node. Permission to send
 the wording is a separate offer to the recipient's port.
 
+`circle/turns.ck` keeps an original utterance, its participants and the candidate readings in
+an immutable statement. Each new turn names its predecessor. A listener can propose a reading,
+the speaker can correct it, and either role can explicitly refuse or choose silence.
+`satsang.position` retrieves the named participant's latest turn. `satsang.selected` retrieves
+the speaker's correction even after the listener disagrees. An absent turn has no recorded
+stance. A request against an earlier or divergent head is stale. Use a distinct circle identity
+for an independently intended episode with the same opening. `ground/circle-turns.ck` exercises
+these choices through both language directions; `make check-held-back` carries them across
+processes and checks the independently granted delivery.
+
+The same check runs a small ordered decision through the native component runtime and the
+Python writer. On hosts with Python 3, three executable examples exercise the emitted function.
+An empty proposal returns its first applicable answer before any later branch reads a field.
+
 ## Limits
 
 - It is not yet the surface of graph node 5.3.5. Every form is in brackets: a sign stands between

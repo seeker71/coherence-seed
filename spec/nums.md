@@ -379,6 +379,12 @@ that constructs it.
 
 ### Viewing a component declaration
 
+Local adapters can call `nums.member-named shape key value` to read a fixed record field by
+its declared member identity. It consults the installed class, counts only member declarations,
+and checks the record shape and resulting position. Missing or repeated keys and positions at
+or beyond a variadic field are refused. The local inbox uses this for records shared between
+its control and receiving processes.
+
 The BML lexer calls the typed predicates in `nums/bml-alphabet.ck`. Both the lexer and
 the BMF range matcher use `bmf.in-range` from `bmf/items.ck`. The interval has two
 declared members and a positional constructor. The alphabet declares its three constant

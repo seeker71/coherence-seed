@@ -347,3 +347,11 @@ is: The lens comparisons include a bilingual reference for complete, ambiguous, 
 path: coherence-seed/ground/nums-portable.ck
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.25
+name: circle-exchange.ck
+kind: source
+is: The local exchange driven by check-held-back compares the retained turn, two consent revisions, receipt and published letter across process boundaries.
+path: coherence-seed/ground/circle-exchange.ck
+got: 2026-11-27
+at: 2026-11-27

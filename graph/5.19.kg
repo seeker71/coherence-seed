@@ -410,3 +410,15 @@ conf: mid
 why: The English permission with “we” yields two actor nodes. A grant for the exclusive reading declined the inclusive reading with identical proposed bytes. Revocation before the queued call ran preserved the receiving stream. A writer claiming success without transferring bytes failed comparison against that stream.
 limit: A bounded English and Indonesian vocabulary, one trusted local port and a single walker. This comparison establishes neither speaker identity nor remote acknowledgment.
 at: 2026-11-27
+
+n: 5.19.39
+name: a-local-inbox-can-recover-an-acknowledgment
+kind: observation
+is: A speaker can correct a listener's proposed reading. Independent owner and recipient revisions govern whether a cooperating local process may publish the translated wording. An authorized retry finds the same letter.
+status: observed
+from: 5.19.38
+src: 2.30.25
+conf: mid
+why: Fresh processes applied the proposal, correction, refusal and silence. A paused invitation, expiry during staging or process exit before publication left the receiving directory empty. The authorized occurrence contained the exclusive wording. An exit after publication and before acknowledgment followed by a fresh-process retry kept the original inode. Concurrent attempts at a second occurrence published one new letter.
+limit: The participants were fixtures. Local roles and filesystem permissions were provisioned in advance. Human experience, network identity and power-loss durability remain open.
+at: 2026-11-27

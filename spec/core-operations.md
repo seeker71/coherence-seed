@@ -645,6 +645,43 @@ and bytes in the receiving stream agree. The maintained deferred-write flow runs
 `make check-held-back`. Its callback objects use `nums.callable`, which takes a one-body recipe
 or a nested closure over one. The ground compares that judgment with the walker's own `close`.
 
+### Local inbox
+
+A cooperating pair of local roles can hand off a letter across process restarts. The channel
+binds one owner, circle, recipient, private directory and receiving directory. Provision both
+directories on the same local filesystem. The local broker controls writes to both directories,
+and the reader can inspect published letters. The launcher is responsible for identifying
+each participant and routing its control commands. The ground supplies two fixture roles.
+Initialize `authority` and `listening` inside the private directory to the canonical node
+`#32` (no). A trusted local caller supplies a canonical `inbox.channel` through file descriptor
+3. Each command below reads one canonical node from standard input and prints a canonical reply.
+
+| Command | Input and effect |
+|---|---|
+| `./ck text circle/authorize.ck` | An `inbox.change` holds the expected revision ID and an `inbox.permit` pairing an occurrence nonce with an exact `share.grant`. Supply `no` to withdraw. Grant times are Unix seconds. |
+| `./ck text circle/listen.ck` | The recipient changes its invitation using the expected revision ID and the exact `inbox.ticket`, or `no` to pause. |
+| `./ck text circle/receive.ck` | An `inbox.ticket` holds the nonce and the scope's content ID. A reply binds the same ticket to the outcome. |
+
+Both registers start at `id(no)`. Each successful change returns its new revision ID.
+Reapplying a current change returns that revision. An intervening change makes the old update
+stale, including after withdrawal. One private-directory lock serializes the two controls with
+delivery. The clock is sampled again after staging, immediately before publication.
+
+The receiver gets one immutable `inbox.letter` holding the ticket and the permitted bytes.
+The original turn, alternative readings and grant stay in the private scope. The letter's
+filename identifies an occurrence by owner, circle, recipient and nonce. A hard link publishes
+the complete record without replacing a previous one. A retry with current consent reports a
+replay for an identical record or a conflict for different content under that occurrence.
+A new nonce permits a second intentional delivery of identical content. The maintained comparison
+terminates a receiver immediately before the link and observes an empty receiving directory.
+It terminates a second receiver immediately after the link. A fresh process then recovers the
+same file and bytes, although the publishing process sent no acknowledgment.
+
+Run `make check-held-back` to exercise the actual commands. This carrier assumes trusted
+role provisioning and cooperating processes with one shared local filesystem. Remote
+authentication, host power failure, separate downstream effects and human acknowledgment
+remain outside the observed flow.
+
 ## Entry 104: nothing, with its reason
 
 `(nothing r)` answers nothing, and r is the reason beside it: what an operation of the bootstrap

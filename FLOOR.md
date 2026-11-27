@@ -352,6 +352,14 @@ running compiled code against frames all the way down).
   reading are declined. The ground also withdraws permission after queueing and compares the
   bytes left by complete, empty and partial writes. A sibling substituted a writer that claimed
   success without writing. The physical stream comparison caught it. [Scoped delivery](spec/core-operations.md#scoped-delivery)
+- **Two local roles can disagree and still exchange one authorized letter.** A listener proposes
+  the inclusive reading of “We may share”. The speaker selects the exclusive reading. A refusal
+  and an explicit silence retain both positions. Separate processes publish “Kami boleh berbagi”
+  only after the owner grants that delivery and the listener invites it. A retry after a lost
+  acknowledgment finds the same file. Eight sibling-run receivers racing for another occurrence
+  produced one acceptance and seven replay receipts. This witnesses local process behavior.
+  Participants' experience of trust and vitality remains an open question.
+  [Local inbox and its boundaries](spec/core-operations.md#local-inbox)
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 

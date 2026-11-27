@@ -165,6 +165,43 @@ check-held-back: ck
 	  then echo "held back: branch, fault and ordering checks passed. Scoped delivery matched the current grant, selected reading, receipt and bytes in the receiving stream."; \
 	  else echo "held back: '$$got'"; exit 1; fi
 
+	@test "$$(./ck run ground/circle-turns.ck)" = 'node #33'
+	@set -eu; \
+	  work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/private" "$$work/letters"; \
+	  gen() { printf %s "$$1" > "$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" 4<"$$work/$${4:-none}" <"$$work/$$2" >"$$work/$$3"; }; \
+	  send() { ./ck text "circle/$$1.ck" 3<"$$work/channel" <"$$work/$$2" >"$$work/$$3"; }; \
+	  expect() { gen status "$$1" status; actual=$$(cat "$$work/status"); wanted=$$(printf %s "$$2" | ./ck text lens/to-nodes.ck lens/all.ck); [ "$$actual" = "$$wanted" ] || { echo "circle $$1: $$actual, expected $$2" >&2; exit 1; }; }; \
+	  empty() { [ -z "$$(ls -A "$$work/letters")" ] || { echo "circle: premature publication" >&2; exit 1; }; }; \
+	  change() { gen change "$$2" update "$$3"; send "$$1" update "$$4"; }; \
+	  printf '#32' > "$$work/none"; cp "$$work/none" "$$work/private/authority"; cp "$$work/none" "$$work/private/listening"; \
+	  printf %s "$$work" > "$$work/path"; printf '[#2 31]' > "$$work/first"; printf '[#2 32]' > "$$work/second"; \
+	  gen channel path channel; gen identity none genesis; \
+	  gen open none opening; gen propose opening proposal; gen correct proposal correction; \
+	  gen decline correction refusal; gen silence refusal quiet; gen scope quiet scope; gen other-scope proposal alternative; \
+	  gen permit scope offered first; gen ticket scope ticket first; gen ticket alternative wrong first; \
+	  change authorize offered genesis sender; send receive ticket reply; expect reply inbox.paused; empty; \
+	  change listen ticket genesis listener; gen expire-during-stage ticket reply channel; expect reply share.expired; empty; \
+	  send receive wrong reply; expect reply share.different; empty; \
+	  change listen none listener paused; change listen ticket genesis stale; \
+	  [ "$$(cat "$$work/stale")" = "$$(printf inbox.stale | ./ck text lens/to-nodes.ck lens/all.ck)" ]; \
+	  send receive ticket reply; expect reply inbox.paused; empty; \
+	  change listen ticket paused listener; \
+	  interrupt() { printf %s "$$1" > "$$work/phase"; rc=0; ./ck text circle/receive.ck ground/circle-interrupt.ck 3<"$$work/channel" 4<"$$work/phase" <"$$work/ticket" >"$$work/discarded" || rc=$$?; [ "$$rc" = "$$2" ] && [ ! -s "$$work/discarded" ]; }; \
+	  interrupt before 75; empty; interrupt after 76; \
+	  set -- "$$work/letters/"*; [ "$$#" = 1 ]; ln "$$1" "$$work/original"; gen bytes original seen; printf 'Kami boleh berbagi' | cmp - "$$work/seen"; \
+	  send receive ticket reply; expect reply inbox.replayed; gen reference reply confirmed; cmp "$$work/confirmed" "$$work/ticket"; test "$$1" -ef "$$work/original"; \
+	  gen permit alternative other-permit first; change authorize other-permit sender sender; change listen wrong listener listener; \
+	  send receive wrong reply; expect reply inbox.conflict; gen bytes original intact; cmp "$$work/intact" "$$work/seen"; test "$$1" -ef "$$work/original"; \
+	  change authorize none sender stopped; send receive wrong reply; expect reply share.ungranted; \
+	  gen permit scope another second; gen ticket scope ticket-two second; change authorize another stopped sender; change listen ticket-two listener listener; \
+	  send receive ticket-two race-a & first_pid=$$!; send receive ticket-two race-b & second_pid=$$!; wait "$$first_pid"; wait "$$second_pid"; \
+	  gen status race-a a; gen status race-b b; accepted=$$(printf inbox.accepted | ./ck text lens/to-nodes.ck lens/all.ck); \
+	  if [ "$$(cat "$$work/a")" = "$$accepted" ]; then expect race-b inbox.replayed; else expect race-a inbox.replayed; expect race-b inbox.accepted; fi; \
+	  set -- "$$work/letters/"*; [ "$$#" = 2 ]; for entry in "$$@"; do gen bytes "letters/$${entry##*/}" held; cmp "$$work/held" "$$work/seen"; done; \
+	  ./ck text ground/turn-projection.ck > "$$work/turn_projection.py"; \
+	  if command -v python3 >/dev/null 2>&1; then python3 -m doctest "$$work/turn_projection.py"; fi; \
+	  echo "circle: two roles retained their readings; consent, expiry and replay matched the letters in the receiving directory"
+
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
 	  if [ "$${n:-99999}" -le $(BARE) ]; then echo "parts by name: $$n reads by a bare number are left in the stored form, within the budget of $(BARE)"; \
