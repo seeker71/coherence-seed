@@ -2001,6 +2001,11 @@ static int image_rest(int k, int n, char **paths, const char *prior, char *saved
 }
 /* What a start leaves in the cell under the entry after runs once it is over, in this process, whether the start ran or
  * was entered: so a package's opening, the door, the device, the join, follows its loading and is not saved with it. */
+#ifndef NUMERIC_PORT
+static H after_seen;                      /* what the start's files left under after so far: each new one runs after the last */
+static void after_join(void) { H now = USED(A_CELLS, E(AFTER)) ? held[E(AFTER)] : 0, p[2] = { after_seen, now }; Status why;
+  if (now && after_seen && now != after_seen) now = held[E(AFTER)] = mk(1, E(SEQ), p, 2, &why); after_seen = now; }
+#endif
 static int reborn(void) { H r = USED(A_CELLS, E(AFTER)) ? held[E(AFTER)] : 0; if (r) run(r); return !r || W->outcome == 'n'; }
 static int execute_image(const char *path, int warm, int keyed, char **starts) {
   Status why; char saved[PATH_MAX] = "";
@@ -2057,7 +2062,8 @@ static int command(int argc, char **argv) {
   if (numeric_io) return execute_image(argv[2], warm, keyed, argv + start);
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
     char saved[PATH_MAX] = ""; reading = 1;               /* a start saves the longest part of it at rest, the part it entered with */
-    for (int i = 3 + warm; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; }
+    after_seen = USED(A_CELLS, E(AFTER)) ? held[E(AFTER)] : 0;
+    for (int i = 3 + warm; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } after_join();
       if (keyed) image_rest(i - 2, starts, argv + 3, warm ? entered : 0, saved); }
     reading = 0; if (!reborn()) { say("not bound: ", "after"); return 1; }
     run(file_node(argv[2]));

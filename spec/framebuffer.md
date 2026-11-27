@@ -72,13 +72,19 @@ function of what was read, and is saved once; every later start with the same na
   the program alone decides, as `irreversible`, `arity` or its own, leaves the start at rest.
 - **The name** is `region/rest.ck`'s, made from nothing read from a file: the id of a list of
   whether the port is numeric, the device and inode of the directory the start's paths are read
-  from, and the paths as given. The file is `<name>.image` in the directory `CK_IMAGES` names, or
-  else in `~/Library/Caches/coherence-seed/images` on macOS and `$XDG_CACHE_HOME` or `~/.cache`,
-  then `coherence-seed/images`, elsewhere; `CK_IMAGES` set empty keeps no image. Only macOS has
+  from, and the paths as given. The file is `<name>.image` in a folder of the saver's own: `coherence-seed-images` in
+  the folder `CK_IMAGES` names, or else `~/Library/Caches/coherence-seed/images` on macOS and
+  `$XDG_CACHE_HOME` or `~/.cache`, then `coherence-seed/images`, elsewhere. `CK_IMAGES` set empty,
+  or no `HOME` where it is not set, keeps no image, and so does a folder that is not this user's
+  alone (made with mode 0700, refused when another may write it). Only macOS has
   it yet, since the executable's identity is its `LC_UUID`, the one fact the bootstrap gives.
-- **The directory is held small.** After it saves an image, `region/rest.ck` lists the
-  directory and removes the images read longest ago, never the one just saved, until they hold
-  no more than 64 MB (`CK_IMAGES_BYTES` sets another) and a sixteenth of the disk's free space.
+- **The directory is held small.** After it saves an image, `region/rest.ck` lists its folder
+  and removes the images read longest ago, never the one just saved, and only what it wrote: a
+  name of 32 hex digits and `.image`, a regular file by `lstat`, this user's, beginning
+  `CKREST1\n`; a builder's temporary file of that name older than ten seconds goes too. They are
+  removed until they hold
+  no more than 64 MB (`CK_IMAGES_BYTES`, in decimal digits, sets another; anything else is not
+  read) and a sixteenth of the disk's free space.
   The host keeps when an image was last read: APFS moves the time when a start reads an image's
   head, and a Linux mount with `relatime` moves it at most once a day.
 - **The image** is a head, its extents, the region's pages that hold anything, each at its place,
@@ -90,8 +96,8 @@ function of what was read, and is saved once; every later start with the same na
   the executable, every file the start read with the bytes it gave. `region/rest.ck` asks the
   host for each file's device, inode, size and both times, refuses one that is not a regular file
   or does not read the same bytes again, and makes a node that checks those signatures again.
-  That node is the image's last part; the file is written under `<name>.image.part`, synced to the
-  disk and then renamed, all by `region/rest.ck`. The builder then puts the snapshot's pages back
+  That node is the image's last part; the file is made by `mkstemp`, so it is this process's own and new,
+  written, synced to the disk and then renamed over the name, all by `region/rest.ck`. The builder then puts the snapshot's pages back
   over its own region, so that it goes on exactly as a later start. The text area is saved as it
   was before the start, its count and its high mark, since how far it reached follows the command
   line.
@@ -108,7 +114,7 @@ function of what was read, and is saved once; every later start with the same na
   this process's again. Any other answer makes the region what `fb_open` made, and the start
   runs cold and saves a new image.
 - **What runs after.** A node a start leaves in the cell under the entry `after` runs once the
-  start is over, in every process, whether the start ran or was entered: a package's opening, the
+  start is over (when two of its files leave one each, the first, then the second), in every process, whether the start ran or was entered: a package's opening, the
   door, the device, the join, follows its loading and is not saved with it. `share/all.ck` and
   `host/metal-all.ck` leave theirs there, and so does the first part of a Metal image.
 - **The saver.** When a start is judged at rest the bootstrap takes a copy-on-write snapshot of
@@ -123,9 +129,8 @@ function of what was read, and is saved once; every later start with the same na
   it. A later start tries the image of all its files, then of fewer, and runs the files after the
   part it entered. A start file is checked by the node its first line reads to, a file read with
   `file` and the image `seed-run` opens by their bytes.
-- **Two builds of one start are the same bytes.** A `.part` file older than ten seconds is the
-  remains of a builder that ended mid-save and is replaced; a younger one belongs to a builder at
-  work, and the start does not save.
+- **Two builds of one start are the same bytes**, so two builders at once each write a file of
+  their own and the second rename leaves what the first did.
 
 ## What is in it
 

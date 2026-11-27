@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,181 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,187 lines now that it also saves a start at rest and maps it again, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -476,7 +476,7 @@ running compiled code against frames all the way down).
   compiled code too: nothing yet tells code the compiler made, which reads only what it is given,
   from code that reads anything. The name, the gate, the saver and the directory's size are
   recipes of `region/rest.ck`, which every start with files before its program reads: a warm lens
-  flow takes 28.2 M instructions and 2.29 ms where the gate in C took 18 M and 1.53 ms. Images are kept by default in the user's cache, held
+  flow takes 29.2 M instructions and 2.26 ms where the gate in C took 18 M and 1.53 ms. Images are kept by default in the user's cache, held
   to 64 MB or a sixteenth of the free disk by removing those read longest ago. A page of
   an image is trusted as written: one byte changed in it is answered from, where a cold start
   answers otherwise; hashing every page of the lens image would cost 0.26 to 0.6 ms of its 1.67
