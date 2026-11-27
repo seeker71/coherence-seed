@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 1,909 lines now that Metal has left it, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 1,908 lines with the hardware dispatch in Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is lane 0 of a substrate inside it |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -64,41 +64,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
   nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
   this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
-- **Metal runs a word map by ID, from Form.** The bootstrap runs no Metal: the component
-  package `host/metal.ck` makes the device, the library, the pipeline and the buffer and
-  dispatches the kernel through rows of the package `host/`, and the blueprint
-  `(code metal-map64)` is bound to it. One line of C still names the target: the collector
-  does not look for ids in a Metal library's bytes. On the M4 Max a 65-lane recipe combining
-  arithmetic and bitwise operations matched frames byte for byte, with the empty vector and
-  two invalid shapes, and an application composed with it called the map inside one search in
-  both operand orders, from a directory containing only the image; the five replies are the
-  bytes the C dispatch of main gave for the same requests. The map runs under the open choice
-  because the door is opened ahead: every lookup by name is made at the start, and a dispatch
-  lets go of all it made before it answers.
-- **A hundredth map leaves what a second leaves.** `ground/metal-holds.ck`, run by
-  `make check-image` on the image itself, compares four maps with two, and under
-  `make check-full` fifty with twenty-five, 176 maps in one process: twice the maps leave as
-  many nodes and as much in every area of the walker as half as many; `has-target` runs its
-  value once and answers each target of a choice; a fault raised at the first
-  copy into the buffer comes out as itself with no object held; a fail at the same place
-  under an open choice is the fault `metal.guard` with no object held; the map answers the
-  same afterwards. By hand, with the case that differed before: twelve maps of 4 MB under an
-  allowance of 128 MB all answer, within 51 MB resident; one of 16 MB under 128 MB answers;
-  201 maps of one lane under 64 MB all answer, within 19 MB; a fault on the buffer's
-  `release` leaves the buffer noted and the next map lets it go; a message with no row is a
-  fault; a library leaf as a binding's implementation declines to the recipe beneath; three
-  values and one are the fault `e.arity`; running the berth leaf again after a call is the
-  fault `crash`.
-- **What the walked dispatch costs.** Timed one process at a time, medians of 15 runs against
-  the C of main: the flow of five requests takes 72 ms where C takes 46, and each further map
-  of 65 lanes about 6.6 ms where C takes 3.8. A start with no request takes 22 ms where C
-  takes 5: 2 ms for an image that does nothing, 11 ms to load the host package and assemble
-  its leaves, 4 ms for the Metal package and its binds, and 6 ms to open the door; the device
-  is asked at the first `has-target` or the first map. The image is 423,434 bytes where it
-  was 93,187. `make check` takes 2.0 s of wall time with four maps compared with two;
-  `make check-full` compares fifty with twenty-five. Under Rosetta the x86-64 build answers
-  `has-target` no and a map `no-native`, where the C dispatch ran there: rows exist for
-  Apple's arm64 convention only. [Metal word maps](spec/nums.md#metal-word-maps)
+- **Metal runs by ID on both macOS process architectures.** On the M4 Max, one image
+  returned identical replies on arm64 and Rosetta x86-64. The image comparison runs the
+  65-lane word map directly, through an attached Form recipe under an open choice, and
+  through two dependent stages. All three answers agree with NUMS frames. A fault while
+  binding an encoder's buffer releases the encoder and permits the next map. Both runtime
+  executables link only libSystem.
+- **Compiled Metal libraries run through a numeric batch.** Views carry byte offsets.
+  Stages choose thread or threadgroup grids, constants, dynamic threadgroup memory and
+  concurrent buffer barriers. The old kernel's float and quantized fills and Llama argmax
+  reductions ran in one batch on both process architectures. The complete readbacks matched
+  CPU references. Thirteen Q8 matrix products and a recurrent delta update also matched
+  their CPU results on both ABIs. Device buffers live across stages in the batch. [Metal batches](spec/nums.md#named-metal-batches)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -260,7 +237,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **The host is reached through one door, and its functions are rows** (graph node 5.14.60).
   Entry 98 calls a name or an address, and the address of the host's own lookup is a word of the
   region's head. The package `host/` holds as rows: 30 host functions, each with a slot for
-  every value and the kind of its result; 28 Objective-C messages, each a selector, its slots
+  every value and the kind of its result; Objective-C messages, each a selector, its slots
   and its result; the calling convention of this host, which is Apple's
   variant of the arm64 convention (a varying value goes on the stack); which blueprint a slot
   takes and how it becomes a word; how each kind of result is read, a one-byte truth among them; the host's two lookup
@@ -283,8 +260,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   bytes in use it had. An object made by the message `new` is let go by `release`, and a
   message with no row answers nothing. Of the 30 function rows, 22 are run by the flow and
   four more by the Metal flow of `make check-image`; `mprotect`, `dlopen`, `dlsym` and
-  `sysctlbyname` are not run as rows. Of the 28 messages the flow sends two and the Metal
-  flow all 28. Inside the ground catalogue's search the same
+  `sysctlbyname` are not run as rows. The host and Metal flows exercise the message rows they use. Inside the ground catalogue's search the same
   program is the refusal `irreversible`, at its first call, which is by address. By hand, not
   held by a check: two wrong place rows made the run name the five cases they break; a row
   naming a library that is not there is a fault that names the library; a call before the door

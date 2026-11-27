@@ -988,7 +988,7 @@ static void reclaim(ChoicePoint *q) {
       uint64_t at; memcpy(&at, bytes + nd[h].off, 8);
       if (at >= q->mtake && at < N(A_ROOMS)) { root(((Room *)(rooms + at))->bp); if (at + roomlen(at) > rtop) rtop = at + roomlen(at); }
     }
-    else if (icap && code_target(h) && code_target(h) != TARGET_METAL_MAP64) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
+    else if (icap && code_target(h)) for (uint64_t o = 0; o + 32 <= nd[h].n; o++) { H r = byid(bytes + nd[h].off + o); if (r && r != TOMB) root(r); }
   }
   for (uint32_t i = q->mtrail; i < ntrail; i++) if (trail[i].bp == E(NOTE) && trail[i].key >= fm && trail[i].key < ftop) fw[trail[i].key - fm] |= 2;
   H to = fm; uint64_t pages = 0, last = ~0ull;   /* where each kept node goes, and each page not yet used that */

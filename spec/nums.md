@@ -132,60 +132,69 @@ and two operands by content ID. Each operand packs one 64-bit word per lane. The
 depends on the declaration and stays the same across builds of its Metal library.
 The optional `METAL_APPLICATION` supplies a `nums.image` manifest. In this example its
 caller receives the map entry and two byte operands by ID. One search calls the map in
-both operand orders and returns the two vectors in a single reply.
+both operand orders and returns the direct, attached and batched results in a single reply.
 
 The `metal-map64` ABI binds one shared word buffer at index 0 and the unsigned 32-bit lane count
 at index 1. For `n` lanes the two inputs start at words 0 and `n`, and the output starts at word
 `2*n`. The device must advertise Apple GPU family 3 or Metal family 3 for 64-bit
 integer arithmetic. [Metal feature tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf)
 
-No C knows Metal. The component package `host/metal.ck` runs the map through the host door
-(`spec/core-operations.md`, entry 98): the seven host functions it calls and the 28 messages it
-sends are rows of `host/host.ck`, the two device families, the eight objects it holds and how
-each is let go are rows of its own, and it reaches the host only through seven recipes it is
-handed as a `metal.door`. `host/metal-bind.ck` makes that door, binds the blueprint
-`(code metal-map64)` to `metal.map` and `has-target` to a recipe that asks `metal.ready` for
-that target; `host/metal-all.ck` also reads where the door's words lie from the region's
-layout and opens the door. An image carries `host/metal-bind.ck` linked in and those places as
-numbers, with the layout version they were read under, and faults `metal.open` on another.
+The bootstrap recognizes the process CPU. Form binds the Metal target, opens the host
+functions and selectors during image startup, and owns the encoder, buffers and pipeline.
+The same image runs on macOS arm64 and x86-64 under Rosetta. The two 24-byte grid sizes
+pass indirectly on arm64 and by value on the System V stack on x86-64. Entry 98 retains
+its ordinary open-choice behavior. The driver runs its prepared calls, finishes the encoder,
+waits for completion and returns immutable bytes. One process-owned word per resource
+holds its live handle until the driver releases it. Backtracking leaves these words
+available to the cleanup recipe, including the encoder when a buffer binding faults.
 
-The door is opened ahead, by `metal.open`, while no choice is open: it resolves every function
-row of this host and keeps the row beside its address, registers every message's selector and
-keeps its row, finds the pool's class, checks that a leaf's bytes are where the layout says by
-reading one back. The device is asked whether it has the families at the first
-`has-target`, once, and the answer is kept. After that a map asks the host
-nothing by name. The library and the two operands are read where they lie in the region, by
-their addresses, and are not copied on the way. This is what lets the application of the
-example call the map inside a search, once for each operand order.
+For a replaceable map, call `metal.adapt` with the public entry and its reference recipe
+before linking consumers. `fast` can then install a library while earlier consumers of that
+entry continue to use its ID. Unsupported operands run the reference body. When a program
+attaches a library to an ordinary binding after linking, existing lexical callers keep their
+binding. The image comparison exercises the registered entry in both operand orders and
+checks the result of a declined call.
 
-Every object a dispatch makes is noted under its name as it is made: the autorelease pool,
-the device, the library's data, the library, the kernel, the pipeline, the queue and the
-buffer. Whatever is noted is let go, by the row that says how, when the dispatch ends, when a
-fault or a fail leaves it, and before the next dispatch begins, and its note is cleared only
-after the host has answered. A message or a function with no row is a fault. The two sizes,
-three words each, and the lane count lie in one room, the bench, taken once per process, and
-are passed by their addresses. The output is copied from the shared buffer into a second
-room, which grows to the largest output asked for, and leaves as a leaf of the region's own
-bytes.
+#### Named Metal batches
 
-The door runs each dispatch under a choice of its own, notes the answer, and fails back: the
-frames, links and nodes the walked calls made are given back, and only the answer stays. So a
-hundredth map leaves in the region what a second leaves, which `ground/metal-holds.ck` holds
-inside `make check-image`, with the fault and the fail midway.
+`host/metal-batch.ck` runs functions from a compiled Metal library. A request addresses
+`metal.submit` and two immutable arguments by content ID. The first is a `metal.batch`
+with library bytes, an ordered list of stages and a concurrency flag. The second is a list
+of nonempty byte buffers. The reply contains the final bytes of each buffer in the same
+order. Stages share the device allocations through one submission.
 
-The threadgroup width comes from the pipeline, and the kernel checks its lane against the
-supplied count. Before any host object is made, what the map takes of the allowance at its
-peak is taken: the room for the output, for good, and the leaf that will leave, made once and
-given back by a fail, which leaves its place. Where the allowance cannot hold them the map
-answers `declined`. The shared buffer is the host's memory and outside the allowance; it is
-checked against the device's longest buffer and its reported working set, and no longer
-against the allowance as the C did. On a Mac with the compiler and a Metal device, the image
-flow compares both orders of 65 inputs with their frame results, including wraparound, the
-empty vector and two invalid shapes. The compiler is a build-time dependency. Rows exist for
-Apple's arm64 convention only: under Rosetta and on Linux x86-64 the door does not open,
-`has-target` answers no and a map answers `no-native` after the same checks of shape, so the
-search of the example answers a list of nothing there. A map makes its device and pipeline
-anew each time, as the C did. Floating-point layouts, reductions and pipeline reuse are open.
+| Form | Fields in order |
+| --- | --- |
+| `metal.stage` | UTF-8 entry-name bytes, buffer views, unsigned 32-bit constants, grid |
+| `launch.view` | Zero-based input buffer index, byte offset |
+| `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
+
+Views bind in order, followed by the constants. A thread grid accepts a width of zero to
+choose one that fits the pipeline and extent. A group grid takes an explicit width within
+the pipeline limit. A concurrent batch can place a buffer barrier before a dependent stage.
+The driver checks individual buffer lengths and the pipeline's group limit. The sum of
+GPU buffer lengths must fit the process's configured framebuffer allowance and the device's
+remaining recommended working set. Repeated references to the same input each count as
+an allocation. Framework entry names are used at pipeline creation. The port handles numeric
+IDs throughout.
+
+Build an image from an existing library with a numeric batch declaration and buffer list.
+The builder fills the declaration's library field from the supplied file and exports
+`metal.submit`, the completed batch and the buffers.
+
+```sh
+make metal-image METAL_RECIPE=batch.ck METAL_INPUTS=buffers.ck \
+  METAL_LIBRARY=program.metallib METAL_IMAGE=/tmp/batch.image
+```
+
+The maintained image runs the word map directly, through a registered fast recipe, and
+as two dependent batch stages. The second stage reads the first stage's output through an
+offset view. Its reply is compared with two applications of the NUMS frame evaluator.
+The same batch interface has run the previous kernel's float, Q8, Q4_K and Q6_K fills and
+two Llama reductions, including dynamic threadgroup memory. Thirteen Q8 matrix-product
+implementations and the recurrent delta update also matched CPU references on both ABIs. Libraries and GPU resources
+live for one synchronous batch. Persistent allocations, asynchronous fences and pipeline
+reuse across requests remain open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the

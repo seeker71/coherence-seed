@@ -14,20 +14,20 @@ status: inferred
 from: 5.14.60 5.19.37 7.21 5.9.2
 conf: mid
 why: Run on 2026-11-27 on an M4 Max: the image flow of make check answered the bytes the C dispatch gave for the same five requests, a 65-lane map in both operand orders, the empty vector and two invalid shapes, from a directory holding only the image. The same holds against main's later flow, where an application calls the map inside one search in both operand orders. The bootstrap went from 2,000 lines to 1,909.
-flip: A dispatch walked through rows takes about 6.6 ms where the C took 3.8, and a start 22 ms where it took 5. Where that matters the rows can be emitted as moves and a call, or the device and pipeline kept between maps.
-limit: Rows exist for Apple's arm64 convention only, so under Rosetta, where the C dispatch ran, has-target now answers no and a map answers no-native. A library leaf bound as an entry's implementation no longer runs the map. One line of C still names the target, for the collector. One machine.
+flip: Persisting a pipeline or a buffer between requests would give it an owner beyond the batch.
+limit: A caller linked to an ordinary binding before a fast attachment keeps that binding. metal.adapt registers a component slot before callers link.
 at: 2026-11-27
 
 n: 5.14.62.2
 name: what-a-dispatch-makes-lies-in-a-room
 kind: decision
-is: The package host/metal.ck runs a map through seven host functions and 28 Objective-C messages, each a row. Every object it makes is noted under its name as it is made, and let go by a row when the dispatch ends, when a fault or a fail leaves it and before the next begins; a note is what no fail undoes. The two sizes of three words go by reference from a room. The package reaches the host only through seven recipes it is handed.
+is: The Form driver opens its host door before a search. An ownership row names a process-owned word for each live object and its release operation. Cleanup ends an open encoder before releasing its resources. The launch descriptor supplies views, constants, grid geometry, shared memory and a buffer barrier.
 status: inferred
 from: 5.14.62.1 5.14.60
 conf: mid
-why: ground/metal-holds.ck, inside make check-image, holds that a fault raised at the first copy into the buffer comes out as itself with no object held, and that a fail there under an open choice is a fault with no object held. By hand, a fault on the buffer's release left it noted and the next map let it go. The package written as Python by the writer parses.
+why: ground/metal-holds.ck raises a fault while an encoder binds a buffer and a fail during the copy. Both cases empty the ownership rows and a subsequent map returns the expected bytes.
 flip: A host object that must outlive a dispatch, such as a pipeline kept between maps, needs a slot that is not let go at the end.
-limit: The shared buffer is the host's memory and is checked against the device's limits only, where the C also compared it with the allowance. What the map takes of the allowance, the output's room and leaf, is taken before any host object is made.
+limit: The GPU allocations must fit the process allowance and the device working set. Actual host allocations remain outside the walker's page accounting.
 at: 2026-11-27
 
 n: 5.14.62.3
@@ -52,5 +52,5 @@ from: 5.14.62.3 5.7.3
 conf: mid
 why: An independent review of the first version measured 268 KB of frames kept per map and a room kept by every check of the allowance. Read from the region after the change: a hundred cuts, host calls and maps in one recursion end with the 5 frames and 2 links they began with, where the maps alone had left 432,965 frames; twelve maps of 4 MB under 128 MB answer, where none of the later ones did. ground/metal-holds.ck holds the equality of fifty maps and twenty-five.
 flip: A dispatch that must leave more than an answer, such as a pipeline kept for the next map, notes that as well.
-limit: Every map still makes its device and pipeline anew. A map of 65 lanes takes about 6.6 ms where the C took 3.8.
+limit: Each batch makes its device and pipelines anew. Device resources live through the batch's synchronous completion.
 at: 2026-11-27

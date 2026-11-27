@@ -132,6 +132,11 @@ with no rows, answer `no-native`; an output the allowance cannot hold answers `d
 before any host object is made. These reasons are the catalogue's entries in both ports,
 where the bootstrap's own reasons are words in the authoring tool.
 
+A replaceable Form map has a component slot. `metal.adapt` registers its reference recipe
+before callers link. Attaching a Metal library selects its specialized body for that slot,
+so an already-linked caller can reach the GPU under an open choice. The generic bootstrap
+`fast` operation continues to handle CPU code. [Metal word maps](nums.md#metal-word-maps)
+
 A map may run while a choice is open, as code of the processor may, and a search can gather
 maps: the door is opened ahead. Everything the host is asked by name, and so through entry
 98, is asked when `metal.open` runs with no choice open: the address of each function row,
