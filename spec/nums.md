@@ -177,6 +177,22 @@ Stages in the submission share the allocations and one pipeline per distinct ent
 | `launch.view` | Zero-based input buffer index, byte offset |
 | `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
 
+A model image can take a `metal.projection-plan` with operations, a kernel catalogue and
+a concurrency flag. A projection identifies the GGML type from the tensor directory,
+columns, rows and the allocation containing exactly that packed matrix. Its other two
+views address Float32 activations and results. `metal.resolve-plan` binds the matching
+entry, row geometry and buffer views once when the image is built. Ordinary Metal stages
+keep their place in the same sequence. A resident model can use the resolved batch by ID.
+
+`nums/projection.ck` supplies `metal.gguf-simd32` for libraries with the 32-lane Q8_0,
+Q4_K and Q6_K matrix-vector entries. These read 34 bytes per 32 values, 144 per 256 and
+210 per 256 respectively. Each evaluates the dot product on the mapped blocks. Q8_0 assigns two output rows to a
+128-thread group and uses 64-bit byte offsets. Q4_K and Q6_K assign one SIMD group
+to each output row and use 32-bit offsets within the matrix. The
+matrix extent must match its file region and each vector must fit its view. An unlisted
+format answers `e.kind`. A different library can supply its own matching rows. The
+compiled library is an input to `make metal-image` through `METAL_LIBRARY`.
+
 Views bind in order, followed by the constants. A thread grid accepts a width of zero to
 choose one that fits the pipeline and extent. A group grid takes an explicit width within
 the pipeline limit. A concurrent batch can place a buffer barrier before a dependent stage.

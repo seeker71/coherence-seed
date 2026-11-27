@@ -78,7 +78,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   CPU references. Thirteen Q8 matrix products and a recurrent delta update also matched
   their CPU results on both ABIs. Page-aligned file mappings supply model weights directly
   to Metal. A 28-layer Llama pass matched the old decoder, and a four-row Qwen projection
-  matched the sampled GGUF weights. Only the selected result ranges cross the port.
+  matched the sampled GGUF weights. Image construction resolves Q8_0, Q4_K and Q6_K
+  projections from the stored matrix layout. The two-row Q8_0 kernel read a complete
+  Qwen projection directly from its file region on both Mac process architectures.
+  Only the selected result ranges cross the port.
   A live worker mounted the Llama model once, kept all 255 weight mappings across turns
   for two distinct KV histories, and released them on retirement while the worker stayed
   alive. Both histories agreed with the previous decoder on both process architectures.
