@@ -45,7 +45,6 @@ LAST = 127 };
 [126] = "substrate", [127] = "lane",
 #define TARGET_AAPCS64 UINT64_C(1297036695148953601)
 #define TARGET_AMD64_SYSV UINT64_C(1297036695148953602)
-#define TARGET_METAL_MAP64 UINT64_C(1297036695148953603)
 enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_AFTER, A_NOTED, A_ROOMS, A_ROOM_TRAIL, A_GIVES, A_IDS, A_VALUES, A_SEEN, A_TOUCHED, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", "after", "noted", "rooms", "room-trail", "gives", "ids", "values", "seen", "touched", 
 enum { S_LANES, S_NODES, S_LEAF_BYTES, S_CHILDREN, S_IDS, S_BY_CONTENT, S_BY_ID, S_COUNT };

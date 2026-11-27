@@ -3,7 +3,7 @@
 # Nothing here needs more than a C compiler: no part of the old kernel builds or runs this repository.
 # How many times the stored nodes may still read a part of a node by a bare number (graph node
 # 7.22). The count is of the nodes, whatever names lie beside them. It is lowered, never raised.
-BARE = 474
+BARE = 471
 CC ?= cc
 CFLAGS = -std=c99 -O2 -Wall -Wextra -Werror
 ifeq ($(shell uname -s),Linux)
@@ -70,15 +70,18 @@ check-bml: ck
 	  echo "BML: the source expression 10 - 3 - 2 ran as numeric nodes and returned 9"
 
 # Build-time lens and Apple toolchain. The resulting image runs on its own.
-export METAL_RECIPE METAL_INPUTS METAL_APPLICATION METAL_IMAGE
+export METAL_RECIPE METAL_INPUTS METAL_APPLICATION METAL_IMAGE METAL_LIBRARY
 metal-image: ck
 	@set -eu; : "$${METAL_RECIPE:?set METAL_RECIPE to a NUMS declaration}" "$${METAL_INPUTS:?set METAL_INPUTS to a list of byte leaves}" "$${METAL_IMAGE:?set METAL_IMAGE to the output path}"; \
 	  work=$$(mktemp -d); out=; trap 'rm -rf "$$work"; if [ -n "$$out" ]; then rm -f "$$out"; fi' EXIT; \
-	  ./ck text nums/metal-source.ck < "$$METAL_RECIPE" > "$$work/kernel.metal" || { cat "$$work/kernel.metal" >&2; exit 1; }; \
-	  xcrun -sdk macosx metal -std=macos-metal2.4 -c "$$work/kernel.metal" -o "$$work/kernel.air"; \
-	  xcrun -sdk macosx metallib "$$work/kernel.air" -o "$$work/kernel.metallib"; \
+	  library=$${METAL_LIBRARY:-}; \
+	  if [ -z "$$library" ]; then \
+	    ./ck text nums/metal-source.ck < "$$METAL_RECIPE" > "$$work/kernel.metal" || { cat "$$work/kernel.metal" >&2; exit 1; }; \
+	    xcrun -sdk macosx metal -std=macos-metal2.4 -c "$$work/kernel.metal" -o "$$work/kernel.air"; \
+	    library="$$work/kernel.metallib"; xcrun -sdk macosx metallib "$$work/kernel.air" -o "$$library"; \
+	  fi; \
 	  out=$$(mktemp "$$METAL_IMAGE.XXXXXX"); \
-	  set -- "$$METAL_RECIPE" "$$METAL_INPUTS" "$$work/kernel.metallib"; \
+	  set -- "$$METAL_RECIPE" "$$METAL_INPUTS" "$$library"; \
 	  if [ -n "$$METAL_APPLICATION" ]; then set -- "$$@" "$$METAL_APPLICATION"; fi; \
 	  printf '%s\n' "$$@" | ./ck text nums/metal-pack.ck > "$$out" || { cat "$$out" >&2; exit 1; }; \
 	  mv -f "$$out" "$$METAL_IMAGE"
@@ -111,7 +114,7 @@ check-image: seed-run
 	    ./ck text ground/metal-requests.ck > "$$work/requests"; \
 	    (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	    got=$$(./ck run ground/metal-replies.ck < "$$work/replies"); test "$$got" = 'node #33' || { echo "Metal replies differed: $$got"; exit 1; }; \
-	    echo "Metal: direct and backtracking calls by ID agree with NUMS frames"; \
+	    echo "Metal: direct, attached and batched calls by ID agree with NUMS frames"; \
 	    printf '(note "rounds" %s)' "$(METAL_ROUNDS)" | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/rounds"; \
 	    got=$$(./ck run ground/metal-holds.ck "$$work/rounds" < "$$work/run/image"); test "$$got" = 'node (#16)' || { echo "Metal in one run: $$got"; exit 1; }; \
 	    echo "Metal: $$((2 * $(METAL_ROUNDS))) maps in one run leave in the region what $(METAL_ROUNDS) leave, has-target runs its value once, and a fault or a fail midway lets every object go"; \

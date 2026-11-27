@@ -132,6 +132,11 @@ with no rows, answer `no-native`; an output the allowance cannot hold answers `d
 before any host object is made. These reasons are the catalogue's entries in both ports,
 where the bootstrap's own reasons are words in the authoring tool.
 
+A replaceable Form map has a component slot. `metal.adapt` registers its reference recipe
+before callers link. Attaching a Metal library selects its specialized body for that slot,
+so an already-linked caller can reach the GPU under an open choice. The generic bootstrap
+`fast` operation continues to handle CPU code. [Metal word maps](nums.md#metal-word-maps)
+
 A map may run while a choice is open, as code of the processor may, and a search can gather
 maps: the door is opened ahead. Everything the host is asked by name, and so through entry
 98, is asked when `metal.open` runs with no choice open: the address of each function row,
@@ -582,7 +587,7 @@ passes `host.room-address` of it. `host.room-bytes` answers bytes of a room as a
 of entry 98. The refusal is a property of the call all the same: `host.launch`, which every
 call through a row passes, asks the guard first, a call of entry 98 that does nothing, so a
 row run while a choice is open is the fault `irreversible` whether it was looked up or not.
-It is not asked inside a guard that a row of `host.guards` declares, with the reason it may:
+It is not asked inside a guard that a row of `host.guards` declares, with the numeric entry that owns cleanup:
 one row today, the Metal door's, which lets go of every object it made when it ends, on a
 fault and on a fail, and leaves only a note. The door notes the guard it is in under
 `host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
