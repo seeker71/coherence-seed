@@ -86,6 +86,12 @@ function of what was read, and is saved once; every later start with the same na
   zero again and the pages mapped copy-on-write (`CK_FB`: read into the shared object instead);
   then the words of `fb.own` are this process's again. Any other answer makes the region what
   `fb_open` made, and the start runs cold and saves a new image.
+- **The part at rest.** A start run from its beginning saves itself after each of its files
+  that leaves the region at rest, under the name of the files so far, and drops the image of the
+  part before; so a start whose last file takes from the host keeps the image of the files before
+  it. A later start tries the image of all its files, then of fewer, and runs the files after the
+  part it entered. A start file is checked by the node its first line reads to, a file read with
+  `file` and the image `seed-run` opens by their bytes.
 - **Two builds of one start are the same bytes.** A `.part` file older than ten seconds is the
   remains of a builder that ended mid-save and is replaced; a younger one belongs to a builder at
   work, and the start does not save.

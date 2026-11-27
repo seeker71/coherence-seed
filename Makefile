@@ -239,7 +239,10 @@ check-ice: ck fb
 	  rm -f "$$one"; dd if="$$d/first" of="$$one.part" bs=16384 count=2 2>/dev/null; is "$$(ask)" 'node [#4 01]' 'a builder killed mid-save'; [ -z "$$(image)" ] || { echo "  a young part was taken for an image"; fail=1; }; \
 	  touch -t 202001010000 "$$one.part"; is "$$(ask)" 'node [#4 01]' 'a builder killed long ago'; cmp -s "$$one" "$$d/first" && [ ! -e "$$one.part" ] || { echo "  an old part was not replaced by an image"; fail=1; }; \
 	  printf '(#39 (#80) (#71 #4096 (#36 [#4 05])))' > "$$d/impure.ck"; ./ck run "$$d/program.ck" "$$d/impure.ck" > /dev/null; is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'a start that read the clock'; \
-	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered"; \
+	  rm -f "$$one"; is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start whose last file read the clock'; \
+	  is "$$(ls "$$CK_IMAGES" | wc -l | tr -d ' ')" 1 'the part of a start before a file that read the clock'; cmp -s "$$one" "$$d/first" || { echo "  the part of a start at rest was not saved as that part alone is"; fail=1; }; \
+	  saved=$$(ls -i "$$one"); is "$$(./ck run "$$d/program.ck" "$$d/start.ck" "$$d/impure.ck" 2>&1)" 'node [#4 05]' 'a start entered at its part at rest'; is "$$(ls -i "$$one")" "$$saved" 'the image of the part entered'; \
+	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start entered the image of its part at rest and ran the rest"; \
 	  [ $$fail = 0 ]
 
 check-native: ck

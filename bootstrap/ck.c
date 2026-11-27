@@ -1796,10 +1796,9 @@ static H notice(Status status) {
 #ifndef NUMERIC_PORT
 static H file_node(const char *path) {      /* a print file: one node on its first line */
   size_t len; Status why; uint8_t *b = load(path, &len);
-  read_seen(path, (uint64_t)(b - text), len, 0, 0);
   H x = read_print((char *)b, &why);
   if (!x) { say("refused ", status_words[why]); exit(1); }
-  return x;
+  read_seen(path, 0, 0, 0, x); return x;                  /* a start file is checked by the node it reads to */
 }
 #endif
 /* The numeric port accepts resolved content ids. A frozen graph already contains its links. */
@@ -1963,10 +1962,10 @@ static int image_enter(const char *path, const Image *want) {
   close(fd); return ok;
 }
 /* The start has run: if the region is at rest it is saved, and this process goes on from the image as a later start would. */
-static void image_rest(const char *path, const Image *want) {
+static int image_rest(const char *path, const Image *want) {
   if (nn > sw) commit();
   ntrail = nrtrail = 0;                                     /* no choice is open: nothing on the trails can be undone */
-  if (fb->me.taken || nafter || nout || nnoted || N(A_ASKED) || N(A_ANSWERED) || shared || !rest_path) return;
+  if (fb->me.taken || nafter || nout || nnoted || N(A_ASKED) || N(A_ANSWERED) || shared || !rest_path) return 0;
   uint64_t was = ntext;
   nborn = 0; W->ncode = 0; tcap = icap = 0; W->ids = 0;   /* no code born, no working index: a later start makes them */
   uint64_t from[A_COUNT + S_COUNT + 2], to[A_COUNT + S_COUNT + 2], pages = 0; int m = 2, fd; struct stat st; char part[PATH_MAX + 8];
@@ -1981,16 +1980,16 @@ static void image_rest(const char *path, const Image *want) {
   snprintf(part, sizeof part, "%s.part", path);           /* written aside, then named: a reader sees a whole image or none */
   if ((fd = open(part, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600)) < 0 && errno == EEXIST && !stat(part, &st) && st.st_mtime + 10 < time(NULL) && !unlink(part))
     fd = open(part, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600);    /* another builder's, left long ago */
-  if (fd < 0) { ntext = was; return; }
+  if (fd < 0) { ntext = was; return 0; }
   Image h = *want; h.extents = n; uint64_t at = pages_for(sizeof h + n * sizeof *e); int ok = 1;
   signal(SIGXFSZ, SIG_IGN);                                 /* a file too large is refused, not a signal */
   keep_own(); FB_OWN(OWN_ZERO) ntext = text_base;          /* the process's own words as 0, and the text as it was before the start */
   for (uint32_t i = 0; i < n; i++) { e[i].at = at; ok = ok && pwrite(fd, (uint8_t *)fb + e[i].off, (size_t)e[i].n, (off_t)at) == (ssize_t)e[i].n; at += e[i].n; }
   put_own(); ntext = live;
-  if (!ok) { close(fd); unlink(part); ntext = was; return; }
+  if (!ok) { close(fd); unlink(part); ntext = was; return 0; }
   H list[READS + 1], pair[2], fact[3], q[3]; Status why; size_t len; uint32_t c = 0; uint8_t *b;
   for (uint32_t i = 0; ok && i < nreads; i++) {            /* what the start read, each path with the bytes it gave */
-    pair[0] = reads[i].path ? txt(reads[i].path) : reads[i].name; pair[1] = reads[i].path ? mk(0, E(BYTES), text + reads[i].at, reads[i].n, &why) : reads[i].content;
+    pair[0] = reads[i].path ? txt(reads[i].path) : reads[i].name; pair[1] = reads[i].content ? reads[i].content : mk(0, E(BYTES), text + reads[i].at, reads[i].n, &why);
     list[c++] = mk(1, E(LIST), pair, 2, &why); }
   b = ok ? load(rest_path, &len) : 0; H maker = b ? read_print((char *)b, &why) : 0;
   if (maker) { pair[0] = txt(rest_path); pair[1] = mk(0, E(BYTES), b, len, &why); list[c++] = mk(1, E(LIST), pair, 2, &why); run(maker); maker = W->outcome == 'n' ? W->v : 0; }
@@ -2003,6 +2002,7 @@ static void image_rest(const char *path, const Image *want) {
   } else ok = 0;
   ok = ok && !rename(part, path);
   image_load(fd, e, n); close(fd); if (!ok) unlink(part);   /* the pages saved, as a later start has them */
+  return ok;
 }
 static int execute_image(const char *path, int warm, const char *saved, const Image *want) {
   Status why;
@@ -2049,16 +2049,18 @@ static int command(int argc, char **argv) {
 #else
   int start = numeric_io ? 2 : 3, starts = numeric_io ? 1 : argc > 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text")) ? argc - 3 : 0;
 #endif
-  int keyed = image_key(starts, argv + start, path, &want), warm = keyed && image_enter(path, &want);
+  int keyed = 0, warm = 0;                                  /* warm: how many of the start's files the image entered stands for */
+  for (int k = starts; k > 0 && !warm; k--) if ((keyed = image_key(k, argv + start, path, &want)) && image_enter(path, &want)) warm = k;
   for (int i = 0; i < A_COUNT + S_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
 #ifdef NUMERIC_PORT
   return argc == 2 ? execute_image(argv[1], warm, keyed ? path : 0, &want) : 2;
 #else
   if (numeric_io) return execute_image(argv[2], warm, keyed ? path : 0, &want);
   if (argc >= 3 && (!strcmp(cmd, "run") || !strcmp(cmd, "text"))) {
-    reading = !warm;
-    for (int i = 3; i < argc && !warm; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; } }
-    reading = 0; if (keyed && !warm) image_rest(path, &want);
+    char saved[PATH_MAX] = ""; reading = !warm;            /* a start run from its beginning saves the longest part of it at rest */
+    for (int i = 3 + warm; i < argc; i++) { run(file_node(argv[i])); if (W->outcome != 'n') { say("not bound: ", argv[i]); return 1; }
+      if (keyed && !warm && image_key(i - 2, argv + 3, path, &want) && image_rest(path, &want)) { if (*saved) unlink(saved); memcpy(saved, path, PATH_MAX); } }
+    reading = 0;
     run(file_node(argv[2]));
     if (cmd[0] == 't' && W->outcome == 'n' && !nd[W->v].comp) {      /* a leaf answer leaves as its own bytes */
       return send_fd(1, bytes + nd[W->v].off, nd[W->v].n) ? 0 : 2;
