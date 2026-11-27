@@ -72,12 +72,41 @@ Stack expansion and loop unrolling belong to a compilation decision for a partic
 and target. A variant that omits observation points can run where those observations are
 optional. The walker supplies the common, observable execution path.
 
-On Apple silicon the numeric image can call the Form AArch64 compiler by id while the session
-is live. The same recipe for `x + 2*y` is called with 20 and 11 before and after compilation.
-It yields 42 both times. The compiler returns a 244-byte code leaf on the observed target.
-The generic recipe runs through a separate process in `make check`; the native portion runs
-on Darwin arm64. GPU execution, general stack and loop unrolling, and measured target-specific
-selection across those variants are design work.
+A packed image carries the recipes and backend declarations. At startup, `host-target`
+reports the calling convention of the running process. The runtime selects a `cpu.backend`
+row by that numeric identity and invokes its setup recipe. The row provides a compiler for
+declared NUMS functions and can supply a compiler for Form recipes. A compiler can decline
+a body, and generated code can decline particular arguments. Frames evaluate either case.
+
+| Process target | Native coverage |
+| --- | --- |
+| macOS AArch64 | The existing Form emitter and optimizing NUMS compiler, including calls, branches, typed integer operations, and floating point. |
+| macOS and Linux x86-64, System V ABI | Up to six integer inputs, integer and Boolean literals, addition, subtraction, multiplication, bitwise operations and comparisons. A Boolean condition selects one of two integer or Boolean arms of matching kind. NUMS supports nested conditionals, two returning arms and a sequence of guarded returns ending in a return. Form also supplies checked arithmetic, wrapping arithmetic and unsigned less-than. Calls, loops and floating-point bodies use frames. |
+
+`nums/word-target.ck` holds the expression compiler as a NUMS component. The target supplies
+argument encodings, instruction and result-kind rows, literal and return encodings, and the
+entry convention. The compiler recursively combines fragments and keeps the required argument
+count and result kind alongside the bytes. Checked x86-64 arithmetic restores the entry stack
+and declines on overflow, so the caller observes Form's original outcome.
+
+Both Form and NUMS conditionals lower through the same branch component. The target describes
+each forward jump by its opcode bytes and displacement width. The compiler measures the distance
+from the end of that instruction, including the jump past the alternative when appropriate.
+Only the selected arm executes.
+
+To add a backend, assign its ABI a numeric node, list it in `fb.targets`, and select that
+identity in the host port. Supply its setup and compilation recipes in a backend row in
+`nums/run.ck`. A backend can reuse the word-expression compiler or provide its own lowering.
+The OS port supplies executable memory and instruction-cache synchronization. Add the target
+to the applicable ground witnesses as its capabilities run. Recipe IDs and image requests
+stay portable.
+
+`make check` sends the same recipe ID for `x + 2*y` before and after compilation and receives
+42 both times. It also calls a generated NUMS function directly, and compiles the resident
+word-subtraction instance by ID. A conditional recipe returns 2 and 42 for opposite orderings
+both before and after compilation. A NUMS function with guarded returns also handles equality
+and returns 0. Linux and macOS x86-64 returned identical binary replies from
+one image packed on AArch64. GPU lowering and measured target-specific optimization remain open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the
@@ -767,6 +796,10 @@ and `nums/lang-bml.ck`: a template with numbered places for each operation, decl
 statement, the spelling of each blueprint, a case for each kind of name, the reserved words and
 how the language answers a search.
 
+A typed byte leaf in a component projects as a call to `pack` with its blueprint and payload
+bytes in order. For a composite literal, the writer reconstructs its blueprint and children
+recursively. This preserves instruction bytes, including leading zeros, in every language view.
+
 ```sh
 printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
 ```
@@ -795,12 +828,15 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   `FirstOrDefault`, `findFirst().orElseGet(…)`. An `if-else` commits to its condition's first
   truth; a condition that is not a comparison is tested by Form's truth, where only no and nothing
   are false.
-- **BML** is the old kernel's dialect, `section [form.bml]`: `def`, blocks of `let`, `choice { a;
-  b }`, `fail`, a blueprint for a class's data and a class for its methods, whose receiver is
-  `self` and no parameter. The writer's own package and the encoder's, written as BML, read back
-  into syntax trees with the BML reader. In that dialect `choice` takes the first option that is
-  not nothing, so where a node's choice is a search the BML does not yet mean what the node
-  means; the thesis's choice statement, which backtracks, would.
+- **BML** is written as `section [form.search]`, the old kernel's `[form.bml]` read as Form reads
+  its nodes; `nums/bml.ck` takes both. Its first lines say so: `choice { a; b }` answers each
+  answer of a and then of b, `fail` answers nothing, `let` binds each answer in turn, `first` and
+  `all` keep the first answer or every one, `a ?? b` is `first(choice { a; b })`, a `match` is a
+  ladder on one subject, and declared types are documentation. A blueprint holds a class's data
+  and a class its methods, whose receiver is `self` and no parameter. A def that does not answer
+  exactly once is preceded by a note saying how often it answers. The writer's own package and
+  the encoder's, written as BML, read back into syntax trees with the BML reader; no reader yet
+  lowers their searches to recipes.
 - **A method is called on its receiver.** `part.load` (`nums/part.ck`) binds each method a package
   declares to a recipe that calls the receiver's own method (`nums.method-key`), in one layer with
   the package's own declarations, so that a method can call the package's functions and they its

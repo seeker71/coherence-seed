@@ -14,7 +14,8 @@ layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
 104 answers nothing with a reason, 105 with 106 close a recipe over values, 107 to 111 work on
 the bits of an integer, and 112 gives a binding a faster form. 126 and 127 are the kinds of the
-substrate's head and of a lane's row; 124 and 125 have no meaning yet. 128 is the first operation that
+substrate's head and of a lane's row; 124 names the running process's calling convention and
+125 has no meaning yet. 128 is the first operation that
 exists only in form: entries below 128 are the bootstrap's to name, and from 128 up they are
 named by modules written in form.
 
@@ -103,18 +104,26 @@ Dividing by zero answers nothing with the reason `zero`.
 
 ## Native code
 
-A leaf under entry 52 holds AArch64 instructions for a function of up to six values, in x0 to
-x5. A value that is an integer of at most eight bytes comes as the number it is; any other comes
-as the handle of its node. x7 says how many values there are in its low byte and has, above it,
-a bit for each value that came as a handle: code that takes numbers only declines when one of
-those bits is set. x6 holds the region's address. The code answers in x0 and x1. x1 says what x0
-is: 0 a number, 1 a truth (yes unless x0 is zero), 4 the handle of a node in the region, 3
-nothing at all: the code declines and what lies beneath its binding runs. It declines as well
-when it answers 4 with no handle: it met nothing, and the reason is left for the walker to say.
-Anything else is no answer, which is nothing with the reason `range`. So one leaf can be a whole operation, or the part of one it does well. `native`
-copies it once into the process's code region and calls it; code that declines there answers
-nothing with the reason `declined`. On a host that cannot run it, `native` answers nothing with
-the reason `no-native`.
+`(host-target)` (entry 124) returns the numeric ABI identity of the running process, or
+`no` on a host with the generic runtime alone. A leaf with blueprint `(code abi)` carries
+machine bytes for that ABI. The original bare `code` blueprint identifies AArch64.
+`native` answers nothing with reason `no-native` when the identities differ. A binding
+declines that implementation and can continue with its recipe.
+
+The call has six value positions, followed by the framebuffer address and the argument-count
+and handle-mask word. On AArch64 these are x0 through x7, with value and kind returned in
+x0 and x1. On System V AMD64 the values occupy RDI, RSI, RDX, RCX, R8 and R9. The seventh
+and eighth arguments are at entry RSP+8 and RSP+16. RAX and RDX return value and kind.
+The generated x86-64 word backend preserves the callee-saved registers and restores RSP on
+each return. [AMD64 calling convention](https://gitlab.com/x86-psABIs/x86-64-ABI/-/blob/master/x86-64-ABI/low-level-sys-info.tex)
+
+An integer of up to eight bytes travels as its value. Every other argument travels as a
+node handle. The low byte of the last argument gives the count, and the following bits
+identify the positions containing handles. The return kind is 0 for an integer, 1 for a
+Boolean, and 4 for a node handle. Kind 3 or a zero handle in kind 4 declines the call.
+A malformed result answers nothing with reason `range`. An explicit `native` call that
+the code declines answers nothing with reason `declined`. The runtime copies each local
+leaf into executable memory on its first use.
 
 ### Code asks the bootstrap
 
@@ -341,7 +350,7 @@ that compiles, or that runs elsewhere is then one more implementation in the sam
 - **A `lazy` or a `recipe` gets the node as its one argument.** `(base (arg 0))` hands it to what
   lies beneath: an earlier step, a binding of its blueprint, or the bootstrap's walker. The node's
   children are evaluated as the user sees them, so the step meets each of them in turn.
-- **A code leaf gets the node's handle in x0 and the number of the activation it stands in in
+- **An AArch64 code leaf gets the node's handle in x0 and the number of the activation it stands in in
   x1**, and reads what it needs from the region, whose address every call of code carries in x6
   (`spec/framebuffer.md`). It answers as any code does, or declines.
 - **The implementation itself runs on the bindings beneath it**, so it is not given its own nodes.
@@ -484,22 +493,35 @@ process's node table, which is lane 0 of a substrate inside its own region, and 
 another process or in a stored node. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
 
-## Entry 98: the host, called by name
+## Entry 98: the host, called by name or by address
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 98 | host | name, up to eight arguments | looks the name up in the host and calls it; answers what it returns, as an integer |
+| 98 | host | a name or an address, up to eight arguments | calls it: a name is looked up in the host, an `int` is the address itself; answers what it returns, as an integer |
 
 One lookup and one raw call reach everything the host offers, the C library and a framework
 alike (graph node 5.8.3). An `int` argument goes as it is; any other leaf goes as the address of
 its bytes with a zero byte after them, good for the length of the call. A name the host does not
-know answers nothing with the reason `no-symbol`.
+know answers nothing with the reason `no-symbol`, and so does the address 0. A call of an address
+where no code lies is the fault `crash`, like a crash inside code.
+
+The address of the host's own lookup, `dlsym`, is the word `symbol` of the region's head
+(`spec/framebuffer.md`), so `(host symbol -2 name)` answers the address of any function and a
+program that holds no name as text can still reach the host. On the numeric port a first value
+that is not an `int` is, as before, a call of the entry bound to it; an `int` is an address there
+too. This was read in the code and compiled into `seed-run`; it was not run on the port.
+
+What the eight registers cannot carry is carried by the package `host/` (graph node 5.14.60): a
+host function is a row with a slot for each value, and one machine-code leaf, the berth, lays
+integers, floats, addresses and varying values where the host's calling convention wants them
+and brings back a float or an integer result. `host/all.ck` loads it.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is
 open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over
 them. With no choice open a program wrote a file through `creat`, `write` and `close`, and found
 the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
-refusal. A search that must act on the world holds the act back with `after`, entry 103.
+refusal, by address as by name, when the ground catalogue runs it inside its search; run by
+itself, by `make check-native`, it is the flow through the package `host/`. A search that must act on the world holds the act back with `after`, entry 103.
 
 ## Entry 100: let, a part given a place
 
@@ -893,7 +915,8 @@ not be what the walker does there.
 - What is not an operation has no binding yet: the store's own making of nodes and the host
   functions that reserve memory and make code runnable. A raw call passes eight arguments in
   the registers AArch64 has for them, so a host function that takes a varying number of them,
-  `open` or `printf`, does not get the ones after its fixed ones. A host function that faults is caught, but what it
+  `open` or `printf`, does not get the ones after its fixed ones through entry 98 alone; a row of
+  `host/` run through the berth gives them. A host function that faults is caught, but what it
   changed before it faulted stays changed.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing

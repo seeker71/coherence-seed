@@ -576,14 +576,13 @@ limit: The allowance covers runtime-managed memory. Independent processes can sa
 at: 2026-11-27
 
 n: 5.14.60
-name: a-lone-process-settles
+name: the-host-is-rows-behind-one-door
 kind: decision
-is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 20. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. A handle is still local to its process.
-status: observed
-from: 5.14.57 5.7.8 5.7.3
-src: 2.30.19
+is: Entry 98 calls its first value: a name is looked up, an integer is the address itself. The address of the host's symbol lookup is a word of the region's head, after the area table, so code with no walker and no words can find any host function. A host function is a row in the package host/: its symbol, a slot for each value (integer, float, by address, varying) and its result. One machine-code leaf, the berth, written as instruction rows, runs any row: it loads the registers a calling-convention row names, copies the stack words, calls, and stores the results back.
+status: inferred
+from: 5.8.3 7.21 5.14.59
 conf: mid
-why: Observed on 2026-11-27: all 77 ground programs and the nine named checks end as before; a second process saw lane 0 of the long recursion settled below 273 of 273 nodes mid-run; ground/gives-back.ck holds that a node made before forty thousand outcomes keeps its handle, the lane's settled watermark stands while they run and passes their answer once they close, and a note on a key moved to an unused page of cells stands; fb.check checks seen and every node's settled byte against the watermark, and reported each of five faults planted in the description and two planted walkers; a fault planted to move the watermark ended the run at the commit instead of going on. Against version 19, medians of three alternating rounds: instructions +4.9% on the long recursion, +3.6% on giving back, +5.7% on the compiled sweep, whose cycles stay +14.6% for a cause not yet traced.
-flip: Committing at the top of every step rather than every evaluation step cost the long recursion another 0.83 billion instructions.
-limit: One lane: no other process maps the substrate, and the commit's path for content settled meanwhile is not built, since a lone process cannot meet it. One machine.
+why: Run on 2026-11-27 on macOS arm64, plain and under the hardened runtime: a file written, read back and removed, a sort through a callback that is leaf code, square root and power with float values, a formatted varying value, a raw supervisor call, each equal to its expected answer and, where entry 98 can carry it, equal by name, by address and through the berth. Two wrong place rows planted by hand were named by the run.
+flip: A host whose convention the berth's fixed slots cannot hold, such as a structure passed by value in more than two words, needs another leaf or a copy.
+limit: Rows and leaves exist for aapcs64 only. Not run on the numeric port. Memory the host hands out is outside the allowance. What the host ties to the process's first thread is out of reach, since the walker is not that thread.
 at: 2026-11-27

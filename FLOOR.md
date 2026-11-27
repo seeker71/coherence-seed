@@ -1,6 +1,6 @@
 # Floor
 
-What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
+What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -8,9 +8,9 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | 1,848 lines of C under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start stays under the 2,000-line budget. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is lane 0 of a substrate inside it |
-| Walker | [`spec/core-operations.md`](spec/core-operations.md) | 75 operations: control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
+| Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
 | Lens | [`spec/lens.md`](spec/lens.md), [`lens/`](lens) | written in form: words beside the numbers, names beside the nodes they name, signs between two, recipes that see the outer names, and rows that turn a surface into the core and back |
 | Ice | [`ice/`](ice) | written in form: a node frozen by one process thaws in another |
@@ -20,7 +20,7 @@ What stands, as observed on **2026-11-27** on one Apple M4 Max running macOS.
 | Region | [`region/`](region) | written in form: the layout of the region as a node, from which the C header is made, and programs that show a region, ask a running program to evaluate a node, say where it spends its time, and have it compile what it is in most |
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it |
-| Claim graph | [`graph/`](graph) | 1,445 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | 1,449 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
 
 ## Observed
 
@@ -31,7 +31,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **`make check` runs three flows.** A BML expression passes through the source lens and the
   runtime. A standalone process receives a packed image and answers requests by id. A live
   recursion accepts an addition counter from another process and finishes with the expected answer.
-  `make check-full` also runs all 77 ground programs separately and together, compares the
+  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64, 63 on x86-64), compares the
   generated header and checks encoding, freeze and thaw, hardened native execution, framebuffer
   replay, deferred writes and the budget for bare numeric reads.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
@@ -47,12 +47,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
   percent of the time.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
-  ids. The generic engine with its float definition and both compilers packs as 14,523 nodes with zero text leaves.
-  In a single process a constructor returned a cell id, a reader returned zero, and a writer
-  and reader used that id to store and recover 42. On this machine the AArch64 compiler
-  returned 244 bytes for a recipe that gave 42 both before and after compilation. The image,
-  requests and checked replies are in `ground/nums-image.ck`, `ground/nums-requests.ck`,
-  `ground/nums-native-requests.ck` and `ground/nums-replies.ck`.
+  ids. Its packed image contains zero text leaves. One process constructed a cell and stored
+  and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID
+  and ran a generated NUMS function directly on macOS AArch64, macOS x86-64 under Rosetta,
+  and Linux x86-64 under QEMU. The same image ran a conditional by ID before and after compilation
+  and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
+  nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
+  this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -141,19 +142,21 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. Python's parser takes the Python and ruff finds no
-  undefined name in it. Against loose stubs of the runtime, the hosts' own checkers still refuse
-  parts of the typed renderings: TypeScript's strict checker 77 errors, javac 131 and Roslyn 343
-  (29 distinct messages). Most are a value typed loosely in the package (any, a list of any) used
-  where a host wants a narrower type; in C# about half are an entry compared with `is`, which
-  takes only a constant. A member read is cast to the shape it reads, and a value of unknown
-  type to the type its place declares. Numbers the package names are written by name, and long
-  argument lists are broken at the language's width. The old
-  kernel's `choice { a; b }` takes the first option that is not nothing, not every answer, so the
-  BML rows do not yet keep a search's meaning where a choice is a search. The encoder's package,
-  `nums/arm.ck`, and the compiler's, `nums/compile.ck`, are written by the same writer in all
-  five; the compiler's Python parses and its BML reads back. The writer writes no call into
-  another package, so the compiler is handed the encoder's functions and the runtime's as recipes.
+  into a syntax tree with the BML reader. Through `nums/write-text.ck` the writer writes itself
+  as 2,949 lines of Python, 4,980 of C#, 3,374 of TypeScript, 3,522 of Java and 2,916 of BML.
+  Python's parser takes the Python, and ruff finds in it no undefined name, redefinition, unused
+  local or comparison with `None`, `True` or `False`. Against a stub of the runtime that types
+  every name `any`, Deno's checker refuses 81 places in the TypeScript, 77 of them a value of type
+  unknown used where a type is needed; against small stubs, javac 21 refuses 121 and Roslyn 349.
+  A member read is cast to the shape it reads where the receiver's static type is another, and a
+  value of unknown type to the type its place declares. Numbers the package names are written by
+  name, and long argument lists are broken at the language's width. The BML is written as
+  `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first lines say
+  it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
+  those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
+  `nums/compile.ck`, are written by the same writer in all five; the compiler's Python parses and
+  its BML reads back. The writer writes no call into another package, so the compiler is handed
+  the encoder's functions and the runtime's as recipes.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -176,7 +179,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   round values into packed bytes and recover them using numeric blueprints
   (`ground/nums-quantized.ck`).
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 20 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 21 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
@@ -194,17 +197,39 @@ Each line here is held by a program in `make check-full`, or names how it was se
   commit and a fail grow an index by id left every node found by content and by id. Cells,
   bound-by-node and print-numbers are charged by the pages they use. A fail that has no memory for
   the pages of cells its kept nodes move onto keeps its nodes instead of giving them back, as one
-  without text for its forwarding table already did. Measured against version 19 in three
-  alternating rounds under `/usr/bin/time -l`, medians: the long recursion 1.07 s of CPU against
-  1.03 s (instructions +4.9%, cycles +3.6%), `ground/gives-back.ck` as it stood before 1.39 s
-  against 1.35 s (+3.6%, +3.1%), and `ground/nums-compiled-agrees.ck` 9.83 s against 8.59 s
-  (+5.7%, +14.6%): its added cycles are not yet traced to their cause.
+  without text for its forwarding table already did. Measured against the bootstrap without the
+  substrate in three alternating rounds under `/usr/bin/time -l`, medians of cycles: the long
+  recursion 3.85 G against 4.21 G (−8.6%), `ground/gives-back.ck` as it stood before 5.23 G
+  against 5.51 G (−5.1%), and `ground/nums-compiled-agrees.ck` 34.6 G against 35.0 G (−1.2%).
+  As first laid out it took +5.7%, +4.1% and +15.5%: the compiler had left `room` a call, and had
+  put the commit and the page-bit test into the walker's loop. `room` in the loop is a gain the
+  version without the substrate would have too; against that, the substrate costs the sweep 7.3%
+  more instructions and 7.6% more cycles, the long recursion +3.5% and −2.0%, the outcomes +4.2%
+  and +1.1% (`spec/framebuffer.md`, Observed, says where). The peak footprint is 5.67 MB against
+  4.98 MB for the outcomes, since the working index keeps its largest size beside the settled one.
 - **A loop runs in the room of one round.** A call or a `let` in the last position gives back the
   activations nothing can return to: three million rounds ended with 5 in use.
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
   and a part a `let` named, over nine at once, over fifty, through its own recursion, as a
   handler. A call passes as many values as memory holds: forty in `ground/closes-over.ck`.
-- **The host is reached by name**, and a crash inside code or a host function is a fault the
+- **The host is reached through one door, and its functions are rows** (graph node 5.14.60).
+  Entry 98 calls a name or an address, and the address of the host's own lookup is a word of the
+  region's head. The package `host/` holds 24 host functions as rows, each with a slot for every
+  value and a result, a calling-convention row, and six small machine-code leaves written as
+  instruction rows for `nums/arm.ck`; seven encodings they needed are rows as well. One leaf,
+  the berth, runs any row. `make check-native` runs `ground/host-refused.ck` by itself, with `ck`
+  as built and with a copy signed for the hardened runtime: a file is written, read back three
+  ways and removed; four numbers are sorted by the host through a callback that is leaf code;
+  the square root of 4 and of 2 and 2 to the tenth come back as floats; two varying values are
+  formatted; a page is mapped, written through an absolute store, read and unmapped; a raw
+  supervisor call answers the process id. Where entry 98 can carry a call, by name, by address
+  and through the berth answer the same; a value of the wrong kind for its slot, a call with more
+  values than slots and a function with no row answer nothing. Of the 24 rows, 19 are run by the
+  flow; `memcpy`, `mprotect`, `dlopen`, `dlsym` and `sysctlbyname` are not run as rows, and of
+  the six leaves the one that answers the region's address is not run. Inside the ground catalogue's search
+  the same program is the refusal `irreversible`, at its first call, which is by address.
+  Planting two wrong place rows by hand made the run name the five cases they break.
+- A crash inside code or a host function is a fault the
   program can catch, a recursion in machine code that falls off the stack among them. So is a
   request no area of the region can hold: a room larger than memory, asked for a thousand calls
   deep, is caught twice, the frames come back each time, and the program goes on.
@@ -286,7 +311,7 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,262 claims, none reviewed by a second reader.
+- **The graph holds.** `./kg check`: no errors over 1,265 claims, none reviewed by a second reader.
 
 ## Not there
 
@@ -338,11 +363,20 @@ running compiled code against frames all the way down).
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 152
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
-  graph's checker (671 lines of C under `tools/`), the Makefile, eleven pages, the claim
-  graph as 55 text files, and the axioms' text. The Makefile still drives cross-process checks.
+  graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
+  graph as 56 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
-- **Threads.** One walker runs on one thread.
+- **Threads.** One walker runs on one thread. A fault on a thread the host made ends the process
+  with a message and does not enter the walker: provoked once by hand, with a leaf as the entry
+  of `pthread_create`; no check holds it.
+- **More of the host.** Rows and leaves exist for `aapcs64` only; on any other target
+  `ground/host-refused.ck` does not apply. A structure passed by value in more than two words,
+  the indirect-result register (its place is in the berth, no row uses it), sockets, processes,
+  signals, Objective-C and the GPU have no rows. A call by address was not run on the numeric
+  port. The berth's bytes come from the host's `calloc`, outside the allowance. What the host
+  ties to the process's first thread cannot be reached: the walker is not that thread. No host
+  function of the bootstrap has left C. The compiler does not yet emit a row as moves and a call.
 - **Handles across processes.** A handle is still local to its process: nobody else maps its
   substrate. Joining another process's substrate, lane rows claimed by compare-and-swap, the
   substrate's own allowance, the commit's path for content another lane settled, the side front

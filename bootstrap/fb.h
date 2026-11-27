@@ -21,7 +21,7 @@ DECODE = 88, HOLD = 89, HELD = 90, TRAIL = 91, NOTE = 92, UNBIND = 93, PEEK = 94
 AT = 96, LOOK = 97, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
 NOTHING = 104, CLOSE = 105, CLOSED = 106, BAND = 107, BOR = 108, BXOR = 109, SHL = 110, SHR = 111,
 FAST = 112, ROOM = 113, ROOM_TRAIL = 114, TAKE = 115, LOAD = 116, STORE = 117, WADD = 118, WSUB = 119,
-WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, SUBSTRATE = 126, LANE = 127,
+WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, HOST_TARGET = 124, SUBSTRATE = 126, LANE = 127,
 LAST = 127 };
 #define FB_ENTRY_NAMES \
 [0] = "root", [1] = "bytes", [2] = "text", [3] = "nat", [4] = "int", [5] = "u8", \
@@ -41,7 +41,9 @@ LAST = 127 };
 [102] = "bound", [103] = "after", [104] = "nothing", [105] = "close", [106] = "closed", [107] = "band", \
 [108] = "bor", [109] = "bxor", [110] = "shl", [111] = "shr", [112] = "fast", [113] = "room", \
 [114] = "room-trail", [115] = "take", [116] = "load", [117] = "store", [118] = "wadd", [119] = "wsub", \
-[120] = "wmul", [121] = "ult", [122] = "udiv", [123] = "umod", [126] = "substrate", [127] = "lane", 
+[120] = "wmul", [121] = "ult", [122] = "udiv", [123] = "umod", [124] = "host-target", [126] = "substrate", [127] = "lane",
+#define TARGET_AAPCS64 UINT64_C(1297036695148953601)
+#define TARGET_AMD64_SYSV UINT64_C(1297036695148953602)
 enum { A_NODES, A_LEAF_BYTES, A_CHILDREN, A_BY_CONTENT, A_BY_ID, A_FRAMES, A_LINKS, A_ACTIVATIONS, A_ARGUMENTS, A_CHOICE_POINTS, A_GATHERED, A_BORN_CODE, A_BINDINGS, A_BOUND_BY_NODE, A_OUTSIDE, A_CELLS, A_TRAIL, A_READER_OPENED, A_GATHERING_CHILDREN, A_GATHERING_BYTES, A_PRINT, A_PRINT_NUMBERS, A_TEXT, A_STACK, A_ASKED, A_ANSWERED, A_AFTER, A_NOTED, A_ROOMS, A_ROOM_TRAIL, A_GIVES, A_IDS, A_VALUES, A_SEEN, A_TOUCHED, A_COUNT };
 #define FB_AREA_NAMES "nodes", "leaf-bytes", "children", "by-content", "by-id", "frames", "links", "activations", "arguments", "choice-points", "gathered", "born-code", "bindings", "bound-by-node", "outside", "cells", "trail", "reader-opened", "gathering-children", "gathering-bytes", "print", "print-numbers", "text", "stack", "asked", "answered", "after", "noted", "rooms", "room-trail", "gives", "ids", "values", "seen", "touched", 
 enum { S_LANES, S_NODES, S_LEAF_BYTES, S_CHILDREN, S_IDS, S_BY_CONTENT, S_BY_ID, S_COUNT };
@@ -63,12 +65,13 @@ typedef struct { H bp; H by; H entry; H impl; uint32_t prev; uint32_t sees; H fa
 typedef struct { H bp; H by; H key; H old; } Trail;
 typedef struct { H bp; H by; uint32_t writes; uint8_t pad[4]; uint64_t size; } Room;
 typedef struct { H bp; H by; uint32_t old; uint8_t pad[4]; uint64_t at; } RoomTrail;
+typedef struct { uint64_t symbol; } Doors;
 typedef struct { uint64_t share; uint64_t charged; uint32_t lane; uint8_t pad[4]; } Member;
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t lanes; uint32_t pid; uint64_t share; uint64_t bytes; uint64_t ids; Area a[S_COUNT]; } Substrate;
 typedef struct { H bp; H by; uint32_t pid; uint32_t sw; } Lane;
-typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Member me; } Head;
+typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; Member me; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
-#define FB_VERSION 20u
+#define FB_VERSION 21u
 #define FB_PAGE 16384u
 #endif

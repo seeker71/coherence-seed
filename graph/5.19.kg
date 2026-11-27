@@ -387,3 +387,15 @@ conf: mid
 why: Records read by scanning their keys and recipes kept in rows could be read only through the lens; as classes with named parts and interfaces where kinds vary, the same knowledge reads in five languages from its own nodes. Observed on 2026-11-27 against the compiler it replaced, run in a second process over every function the agreement sweep meets: of 1,465 functions both compiled the same 924 to the same code byte for byte and both declined the other 541, and so they did for a quoted callee, two declared entries calling each other and a construct no rule takes, with the same note. Four rounds of compiling those functions took 284.3 million walker steps against 314.6 million once each template's instructions with no role left were kept as their words.
 flip: A dispatch per node and per template piece costs more than a row's lookup; where compiling must be faster still, a kind could be a row of a recipe again, at the cost of reading in one language only.
 at: 2026-11-27
+
+n: 5.19.37
+name: native-code-belongs-to-a-target
+kind: observation
+is: The running process reports its numeric ABI. A backend row provides setup and compilation. The resulting leaf belongs to its target while the recipe keeps its content identity.
+status: observed
+from: 5.6.4 5.19.36
+src: 2.30.21 2.30.18
+conf: mid
+why: One packed image compiled recipes by ID on macOS AArch64 and on macOS and Linux x86-64. A conditional answered 2 and 42 before and after compilation. A direct native NUMS function with guarded returns also answered 0 on equal inputs. The Linux run used a 256 MiB QEMU guest.
+flip: A further target can supply its own compilation or use frames for bodies it declines. This observation covers scalar word code on the System V x86-64 calling convention.
+at: 2026-11-27

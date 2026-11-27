@@ -36,8 +36,8 @@ is the only writer, and `tools/fb.c` is the observer.
 
 ## What is in it
 
-The first page is the **head**: a magic word, the layout version (20), the writer's process id, the
-walker's registers (the **machine**), one **area** entry per table, and the **member** part: where
+The first page is the **head**: a magic word, the layout version (21), the writer's process id, the
+walker's registers (the **machine**), one **area** entry per table, the doors, and the **member** part: where
 the substrate lies (`share`), how many pages the tables keyed by handle have charged, and the
 process's lane. An area entry says what its records are, how large one is, the most it has held,
 where the table starts, how many fit and how many are in use; the last four are counted by 64 bits.
@@ -46,9 +46,13 @@ Machine code reads the region too, and three places in the head are kept for it 
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
 16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
-code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
+code); and at byte 160 where the nodes area starts. After the last area entry lie the **doors**:
+addresses the host gave this process, for code that has no walker to ask. The first is `symbol`,
+the address of the host's lookup of a name (`dlsym`). They come after the area table so that the
+three places above do not move when a door is added; a reader finds them at the end of the area
+table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 20 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 21 lays it
 out.
 
 | Area | Records | Holds |
@@ -245,14 +249,33 @@ in it was complete when its count was read.
 
 ## Observed on the first machine
 
-- 2026-11-27, version 20 against version 19, in three alternating rounds under `/usr/bin/time -l`,
-  medians: the long recursion took 1.07 s of CPU against 1.03 s (instructions +4.9%, cycles
-  +3.6%), forty thousand outcomes given back 1.39 s against 1.35 s (+3.6%, +3.1%), and the
-  compiled sweep of 37,822 cases 9.83 s against 8.59 s (+5.7%, +14.6%). A key below the first
-  page not yet used is read without asking its page bit, which took back most of the sweep's
-  added instructions but few of its cycles; where those cycles go is not yet known. The working
-  index keeps its largest size beside the settled one, so the outcomes' peak footprint is 5.67 MB
-  against 4.97 MB.
+- 2026-11-27, version 21 against the bootstrap without the substrate (version 20), in three
+  alternating rounds under `/usr/bin/time -l`, one process at a time, medians of cycles: the long
+  recursion 3.85 G against 4.21 G (−8.6%; instructions −6.5%), forty thousand outcomes given back
+  5.23 G against 5.51 G (−5.1%; −4.7%), and the compiled sweep of 37,822 cases 34.6 G against
+  35.0 G (−1.2%; −2.0%). As first laid out the substrate took 4.45 G, 5.73 G and 40.4 G (+5.7%,
+  +4.1%, +15.5%). Where those cycles went was found by building one change at a time and by
+  sampling both programs every millisecond, and it was three choices of the compiler:
+  - `room`, asked at every growth of a table, was a call. It now lies in the walker's loop. This
+    gain does not come from the substrate: the same change alone gives the version without it
+    −6.7%, −6.1% and −8.2% cycles.
+  - The commit lay inside the walker's loop. It is now a call, made only when nodes settle.
+  - The page-bit test lay inside the lookup of a binding, and the lookup then no longer lay in
+    the walker's loop. The test is now a call, made only for a key past the dense prefix.
+
+  What the substrate itself still costs is seen against version 20 with the same `room`: the long
+  recursion +3.5% instructions and −2.0% cycles, the outcomes +4.2% and +1.1%, the sweep +7.3%
+  and +7.6%. Of the sweep's instructions, 4.7 points go with the page-bit test, since the lookup
+  of a binding is still a call from the walker's most used place (putting it in the loop gives
+  back 3.6 points of instructions and no cycles); 1.1 with the second index and the test of
+  what is settled, since of 81.7 million nodes made under a choice 52.7 million ask the settled
+  index too and 44.3 million are found there; and 1.2 with the commit's test at each of 517
+  million evaluation steps. Of its cycles, 2.5 points go with the second index and the commit's
+  test and 1.4 with the page bits. Where the lane's areas start moves the sweep's cycles by up to
+  3 points either way with the same instructions, so a smaller difference is not told apart from
+  placement. The working index keeps its largest size beside the settled one: the peak footprint
+  is 5.67 MB against 4.98 MB for the outcomes, 7.55 MB against 7.18 MB for the sweep and 1.93 MB
+  against 1.87 MB for the long recursion.
 - 2026-11-27, version 18 against version 17, in seven alternating rounds under `/usr/bin/time -l`,
   medians: the long recursion took 0.99 s of CPU against 1.01 s (cycles −1.6%, instructions
   +0.8%), three million steps of a choice 0.78 s against 0.83 s (cycles −5.9%), a million calls of
@@ -282,7 +305,10 @@ in it was complete when its count was read.
   once it is stored. The walker keeps its registers in the region for this reason.
 - **Executable pages are outside.** macOS refused a shared executable mapping (`EINVAL`, tested).
   A code leaf's bytes are a node in the region and its runnable copy is in a private mapping; the
-  region records the leaf, the offset of its copy and the address of that mapping.
+  region records the leaf, the offset of its copy and the address of that mapping. On macOS
+  a process uses one `MAP_JIT` reservation. Linux x86-64 publishes code by changing the touched
+  pages from writable to executable. Linux reserves anonymous framebuffer addresses with
+  `MAP_NORESERVE` and charges touched pages to the runtime's shared allowance.
 - **The C library's own memory is outside**: what the dynamic loader and the thread library keep.
   The process's arguments and its first thread's stack are outside until the move onto the
   region's stack.
