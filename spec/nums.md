@@ -54,6 +54,9 @@ A request that cannot be read to its end is answered `short`. A bound operation
 receives its arguments as values. A recipe is called. A closed executable expression runs.
 Each reply has a one-byte outcome (0 nothing, 1 node, 2 fault), the 32-byte id of its value
 or reason, a four-byte little-endian archive length and that many bytes of frozen graph.
+The graph is the value's closure, found from the value itself, each part before what holds it, in
+the order of the node's blueprint and children: the bytes depend on the content alone, not on where
+its nodes lie, so a member of a substrate replies what a process alone does.
 Further requests in the session can refer to returned ids, including a constructed cell with
 mutable room storage. The returned graph preserves immutable structure. Resuming a live room
 across processes also needs the state of its framebuffer.

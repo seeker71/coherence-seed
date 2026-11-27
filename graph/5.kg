@@ -535,7 +535,7 @@ at: 2026-11-24
 n: 5.7.3
 name: handles-in-memory
 kind: decision
-is: In memory a node is referred to by a 32-bit handle, a place in its process's lane of the substrate. The digest is stored once with the frozen node and is used only at freeze, thaw and boundary crossings. A cheap non-cryptographic hash may pick a slot in a table as long as equality is decided by the bytes.
+is: In memory a node is referred to by a 32-bit handle, a place in its process's lane of the substrate; among the members of a named substrate the handle of a settled node names it in each. The digest is stored once with the frozen node and is used only at freeze, thaw and boundary crossings. A cheap non-cryptographic hash may pick a slot in a table as long as equality is decided by the bytes.
 status: inferred
 from: 3.15.8.3 3.15.3.4 3.15.3.7 3.13.8.2
 conf: mid
@@ -579,7 +579,7 @@ at: 2026-11-25
 n: 5.7.8
 name: framebuffer-reading
 kind: decision
-is: This design reads 5.7.6 and 5.7.7 as five rules, fixed in spec/framebuffer.md. One region is reserved once and shared, and nothing the runtime keeps lives outside it; its node table is lane 0 of a substrate laid out inside it. Every record starts with the handle of its blueprint and the handle of the program node that last wrote it. A reference is a handle or an offset, never an address, so a copy reads the same anywhere and later. A record is complete before the count that makes it reachable moves past it. The runtime calls nothing and waits for nothing on behalf of an observer.
+is: This design reads 5.7.6 and 5.7.7 as five rules, fixed in spec/framebuffer.md. One region is reserved once and shared, and nothing the runtime keeps lives outside it and the substrate its nodes lie in (5.14.61). Every record starts with the handle of its blueprint and the handle of the program node that last wrote it. A reference is a handle or an offset, never an address, so a copy reads the same anywhere and later. A record is complete before the count that makes it reachable moves past it. The runtime calls nothing and waits for nothing on behalf of an observer.
 status: inferred
 from: 5.7.6 5.7.7 5.7.3
 src: 2.30.9

@@ -2,6 +2,7 @@
  * ck run evaluates the input after its optional preludes. ck text emits a leaf's bytes.
  * seed-run opens a numeric image and accepts requests by content ID.
  * CK_FB publishes a region for observers. Anonymous regions end with their process.
+ * A process becomes a member of a named substrate through one door, adopt; share/share.ck does the rest.
  * The host provides virtual memory, files, threads, timing and native dispatch.
  * The node encoding, core operations and framebuffer specs describe the interfaces.
  * region/header.ck derives fb.h from the numeric catalogue and layout.
@@ -210,7 +211,15 @@ static Host host = { h_region, h_code_map, h_code_publish, h_file_read, h_call, 
 
 /* ---- the framebuffer: the one region, and where each table lies in it (fb.h) --------
  * These pointers are set once and never move. Every count is a field of the region. */
-static Head *fb; static Substrate *sub; static Lane *ln;     /* the substrate in the region, and this process's lane */
+static Head *fb; static Substrate *sub; static Lane *ln, *lanes;   /* the substrate, this process's lane in it, and every lane */
+static int shared; static uint32_t LS = 32; static H lb, *ftab, none;   /* a member of a named substrate: lanes of 2^LS handles each, this one's from lb */
+#define LD(x) __atomic_load_n(&(x), __ATOMIC_SEQ_CST)          /* what another member may write is read whole, */
+#define ST(x, v) __atomic_store_n(&(x), v, __ATOMIC_RELEASE)   /* written after what it makes reachable, */
+#define CAS(x, was, v) __atomic_compare_exchange_n(&(x), was, v, 0, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)   /* and claimed by one */
+#define TIDE __atomic_add_fetch(&sub->tide, 1, __ATOMIC_SEQ_CST)   /* the substrate's tide moves before any lane's settled mark rises, so a look at every lane that began */
+static __attribute__((noinline)) uint32_t lsw(uint64_t j, uint64_t past) {   /* and ended at one tide saw one moment (opening). How far lane j is settled: what is in the index is */
+  uint32_t s = LD(lanes[j].sw); if (s < past) TIDE; while (s < past && !CAS(lanes[j].sw, &s, (uint32_t)past)) {} return s; }   /* settled with all below it in its lane, so who takes it from there says so, past it */
+static const uint8_t LANED[A_COUNT] = { [A_NODES] = S_NODES + 1, [A_LEAF_BYTES] = S_LEAF_BYTES + 1, [A_CHILDREN] = S_CHILDREN + 1, [A_IDS] = S_IDS + 1 };   /* in the lane: which area, plus one */
 static Node *nd; static uint8_t *bytes, *tb, *text, *tbits; static char *ob;
 static H *kids, *tab, *idtab, *stab, *sidt, *seen, *argp, *opened, *tk, *aft, *noted, *hand; static uint32_t *pnum, *bykey; static H *held;
 static Frame *fr; static Link *lk; static Activation *act; static ChoicePoint *cp; static Gathered *coll; static Code *born; static Binding *bd, *out; static Trail *trail; static uint8_t *rooms; static RoomTrail *rtrail; static H *gives; static uint8_t *ids;
@@ -255,7 +264,7 @@ static const char *const AREA_NAME[A_COUNT + S_COUNT] = { FB_AREA_NAMES FB_SUBST
  * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full, parting; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
 static void area_full(int a) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
@@ -274,7 +283,7 @@ static uint64_t area_extent(const Area *a, uint64_t count) {
  * them. Charge the whole native stack and both heads up front since they grow without room(). */
 static uint64_t remaining_memory(void) {
   uint64_t used = 2 * FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode) + fb->me.charged * FB_PAGE;
-  for (int i = 0; i < A_COUNT + S_COUNT; i++) used += pages_for(area_extent(AR(i), AR(i)->peak));
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) if (!shared || (i < A_COUNT && !LANED[i])) used += pages_for(area_extent(AR(i), AR(i)->peak));
   return used < fb->a[A_ROOMS].cap ? fb->a[A_ROOMS].cap - used : 0;
 }
 static int fits_growth(uint64_t old, uint64_t next) {
@@ -282,9 +291,11 @@ static int fits_growth(uint64_t old, uint64_t next) {
   return !extra || (extra <= remaining_memory() && host_has_growth(old, next));
 }
 static void further(int a, uint64_t need) {
-  Area *area = AR(a);
-  if (need > area->cap || !fits_growth(area_extent(area, area->peak), area_extent(area, need))) area_full(a);
-  area->peak = need;
+  Area *area = AR(a); uint64_t old = area_extent(area, area->peak), next = area_extent(area, need), extra = pages_for(next) - pages_for(old); int s = shared && a < A_COUNT && LANED[a];   /* a lane's growth is charged to the named substrate by whole pages: */
+  if (s && extra && need <= area->cap) { uint64_t c = LD(sub->charged);    /* asked of what stands and taken by one swap, so a growth that has no room never counts against another's */
+    do if ((c + extra > sub->allowance && !parting) || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }   /* but for a member that is leaving */
+  if (need > area->cap || (!s && !fits_growth(old, next))) area_full(s ? SA(LANED[a] - 1) : a);
+  area->peak = need; if (s) ln->charged += extra;
 }
 /* What every step runs is kept in the walker's loop and what seldom runs is kept out of it. Left
  * to the compiler's choice, the compiled sweep took 15% more cycles (spec/framebuffer.md). */
@@ -306,10 +317,10 @@ static void charge(int a, uint64_t k) {
 }
 COLD int later(int a, uint64_t k) { return k < N(a) && on_page(a, k); }
 #define USED(a, k) ((k) < dense[a] || later(a, k))   /* a key whose page holds what it was given */
-static void touch(int a, uint64_t k) {
-  if (!on_page(a, k) && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + 1) * FB_PAGE)) area_full(a);
-  charge(a, k);
+static int moved(int a, uint64_t k) {      /* a key that must be taken, in the middle of what cannot stop: whether its page had no room */
+  int over = !on_page(a, k) && !fits_growth(fb->me.charged * FB_PAGE, (fb->me.charged + 1) * FB_PAGE); charge(a, k); return over;
 }
+static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 /* The limit word an activation runs under counts bindings: 23 bits for the program's own, 7 for
  * those made from outside (see bound, below). */
 #define PM 0x7fffffu
@@ -317,6 +328,9 @@ static void touch(int a, uint64_t k) {
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
+static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
+static const uint64_t LANES = 256, SPAN = (uint64_t)1 << 32;   /* a named substrate: the most lanes one has, and the handles they share */
+static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
 static void fb_open(void) {
   /* Each table has stable addresses into which it can grow. Their pages share one allowance. After
    * the process's own areas lies a substrate of one lane: its head, then its areas. The nodes, their
@@ -348,8 +362,6 @@ static void fb_open(void) {
     [A_GIVES] = { WORD_TABLE, 4, 0 },
     [A_VALUES] = { WORD_TABLE, 4, 0 } };
   static const uint8_t KEYED[A_COUNT] = { [A_BOUND_BY_NODE] = 1, [A_CELLS] = 1, [A_PRINT_NUMBERS] = 1 };   /* charged by page */
-  static const uint8_t LANED[A_COUNT] = { [A_NODES] = S_NODES + 1, [A_LEAF_BYTES] = S_LEAF_BYTES + 1,      /* in the lane: */
-                                          [A_CHILDREN] = S_CHILDREN + 1, [A_IDS] = S_IDS + 1 };            /* which area, plus one */
   uint64_t budget = host.memory(), line = host.line();
   struct rlimit limit;
   uint64_t placed = A_COUNT + S_COUNT + 3;           /* the areas reserved, a laned one once, and three more as before */
@@ -367,11 +379,11 @@ static void fb_open(void) {
   for (int i = 0; i < A_COUNT + S_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
   if (cap[A_BY_ID] > (uint64_t)1 << 33)                 /* twice the most nodes a handle names */
     cap[A_BY_CONTENT] = cap[A_BY_ID] = cap[SA(S_BY_CONTENT)] = cap[SA(S_BY_ID)] = (uint64_t)1 << 33;
-  cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = cap[A_NODES] + 8;   /* one for each node */
-  cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* numbered inside a limit word: */
+  cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = getenv("CK_SHARE") ? SPAN : cap[A_NODES] + 8;   /* one for each node; for each handle where the */
+  cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* process may become a member. Numbered inside a limit word: */
   cap[A_OUTSIDE] = OMOST;                                       /* 23 bits for the program's, 7 from outside */
   cap[A_GIVES] = 4;                                             /* a record, not a table */
-  cap[A_SEEN] = cap[SA(S_LANES)] = 1;                           /* one lane: the process's own */
+  cap[A_SEEN] = LANES; cap[SA(S_LANES)] = 1;                    /* one lane: the process's own */
   for (int i = 0; i < A_COUNT; i++) if (KEYED[i]) { tbit[i] = bits; bits += cap[i] * 4 / FB_PAGE + 2; }
   cap[A_TOUCHED] = (bits + 7) / 8;
   pthread_attr_t attr; size_t stack;
@@ -391,16 +403,17 @@ static void fb_open(void) {
   if (!(fb = host.region(getenv("CK_FB"), at))) die("cannot make the framebuffer");
   sub = (Substrate *)((uint8_t *)fb + share);
   for (int i = 0; i < A_COUNT + S_COUNT; i++) *AR(i) = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i] - (i < A_COUNT ? 0 : share), cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE); fb->d.symbol = (uint64_t)(uintptr_t)dlsym;
-  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share;
+  fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->d.symbol = (uint64_t)(uintptr_t)dlsym; fb->d.adopt = (uint64_t)(uintptr_t)adopt;
+  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share; sub->allowance = mem; sub->catalogue = FB_CATALOGUE;
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
-#define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
+#define PLACE(i) ((void *)((uint8_t *)fb + fb->a[i].off))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
   lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
   opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS); hand = PLACE(A_VALUES);
-  seen = PLACE(A_SEEN); tbits = PLACE(A_TOUCHED); stab = PLACE(SA(S_BY_CONTENT)); sidt = PLACE(SA(S_BY_ID)); ln = PLACE(SA(S_LANES));
+  seen = PLACE(A_SEEN); tbits = PLACE(A_TOUCHED); stab = (H *)((uint8_t *)sub + sub->a[S_BY_CONTENT].off); sidt = (H *)((uint8_t *)sub + sub->a[S_BY_ID].off); ln = lanes = (Lane *)((uint8_t *)sub + sub->a[S_LANES].off);
   nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
-  *ln = (Lane){ E(LANE), 0, fb->pid, 1 }; sroom(SA(S_LANES), 1); sub->a[S_LANES].n = 1;   /* lane 0 is this process's, nothing settled yet */
+  *ln = (Lane){ E(LANE), 0, (uint64_t)fb->pid << 42 | 2, 0, 1, 1, 0, 0, {0} }; sroom(SA(S_LANES), 1); sub->a[S_LANES].n = 1;   /* lane 0 is this process's, nothing settled yet */
   room(A_SEEN, 1); N(A_SEEN) = 1; room(A_TOUCHED, cap[A_TOUCHED]); N(A_TOUCHED) = cap[A_TOUCHED];
 }
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
@@ -562,7 +575,7 @@ typedef enum { STATUS_ROWS(STATUS_VALUE) } Status;
 #else
 static int numeric_io;
 #endif
-static H notice(Status status);
+static H notice(Status status); static H make_far(int comp, H bp, const void *payload, uint64_t n);
 static Status rule(int comp, H bp, const void *payload, uint64_t n) {
   const uint8_t *b = payload;
   if (!bp) return S_NOTHING_BLUEPRINT;
@@ -614,34 +627,45 @@ static void regrow(int a, H *t, H from, H to, uint64_t want) {   /* a table by c
   sroom(a, c); memset(t, 0, (size_t)c * sizeof *t); AR(a)->n = c;
   for (H h = from; h < to; h++) tab_put(t, c, h);
 }
-static inline H found(const H *t, uint64_t c, uint64_t *i, int comp, H bp, const void *payload, uint64_t n) {   /* or where it would go */
-  size_t sz = comp ? (size_t)n * sizeof(H) : n;
-  for (*i &= c - 1; t[*i]; *i = (*i + 1) & (c - 1)) { const Node *x = &nd[t[*i]];
-    if (x->comp == comp && x->bp == bp && x->n == n && !memcmp(payload_of(t[*i]), payload, sz)) return t[*i]; }
+static inline H found(const H *t, uint64_t c, uint64_t *i, int comp, H bp, const void *payload, uint64_t n, int far) {   /* or where it would go; */
+  size_t sz = comp ? (size_t)n * sizeof(H) : n; H v;                                                  /* far: other members write this table */
+  for (*i &= c - 1; (v = far ? LD(t[*i]) : t[*i]); *i = (*i + 1) & (c - 1)) { const Node *x = &nd[v];
+    if (x->comp == comp && x->bp == bp && x->n == n && !memcmp(payload_of(v), payload, sz)) return v; }
   return 0;
+}
+/* A search sees of another lane what was settled when it began (opening, below), so going an option again meets the same nodes. now: none runs. */
+COLD int seenp(H h, int now) { uint64_t j = (uint64_t)h >> LS; if (j == fb->me.lane) return 1; if (now) lsw(j, (uint64_t)h + 1); return now || h < seen[j]; }
+static H known(int64_t v) { H h = (H)v; uint64_t j = (uint64_t)h >> LS;   /* the node a number names here: one of this lane's, or a settled one of another's this run may see */
+  return v > 0 && v >> 32 == 0 && ((h >= lb && h < nn) || (shared && j != fb->me.lane && h < (ncp || nn > sw ? seen[j] : lsw(j, 0)))) ? h : 0;
+}
+COLD H met(uint64_t *s, int comp, H bp, const void *payload, uint64_t n) { return found(ftab, sub->a[S_BY_CONTENT].cap, s, comp, bp, payload, n, 1); }   /* in a named substrate's index */
+COLD H publish(H h, uint64_t s) { Node *x = &nd[h]; H o, e = 0; x->settled = 1;   /* a settled record, whole, enters a named substrate's index by one swap; equal content met there answers */
+  for (;; e = 0) { if ((o = met(&s, x->comp, x->bp, payload_of(h), x->n)) && o != h) { x->settled = 0; seenp(o, 1); return o; } if (o || CAS(ftab[s], &e, h)) return h; }
 }
 /* The one node with this content. Refused content sets *why and answers nothing. A node made while
  * no choice is open, and none made under one still stands, is settled at once: no fail can reach
  * it. Any other is working and found by the process's own index until a commit settles it (walk).
  * A settled node's parts are settled, so the settled index is asked only when this node's are.
  * A new record is whole before nn moves past it; its writer is the node now running. */
-static H mk(int comp, H bp, const void *payload, uint64_t n, Status *why) {
-  if (bp || nn > 1) { if ((*why = rule(comp, bp, payload, n))) return 0; }
-  size_t sz = comp ? (size_t)n * sizeof(H) : n; int settle = !ncp && sw == nn, parts = bp < sw; H h;
-  if (settle && (!scap || nn * 2 > scap)) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);
+HOT H make(int comp, H bp, const void *payload, uint64_t n, Status *why, const int far) {     /* far: in a named substrate */
+  if (!far && (bp || nn > 1)) { if ((*why = rule(comp, bp, payload, n))) return 0; }     /* a member comes here from the other, past its rule */
+  size_t sz = comp ? (size_t)n * sizeof(H) : n; int settle = !ncp && sw == nn, parts = bp < sw || (far && bp >= nn); H h;
+  if (settle && !far && (!scap || nn * 2 > scap)) { if (shared) return make_far(comp, bp, payload, n); regrow(SA(S_BY_CONTENT), stab, 1, sw, nn); }
   if (!settle && (!tcap || (nn - sw + 1) * 2 > tcap)) regrow(A_BY_CONTENT, tab, sw, nn, nn - sw + 1);
   uint64_t i = hash(comp, bp, payload, n), s = i;
-  if (!settle && (h = found(tab, tcap, &i, comp, bp, payload, n))) return h;
-  for (uint64_t j = 0; !settle && comp && parts && j < n; j++) parts = ((const H *)payload)[j] < sw;
-  if (parts && (h = found(stab, scap, &s, comp, bp, payload, n))) return h;
+  if (!settle && (h = found(tab, tcap, &i, comp, bp, payload, n, 0))) return h;
+  for (uint64_t j = 0; !settle && comp && parts && j < n; j++) parts = ((const H *)payload)[j] < sw || (far && ((const H *)payload)[j] >= nn);
+  if (parts && (far ? (h = met(&s, comp, bp, payload, n)) && seenp(h, settle) : (h = found(stab, scap, &s, comp, bp, payload, n, 0)) != 0)) return h;
+  if (!far && !settle && scap == 1) return make_far(comp, bp, payload, n);    /* a member: the settled index a process alone asks is one empty place for it */
   room(A_NODES, nn + 1); Node *x = &nd[nn]; memset(x, 0, sizeof *x);
   x->bp = bp; x->by = W->at; x->comp = (uint8_t)comp; x->n = n; x->settled = (uint8_t)settle;
   if (comp) { room(A_CHILDREN, nkids + n); x->off = nkids; memcpy(kids + nkids, payload, sz); nkids += n; }
   else { room(A_LEAF_BYTES, nbytes + n); x->off = nbytes; memcpy(bytes + nbytes, payload, sz); nbytes += n; }
-  if (settle) stab[s] = (H)nn; else tab[i] = (H)nn;
-  h = (H)nn++; if (settle) sw = (uint32_t)nn;
-  return h;
+  if (!settle) tab[i] = (H)nn; else if (!far) stab[s] = (H)nn; else if ((h = publish((H)nn, s)) != nn) { if (comp) nkids -= n; else nbytes -= n; return h; }   /* its place is free again: none saw it */
+  h = (H)nn++; if (settle && !far) sw = (uint32_t)nn; else if (far) { ST(ln->n, (uint32_t)nn); if (settle) { TIDE; ST(sw, (uint32_t)nn); } } return h;
 }
+COLD H make_far(int comp, H bp, const void *payload, uint64_t n) { return make(comp, bp, payload, n, NULL, 1); }   /* two makers, so that a process alone runs what */
+static H mk(int comp, H bp, const void *payload, uint64_t n, Status *why) { return make(comp, bp, payload, n, why, 0); }   /* it ran; a member's leaves that one where it asks the settled index */
 #define KID(x, i) (kids[nd[x].off + (i)])
 #define TOMB 0xffffffffu                  /* a place in the table by id whose node was given back */
 static uint64_t idstart(const uint8_t *id, uint64_t c) { uint64_t u; memcpy(&u, id, 8); return u & (c - 1); }
@@ -674,24 +698,25 @@ static void idmake(int a, H *t, H from, H to, H skip) {
 /* A node's id lies beside it, in the area of ids, only once it is asked for. The table by id that
  * finds it is the settled one or the process's own, as the node is; a place is counted when taken. */
 static void index_id(H h) {
-  int s = nd[h].settled; H *t = s ? sidt : idtab;
+  int s = nd[h].settled; H *t = s ? sidt : idtab, e = 0;
+  if (s && shared) { for (uint64_t j; !LD(sidt[j = idslot(sidt, sicap, NID(h))]) && !CAS(sidt[j], &e, h); e = 0) {} return; }   /* made once: a place is swapped in */
   if (s ? !sicap || sub->ids * 2 >= sicap : !icap || (uint64_t)W->ids * 2 >= icap) s ? idmake(SA(S_BY_ID), sidt, 1, sw, h) : idmake(A_BY_ID, idtab, sw, nn, h);
   uint64_t j = idslot(t, s ? sicap : icap, NID(h));
   if (!t[j]) { if (s) sub->ids++; else W->ids++; }      /* ids counts the places taken, given back ones too */
   t[j] = h;
 }
 static void setid(H h, const uint8_t *id) {
-  if (nd[h].ida) return;
-  room(A_IDS, nids + IDREC); memcpy(ids + nids, &h, 4); memcpy(ids + nids + 4, id, 32);
-  nd[h].ida = (uint32_t)(nids / IDREC); nids += IDREC; index_id(h);
+  if (nd[h].ida) { if (shared && nd[h].settled) index_id(h); return; }     /* whoever gave it its id may have gone before it was found by it */
+  room(A_IDS, nids + IDREC); memcpy(ids + nids, &h, 4); memcpy(ids + nids + 4, id, 32); uint32_t z = 0, r = (uint32_t)(nids / IDREC);
+  if (shared ? CAS(nd[h].ida, &z, r) : (nd[h].ida = r, 1)) nids += IDREC; index_id(h);     /* the record is whole before one swap gives it to the node */
 }
 static const uint8_t *idof(H h) {         /* section 3 */
   if (!nd[h].ida) { uint64_t m = ntext; size_t len; uint8_t *b = cbytes(h, &len), id[32]; sha256(b, len, id); ntext = m; setid(h, id); }
   return NID(h);
 }
 static H byid(const uint8_t *id) {        /* a working node first, then a settled one */
-  H h = icap ? idtab[idslot(idtab, icap, id)] : 0;
-  return h ? h : sicap ? sidt[idslot(sidt, sicap, id)] : 0;
+  H h = icap ? idtab[idslot(idtab, icap, id)] : 0; if (!h && sicap) h = sidt[idslot(sidt, sicap, id)];
+  return h && shared && !seenp(h, !ncp && nn == sw) ? 0 : h;          /* one a search may not see is not there for it */
 }
 static const uint8_t ZERO[32];
 /* Section 2 read backwards: the node these canonical bytes are, every part already known. */
@@ -963,6 +988,7 @@ static H seen_as(Status tag, H v) { Status why; H p[2] = { notice(tag), v }; ret
  * writer is given back is written by the choice that kept it. */
 #define MARKS (uint32_t)nn, (uint32_t)ncoll, nkids, nbytes, N(A_ROOMS), nids
 static uint32_t *fw; static H fm, ftop, fnode;
+#define FW(x) do { H f_ = (x); if (f_ >= fm && f_ < ftop && fw[f_ - fm]) (x) = fw[f_ - fm]; } while (0)   /* a commit's forwarding: only what met equal content moves */
 static void root(H h) { if (h >= fm && h < ftop) fw[h - fm] = 1; }
 static H fwd(H h) { return h >= fm && h < ftop ? fw[h - fm] : h; }
 static H byfwd(H h) { return h >= fm && h < ftop ? (fw[h - fm] ? fw[h - fm] : fnode) : h; }
@@ -1010,7 +1036,7 @@ static void reclaim(ChoicePoint *q) {
     if (h < N(A_PRINT_NUMBERS) && on_page(A_PRINT_NUMBERS, h)) pnum[h] = 0;
   }
   gives[0]++; gives[1] = q->node; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4;
-  nn = fm;                                /* a watcher sees that places were given back, and none half moved */
+  nn = fm; if (shared) ST(ln->n, fm);     /* a watcher sees that places were given back, and none half moved */
   for (H h = fm; h < ftop; h++) {         /* each kept node moves down, its parts and cell with it */
     H n = fw[h - fm]; if (!n) continue;
     Node x = nd[h]; x.bp = fwd(x.bp); x.by = byfwd(x.by);
@@ -1019,11 +1045,11 @@ static void reclaim(ChoicePoint *q) {
     nd[n] = x;
     if (h < N(A_CELLS) && on_page(A_CELLS, h)) { H v = held[h]; held[h] = 0; if (v) { charge(A_CELLS, n); held[n] = fwd(v); } }
   }
-  nn = to; nkids = k; nbytes = b;
+  nn = to; nkids = k; nbytes = b; if (shared) ST(ln->n, to);
   uint64_t w = q->mids;                   /* ids made since stay for the nodes that stay, moved down with them */
   for (uint64_t r = q->mids; r < nids; r += IDREC) {
     H o; memcpy(&o, ids + r, 4); H n = fwd(o);
-    if (!n) continue;
+    if (!n || (shared && (o < fm || o >= ftop) && (w = r + IDREC))) continue;   /* a settled node's id stays where every member reads it */
     if (w != r) memmove(ids + w, ids + r, IDREC);
     memcpy(ids + w, &n, 4); nd[n].ida = (uint32_t)(w / IDREC); w += IDREC;
   }
@@ -1051,32 +1077,111 @@ static void reclaim(ChoicePoint *q) {
 static void rise(ChoicePoint *q) {
   q->mnode = (uint32_t)nn; q->mkids = nkids; q->mbytes = nbytes; q->mcoll = (uint32_t)ncoll; q->mtrail = (uint32_t)ntrail;
   q->mtake = N(A_ROOMS); q->mids = nids; }
+/* Everything the run holds is forwarded, as a fail's giving back forwards what it keeps: no choice is open, so no fail is left for the trail to serve. */
+static void forwarded(void) {
+  FW(W->x); FW(W->v); FW(W->reason); FW(W->at); ntrail = 0;
+  for (uint32_t i = 1; i < nfr; i++) { FW(fr[i].node); FW(fr[i].by); if (fr[i].t == F_ASIDE) FW(fr[i].vals); }
+  for (uint32_t i = 1; i < nlink; i++) { FW(lk[i].v); FW(lk[i].by); } for (uint32_t i = 0; i < nact; i++) { FW(act[i].recipe); FW(act[i].by); } for (uint32_t i = 0; i < nargp; i++) FW(argp[i]);
+  for (uint32_t i = 0; i < ncoll; i++) { FW(coll[i].v); FW(coll[i].by); } for (uint32_t i = 0; i < nborn; i++) { FW(born[i].leaf); FW(born[i].by); }
+  for (uint32_t i = 0; i < nbind + nout; i++) { Binding *b = i < nbind ? &bd[i] : &out[i - nbind]; FW(b->entry); FW(b->impl); FW(b->fast); FW(b->by); }
+  for (uint64_t j = 0; j < nafter; j += (uint64_t)aft[j] + 1) for (uint32_t k = 1; k <= aft[j]; k++) FW(aft[j + k]);
+  for (uint64_t at = 0; at < N(A_ROOMS); at += roomlen(at)) { FW(((Room *)(rooms + at))->bp); FW(((Room *)(rooms + at))->by); }
+  for (uint64_t k = 0, o = fb->a[A_CELLS].off % FB_PAGE / 4; k < N(A_CELLS); k++) { if (!on_page(A_CELLS, k)) k += 4095 - (k + o) % 4096; else if (held[k]) FW(held[k]); }
+}
 /* No choice is open: no fail can reach what was made under one, and it is settled where it stands,
  * the newest first as the working index forgets it. In a lone process nothing settles while working
  * nodes stand but this, and mk found no equal settled content for any of them; finding one here would
  * need the working state forwarded onto it, which is not built, so it ends the process. */
 COLD void commit(void) {
-  H from = sw, top = (H)nn; uint64_t m = 0;
-  if (nn * 2 > scap) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);   /* both settled indexes have room for them */
-  for (H h = from; h < top; h++) m += nd[h].ida != 0;            /* before any moves, so a full leaves nothing half done */
+  H from = sw, top = (H)nn; uint64_t m = 0, mark = ntext; int any = 0, over = 0;
+  if (shared) { fm = from; ftop = top; fw = talloc((size_t)(top - from) * 4); }   /* where each goes that meets equal content; taken, like the room */
+  else if (nn * 2 > scap) regrow(SA(S_BY_CONTENT), stab, 1, sw, nn);   /* both settled indexes have for them, before any moves, so a full leaves */
+  for (H h = from; !shared && h < top; h++) m += nd[h].ida != 0;       /* nothing half done */
   if (m && (!sicap || (sub->ids + m) * 2 >= sicap)) idmake(SA(S_BY_ID), sidt, 1, top, 0);
   for (H h = top; h-- > from; ) {
     uint64_t i = hash(nd[h].comp, nd[h].bp, payload_of(h), nd[h].n), s = i;
     for (i &= tcap - 1; tab[i] && tab[i] != h; i = (i + 1) & (tcap - 1)) ;
     if (tab[i] == h) tab[i] = 0;
-    if (found(stab, scap, &s, nd[h].comp, nd[h].bp, payload_of(h), nd[h].n)) die("a commit met content already settled");
-    nd[h].settled = 1; stab[s] = h;
-    if (nd[h].ida) { index_id(h); for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
+    if (!shared) { if (found(stab, scap, &s, nd[h].comp, nd[h].bp, payload_of(h), nd[h].n, 0)) die("a commit met content already settled");
+      nd[h].settled = 1; stab[s] = h; }
+    if (nd[h].ida) { if (!shared) index_id(h); for (i = idstart(NID(h), icap); idtab[i] && idtab[i] != h; i = (i + 1) & (icap - 1)) ;
       if (idtab[i] == h) idtab[i] = TOMB; }
   }
-  sw = top;
+  /* A member settles oldest first, since another may have settled equal content since the search began. A node that
+   * meets it is forwarded to the settled one and gives its place back: those made after it move down, as a fail's
+   * giving back moves what it keeps, with their parts, their cells, their bindings and their ids, and are settled
+   * where they come to lie. k and b: where the next kept children and bytes go, once a node of each kind was met. */
+  H to = from; uint64_t k = ~0ull, b = ~0ull;
+  for (H h = from; shared && h < top; h++) {
+    Node x = nd[h]; H o; uint32_t z = 0; uint64_t *c = x.comp ? &k : &b;
+    if (*c == ~0ull) *c = x.off;
+    if (any) {
+      FW(x.bp); FW(x.by); for (uint64_t i = 0; x.comp && i < x.n; i++) FW(kids[x.off + i]);
+      if (x.comp) memmove(kids + k, kids + x.off, (size_t)x.n * sizeof(H)); else memmove(bytes + b, bytes + x.off, x.n);
+      x.off = *c; nd[to] = x;
+    }
+    if ((o = publish(to, hash(x.comp, x.bp, payload_of(to), x.n))) == to) *c += x.n; else ln->forwarded++;
+    if (o != h) {
+      if (!any) { any = 1; room(A_GIVES, 4); gives[0]++; gives[1] = 0; gives[2] = fm; gives[3] = ftop; N(A_GIVES) = 4; nn = to; ST(ln->n, to); }   /* a watcher sees places given back */
+      fw[h - fm] = o;
+      if (USED(A_CELLS, h) && held[h]) { over |= moved(A_CELLS, o); held[o] = held[h]; held[h] = 0; }
+      if (USED(A_BOUND_BY_NODE, h) && bykey[h]) { over |= moved(A_BOUND_BY_NODE, o); bykey[o] = bykey[h]; bykey[h] = 0; }
+      if (x.ida) memcpy(ids + (uint64_t)x.ida * IDREC, &o, 4);
+    }
+    if (x.ida) { if (o != to) CAS(nd[o].ida, &z, x.ida); index_id(o); }
+    to += o == to;
+  }
+  if (any) { nn = to; if (k != ~0ull) nkids = k; if (b != ~0ull) nbytes = b; ST(ln->n, to); top = to; }
+  if (any) forwarded();
+  ntext = mark; if (shared) { TIDE; ST(sw, top); } else sw = top;
+  if (over) area_full(A_CELLS);            /* the cells a forwarding moved took pages past the allowance: all is forwarded, and the run is told full */
+}
+/* The one door by which a process alone becomes a member of a named substrate; share/share.ck does everything else through the
+ * host's rows. The substrate mapped at base becomes its substrate and lane its lane of it. Every node it had made is made
+ * again there, oldest first, by the maker all a member's nodes come from, so content the substrate already holds answers with
+ * the handle every member knows it by; then all the run holds is forwarded onto those. Lane 0 takes the catalogue with it, and
+ * any other finds it there. Once begun it cannot stop half way: a fault or a full inside it ends the process. */
+static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave) {
+  Substrate *to = (Substrate *)(intptr_t)base; Ret no = { 0, 0 };
+  if (shared || ncp || coding != 1 || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;   /* not from inside code, which holds handles */
+  if (lane && (handeds > 1 || (handeds && handed != (H)leave))) return no;   /* a number given as a handle would name another node after: refused, not guessed */
+  if (nn > sw) commit();
+  const Node *ond = nd; const H *okids = kids; const uint8_t *obytes = bytes, *oids = ids; H top = (H)nn, at = W->at; uint64_t mark = ntext, base_tk = ntk; int was = coding, over = 0;
+  coding = walking = 0; sub = to; shared = 1; fb->me.share = (uint64_t)base - (uint64_t)(uintptr_t)fb; fb->me.lane = (uint32_t)lane; strncpy((char *)fb->me.name, (const char *)(intptr_t)name, 31);
+  LS = (uint32_t)__builtin_clz(sub->lanes) + 1; lb = (H)((uint64_t)lane << LS);
+  for (int i = 0; i < A_COUNT; i++) if (LANED[i]) { Area *a = &sub->a[LANED[i] - 1]; uint64_t span = a->cap / sub->lanes;   /* the process's entry for a table in its lane: */
+    fb->a[i] = *a; fb->a[i].off += fb->me.share; fb->a[i].n = fb->a[i].peak = span * (uint64_t)lane; fb->a[i].cap = span * (uint64_t)(lane + 1) - (i == A_NODES); }   /* the lane's part of it */
+  nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); ids = PLACE(A_IDS); stab = &none;
+  ftab = (H *)((uint8_t *)sub + sub->a[S_BY_CONTENT].off); sidt = (H *)((uint8_t *)sub + sub->a[S_BY_ID].off); lanes = (Lane *)((uint8_t *)sub + sub->a[S_LANES].off); ln = lanes + lane;
+  if (!lane) { nn = 1; nids = IDREC; }    /* handle 0 is nothing, and the first id lies after a record of none */
+  ST(ln->n, (uint32_t)nn); ST(sw, (uint32_t)nn); room(A_SEEN, sub->lanes); N(A_SEEN) = sub->lanes;
+  fm = lane ? SEEDED + 1 : 1; ftop = top; fw = talloc((size_t)(top - fm) * 4); H same = fm, first = lsw(0, 0);
+  for (const Node *x, *y; lane && same < top && same < first && (x = &ond[same])->bp == (y = &nd[same])->bp && x->comp == y->comp && x->n == y->n   /* what it made as the */
+         && !memcmp(x->comp ? (const void *)(okids + x->off) : (const void *)(obytes + x->off), payload_of(same), x->comp ? (size_t)x->n * 4 : x->n); same++) {}   /* maker did, in the maker's order, */
+  for (H h = fm; h < top; h++) {          /* lies in the first lane at the handle it had. A node is newer than its parts, so each other is made from parts already forwarded */
+    Node x = ond[h]; const void *p = obytes + x.off; H o = h;
+    if (x.comp && h >= same) { room(A_GATHERING_CHILDREN, ntk + x.n); for (uint64_t i = 0; i < x.n; i++) tk[ntk + i] = fwd(okids[x.off + i]); p = tk + ntk; }
+    if (h >= same) { W->at = fwd(x.by); o = make_far(x.comp, fwd(x.bp), p, x.n); } fw[h - fm] = o;
+    if (!lane && o != h) die("the substrate's first lane did not take the catalogue where it lay");
+    if (x.ida) setid(o, oids + (uint64_t)x.ida * IDREC + 4);
+    for (int a = A_BOUND_BY_NODE; a <= A_CELLS; a += A_CELLS - A_BOUND_BY_NODE) {   /* its bindings and its cell go with it once every node is made: a new handle */
+      H *t = a == A_CELLS ? held : (H *)bykey;                                    /* may be the old one of a node not yet reached */
+      if (USED(a, h) && t[h]) { room(A_GATHERING_CHILDREN, ntk + 3); tk[ntk++] = (H)a; tk[ntk++] = o; tk[ntk++] = t[h]; t[h] = 0; } }
+  }
+  for (; ntk > base_tk; ntk -= 3) { int a = (int)tk[ntk - 3]; over |= moved(a, tk[ntk - 2]); (a == A_CELLS ? held : (H *)bykey)[tk[ntk - 2]] = tk[ntk - 1]; }
+  W->at = at; forwarded(); for (int i = 0; i < A_COUNT + S_COUNT; i++) FW(full_at[i]);
+  fb->me.leave = leave > 0 && leave < top ? fwd((H)leave) : 0; atexit(leaving);   /* what the member runs last, however its run ends: */
+  signal(SIGTERM, ending); signal(SIGINT, ending); signal(SIGHUP, ending);        /* at a signal that would end it, too */
+  ntext = mark; walking = 1; coding = was; if (over) area_full(A_CELLS);
+  return (Ret){ 1, 0 };
 }
 /* A choice point is about to be made. The first one open keeps in seen how far each lane was settled
- * when the search began: one lane, the process's own. */
-static void opening(void) { room(A_CHOICE_POINTS, (uint64_t)ncp + 1); if (!ncp) seen[0] = sw; }
+ * when the search began: one moment for all of them, so the lanes are looked at again when the tide moved meanwhile. */
+static void opening(void) { uint64_t t; room(A_CHOICE_POINTS, (uint64_t)ncp + 1); if (ncp) return;
+  if (!shared) seen[0] = sw; else do { t = LD(sub->tide); for (uint64_t j = LD(sub->a[S_LANES].n); j-- > 0; ) seen[j] = lsw(j, 0); } while (t != LD(sub->tide)); }
 /* A cut closes the choices opened since c, but not a running outcome's: its body is failed out of,
  * and what the body did, a cut in it too, does not stay. So no choice ever opens again. */
-static void cutto(uint32_t c) { uint32_t i = ncp; while (i > c && cp[i-1].all != 2) i--; ncp = i; }
+static void cutto(uint32_t c) { uint32_t i = ncp; while (i > c && cp[i-1].all != 2) i--; ncp = i; if (!i && shared && nn > sw) commit(); }
 /* A processor fault inside CPU code returns to the walker. Other processor faults end the process.
  * CPU returns carry a number (0), a truth value (1), a decline (3), or a node handle (4). */
 static void crashed(int sig) {
@@ -1084,7 +1189,7 @@ static void crashed(int sig) {
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
 }
 static uint32_t left;
-static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = 1; Ret r = host.call(fn, arg); coding = was; return r; }
+static Ret called(void *fn, const int64_t *arg) { int was = coding; coding = was + 1; Ret r = host.call(fn, arg); coding = was; return r; }   /* coding: how deep in calls of code */
 static int landed(void *fn, int64_t *arg) {
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address as its seventh argument */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
@@ -1095,7 +1200,7 @@ static int landed(void *fn, int64_t *arg) {
   }
   nnoted = 0;
   if (r.k == 0) W->v = mki(r.v); else if (r.k == 1) W->v = r.v ? E(YES) : E(NO);
-  else if (r.k == 4 && r.v > 0 && (uint64_t)r.v < nn) W->v = (H)r.v; else { W->v = 0; W->reason = notice(S_RANGE); }
+  else if (r.k == 4 && known(r.v)) W->v = (H)r.v; else { W->v = 0; W->reason = notice(S_RANGE); }
   return 1;
 }
 /* The values code is given: an integer as the number it is, any other as its node's handle. The
@@ -1304,9 +1409,10 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
     if (c != (op == PEEK ? 2u : 1u)) { fault(S_ARITY); return; }
     if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == HANDLE) { W->v = mki(a[0]); return; }
+    if (op == HANDLE) { if (a[0] > SEEDED && a[0] != handed) { handed = a[0]; handeds++; } W->v = mki(a[0]); return; }   /* adopt asks what was given */
     if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
-    if (op == AT ? (o < 1 || (uint64_t)o >= nn) : (o < 0 || n < 0 || (uint64_t)o + (uint64_t)n > fb->bytes
+    if (op == AT && !known(o) && o > 0 && o >> 32 == 0 && (H)o < lsw((uint64_t)o >> LS, 0)) { fault(S_IRREVERSIBLE); return; }   /* settled since this search began */
+    if (op == AT ? !known(o) : (o < 0 || n < 0 || ((uint64_t)o + (uint64_t)n > fb->bytes && ((uint64_t)o < fb->me.share || (uint64_t)o + (uint64_t)n > fb->me.share + sub->bytes))
                                           || ((uint64_t)o < guard && (uint64_t)o + (uint64_t)n > guard - FB_PAGE))) { W->v = 0; W->reason = notice(S_RANGE); return; }
     if (op == AT) { W->v = (H)o; return; }
     uint64_t mark = ntext; uint8_t *copy = talloc((size_t)n); memcpy(copy, (uint8_t *)fb + o, (size_t)n);
@@ -1407,7 +1513,7 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   op &= 255; if (c > 6) c = 6;
   if (op == GATHERED && c < 2) {
     if (!c) return (Ret){ ntk, num ? 0 : 3 };
-    H g = cm >> 8 & 1 ? (a0 > 0 && (uint64_t)a0 < nn ? (H)a0 : 0) : mki(a0);
+    H g = cm >> 8 & 1 ? known(a0) : mki(a0);
     if (g) { room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = g; }
     return (Ret){ 0, 4 };
   }
@@ -1416,14 +1522,14 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
     x = mk(1, E(LIST), tk + a0, ntk - (uint32_t)a0, &why); ntk = (uint32_t)a0; return (Ret){ x, 4 };
   }
   if (op == NOTE || op == HELD) {
-    H key = !c ? 0 : cm >> 8 & 1 ? (a0 > 0 && (uint64_t)a0 < nn ? (H)a0 : 0) : mki(a0), v = c != 2 ? 0 : cm >> 9 & 1 ? (a1 > 0 && (uint64_t)a1 < nn ? (H)a1 : 0) : mki(a1);
+    H key = !c ? 0 : cm >> 8 & 1 ? known(a0) : mki(a0), v = c != 2 ? 0 : cm >> 9 & 1 ? known(a1) : mki(a1);
     if (c == (op == NOTE ? 2u : 1u) && key && (op == HELD || v)) {
       if (op == NOTE) { room(A_NOTED, (uint64_t)nnoted + 2); noted[nnoted] = key; noted[nnoted+1] = v; nnoted += 2; return (Ret){ v, 4 }; }
       for (uint32_t j = nnoted; j > 0; j -= 2) if (noted[j-2] == key) return num ? (geti(noted[j-1], &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 }) : (Ret){ noted[j-1], 4 };
     }
   }
   if (op == NODE) { x = c == 1 && cm == 1 ? byid((const uint8_t *)(uintptr_t)a0) : 0; if (x) return (Ret){ x, 4 }; fault(S_NO_NODE); siglongjmp(in_code, 3); }
-  for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) && v[j] > 0 && (uint64_t)v[j] < nn ? (H)v[j] : 0;
+  for (uint32_t j = 0; j < c; j++) a[j] = (cm >> (8 + j) & 1) ? known(v[j]) : 0;
   x = a[0];                               /* what code reads most is answered without a number being built for it */
   if (x && op == COUNT && num && c == 1) return (Ret){ nd[x].n, 0 };
   if (x && op == BYTE && num && c == 2 && !(cm >> 9 & 1) && !nd[x].comp && (uint64_t)v[1] < nd[x].n) return (Ret){ bytes[nd[x].off + v[1]], 0 };
@@ -1458,7 +1564,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     }
     if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
       uint64_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
-      if (n > fb->a[A_ASKED].cap) n = 0;
+      if (n == ~0ull) { N(A_ASKED) = 0; exit(143); } if (n > fb->a[A_ASKED].cap) n = 0;
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
       why = S_ID; q = numeric_io ? (n == 32 ? byid((uint8_t *)s) : 0) : read_print(s, &why);
@@ -1651,18 +1757,18 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
       int64_t m = 0, n = 0; geti((H)q->i, &m); geti((H)q->coll, &n);
       W->v = (H)q->i; if (m + 1 < n) { q->i = mki(m + 1); rise(q); } else ncp--;
-      W->mode = M_RET; break;
+      W->mode = M_RET; if (shared && !ncp && nn > sw) commit(); break;
     }
     if (q->all == 2) {                    /* an outcome: what was seen, or that no path was left */
       ncp--; W->v = q->coll ? q->coll : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_PATH));
-      W->reason = 0; W->mode = M_RET; break;
+      W->reason = 0; W->mode = M_RET; if (shared && !ncp && nn > sw) commit(); break;
     }
     if (q->all) {                         /* every answer has been gathered */
       uint32_t base = ntk, w = q->i, id = q->coll;       /* its answers lie above where it began: q->i */
       for (uint32_t i = q->i; i < ncoll; i++) {
         if (coll[i].id == id) { room(A_GATHERING_CHILDREN, (uint64_t)ntk + 1); tk[ntk++] = coll[i].v; } else coll[w++] = coll[i]; }
       ncoll = w; ncp--;
-      W->v = mk(1, E(LIST), tk + base, ntk - base, &why); ntk = base; W->mode = M_RET; break;
+      W->v = mk(1, E(LIST), tk + base, ntk - base, &why); ntk = base; W->mode = M_RET; if (shared && !ncp && nn > sw) commit(); break;
     }
     W->x = KID(q->node, q->i); W->cut = ncp - 1; W->mode = M_EVAL;
     if (q->i + 1 >= nd[q->node].n) ncp--; else { q->i++; q->by = W->at; rise(q); }
@@ -1739,24 +1845,25 @@ static int recv_bytes(uint8_t *p, size_t n) {
   }
   return 1;
 }
-/* Every part precedes its holder in the store. Mark its closure backwards, emit it forwards. */
+/* A reply holds its value's closure, each part before what holds it. A part may lie in any lane, above its holder's
+ * too, so the closure is found from the value: a node is listed once its blueprint and children are, in their order. */
 static int send_answer(uint8_t status, H value) {
-  uint8_t header[37]; uint64_t size = sizeof ice_header;
-  touch(A_PRINT_NUMBERS, value); pnum[value] = 1;
-  for (H h = value; h; --h) if (on_page(A_PRINT_NUMBERS, h) && pnum[h]) {
-    Node *x = nd + h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n);
-    if (x->bp > ROOT) { touch(A_PRINT_NUMBERS, x->bp); pnum[x->bp] = 1; }
-    if (x->comp) for (uint32_t j = 0; j < x->n; ++j) if (KID(h,j) > ROOT) { touch(A_PRINT_NUMBERS, KID(h,j)); pnum[KID(h,j)] = 1; }
+  uint8_t header[37]; uint64_t size = sizeof ice_header, base = ntk, first = nhand;
+  room(A_GATHERING_CHILDREN, ntk + 1); tk[ntk++] = value;
+  while (ntk > base) {                    /* print-numbers: 1 while a node's parts are being listed, 2 once it is */
+    H h = tk[ntk - 1]; Node *x = nd + h; touch(A_PRINT_NUMBERS, h);
+    if (pnum[h]) { ntk--; if (pnum[h] == 1) { pnum[h] = 2; *in_hand(1) = h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n); } continue; }
+    pnum[h] = 1; room(A_GATHERING_CHILDREN, ntk + (x->comp ? x->n : 0) + 1);
+    for (uint64_t j = x->comp ? x->n : 0; j-- > 0; ) if (KID(h, j) > ROOT && !(USED(A_PRINT_NUMBERS, KID(h, j)) && pnum[KID(h, j)])) tk[ntk++] = KID(h, j);
+    if (x->bp > ROOT && !(USED(A_PRINT_NUMBERS, x->bp) && pnum[x->bp])) tk[ntk++] = x->bp;
   }
-  if (size > UINT32_MAX) return 0;
-  header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
-  if (!send_bytes(header, sizeof header) || !send_bytes(ice_header, sizeof ice_header)) return 0;
-  for (H h = 1; h <= value; ++h) if (on_page(A_PRINT_NUMBERS, h) && pnum[h]) {
-    uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(h, &len); put4(header, (uint32_t)len);
-    int sent = send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[h] = 0;
-    if (!sent) return 0;
+  int sent = size <= UINT32_MAX; header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
+  sent = sent && send_bytes(header, sizeof header) && send_bytes(ice_header, sizeof ice_header);
+  for (uint64_t i = first; i < nhand; i++) {
+    uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(hand[i], &len); put4(header, (uint32_t)len);
+    sent = sent && send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[hand[i]] = 0;
   }
-  return 1;
+  nhand = first; return sent;
 }
 static int send_outcome(void) {
   return W->outcome == 'n' ? send_answer(1, W->v) : send_answer(W->outcome == 'f' ? 2 : 0, W->reason);
@@ -1814,11 +1921,21 @@ static int command(int argc, char **argv) {
   return 2;
 #endif
 }
+/* A member leaves: the node adopt was given runs once, last, on the walker's thread, whether the run came to its end or the
+ * bootstrap ends the process from inside it; the machine then shows the run's own end again. */
+static void ending(int sig) {             /* outside a run nothing is half done, and the process ends here; inside one, the walker ends it between two steps */
+  if (!pthread_equal(pthread_self(), walker)) { pthread_kill(walker, sig); return; }
+  if (!walking) exit(128 + sig); N(A_ASKED) = ~0ull;
+}
+static void leaving(void) {
+  H l = fb->me.leave; Machine m = *W; if (!l || !pthread_equal(pthread_self(), walker)) return;
+  fb->me.leave = 0; parting = 1; ntk = ntb = 0; run(l); *W = m;
+}
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
 static void *on_region(void *p) {
   Start *s = p; walker = pthread_self(); host.guard(crashed, talloc(1u << 17), 1u << 17);
-  s->rc = command(s->argc, s->argv); W->mode = M_DONE; return NULL;
+  s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {
   Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at;

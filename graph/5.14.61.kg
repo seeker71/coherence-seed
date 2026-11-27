@@ -3,18 +3,82 @@
 n: 5.14.61
 name: substrate
 kind: hub
-is: The part of the region a node table lies in, laid out as one object several processes could map: lanes, a settled watermark, and the indexes of what is settled. One stage stands: a process alone, whose node table is lane 0.
+is: The part of the region a node table lies in, laid out as one object several processes could map: lanes, a settled watermark, and the indexes of what is settled. Two stages stand: a process alone, whose node table is lane 0 of its own, and processes that are members of one named substrate, each with a lane of it. Becoming a member is a package in Form over the host's rows and one function of the bootstrap.
 at: 2026-11-27
 
 n: 5.14.61.1
 name: a-lone-process-settles
 kind: decision
-is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 21, with the doors and then the member part after the area table. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. A handle is still local to its process.
+is: The node table is lane 0 of a substrate inside the process's own region, laid out as version 24 now, with the doors and then the member part after the area table. A node made while no choice is open, when no working node stands, is settled as it is made; one made under a choice is working, found by the process's own index, and settled where it stands at the first evaluation step after the last choice closes. No closed choice opens again, so a settled node lies below every choice point's mark and no fail reaches it; a fail that would ends the process. In a process alone a handle is local to it.
 status: observed
 from: 5.14.57 5.7.8 5.7.3
 src: 2.30.19
 conf: mid
 why: Observed on 2026-11-27: all 77 ground programs and the nine named checks end as before; a second process saw lane 0 of the long recursion settled below 273 of 273 nodes mid-run; ground/gives-back.ck holds that a node made before forty thousand outcomes keeps its handle, the lane's settled watermark stands while they run and passes their answer once they close, and a note on a key moved to an unused page of cells stands; fb.check checks seen and every node's settled byte against the watermark, and reported each of five faults planted in the description and two planted walkers; a fault planted to move the watermark ended the run at the commit instead of going on. Against the bootstrap without the substrate, medians of cycles in three alternating rounds: -8.6% on the long recursion, -5.1% on giving back, -1.2% on the compiled sweep, after +5.7%, +4.1% and +15.5% as first laid out; the cause was the compiler leaving room a call and putting the commit and the page-bit test into the walker's loop. Against that version with room in the loop as well, the substrate costs the sweep +7.3% instructions and +7.6% cycles, the long recursion +3.5% and -2.0%, giving back +4.2% and +1.1%.
 flip: Committing at the top of every step rather than every evaluation step cost the long recursion another 0.83 billion instructions.
-limit: One lane: no other process maps the substrate, and the commit's path for content settled meanwhile is not built, since a lone process cannot meet it. One machine.
+limit: A process alone cannot meet content another settled, so its commit ends the process if it finds some; a member's commit forwards (5.14.61.2). One machine.
+at: 2026-11-27
+
+n: 5.14.61.2
+name: two-processes-one-substrate
+kind: decision
+is: A member of a named substrate has it at byte 2^43 of its region's addresses, as every member does: 256 lanes that divide the handles, so the handle of a settled node names it in every member. A settled record enters the one index whole, by a compare-and-swap of its handle, with no lock and no place marked as being filled. A lane row is claimed and retired the same way, by one word that is a process id together with the instant the host started it.
+status: observed
+from: 5.14.61.1 5.7.8 5.7.3
+src: 2.30.22
+conf: mid
+why: Observed on 2026-11-27 in make check-full: 77 ground programs ran as members of one substrate, six at a time, each ending as expected, while one more member was killed with kill -9 in mid-run and its lane retired; over what they left, 79 lanes and some 336,000 settled nodes, each made again from its parts and answered its own handle, some 90,000 forwarded at a commit; the name was gone when the last member left. A member thawed a frozen node and a second member printed it from its handle alone. Two numeric ports that were members answered between them, byte for byte, what one alone answers. A process alone against the build of origin/main: 24.0 M instructions and 2.05 MB to answer one entry, the same.
+flip: Committing at the top of every answer step cost a process alone 1.6% of its instructions, so a member commits where its last choice closes. One maker of nodes with a test of the mode cost 0.8%; a process alone now runs its own copy, which a member leaves only at a miss. The two statics of the page bits moved into the region cost 1.7%, and stay outside.
+limit: No channel yet: nothing carries a handle between members but a number passed by hand. A lane is not used again, the indexes do not grow, the port does not answer by handle, and a member is not recorded. One machine, macOS on Apple silicon, the only host whose package has the rows a member needs.
+at: 2026-11-27
+
+n: 5.14.61.3
+name: a-search-sees-what-was-settled
+kind: decision
+is: A search sees of another lane what was settled when its oldest choice opened, one moment for all lanes (5.14.61.6): a node settled since is not there for the maker of nodes or for finding by id, and at on its number is the fault irreversible. A commit forwards a working node onto equal content another member settled meanwhile, in the nodes made after it and in everything the run holds, and the node gives its place back. Whoever takes a node of another lane from the index outside a search first raises that lane's settled watermark past it.
+status: observed
+from: 5.14.61.2
+src: 2.30.22
+conf: mid
+why: So going an option again meets the same nodes and no run holds two handles for one content: after the 77 ground programs ran as members, every settled node made again from its parts was answered its own handle, with tens of thousands forwarded at a commit. A lane publishes in order, so a node in the index is settled with all below it in its lane, and the taker may say so; the watermark is then true of a member killed between publishing and raising, and what a published node names lies below its lane's watermark.
+flip: The first cut refused by a lane's watermark alone: a member then held a node it had been forwarded to but could not see it in its next search, and one content had two handles; the taker raising the watermark closed that.
+at: 2026-11-27
+
+n: 5.14.61.4
+name: a-substrate-ends-with-its-members
+kind: decision
+is: A named substrate has its own allowance, fixed when it is made; a lane's growth is charged by a compare-and-swap after asking, and past the allowance it is the fault full. When no lane has a member the substrate ends: one process writes its own word in buried, in place of nothing or of the word of a process that is gone, looks once more, and unlinks the name only when the object that name opens holds its word in buried. So only the holder of buried unlinks, and never the name of a substrate made after the one it has mapped.
+status: observed
+from: 5.14.61.2
+src: 2.30.22
+conf: mid
+why: Observed on 2026-11-27 in make check-full: the name was gone when the last of the 78 members left; a second substrate had its burying and one lane written in the name of a process that ran but was started at another instant, and both its members killed, and the next process to open it took the burying over, retired that lane, buried it, made a new one and answered. Seen once by hand: a member that outgrew a substrate of 8 MiB had the fault full with nodes, the charge at the allowance exactly; a member killed between writing buried and unlinking was finished by the next opener.
+flip: Burying unlinked by name what it knew only by its mapping: a process that still had an ended substrate mapped took buried over from the exited burier and unlinked the name, which by then was a new maker's. Run by hand before and after: the live substrate's name was unlinked before, and stands now; ground-isolated holds it.
+limit: Nothing a lane charged is given back while the substrate lives, and a lane is not used again. A member that ends by one of the bootstrap's own refusals does not leave, and is retired by the next that looks.
+at: 2026-11-27
+
+n: 5.14.61.5
+name: joining-is-form-over-one-door
+kind: decision
+is: Making or joining a named substrate, claiming a lane, telling whether a member stands, retiring rows, burying, leaving and listing a substrate are a component package in Form over rows of host functions (share/share.ck), run where no choice is open. The bootstrap keeps one function of it, adopt, reached through a door in the head: the mapped substrate becomes the process's, every node it had made alone is made again there by the ordinary maker, and everything the run holds is forwarded. The process joins where it runs: it does not start again.
+status: observed
+from: 5.14.61.2 5.14.61.4 5.9.2 5.14.40
+src: 2.30.23
+conf: mid
+why: Observed on 2026-11-27: the bootstrap's host functions for a named object and for a process's start, its counting of living members, its burying, its leaving and the member half of its opening are gone from C, and make check-full passes with every member made by the package. Starting the process again with the lane handed over was weighed: it needs fewer lines of C, about ten against about thirty, but the second start cannot leave or bury in Form without reading the door again, and it costs a second start. Reserving 16 TiB in every process so that the place stays free was weighed and measured: this host takes about 6.6 M instructions for each TiB reserved, 108 M for 16 TiB, which was nearly all a member's start cost in C; the place is asked for instead and taken only if the host gives it.
+flip: Loading the two packages through the search at each member's start took about 400 M instructions, three times the start in C; the door is now read as one bound node the packages are held to (make door, check-header), and a maker starts in 85 M and a joiner in 70 M against 135 M and 133 M. A joiner first asked the shared index for every node of the door, which touched 16 MiB of it; it now compares what it made with the first lane, and keeps the handle where they are equal.
+limit: The door's nodes settle into lane 0 and touch nearly every page of an index made once for the whole allowance: a maker's footprint is 12.7 MB at an allowance of 64 MiB where it was 5 MB. A member the host kills outright does not leave. A process that gave out a handle before joining is refused as a joiner; a computed number may still name another node. The writer cannot show the package in a language. macOS on Apple silicon only.
+at: 2026-11-27
+
+n: 5.14.61.6
+name: the-tide
+kind: decision
+is: The substrate has a tide, a count that is raised before any lane's settled watermark is, by whoever raises it. The opening of a search reads the tide, every lane's watermark and the tide again, and reads again when it moved, so what a search sees of the lanes is of one moment. A node's parts were below their lanes' watermarks before the tide moved for the node, so a search never holds a node without its parts.
+status: observed
+from: 5.14.61.3
+src: 2.30.22
+conf: mid
+why: Observed on 2026-11-27 with a debugger: a member stopped between its reads of two lanes, while the lane already read settled a node and the lane not yet read a node holding it, went on and answered that the part it read out of the holder and the part it made were one node with one handle.
+flip: Each lane's watermark was read in turn with nothing to say they were of one moment: the same stop then left the member holding the holder without its part, and it answered that one content had two handles and could not name the part by its number.
+limit: Held by a probe run by hand under a debugger, not by a check: nothing in the suite can stop a member between two reads. A member that settles pays one atomic add on a word every member shares.
 at: 2026-11-27
