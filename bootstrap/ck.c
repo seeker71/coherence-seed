@@ -392,7 +392,7 @@ static void kept(H kind, uint32_t key, H v) {
 }
 static uint64_t text_limit(void) {
   const Area *text_area = &fb->a[A_TEXT];
-  uint64_t extent = pages_for(area_extent(text_area, text_area->peak)) + remaining_memory();
+  uint64_t extent = pages_for(area_extent(text_area, text_area->peak)) + remaining_memory() + (answering ? SPARE : 0);
   uint64_t skip = text_area->off % FB_PAGE, limit = extent > skip ? extent - skip : 0;
   return limit < fb->a[A_TEXT].cap ? limit : fb->a[A_TEXT].cap;
 }

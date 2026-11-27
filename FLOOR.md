@@ -408,7 +408,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   is AArch64 it runs as machine code (below); walked, a list of 3,000 numbers takes 1,555 M
   instructions in all where the C took 21 M. The answer line may take 16 MiB past the allowance, so a run that ends with an area
   full still says its fault: `(all (range 0 300000000))` at 4, 8, 16 and 32 MiB ended with
-  `fault (full ...)`, where at 4 to 32 MiB the C ended with no room left for the print. `ck` finds
+  `fault (full ...)`, where at 4 to 32 MiB the C ended with no room left for the print. The printer's file is read with that allowance too, by hand at 1 to
+  64 MiB, since a larger one no longer fit in what the run had left. `ck` finds
   its folder from the host (`_NSGetExecutablePath`, `/proc/self/exe`), through `PATH` and links. An
   asked answer is written by `bin.write` beneath the asked run's bindings, and its marks are holds
   that the outcome takes back; an outside binding of `pack` or `leaf` no longer changes it.
@@ -430,7 +431,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   room operations take them there, and the machine's `pcount` and `unused` left the layout
   (version 28) with every compiled ground program unchanged. A room's `load` and `store` compile to
   the C's checks as instructions and its bytes read or written in place; a case they do not take
-  calls `serve` as before. A store is compiled only into a leaf `native` runs.
+  calls `serve` as before. A `take` or `store` is compiled only into a leaf `native` runs, of a
+  recipe that calls no other definition and has none under a search inside it, where a fail
+  would return past it with no choice of the walker's to undo it; so where compiled code would
+  keep a store the walker undoes, the emitter refuses. `ground/encoding-in-form.ck` runs both room
+  operations at every width over rooms of six sizes at and past their edges, compiled and walked,
+  and a narrowed bound and a wrong width planted in the emitter each made cases differ.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
