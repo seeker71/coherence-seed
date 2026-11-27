@@ -264,7 +264,7 @@ static const char *const AREA_NAME[A_COUNT + S_COUNT] = { FB_AREA_NAMES FB_SUBST
  * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full, parting; static H full_at[A_COUNT + S_COUNT]; static pthread_t walker;
 static void area_full(int a) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
@@ -293,7 +293,7 @@ static int fits_growth(uint64_t old, uint64_t next) {
 static void further(int a, uint64_t need) {
   Area *area = AR(a); uint64_t old = area_extent(area, area->peak), next = area_extent(area, need), extra = pages_for(next) - pages_for(old); int s = shared && a < A_COUNT && LANED[a];   /* a lane's growth is charged to the named substrate by whole pages: */
   if (s && extra && need <= area->cap) { uint64_t c = LD(sub->charged);    /* asked of what stands and taken by one swap, so a growth that has no room never counts against another's */
-    do if (c + extra > sub->allowance || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }
+    do if ((c + extra > sub->allowance && !parting) || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }   /* but for a member that is leaving */
   if (need > area->cap || (!s && !fits_growth(old, next))) area_full(s ? SA(LANED[a] - 1) : a);
   area->peak = need; if (s) ln->charged += extra;
 }
@@ -328,7 +328,7 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
-static void leaving(void);
+static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
 static const uint64_t LANES = 256, SPAN = (uint64_t)1 << 32;   /* a named substrate: the most lanes one has, and the handles they share */
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
 static void fb_open(void) {
@@ -405,7 +405,7 @@ static void fb_open(void) {
   for (int i = 0; i < A_COUNT + S_COUNT; i++) *AR(i) = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i] - (i < A_COUNT ? 0 : share), cap[i], 0 };
   fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
   fb->d.symbol = (uint64_t)(uintptr_t)dlsym; fb->d.adopt = (uint64_t)(uintptr_t)adopt;
-  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share; sub->allowance = mem;
+  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share; sub->allowance = mem; sub->catalogue = FB_CATALOGUE;
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + fb->a[i].off))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -1144,6 +1144,7 @@ COLD void commit(void) {
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave) {
   Substrate *to = (Substrate *)(intptr_t)base; Ret no = { 0, 0 };
   if (shared || ncp || coding != 1 || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;   /* not from inside code, which holds handles */
+  if (lane && (handeds > 1 || (handeds && handed != (H)leave))) return no;   /* a number given as a handle would name another node after: refused, not guessed */
   if (nn > sw) commit();
   const Node *ond = nd; const H *okids = kids; const uint8_t *obytes = bytes, *oids = ids; H top = (H)nn, at = W->at; uint64_t mark = ntext, base_tk = ntk; int was = coding, over = 0;
   coding = walking = 0; sub = to; shared = 1; fb->me.share = (uint64_t)base - (uint64_t)(uintptr_t)fb; fb->me.lane = (uint32_t)lane; strncpy((char *)fb->me.name, (const char *)(intptr_t)name, 31);
@@ -1169,7 +1170,8 @@ static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave) {
   }
   for (; ntk > base_tk; ntk -= 3) { int a = (int)tk[ntk - 3]; over |= moved(a, tk[ntk - 2]); (a == A_CELLS ? held : (H *)bykey)[tk[ntk - 2]] = tk[ntk - 1]; }
   W->at = at; forwarded(); for (int i = 0; i < A_COUNT + S_COUNT; i++) FW(full_at[i]);
-  fb->me.leave = leave > 0 && leave < top ? fwd((H)leave) : 0; atexit(leaving);   /* what the member runs last, however its run ends */
+  fb->me.leave = leave > 0 && leave < top ? fwd((H)leave) : 0; atexit(leaving);   /* what the member runs last, however its run ends: */
+  signal(SIGTERM, ending); signal(SIGINT, ending); signal(SIGHUP, ending);        /* at a signal that would end it, too */
   ntext = mark; walking = 1; coding = was; if (over) area_full(A_CELLS);
   return (Ret){ 1, 0 };
 }
@@ -1407,7 +1409,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
     if (c != (op == PEEK ? 2u : 1u)) { fault(S_ARITY); return; }
     if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == HANDLE) { W->v = mki(a[0]); return; }
+    if (op == HANDLE) { if (a[0] > SEEDED && a[0] != handed) { handed = a[0]; handeds++; } W->v = mki(a[0]); return; }   /* adopt asks what was given */
     if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
     if (op == AT && !known(o) && o > 0 && o >> 32 == 0 && (H)o < lsw((uint64_t)o >> LS, 0)) { fault(S_IRREVERSIBLE); return; }   /* settled since this search began */
     if (op == AT ? !known(o) : (o < 0 || n < 0 || ((uint64_t)o + (uint64_t)n > fb->bytes && ((uint64_t)o < fb->me.share || (uint64_t)o + (uint64_t)n > fb->me.share + sub->bytes))
@@ -1562,7 +1564,7 @@ static void walk(H top) {                 /* ends with mode M_DONE; outcome is '
     }
     if (N(A_ASKED) && !N(A_ANSWERED)) {   /* another process asks: its node is evaluated here, between two steps of the */
       uint64_t n = N(A_ASKED), mark = ntext; H q, p;        /* run, as from outside and leaving no other trace */
-      if (n > fb->a[A_ASKED].cap) n = 0;
+      if (n == ~0ull) { N(A_ASKED) = 0; exit(143); } if (n > fb->a[A_ASKED].cap) n = 0;
       room(A_ASKED, n);
       char *s = talloc((size_t)n + 1); memcpy(s, (uint8_t *)fb + fb->a[A_ASKED].off, n); s[n] = 0; N(A_ANSWERED) = 1;
       why = S_ID; q = numeric_io ? (n == 32 ? byid((uint8_t *)s) : 0) : read_print(s, &why);
@@ -1921,9 +1923,13 @@ static int command(int argc, char **argv) {
 }
 /* A member leaves: the node adopt was given runs once, last, on the walker's thread, whether the run came to its end or the
  * bootstrap ends the process from inside it; the machine then shows the run's own end again. */
+static void ending(int sig) {             /* outside a run nothing is half done, and the process ends here; inside one, the walker ends it between two steps */
+  if (!pthread_equal(pthread_self(), walker)) { pthread_kill(walker, sig); return; }
+  if (!walking) exit(128 + sig); N(A_ASKED) = ~0ull;
+}
 static void leaving(void) {
   H l = fb->me.leave; Machine m = *W; if (!l || !pthread_equal(pthread_self(), walker)) return;
-  fb->me.leave = 0; ntk = ntb = 0; run(l); *W = m;
+  fb->me.leave = 0; parting = 1; ntk = ntb = 0; run(l); *W = m;
 }
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;

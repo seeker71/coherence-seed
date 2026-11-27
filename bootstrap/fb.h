@@ -74,5 +74,6 @@ typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
 #define FB_VERSION 24u
+#define FB_CATALOGUE UINT64_C(42424705279398542)
 #define FB_PAGE 16384u
 #endif
