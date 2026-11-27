@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-27** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 146 conformance vectors kept as a node |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,014 lines now that Metal and the joining of a substrate have left it and the substrate has come, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,019 lines now that Metal and the joining of a substrate have left it and the substrate has come, and is to shrink as parts leave it for Form. A numeric port runs resolved images. The authoring tool also reads the canonical print |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -210,9 +210,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   settled meanwhile and gives its place back.
   Becoming a member is written in Form: `share/share.ck` makes or joins the substrate through
   rows of host functions, claims a lane by one compare-and-swap in a machine-code leaf, knows a
-  member as a process id together with the instant the host started it, in one word, counts a
-  process the host will not describe as standing, retires the rows of members that are gone,
-  buries a substrate with no member, and leaves at the run's end. The bootstrap keeps one
+  member as a process id together with the instant the host started it, in one word, asks the
+  host for any process's start, retires the rows of members that are gone, buries a substrate
+  with no member, unlinking a name only where the object of that name holds its own word, and
+  leaves at the run's end, also where the bootstrap ends the process from inside a run. The bootstrap keeps one
   function of it, `adopt`, reached through a door in the head: the mapped substrate becomes the
   process's, every node it had made alone is made again there, and all the run holds is
   forwarded. The door is read as one bound node, `share/bound.ck`, which `make door` writes from
@@ -225,7 +226,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   name was gone. Then a second substrate had its burying and one lane written in the name of a
   process that runs but was started at another instant, as a process id the host gave again
   leaves them, and every member of it was killed; the next process to open it took the burying
-  over, retired the lane, buried it, made a new one and answered 42. In the second, a member thaws
+  over, retired the lane, buried it, made a new one and answered 42. Then a process kept a third
+  substrate mapped while its last member left and another made one of the same name, and buried
+  through its stale mapping: the live one's name stood, where before it was unlinked. In the second, a member thaws
   a frozen node and answers its handle, and the member that made the substrate prints the same
   node from that number alone. In the third, under `make check`, two numeric ports that are
   members of one substrate answer between them, byte for byte, what one port alone answers, one
@@ -238,11 +241,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   opener did not finish. A member that outgrew a substrate of 8 MiB had the fault `full` with
   `nodes`, the substrate's charge standing at its allowance and not above it.
   On this Mac a process alone starts as main's does, 13.8 M instructions and 1.50 MB; the maker of a
-  substrate starts in 78 M instructions and 5.3 ms where the start in C took 135 M and 14 ms, and
-  a joiner in 63 M and 5.5 ms against 133 M and 14 ms; their peak footprints rose, to 20.3 MB
-  and 6.3 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
+  substrate starts in 97 M instructions and 6.0 ms where the start in C took 135 M and 14 ms, and
+  a joiner in 83 M and 6.5 ms against 133 M and 14 ms; their peak footprints rose, to 12.7 MB
+  and 6.7 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 23 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 24 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
@@ -483,18 +486,26 @@ running compiled code against frames all the way down).
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
   built, and asking still goes by print through `asked`. The numeric port does not answer by
   handle.
-- **More of the substrate.** A lane is never used again, so a named substrate has 256 members in
-  its life, and the 256th to come is refused; its indexes never grow, and a member's first
-  thousands of nodes touch nearly every page of them; what a lane charged is never given back,
-  so one member can use up the allowance for all that come after. These three are the design's
-  stage 5. A process becomes a member only where the host's package has rows: macOS on Apple
-  silicon. A member that ends by one of the bootstrap's own refusals, cannot write its answer,
-  or is in a substrate with no room left, does not leave; its row and, if it was the last, the name stay until the next process looks. A
-  member's start still reads and binds the door, three lone starts in instructions; the
-  substrate holds those nodes already, and nothing yet lets a joiner take the bindings from
-  there. A handle taken before a process became a member names nothing after. The observer shows
-  a member but does not record one. The lane rows count the nodes forwarded, not those settled in
-  place or refused.
+- **More of the substrate.** A lane is never used again, so a named substrate has 255 members
+  after its maker in its life, and the next to come is refused; its indexes never grow, and a
+  member's first thousands of nodes touch nearly every page of them; what a lane charged is never
+  given back, so one member can use up the allowance for all that come after. These three are the
+  design's stage 5. A process becomes a member only where the host's package has rows: macOS on
+  Apple silicon. A member the host kills, or one in a substrate with no room left, does not
+  leave; its row and, if it was the last, the name stay until the next process looks.
+  `share/bound.ck` is a stopgap: a member's start still reads and binds the door, six lone starts
+  in instructions, though the substrate holds those nodes already; a region saved at rest is to
+  carry the bindings instead. A number taken as a handle before a process became a member is not
+  refused after: where it falls below what lane 0 has settled it names the maker's node at that
+  place, another node, silently, as a number kept across a fail can; handles carry no mark of when
+  they were taken. The writer cannot show `share/share.ck` in a language, nor `host/host.ck`: it
+  does not write a call of another package's function. The observer shows a member but does not
+  record one. The lane rows count the nodes forwarded, not those settled in place or refused.
+- **A dispatch makes nodes of addresses.** What the host answers a row is an integer node, an
+  address among them, different in each run; a map leaves one whenever the host hands it an
+  address it had not met. `ground/metal-holds.ck` holds that what maps leave are numbers only and
+  fewer than one for two maps; keeping addresses in the door's room and out of the nodes is not
+  built.
 - **A stack limit above the default.** The case of `ground/code-on-nodes.ck` that recurses a
   hundred thousand deep in machine code declines under the 8 MiB stack limit this session's shell
   gave, at 01db529 as well, and then differs from its expectation; the catalogue was run under

@@ -328,8 +328,9 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OUT 0x1000000u
 #define OMOST 127u
 #define OWN 0x80000000u
+static void leaving(void);
 static const uint64_t LANES = 256, SPAN = (uint64_t)1 << 32;   /* a named substrate: the most lanes one has, and the handles they share */
-static Ret adopt(int64_t base, int64_t lane, int64_t name);
+static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
 static void fb_open(void) {
   /* Each table has stable addresses into which it can grow. Their pages share one allowance. After
    * the process's own areas lies a substrate of one lane: its head, then its areas. The nodes, their
@@ -1140,7 +1141,7 @@ COLD void commit(void) {
  * again there, oldest first, by the maker all a member's nodes come from, so content the substrate already holds answers with
  * the handle every member knows it by; then all the run holds is forwarded onto those. Lane 0 takes the catalogue with it, and
  * any other finds it there. Once begun it cannot stop half way: a fault or a full inside it ends the process. */
-static Ret adopt(int64_t base, int64_t lane, int64_t name) {
+static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave) {
   Substrate *to = (Substrate *)(intptr_t)base; Ret no = { 0, 0 };
   if (shared || ncp || coding != 1 || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;   /* not from inside code, which holds handles */
   if (nn > sw) commit();
@@ -1168,6 +1169,7 @@ static Ret adopt(int64_t base, int64_t lane, int64_t name) {
   }
   for (; ntk > base_tk; ntk -= 3) { int a = (int)tk[ntk - 3]; over |= moved(a, tk[ntk - 2]); (a == A_CELLS ? held : (H *)bykey)[tk[ntk - 2]] = tk[ntk - 1]; }
   W->at = at; forwarded(); for (int i = 0; i < A_COUNT + S_COUNT; i++) FW(full_at[i]);
+  fb->me.leave = leave > 0 && leave < top ? fwd((H)leave) : 0; atexit(leaving);   /* what the member runs last, however its run ends */
   ntext = mark; walking = 1; coding = was; if (over) area_full(A_CELLS);
   return (Ret){ 1, 0 };
 }
@@ -1917,13 +1919,17 @@ static int command(int argc, char **argv) {
   return 2;
 #endif
 }
+/* A member leaves: the node adopt was given runs once, last, on the walker's thread, whether the run came to its end or the
+ * bootstrap ends the process from inside it; the machine then shows the run's own end again. */
+static void leaving(void) {
+  H l = fb->me.leave; Machine m = *W; if (!l || !pthread_equal(pthread_self(), walker)) return;
+  fb->me.leave = 0; ntk = ntb = 0; run(l); *W = m;
+}
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
 static void *on_region(void *p) {
   Start *s = p; walker = pthread_self(); host.guard(crashed, talloc(1u << 17), 1u << 17);
-  s->rc = command(s->argc, s->argv);
-  if (USED(A_CELLS, E(SUBSTRATE)) && held[E(SUBSTRATE)]) { Machine m = *W; run(held[E(SUBSTRATE)]); *W = m; }   /* a member leaves: what the cell substrate holds runs last, and the */
-  W->mode = M_DONE; return NULL;          /* machine shows the run's own end */
+  s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {
   Start s = { argc, argv, 2 }; pthread_t t; pthread_attr_t at;
