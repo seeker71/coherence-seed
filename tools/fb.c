@@ -182,7 +182,7 @@ static void node(H h) {
 static void detail(void) {
   const Machine *m = &hd->m;
   printf("framebuffer version %u, writer pid %u, %llu bytes reserved\n", hd->version, hd->pid, (unsigned long long)hd->bytes);
-  printf("memory allowance %llu bytes\n", (unsigned long long)hd->a[A_ROOMS].cap);
+  printf("memory allowance %llu bytes\n", (unsigned long long)hd->me.allowance);
   const Lane *l = &lanes[hd->me.lane]; char name[33] = {0}; memcpy(name, hd->me.name, 32);
   printf("substrate %s at byte %llu, %u lanes: lane %u of pid %u settled below %u\n", name[0] ? name : "of its own", (unsigned long long)hd->me.share,
          sub->lanes, hd->me.lane, (uint32_t)(l->who >> 42), l->sw);

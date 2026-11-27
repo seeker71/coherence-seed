@@ -30,11 +30,17 @@ The substrate header also identifies its version and extent within the region.
   page not yet used is never read, since reading it would take it.
   Backtracking can reuse charged pages. Each table retains space to grow into the common pool.
   `fb show NAME` reports both the virtual reservation and the shared memory allowance.
+- Each area reserves what `region/layout.ck` says for it (`fb.reserve`), so the layout is the
+  same in every process whatever memory it may use: 1 GiB for most of the walker's tables, 4 GiB
+  for the store's and the rooms, 256 MiB for the small ones, one word for each handle a lane has
+  for the three tables keyed by handle, and the stack last, as large as the host's, under a page
+  nothing may touch. A process alone reserves about 49 GB of addresses. The allowance is a word
+  of its own, `member.allowance`, not an area's capacity.
 - At startup, available memory is divided by the number of online CPUs plus one, leaving room
   for other work. On macOS this uses free and inactive pages under normal pressure, free pages
   at warning, and zero at critical pressure. Other supported Unix builds use available physical
   pages. Linux also consults free backing space for a named region. A finite address-space
-  limit constrains the layout. `CK_MEMORY_BYTES` can lower the allowance in decimal bytes.
+  limit lowers the allowance. `CK_MEMORY_BYTES` can lower the allowance in decimal bytes.
 - A request past the allowance follows Form's existing `full` fault for the growing area.
   As an area's high-water mark crosses a MiB boundary, the runtime samples the host again
   before admitting growth. File input is read in bounded chunks and reports a full text area
@@ -63,7 +69,7 @@ bootstrap's own function by which a process becomes a member (below). They come 
 three places above do not move when a door is added; a reader finds them at the end of the area
 table, by the layout's rows, and the member part after them. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
-reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 24 lays it
+reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 25 lays it
 out.
 
 | Area | Records | Holds |

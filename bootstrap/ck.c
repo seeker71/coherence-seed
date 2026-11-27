@@ -284,7 +284,7 @@ static uint64_t area_extent(const Area *a, uint64_t count) {
 static uint64_t remaining_memory(void) {
   uint64_t used = 2 * FB_PAGE + fb->a[A_STACK].cap + pages_for(W->ncode) + fb->me.charged * FB_PAGE;
   for (int i = 0; i < A_COUNT + S_COUNT; i++) if (!shared || (i < A_COUNT && !LANED[i])) used += pages_for(area_extent(AR(i), AR(i)->peak));
-  return used < fb->a[A_ROOMS].cap ? fb->a[A_ROOMS].cap - used : 0;
+  return used < fb->me.allowance ? fb->me.allowance - used : 0;
 }
 static int fits_growth(uint64_t old, uint64_t next) {
   uint64_t extra = pages_for(next) - pages_for(old);
@@ -329,62 +329,41 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OMOST 127u
 #define OWN 0x80000000u
 static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
-static const uint64_t LANES = 256, SPAN = (uint64_t)1 << 32;   /* a named substrate: the most lanes one has, and the handles they share */
+static const uint64_t SPAN = (uint64_t)1 << 32;   /* a named substrate: the handles its lanes share */
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
+static const struct { uint32_t of, size; uint64_t reserve; } L[A_COUNT + S_COUNT] = { FB_AREA_ROWS };   /* region/layout.ck */
+/* Each table has stable addresses into which it can grow, reserved as region/layout.ck says, so the layout is the same
+ * in every process and does not follow the memory it may use: that is the allowance, a word of its own. After the
+ * process's own areas lies a substrate of one lane: its head, then its areas. The nodes, their parts and their ids lie
+ * in its lane, and the process's entries for them point there; its indexes find what is settled, the process's own
+ * by-content and by-id what is still working. Last, under a page nothing may touch, the stack, as large as the host's. */
+static uint64_t cap[A_COUNT + S_COUNT], off[A_COUNT + S_COUNT], at, share;
+static void fb_reset(void) {             /* the region's head as fb_open made it: the start of a cold run */
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) *AR(i) = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i] - (i < A_COUNT ? 0 : share), cap[i], 0 };
+  fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->d.symbol = (uint64_t)(uintptr_t)dlsym; fb->d.adopt = (uint64_t)(uintptr_t)adopt; fb->d.region = (uint64_t)(uintptr_t)fb;
+  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share; sub->catalogue = FB_CATALOGUE;
+  nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
+  *ln = (Lane){ E(LANE), 0, (uint64_t)fb->pid << 42 | 2, 0, 1, 1, 0, 0, {0} }; sroom(SA(S_LANES), 1); sub->a[S_LANES].n = 1;   /* lane 0 is this process's, nothing settled yet */
+  room(A_SEEN, 1); N(A_SEEN) = 1; room(A_TOUCHED, cap[A_TOUCHED]); N(A_TOUCHED) = cap[A_TOUCHED];
+}
 static void fb_open(void) {
-  /* Each table has stable addresses into which it can grow. Their pages share one allowance. After
-   * the process's own areas lies a substrate of one lane: its head, then its areas. The nodes, their
-   * parts and their ids lie in its lane, and the process's entries for them point there; its indexes
-   * find what is settled, the process's own by-content and by-id what is still working. */
-  static const struct { uint32_t of, size; uint8_t wide; } L[A_COUNT + S_COUNT] = {
-    [A_NODES] = { NODE, sizeof(Node), 0 },          [A_LEAF_BYTES] = { BYTE_TABLE, 1, 1 },
-    [A_CHILDREN] = { WORD_TABLE, 4, 1 },            [A_IDS] = { BYTE_TABLE, 1, 1 },
-    [A_BOUND_BY_NODE] = { WORD_TABLE, 4, 0 },       [A_CELLS] = { WORD_TABLE, 4, 0 },
-    [A_PRINT_NUMBERS] = { WORD_TABLE, 4, 0 },       [A_SEEN] = { WORD_TABLE, 4, 0 },
-    [A_TOUCHED] = { BYTE_TABLE, 1, 1 },             [SA(S_LANES)] = { LANE, sizeof(Lane), 0 },
-    [SA(S_NODES)] = { NODE, sizeof(Node), 0 },      [SA(S_LEAF_BYTES)] = { BYTE_TABLE, 1, 1 },
-    [SA(S_CHILDREN)] = { WORD_TABLE, 4, 1 },        [SA(S_IDS)] = { BYTE_TABLE, 1, 1 },
-    [SA(S_BY_CONTENT)] = { WORD_TABLE, 4, 1 },      [SA(S_BY_ID)] = { WORD_TABLE, 4, 1 },
-    [A_BY_CONTENT] = { WORD_TABLE, 4, 1 },
-    [A_BY_ID] = { WORD_TABLE, 4, 1 },               [A_FRAMES] = { FRAME, sizeof(Frame), 0 },
-    [A_LINKS] = { LINK, sizeof(Link), 0 },          [A_ACTIVATIONS] = { ACTIVATION, sizeof(Activation), 0 },
-    [A_ARGUMENTS] = { WORD_TABLE, 4, 0 },           [A_CHOICE_POINTS] = { CHOICE_POINT, sizeof(ChoicePoint), 0 },
-    [A_GATHERED] = { GATHERED, sizeof(Gathered), 0 }, [A_BORN_CODE] = { CODE, sizeof(Code), 0 },
-    [A_BINDINGS] = { BINDING, sizeof(Binding), 0 },
-    [A_OUTSIDE] = { BINDING, sizeof(Binding), 0 },
-    [A_TRAIL] = { TRAIL, sizeof(Trail), 0 },        [A_READER_OPENED] = { WORD_TABLE, 4, 0 },
-    [A_GATHERING_CHILDREN] = { WORD_TABLE, 4, 0 },  [A_GATHERING_BYTES] = { BYTE_TABLE, 1, 1 },
-    [A_PRINT] = { BYTE_TABLE, 1, 1 },
-    [A_TEXT] = { BYTE_TABLE, 1, 1 },                [A_STACK] = { BYTE_TABLE, 1, 1 },
-    [A_ASKED] = { BYTE_TABLE, 1, 1 },               [A_ANSWERED] = { BYTE_TABLE, 1, 1 },
-    [A_AFTER] = { WORD_TABLE, 4, 0 },               [A_NOTED] = { WORD_TABLE, 4, 0 },
-    [A_ROOMS] = { BYTE_TABLE, 1, 1 },               [A_ROOM_TRAIL] = { ROOM_TRAIL, sizeof(RoomTrail), 0 },
-    [A_GIVES] = { WORD_TABLE, 4, 0 },
-    [A_VALUES] = { WORD_TABLE, 4, 0 } };
-  static const uint8_t KEYED[A_COUNT] = { [A_BOUND_BY_NODE] = 1, [A_CELLS] = 1, [A_PRINT_NUMBERS] = 1 };   /* charged by page */
-  uint64_t budget = host.memory(), line = host.line();
-  struct rlimit limit;
-  uint64_t placed = A_COUNT + S_COUNT + 3;           /* the areas reserved, a laned one once, and three more as before */
-  for (int i = 0; i < A_COUNT; i++) placed -= LANED[i] != 0;
-  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur / placed < budget) budget = limit.rlim_cur / placed;
+  uint64_t budget = host.memory(), line = host.line(), bits = 0; struct rlimit limit;
+  if (!getrlimit(RLIMIT_AS, &limit) && limit.rlim_cur < budget) budget = limit.rlim_cur;
   const char *setting = getenv("CK_MEMORY_BYTES");
   if (setting) {
     char *end; errno = 0; unsigned long long requested = strtoull(setting, &end, 10);
     if (*setting < '0' || *setting > '9' || *end || errno || !requested) die("CK_MEMORY_BYTES takes a positive byte count");
     if (requested < budget) budget = requested;
   }
-  uint64_t cap[A_COUNT + S_COUNT], off[A_COUNT + S_COUNT], at = FB_PAGE, share = 0, bits = 0;
   uint64_t mem = budget / FB_PAGE * FB_PAGE;
   if (mem < (1u << 17) + 4 * FB_PAGE) die("insufficient host memory for the framebuffer");
-  for (int i = 0; i < A_COUNT + S_COUNT; i++) { cap[i] = mem / L[i].size; if (!L[i].wide && cap[i] > 0xffffffffu) cap[i] = 0xffffffffu; }
-  if (cap[A_BY_ID] > (uint64_t)1 << 33)                 /* twice the most nodes a handle names */
-    cap[A_BY_CONTENT] = cap[A_BY_ID] = cap[SA(S_BY_CONTENT)] = cap[SA(S_BY_ID)] = (uint64_t)1 << 33;
-  cap[A_BOUND_BY_NODE] = cap[A_CELLS] = cap[A_PRINT_NUMBERS] = getenv("CK_SHARE") ? SPAN : cap[A_NODES] + 8;   /* one for each node; for each handle where the */
-  cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* process may become a member. Numbered inside a limit word: */
-  cap[A_OUTSIDE] = OMOST;                                       /* 23 bits for the program's, 7 from outside */
-  cap[A_GIVES] = 4;                                             /* a record, not a table */
-  cap[A_SEEN] = LANES; cap[SA(S_LANES)] = 1;                    /* one lane: the process's own */
-  for (int i = 0; i < A_COUNT; i++) if (KEYED[i]) { tbit[i] = bits; bits += cap[i] * 4 / FB_PAGE + 2; }
+  for (int i = 0; i < A_COUNT + S_COUNT; i++) cap[i] = L[i].reserve > FB_BITS ? L[i].reserve / L[i].size : 0;
+  for (int i = 0; i < A_COUNT; i++) {
+    if (LANED[i]) cap[i] = cap[SA(LANED[i] - 1)];
+    if (L[i].reserve == FB_HANDLES) { cap[i] = getenv("CK_SHARE") ? SPAN : cap[SA(S_NODES)] + 8;   /* one for each handle: of the lane, or of any lane */
+      tbit[i] = bits; bits += cap[i] * 4 / FB_PAGE + 2; } }                                           /* where the process may become a member */
+  cap[A_BINDINGS] = cap[A_BINDINGS] < PM ? cap[A_BINDINGS] : PM;   /* numbered inside a limit word: 23 bits for the program's, 7 from outside */
   cap[A_TOUCHED] = (bits + 7) / 8;
   pthread_attr_t attr; size_t stack;
   if (pthread_attr_init(&attr) || pthread_attr_getstacksize(&attr, &stack)) die("cannot size the host stack");
@@ -392,30 +371,27 @@ static void fb_open(void) {
   if (!getrlimit(RLIMIT_STACK, &limit) && limit.rlim_cur != RLIM_INFINITY && limit.rlim_cur > stack) stack = limit.rlim_cur;
   cap[A_STACK] = pages_for(stack) < mem / 2 ? pages_for(stack) : mem / 2 / FB_PAGE * FB_PAGE;
   if (cap[A_STACK] < (uint64_t)PTHREAD_STACK_MIN) die("insufficient host memory for the stack");
-  for (int i = 0; i < A_COUNT + S_COUNT; i++) {
-    if (i == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
-    if (i == SA(0)) { share = at; at += FB_PAGE; }        /* the substrate's head */
-    if (i < A_COUNT && LANED[i]) continue;               /* in the lane, below */
-    uint64_t hue = i == A_STACK || line * (A_COUNT + S_COUNT) > FB_PAGE ? 0 : line * (uint64_t)i;   /* each area's first records on a */
-    off[i] = at + hue; at += (L[i].size * cap[i] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;  /* cache set no other's first use */
+  at = FB_PAGE;
+  for (int i = 0; i <= A_COUNT + S_COUNT; i++) {
+    int a = i == A_COUNT + S_COUNT ? A_STACK : i;
+    if (i == A_STACK || (a < A_COUNT && LANED[a])) continue;   /* the stack comes last; a laned table lies in the lane, below */
+    if (a == A_STACK) at += FB_PAGE;                      /* a page nothing may touch, under the stack */
+    if (a == SA(0)) { share = at; at += FB_PAGE; }        /* the substrate's head */
+    uint64_t hue = a == A_STACK || line * (A_COUNT + S_COUNT) > FB_PAGE ? 0 : line * (uint64_t)a;   /* each area's first records on a */
+    off[a] = at + hue; at += (L[a].size * cap[a] + hue + FB_PAGE - 1) / FB_PAGE * FB_PAGE;     /* cache set no other's first use */
   }
   for (int i = 0; i < A_COUNT; i++) if (LANED[i]) off[i] = off[SA(LANED[i] - 1)];
   if (!(fb = host.region(getenv("CK_FB"), at))) die("cannot make the framebuffer");
   sub = (Substrate *)((uint8_t *)fb + share);
-  for (int i = 0; i < A_COUNT + S_COUNT; i++) *AR(i) = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i] - (i < A_COUNT ? 0 : share), cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = FB_VERSION; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
-  fb->d.symbol = (uint64_t)(uintptr_t)dlsym; fb->d.adopt = (uint64_t)(uintptr_t)adopt;
-  sub->bp = E(SUBSTRATE); sub->version = FB_VERSION; sub->areas = S_COUNT; sub->lanes = 1; sub->pid = fb->pid; sub->share = fb->me.share = share; sub->bytes = at - share; sub->allowance = mem; sub->catalogue = FB_CATALOGUE;
+#define AT(i) ((void *)((uint8_t *)fb + off[i]))
+  nd = AT(A_NODES); bytes = AT(A_LEAF_BYTES); kids = AT(A_CHILDREN); tab = AT(A_BY_CONTENT); idtab = AT(A_BY_ID); fr = AT(A_FRAMES);
+  lk = AT(A_LINKS); act = AT(A_ACTIVATIONS); argp = AT(A_ARGUMENTS); cp = AT(A_CHOICE_POINTS); coll = AT(A_GATHERED); born = AT(A_BORN_CODE); bd = AT(A_BINDINGS); out = AT(A_OUTSIDE); aft = AT(A_AFTER); noted = AT(A_NOTED); bykey = AT(A_BOUND_BY_NODE); held = AT(A_CELLS); trail = AT(A_TRAIL); rooms = AT(A_ROOMS); rtrail = AT(A_ROOM_TRAIL);
+  opened = AT(A_READER_OPENED); tk = AT(A_GATHERING_CHILDREN); tb = AT(A_GATHERING_BYTES); ob = AT(A_PRINT); pnum = AT(A_PRINT_NUMBERS); text = AT(A_TEXT); gives = AT(A_GIVES); ids = AT(A_IDS); hand = AT(A_VALUES);
+  seen = AT(A_SEEN); tbits = AT(A_TOUCHED); stab = AT(SA(S_BY_CONTENT)); sidt = AT(SA(S_BY_ID)); ln = lanes = AT(SA(S_LANES));
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
-#define PLACE(i) ((void *)((uint8_t *)fb + fb->a[i].off))
-  nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
-  lk = PLACE(A_LINKS); act = PLACE(A_ACTIVATIONS); argp = PLACE(A_ARGUMENTS); cp = PLACE(A_CHOICE_POINTS); coll = PLACE(A_GATHERED); born = PLACE(A_BORN_CODE); bd = PLACE(A_BINDINGS); out = PLACE(A_OUTSIDE); aft = PLACE(A_AFTER); noted = PLACE(A_NOTED); bykey = PLACE(A_BOUND_BY_NODE); held = PLACE(A_CELLS); trail = PLACE(A_TRAIL); rooms = PLACE(A_ROOMS); rtrail = PLACE(A_ROOM_TRAIL);
-  opened = PLACE(A_READER_OPENED); tk = PLACE(A_GATHERING_CHILDREN); tb = PLACE(A_GATHERING_BYTES); ob = PLACE(A_PRINT); pnum = PLACE(A_PRINT_NUMBERS); text = PLACE(A_TEXT); gives = PLACE(A_GIVES); ids = PLACE(A_IDS); hand = PLACE(A_VALUES);
-  seen = PLACE(A_SEEN); tbits = PLACE(A_TOUCHED); stab = (H *)((uint8_t *)sub + sub->a[S_BY_CONTENT].off); sidt = (H *)((uint8_t *)sub + sub->a[S_BY_ID].off); ln = lanes = (Lane *)((uint8_t *)sub + sub->a[S_LANES].off);
-  nn = 1; nids = IDREC;                   /* the first id lies after a record of none */
-  *ln = (Lane){ E(LANE), 0, (uint64_t)fb->pid << 42 | 2, 0, 1, 1, 0, 0, {0} }; sroom(SA(S_LANES), 1); sub->a[S_LANES].n = 1;   /* lane 0 is this process's, nothing settled yet */
-  room(A_SEEN, 1); N(A_SEEN) = 1; room(A_TOUCHED, cap[A_TOUCHED]); N(A_TOUCHED) = cap[A_TOUCHED];
+  fb->me.allowance = sub->allowance = mem; fb_reset();
 }
+#define PLACE(i) ((void *)((uint8_t *)fb + fb->a[i].off))
 /* Working bytes, taken from the top of the text area and given back by resetting ntext. */
 static void *talloc(size_t n) {
   room(A_TEXT, (uint64_t)ntext + n + 16); void *p = text + ntext;
@@ -1934,7 +1910,7 @@ static void leaving(void) {
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
 static void *on_region(void *p) {
-  Start *s = p; walker = pthread_self(); host.guard(crashed, talloc(1u << 17), 1u << 17);
+  Start *s = p; walker = pthread_self(); room(A_TEXT, ntext + (1u << 17)); host.guard(crashed, text + ntext, 1u << 17); ntext += 1u << 17;   /* pages the host gives as zero */
   s->rc = command(s->argc, s->argv); leaving(); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {

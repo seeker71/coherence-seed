@@ -251,7 +251,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   a joiner in 92 M and 6.8 ms against 133 M and 14 ms; their peak footprints rose, to 12.7 MB
   and 6.5 MB from 5.2 MB and 3.1 MB, with an allowance of 64 MiB (`spec/framebuffer.md`, Observed).
 - **A lone process settles.** The node table is lane 0 of a substrate inside the process's own
-  region, laid out as version 24 and described in `region/layout.ck`. A node made while no choice
+  region, laid out as version 25 and described in `region/layout.ck`. A node made while no choice
   is open is settled as it is made; one made under a choice is working, found by the process's
   own index, and settled where it stands at the first evaluation step after the last choice
   closes. A second process recording the long recursion saw lane 0 settled below 273 of its 273
@@ -385,7 +385,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **Being seen costs little.** Registers and writers kept in the region cost about a quarter of
   the walker's speed; being recorded every millisecond, up to about 4%.
 - **One allowance covers the runtime's memory.** The framebuffer tables draw from a common
-  pool sized from available host memory. The stack and executable pages count toward it.
+  pool sized from available host memory. The layout does not follow it: each area reserves the
+  range `region/layout.ck` gives it, the same in every process, and the allowance is a word of
+  its own. The stack and executable pages count toward it.
   The live run under `make check` recovers from a room request beyond its 32 MiB allowance
   and finishes with the expected answer. Ordinary runs use anonymous shared memory. A named
   run can be read after exit. See [the framebuffer](spec/framebuffer.md#the-region).
