@@ -310,7 +310,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   answer the same. A value of the wrong kind for its slot, a composite where an address goes,
   a call with more values than slots and a function with no row answer nothing. A supervisor
   call and an absolute store inside a search are the fault `irreversible`, as entry 98 is, and
-  the store is not made. Forty calls that crash inside the host leave the host's heap with the
+  the store is not made; so is a row that may leave something behind, `close`, prepared or run
+  on an address. A row whose column says it leaves nothing, `getpid` and the clock, runs inside
+  a search once its address is noted, and the clock read there is later than one read before. Forty calls that crash inside the host leave the host's heap with the
   bytes in use it had. An object made by the message `new` is let go by `release`, and a
   message with no row answers nothing. Of the 30 function rows, 22 are run by the flow and
   four more by the Metal flow of `make check-image`; `mprotect`, `dlopen` and

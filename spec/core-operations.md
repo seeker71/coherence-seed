@@ -593,7 +593,13 @@ into a reusable recipe. When the ABI places all arguments in successive integer 
 the recipe binds the native entry and result reader once. Integer leaves go directly
 to those slots. Other argument shapes use the general row conversion, including copied
 bytes and text. Both paths ask the guard before writing the berth. An open choice yields
-`irreversible` outside a declared cleanup scope. Metal declares its scope in `host.guards`
+`irreversible` outside a declared cleanup scope, but for a row whose last column,
+`host.leaves-nothing`, says the call leaves nothing a fail would have to undo: `getpid`,
+`getpagesize`, `getppid`, `sqrt`, `pow` and the clock run inside a search, and `getenv`, `strlen`
+and `dlsym` do on an address already in hand. The fact is the row's; no caller picks it. A row's address is resolved once and noted
+(`host.resolve`), and resolving is a raw call of `dlsym`, so a row met first inside a search is
+refused; a text value is copied by a raw `memcpy`, so a call with one is refused there too. Entry
+98 carries no row and stays refused while a choice is open. Metal declares its scope in `host.guards`
 and releases its temporary objects on completion, fault or failure. The door notes the guard it is in under
 `host.within`; entering it again from inside is a fault, so a dispatch is not reentrant. A
 program that lays the berth out by hand and runs its leaf passes no row and is not refused:
