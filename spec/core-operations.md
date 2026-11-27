@@ -481,22 +481,35 @@ mean is in `region/layout.ck`, a node (`spec/framebuffer.md`). A handle is a pla
 process's memory and means nothing in another or in a stored node. `look` reads a region that
 is being written while it is read, and its writer neither knows nor waits.
 
-## Entry 98: the host, called by name
+## Entry 98: the host, called by name or by address
 
 | N | name | children | what it does |
 | --- | --- | --- | --- |
-| 98 | host | name, up to eight arguments | looks the name up in the host and calls it; answers what it returns, as an integer |
+| 98 | host | a name or an address, up to eight arguments | calls it: a name is looked up in the host, an `int` is the address itself; answers what it returns, as an integer |
 
 One lookup and one raw call reach everything the host offers, the C library and a framework
 alike (graph node 5.8.3). An `int` argument goes as it is; any other leaf goes as the address of
 its bytes with a zero byte after them, good for the length of the call. A name the host does not
-know answers nothing with the reason `no-symbol`.
+know answers nothing with the reason `no-symbol`, and so does the address 0. A call of an address
+where no code lies is the fault `crash`, like a crash inside code.
+
+The address of the host's own lookup, `dlsym`, is the word `symbol` of the region's head
+(`spec/framebuffer.md`), so `(host symbol -2 name)` answers the address of any function and a
+program that holds no name as text can still reach the host. On the numeric port a first value
+that is not an `int` is, as before, a call of the entry bound to it; an `int` is an address there
+too. This was read in the code and compiled into `seed-run`; it was not run on the port.
+
+What the eight registers cannot carry is carried by the package `host/` (graph node 5.14.60): a
+host function is a row with a slot for each value, and one machine-code leaf, the berth, lays
+integers, floats, addresses and varying values where the host's calling convention wants them
+and brings back a float or an integer result. `host/all.ck` loads it.
 
 What the host does cannot be undone, so `host` is a fault, `irreversible`, while any choice is
 open, inside an `all` or an `outcome` included: effects happen where nothing can fail back over
 them. With no choice open a program wrote a file through `creat`, `write` and `close`, and found
 the host's `getpid` equal to the pid in its own region's head. `ground/host-refused.ck` is the
-refusal. A search that must act on the world holds the act back with `after`, entry 103.
+refusal, by address as by name, when the ground catalogue runs it inside its search; run by
+itself, by `make check-native`, it is the flow through the package `host/`. A search that must act on the world holds the act back with `after`, entry 103.
 
 ## Entry 100: let, a part given a place
 
@@ -890,7 +903,8 @@ not be what the walker does there.
 - What is not an operation has no binding yet: the store's own making of nodes and the host
   functions that reserve memory and make code runnable. A raw call passes eight arguments in
   the registers AArch64 has for them, so a host function that takes a varying number of them,
-  `open` or `printf`, does not get the ones after its fixed ones. A host function that faults is caught, but what it
+  `open` or `printf`, does not get the ones after its fixed ones through entry 98 alone; a row of
+  `host/` run through the berth gives them. A host function that faults is caught, but what it
   changed before it faulted stays changed.
 - `sub` in form answers nothing when b is the least integer, where the bootstrap's `sub` may have
   an answer. `mul` in form takes one call for each unit of b. A form operation that meets nothing

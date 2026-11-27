@@ -264,7 +264,7 @@ static const char *const AREA_NAME[A_COUNT] = { FB_AREA_NAMES };
  * full. While a program runs that is its fault, full and the area's name, which it can
  * catch; the walker goes on from its loop. Before a run, or while a fault is being handled, it ends
  * the process. */
-static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT];
+static sigjmp_buf in_code; static volatile sig_atomic_t coding, walking; static int full; static H full_at[A_COUNT]; static pthread_t walker;
 static void area_full(int a) {
   if (walking && W->mode != M_FAULT) { full = a; siglongjmp(in_code, 2); }
   put(2, "ck: the framebuffer has no room left for "); put(2, AREA_NAME[a]); put(2, "\n"); exit(2);
@@ -353,7 +353,7 @@ static void fb_open(void) {
   }
   if (!(fb = host.region(getenv("CK_FB"), at))) die("cannot make the framebuffer");
   for (int i = 0; i < A_COUNT; i++) fb->a[i] = (Area){ E(AREA), 0, E(L[i].of), L[i].size, 0, off[i], cap[i], 0 };
-  fb->bp = E(FRAMEBUFFER); fb->version = 19; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE);
+  fb->bp = E(FRAMEBUFFER); fb->version = 20; fb->floor = (uint32_t)(off[A_STACK] / FB_PAGE) + 1; fb->areas = A_COUNT; fb->pid = (uint32_t)getpid(); fb->bytes = at; W->bp = E(MACHINE); fb->d.symbol = (uint64_t)(uintptr_t)dlsym;
   mprotect((uint8_t *)fb + off[A_STACK] - FB_PAGE, FB_PAGE, PROT_NONE);
 #define PLACE(i) ((void *)((uint8_t *)fb + off[i]))
   nd = PLACE(A_NODES); bytes = PLACE(A_LEAF_BYTES); kids = PLACE(A_CHILDREN); tab = PLACE(A_BY_CONTENT); idtab = PLACE(A_BY_ID); fr = PLACE(A_FRAMES);
@@ -981,7 +981,7 @@ static void rise(ChoicePoint *q) {
 /* Code a program gave is called under watch: when the processor faults inside it, the walker goes
  * on and the program has a fault, crash, like any other. A fault anywhere else ends the process. */
 static void crashed(int sig) {
-  (void)sig; if (coding) siglongjmp(in_code, 1);
+  (void)sig; if (coding && pthread_equal(pthread_self(), walker)) siglongjmp(in_code, 1);   /* only on the walker's own thread */
   put(2, "ck: the processor faulted outside any code a program gave it\n"); _exit(3);
 }
 static uint32_t left;
@@ -1151,10 +1151,10 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     return;
   }
   if (op == HOST) {                   /* one raw call of what the host knows by a name: integers go as they are, */
-    int64_t arg[8] = {0}; uint64_t mark = ntext; void *fn = 0;     /* any other leaf as the address of its bytes with a zero after */
-    if (c < 1 || (!numeric_io && c > 9)) { fault(S_ARITY); return; }      /* the eight registers AArch64 passes values in */
+    int64_t arg[9] = {0}; uint64_t mark = ntext; int raw = !numeric_io || (c && a[0] && geti(a[0], arg));   /* an integer first is the address itself; */
+    if (c < 1 || (raw && c > 9)) { fault(S_ARITY); return; }      /* any other leaf goes as the address of its bytes with a zero after; eight registers */
     if (ncp) { fault(S_IRREVERSIBLE); return; }        /* what cannot be undone is refused while a choice is open */
-    if (numeric_io) {
+    if (!raw) {
       H *quoted = in_hand(c - 1), target = a[0];
       if (!target || !bound(target, 0, act[env].lim)) { W->v = 0; W->reason = notice(S_UNBOUND); return; }
       for (uint32_t j = 1; j < c; ++j) {
@@ -1165,15 +1165,15 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     }
     for (uint32_t j = 0; j < c && W->mode != M_FAULT; j++) {
       if (!a[j] || nd[a[j]].comp) { fault(S_KIND); return; }
-      if (j && geti(a[j], &arg[j-1])) continue;
+      if (geti(a[j], &arg[j])) continue;
       char *s = talloc((size_t)nd[a[j]].n + 1); memcpy(s, bytes + nd[a[j]].off, nd[a[j]].n);
-      if (j) arg[j-1] = (int64_t)(intptr_t)s; else fn = host.symbol(s);
+      arg[j] = (int64_t)(intptr_t)(j ? (void *)s : host.symbol(s));
     }
     if (W->mode == M_FAULT) { ntext = mark; return; }
-    if (!fn) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
+    if (!arg[0]) { W->v = 0; W->reason = notice(S_NO_SYMBOL); ntext = mark; return; }
     Ret r;
     ntext = mark;                     /* given back before the call, since a crash does not return here */
-    r = called(fn, arg); W->v = mki(r.v);
+    r = called((void *)(intptr_t)arg[0], arg + 1); W->v = mki(r.v);
     return;
   }
   if (op == LOOK) {                   /* bytes of another process's region; the cell look holds the name of the one mapped */
@@ -1702,7 +1702,7 @@ static int command(int argc, char **argv) {
 /* The process starts on the host's stack only long enough to move onto the region's. */
 typedef struct { int argc; char **argv; int rc; } Start;
 static void *on_region(void *p) {
-  Start *s = p; host.guard(crashed, talloc(1u << 17), 1u << 17);
+  Start *s = p; walker = pthread_self(); host.guard(crashed, talloc(1u << 17), 1u << 17);
   s->rc = command(s->argc, s->argv); W->mode = M_DONE; return NULL;
 }
 int main(int argc, char **argv) {

@@ -62,7 +62,8 @@ typedef struct { H bp; H by; H entry; H impl; uint32_t prev; uint32_t sees; H fa
 typedef struct { H bp; H by; H key; H old; } Trail;
 typedef struct { H bp; H by; uint32_t writes; uint8_t pad[4]; uint64_t size; } Room;
 typedef struct { H bp; H by; uint32_t old; uint8_t pad[4]; uint64_t at; } RoomTrail;
-typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; } Head;
+typedef struct { uint64_t symbol; } Doors;
+typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_PAGE 16384u
 #endif

@@ -180,7 +180,24 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **A recipe inside another sees the outer names**, by being closed over them: over two arguments
   and a part a `let` named, over nine at once, over fifty, through its own recursion, as a
   handler. A call passes as many values as memory holds: forty in `ground/closes-over.ck`.
-- **The host is reached by name**, and a crash inside code or a host function is a fault the
+- **The host is reached through one door, and its functions are rows** (graph node 5.14.60).
+  Entry 98 calls a name or an address, and the address of the host's own lookup is a word of the
+  region's head. The package `host/` holds 24 host functions as rows, each with a slot for every
+  value and a result, a calling-convention row, and six small machine-code leaves written as
+  instruction rows for `nums/arm.ck`; seven encodings they needed are rows as well. One leaf,
+  the berth, runs any row. `make check-native` runs `ground/host-refused.ck` by itself, with `ck`
+  as built and with a copy signed for the hardened runtime: a file is written, read back three
+  ways and removed; four numbers are sorted by the host through a callback that is leaf code;
+  the square root of 4 and of 2 and 2 to the tenth come back as floats; two varying values are
+  formatted; a page is mapped, written through an absolute store, read and unmapped; a raw
+  supervisor call answers the process id. Where entry 98 can carry a call, by name, by address
+  and through the berth answer the same; a value of the wrong kind for its slot, a call with more
+  values than slots and a function with no row answer nothing. Of the 24 rows, 19 are run by the
+  flow; `memcpy`, `mprotect`, `dlopen`, `dlsym` and `sysctlbyname` are not run as rows, and of
+  the six leaves the one that answers the region's address is not run. Inside the ground catalogue's search
+  the same program is the refusal `irreversible`, at its first call, which is by address.
+  Planting two wrong place rows by hand made the run name the five cases they break.
+- A crash inside code or a host function is a fault the
   program can catch, a recursion in machine code that falls off the stack among them. So is a
   request no area of the region can hold: a room larger than memory, asked for a thousand calls
   deep, is caught twice, the frames come back each time, and the program goes on.
@@ -318,7 +335,16 @@ running compiled code against frames all the way down).
   graph as 55 text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
-- **Threads.** One walker runs on one thread.
+- **Threads.** One walker runs on one thread. A fault on a thread the host made ends the process
+  with a message and does not enter the walker: provoked once by hand, with a leaf as the entry
+  of `pthread_create`; no check holds it.
+- **More of the host.** Rows and leaves exist for `aapcs64` only; on any other target
+  `ground/host-refused.ck` does not apply. A structure passed by value in more than two words,
+  the indirect-result register (its place is in the berth, no row uses it), sockets, processes,
+  signals, Objective-C and the GPU have no rows. A call by address was not run on the numeric
+  port. The berth's bytes come from the host's `calloc`, outside the allowance. What the host
+  ties to the process's first thread cannot be reached: the walker is not that thread. No host
+  function of the bootstrap has left C. The compiler does not yet emit a row as moves and a call.
 - **A second reader** of the encoding, and a second hand to review any claim (6.1.30). The
   encoding in form was written by the hand that wrote the page; nodes are still made by the
   bootstrap's store, and the id in form is too slow to be the one in daily use.

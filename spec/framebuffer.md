@@ -42,7 +42,11 @@ Machine code reads the region too, and three places in the head are kept for it 
 moves: at byte 28 the **floor**, the lowest page the machine stack may reach, counted in pages of
 16,384 bytes from the region's start; at byte 128 the machine's `serve`, the address code calls
 to have the bootstrap do an operation on values in hand (`spec/core-operations.md`, Native
-code); and at byte 160 where the nodes area starts. A leaf that reads any other place is tied
+code); and at byte 160 where the nodes area starts. After the last area entry lie the **doors**:
+addresses the host gave this process, for code that has no walker to ask. The first is `symbol`,
+the address of the host's lookup of a name (`dlsym`). They come after the area table so that the
+three places above do not move when a door is added; a reader finds them at the end of the area
+table, by the layout's rows. A leaf that reads any other place is tied
 to one layout version: the step leaf of `ground/step-in-code.ck` and `form/step.leaf.aarch64.ck`
 reads a node's record, 32 bytes with whether it is a composite at byte 12, as version 18 lays it
 out.

@@ -117,6 +117,10 @@ check-native: ck
 	  codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements "$$binary" 2>/dev/null; \
 	  test "$$("$$binary" run ground/native-add.ck)" = 'node [#4 2a]'; \
 	  echo "native: generated code and frames agree under the hardened runtime"; \
+	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
+	    for run in ./ck "$$binary"; do got=$$("$$run" run ground/host-refused.ck 2>&1); \
+	      [ "$$got" = 'node (#16)' ] || { echo "host: cases that differ under $$run: $$got"; exit 1; }; done; \
+	    echo "host: a file written and read back, a host callback, float and varying values answer the same by name, by address and through the berth, also under the hardened runtime"; fi; \
 	else echo "native: hardened signing applies to native Darwin targets"; fi
 
 check-replay: ck fb
