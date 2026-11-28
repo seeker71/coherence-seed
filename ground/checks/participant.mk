@@ -48,16 +48,22 @@ define verify_participant_account
   (ROSTER="$$work/another"; p propose >"$$ROSTER"; KEY_DIR="$$work/owner"; ROLE=owner; OWNER_ENDORSEMENT="$$work/a2"; p endorse >"$$OWNER_ENDORSEMENT"; KEY_DIR="$$work/listener"; ROLE=listener; LISTENER_ENDORSEMENT="$$work/b2"; p endorse >"$$LISTENER_ENDORSEMENT"; refuse pact.different p establish); \
   cmp "$$BROKER/private/authority" "$$work/advanced-owner"; cmp "$$BROKER/private/listening" "$$work/advanced-listener"; \
   original_roster=$$ROSTER; original_broker=$$BROKER; KEY_DIR="$$work/listener"; EDITION="$$work/edition3"; refuse journal.stale p correct <"$$work/second"; \
-  EDITION="$$work/listener-edition1"; printf 'Private words from the second participant.\nI can listen for a while.' >"$$work/listener-words"; p correct <"$$work/listener-words" >"$$work/listener-edition2"; p show | cmp - "$$work/listener-words"; \
+  EDITION="$$work/listener-edition1"; printf %s 'I have not decided whether to release my copy.' >"$$work/back-excerpt"; { printf '%s\n' 'Private words from the second participant.'; cat "$$work/back-excerpt"; } >"$$work/listener-words"; p correct <"$$work/listener-words" >"$$work/listener-edition2"; p show | cmp - "$$work/listener-words"; \
   EDITION="$$work/listener-edition2"; p retract >"$$work/listener-retracted"; refuse journal.retracted p show; EDITION="$$work/listener-retracted"; p resume <"$$work/listener-words" >"$$work/listener-edition3"; \
-  EDITION="$$work/listener-edition3"; printf %s 'I can listen for a while.' >"$$work/back-excerpt"; refuse witness.wrong-owner p select <"$$work/back-excerpt"; p select-return <"$$work/back-excerpt" >"$$work/back-permit"; \
+  EDITION="$$work/listener-edition3"; refuse witness.wrong-owner p select <"$$work/back-excerpt"; p select-return <"$$work/back-excerpt" >"$$work/back-permit"; \
+  p propose-return >"$$work/back-roster"; ./ck text ground/intent-excerpt.ck 3<"$$work/back-roster" <"$$work/back-permit" >"$$work/input"; \
+  ./ck text learning/intent-fit.ck <ground/intent-corpus.ck >"$$work/specialist"; ./ck text learning/intent-read.ck 3<"$$work/specialist" <"$$work/input" >"$$work/prediction"; \
+  labels=$$(./ck text ground/intent-labels.ck <"$$work/prediction"); test "$$labels" = "$$(word '(list (list "K" "V"))')"; \
   p source <"$$work/back-permit" | cmp - "$$work/listener-words"; KEY_DIR="$$work/owner"; refuse witness.wrong-owner p source <"$$work/back-permit"; refuse witness.wrong-owner p select-return <"$$work/back-excerpt"; p show | cmp - "$$work/third"; \
-  ACTION=share; HEAD="$$work/owner4"; refuse inbox.misdirected p sign <"$$work/back-permit"; p propose-return >"$$work/back-roster"; ROSTER="$$work/back-roster"; BROKER="$$work/back-broker"; \
+  ACTION=share; HEAD="$$work/owner4"; refuse inbox.misdirected p sign <"$$work/back-permit"; ROSTER="$$work/back-roster"; BROKER="$$work/back-broker"; \
   KEY_DIR="$$work/listener"; ROLE=owner; p endorse >"$$work/back-owner.ok"; KEY_DIR="$$work/owner"; ROLE=listener; p endorse >"$$work/back-listener.ok"; OWNER_ENDORSEMENT="$$work/back-owner.ok"; LISTENER_ENDORSEMENT="$$work/back-listener.ok"; p establish >"$$work/back-agreement"; \
   p owner-head >"$$work/back-owner0"; p listener-head >"$$work/back-listener0"; p ticket <"$$work/back-permit" >"$$work/back-ticket"; refuse share.ungranted p read <"$$work/back-ticket"; \
-  KEY_DIR="$$work/listener"; ACTION=share; HEAD="$$work/back-owner0"; p sign <"$$work/back-permit" >"$$work/back-grant"; p submit <"$$work/back-grant" >"$$work/back-owner1"; refuse inbox.paused p read <"$$work/back-ticket"; test -z "$$(ls -A "$$BROKER/letters")"; \
-  KEY_DIR="$$work/owner"; ACTION=listen; HEAD="$$work/back-listener0"; p sign <"$$work/back-ticket" >"$$work/back-listen"; p submit <"$$work/back-listen" >"$$work/back-listener1"; p read <"$$work/back-ticket" >"$$work/return-heard"; \
-  printf 'Lark (first-person account)\nI can listen for a while.' | cmp - "$$work/return-heard"; set -- "$$BROKER/letters/"*; test "$$#" = 1; \
+  KEY_DIR="$$work/owner"; ACTION=listen; HEAD="$$work/back-listener0"; p sign <"$$work/back-ticket" >"$$work/back-listen"; p submit <"$$work/back-listen" >"$$work/back-listener1"; \
+  KEY_DIR="$$work/listener"; ACTION=share; HEAD="$$work/back-owner0"; refuse inbox.invalid p sign <"$$work/prediction"; \
+  refuse inbox.invalid p submit <"$$work/prediction"; p owner-head | cmp - "$$work/back-owner0"; p listener-head | cmp - "$$work/back-listener1"; \
+  refuse share.ungranted p read <"$$work/back-ticket"; test -z "$$(ls -A "$$BROKER/letters")"; \
+  p sign <"$$work/back-permit" >"$$work/back-grant"; p submit <"$$work/back-grant" >"$$work/back-owner1"; p read <"$$work/back-ticket" >"$$work/return-heard"; \
+  { printf '%s\n' 'Lark (first-person account)'; cat "$$work/back-excerpt"; } | cmp - "$$work/return-heard"; set -- "$$BROKER/letters/"*; test "$$#" = 1; \
   KEY_DIR="$$work/listener"; ACTION=withdraw; HEAD="$$work/back-owner1"; p sign </dev/null >"$$work/back-withdraw"; p submit <"$$work/back-withdraw" >"$$work/back-owner2"; refuse share.ungranted p read <"$$work/back-ticket"; \
   ROSTER=$$original_roster; BROKER=$$original_broker; KEY_DIR="$$work/listener"; p show | cmp - "$$work/listener-words"; set -- "$$BROKER/letters/"*; test "$$#" = 2; \
   echo "participant: private records survived correction; two private authors shared two forward excerpts and one separately authorized return excerpt across pause and withdrawal"

@@ -13,6 +13,21 @@ line breaks. The examples use fictional wording. Run the role commands in each
 person's own environment. Keep private inputs and outputs in a directory that
 only its owner can access. Set `umask 077` before creating redirected files.
 
+## A first exchange with two people
+
+Two people who each want to try the circle can begin with a fictional sentence
+of their choosing. The speaker chooses an excerpt, the listener decides whether
+to receive it, and either can stop. If they try a return turn, each reviews the
+reversed roles before signing. If someone pauses or withdraws, the broker can
+check the same invitation again without requesting a new signature. Record
+what the recipient already held when the stop took effect. A separate invitation
+may remain unanswered. Silence records no reason.
+
+For the feature sheet, the participants may share just the actions they chose
+and what reached the recipient before and after the stop. Either may separately
+offer an account of how that felt and choose the exact words to share. The
+exercise requires neither personal material nor an assessment of their health.
+
 ## Establish the circle
 
 1. Each person chooses a new local directory for `KEY_DIR` and runs
@@ -100,6 +115,22 @@ their current `HEAD`. To withdraw a grant, the owner signs with `ACTION=withdraw
 and theirs. Both commands take empty standard input and produce a signed packet
 that takes effect when submitted. A subsequent offer, including corrected
 wording, needs its own current grant and matching invitation.
+
+For example, after a successful read the listener can pause using the revision
+returned for their last decision. The broker can verify when the pause takes
+effect using the original invitation.
+
+```sh
+# Listener
+ACTION=pause HEAD=next-listener.ck make -s circle-sign </dev/null > pause.ck
+
+# Broker
+make -s circle-submit < pause.ck > paused-listener.ck
+make -s circle-read < invitation.ck
+```
+
+The last command returns the fault for `inbox.paused` while the original owner
+grant remains current. The letter from the earlier read stays with its recipient.
 
 The owner can run `make -s circle-source < permit.ck` to recover the exact
 private edition from which that particular excerpt was selected.
