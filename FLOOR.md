@@ -222,6 +222,20 @@ Each line here is held by a program in `make check-full`, or names how it was se
   128 ASCII values, and parses with the extended range in both search evaluators. The
   general BML writer and reader recover the same class declaration, including qualified
   receiver fields, method-local bindings and nested applied types.
+- **A member read of a known shape is one operation.** A package's `(r.member S k v)` with an
+  entry for S and a number for k is lowered to the field `(child v k S)`, and the Form of
+  `nums/` and the host reads its records the same way (347 reads in 27 files); the bootstrap
+  checks the blueprint and the place in that one step, and the emitter inline. The shape is in
+  the node, so the stored form says which record's part is read. `ground/record-fields.ck`
+  holds 210 reads, of seven records by five shapes at six places, alike walked, compiled, as a
+  field and through `nums.member-access`, to a reference that is the recipe it replaced, and a
+  lowered package read to the same; four faults planted by hand each turned it red: the shape
+  not checked, the place one past, the emitter's blueprint check left out, and the lowering
+  reading the wrong place. Measured with a region of 256 MiB, instructions retired, on main and
+  after: a named read walked 35,200 against 4,300 (a child read 2,850), compiled 480 against
+  210 (a child 205); `getpid` through the berth 1.98 M against 985,000 a call, through a door
+  cell 54,000 and 56,000; loading `host/all.ck` cold 713 M against 468 M; a member's start
+  cold 1,629 M against 1,092 M, warm 229 M against 136 M.
 - **A grammar can supply a new parse item.** `bmf/items.ck` declares the item interface,
   immutable fields, constructor templates and typed search methods. `ground/bmf-items.ck`
   defines another item and a capture action in a separate package. Direct execution and
@@ -337,10 +351,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   count that differs goes through the berth as before (`host.berth-call`), so it fails where
   the berth fails. Measured against the berth in one run, a loop of 1,000 calls against 2,000
   less the loop: `getpid` about 23,000 instructions a call against 915,000, `close` of -1
-  with its guard 49,000 against 1.31 M, `lseek` of three values 85,000 against 2.4 M. Most of
-  what is left is walking: each part a row's code reads by name (`nums.member-access`) costs
-  about 16,000 instructions walked and about 4,500 when the same recipe is compiled, and the
-  berth reads dozens of them a call.
+  with its guard 49,000 against 1.31 M, `lseek` of three values 85,000 against 2.4 M. The
+  parts a row's code reads by name are fields, one operation each (above); what is left of the
+  door's cost is the walking of the closure and its checks.
 - **The flow.** `make check-native` runs `ground/host-refused.ck` by itself, with `ck` as built
   and with a copy signed for the hardened runtime: a file is written, read back three ways and
   removed; four words, two of them differing only above bit 31, are sorted by the host through
@@ -926,8 +939,7 @@ The same delivery and evidence boundaries now support these observed runs.
   its device and pipeline anew each time, as the C did. The compiler does not yet emit a row
   as moves and a call; code reaches a row only through `native` of a door leaf. A door is
   taken outside a search only, since resolving the address calls the host. The 64 cells are
-  never given back: a row past them goes through the berth. Loading `host/all.ck` cold costs about 47 M instructions more
-  than before the cells, for the larger package.
+  never given back: a row past them goes through the berth.
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
   names the same node in each, but nothing yet carries a handle from one to another: `swap`,
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not

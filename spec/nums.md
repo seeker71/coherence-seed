@@ -732,6 +732,16 @@ that constructs it.
 - The first lens that reads is the bracket notation of `spec/lens.md`, with the catalogue's
   words.
 
+### Reading a member
+
+A member read `(r.member S k v)` whose shape S is an entry and whose place k is a number is
+lowered to the field `(child v k S)` (entry 66): one operation, which checks v's blueprint
+and the place where the read runs and faults as `nums.member-access` does. A shape that is
+computed, a place that is computed and `nums.unary` lower to `nums.member-access`, which reads
+a field for every shape but `nums.unary`. Walked, a field costs what a child read costs and one
+part more (about 4,300 instructions against 2,850); compiled, the emitter checks the blueprint
+inline and it costs what `child` costs (about 210).
+
 ### Viewing a component declaration
 
 Local adapters can call `nums.member-named shape key value` to read a fixed record field by

@@ -245,14 +245,16 @@ A number here is an `int` leaf; positions count from 0.
 | --- | --- | --- | --- |
 | 64 | blueprint | x | answers x's blueprint; for the root, nothing with the reason `root` |
 | 65 | count | x | how many bytes a leaf has, or how many children a composite has |
-| 66 | child | x, k | child k of the composite x |
+| 66 | child | x, k, optional s | child k of the composite x; with s, a field: x must be a record whose blueprint is s |
 | 67 | byte | x, k | byte k of the leaf x, as a number from 0 to 255 |
 | 68 | leaf | x | yes if x is a leaf, no if it is a composite |
 | 69 | pack | b, l | the leaf with blueprint b whose bytes are the numbers in the list l |
 | 70 | join | b, l | the composite with blueprint b whose children are the children of the list l |
 
 - `child` and `byte` answer nothing with the reason `range` when k is below 0 or not below the
-  count. So does `pack` when a number in the list is outside 0 to 255.
+  count. A field `(child x k s)` faults instead, as `nums.member-access` does: with
+  `(list e.member-shape s b)` when x's blueprint b is not s, and with `(list e.member-index s k)`
+  when x is a leaf or k is outside it. So does `pack` when a number in the list is outside 0 to 255.
 - `pack` and `join` make the one node with that content: building a node that exists answers that
   same node, and `pack` under the root answers the catalogue entry of that number.
 - A build the encoding refuses answers nothing, and the reason is the refusal's word from section 7
