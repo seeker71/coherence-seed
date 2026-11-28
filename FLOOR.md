@@ -227,10 +227,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `nums/` and the host reads its records the same way (347 reads in 27 files); the bootstrap
   checks the blueprint and the place in that one step, and the emitter inline. The shape is in
   the node, so the stored form says which record's part is read. `ground/record-fields.ck`
-  holds 210 reads, of seven records by five shapes at six places, alike walked, compiled, as a
-  field and through `nums.member-access`, to a reference that is the recipe it replaced, and a
-  lowered package read to the same; four faults planted by hand each turned it red: the shape
-  not checked, the place one past, the emitter's blueprint check left out, and the lowering
+  holds 210 reads, of seven records by five shapes at six places, and a nothing in each of the
+  three parts, alike walked, compiled, as a field and through `nums.member-access`, to a
+  reference that is the recipe it replaced, and a lowered package read to the same; five faults
+  planted by hand each turned it red: the shape not checked, the place one past, a nothing
+  answered rather than faulted, the emitter's blueprint check left out, and the lowering
   reading the wrong place. Measured with a region of 256 MiB, instructions retired, on main and
   after: a named read walked 35,200 against 4,300 (a child read 2,850), compiled 480 against
   210 (a child 205); `getpid` through the berth 1.98 M against 985,000 a call, through a door

@@ -252,9 +252,10 @@ A number here is an `int` leaf; positions count from 0.
 | 70 | join | b, l | the composite with blueprint b whose children are the children of the list l |
 
 - `child` and `byte` answer nothing with the reason `range` when k is below 0 or not below the
-  count. A field `(child x k s)` faults instead, as `nums.member-access` does: with
+  count. So does `pack` when a number in the list is outside 0 to 255.
+- A field `(child x k s)` faults instead, as `nums.member-access` does: with
   `(list e.member-shape s b)` when x's blueprint b is not s, and with `(list e.member-index s k)`
-  when x is a leaf or k is outside it. So does `pack` when a number in the list is outside 0 to 255.
+  when x is a leaf or k is outside it; a part that is nothing is left out of the reason.
 - `pack` and `join` make the one node with that content: building a node that exists answers that
   same node, and `pack` under the root answers the catalogue entry of that number.
 - A build the encoding refuses answers nothing, and the reason is the refusal's word from section 7

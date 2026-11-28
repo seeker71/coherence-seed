@@ -1190,15 +1190,17 @@ static int apply(uint32_t b, uint32_t lim, const H *a, uint32_t c, uint32_t from
 static void parts(long long op, const H *a, uint32_t c, int own) {
   Status why = S_OK; int64_t k = 0; H x = a[0], l = c >= 2 ? a[1] : 0;
   if (c != (op == CLOCK ? 0u : op == BLUEPRINT || op == COUNT || op == LEAF || op >= READ ? 1u : 2u) && !(op == CHILD && c == 3)) { fault(S_ARITY); return; }
-  if (!x || (c >= 2 && !l) || (c == 3 && !a[2])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
   if (c == 3) {                           /* a field: child k of a record whose blueprint is s; a record of another */
-    H s = a[2], r[3];                     /* shape, a leaf, or k outside it fault as nums/access.ck says */
-    int shaped = nd[x].bp == s;
-    if (shaped && nd[x].comp && geti(l, &k) && k >= 0 && (uint64_t)k < nd[x].n) { W->v = KID(x, k); return; }
-    if (shaped && nd[x].comp && !geti(l, &k)) { fault(S_KIND); return; }
-    r[0] = catalogue(shaped ? E_MEMBER_INDEX : E_MEMBER_SHAPE); r[1] = s; r[2] = shaped ? l : nd[x].bp;
-    W->reason = mk(1, E(LIST), r, r[2] ? 3 : 2, &why); W->mode = M_FAULT; return;
+    H s = a[2], r[3]; uint32_t n = 1;     /* shape, a leaf, k outside it or a part that is nothing fault as */
+    int shaped = x && s && nd[x].bp == s; /* nums/access.ck says, the parts that are nothing left out */
+    if (shaped && nd[x].comp && l && geti(l, &k) && k >= 0 && (uint64_t)k < nd[x].n) { W->v = KID(x, k); return; }
+    if (shaped && nd[x].comp && l && !geti(l, &k)) { fault(S_KIND); return; }
+    r[0] = catalogue(shaped ? E_MEMBER_INDEX : E_MEMBER_SHAPE);
+    if (s) r[n++] = s;
+    if (shaped ? l : x && nd[x].bp) r[n++] = shaped ? l : nd[x].bp;
+    W->reason = mk(1, E(LIST), r, n, &why); W->mode = M_FAULT; return;
   }
+  if (!x || (c == 2 && !l)) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
   if (op == PRINT) { fault(S_UNBOUND); return; }        /* the canonical print is form/print.ck's */
   if (op == ID) { W->v = mk(0, E(BYTES), idof(x), 32, &why); return; }
   if (op == READ || op == FILE_OP) {       /* a leaf's bytes as stored nodes to read, or as the path of a file */
