@@ -138,7 +138,11 @@ ground-together: ck
 	  if [ "$$got" = "node (#16)" ]; then echo "one run: all of them in one process end as expected, since a fail gives back what it returns past"; \
 	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got"; exit 1; fi
 
-include ground/checks/circle.mk ground/checks/components.mk ground/checks/continuation.mk ground/checks/learning.mk ground/checks/mesh.mk ground/checks/provider.mk ground/checks/recovery.mk ground/checks/value.mk ground/checks/voice.mk ground/checks/world.mk
+include participant/commands.mk participant/enrollment.mk
+include ground/checks/circle.mk ground/checks/components.mk ground/checks/continuation.mk \
+        ground/checks/learning.mk ground/checks/mesh.mk ground/checks/participant.mk \
+        ground/checks/provider.mk ground/checks/recovery.mk ground/checks/translation.mk \
+        ground/checks/value.mk ground/checks/voice.mk ground/checks/world.mk
 
 check-ice: ck
 	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
@@ -204,6 +208,8 @@ check-held-back: ck seed-run
 	$(verify_reconnection)
 
 	$(verify_render)
+	$(verify_translation_delivery)
+	$(verify_participant_account)
 
 	@test "$$(./ck run ground/translation-reference.ck)" = 'node #33'
 

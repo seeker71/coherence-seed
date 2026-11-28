@@ -523,3 +523,51 @@ is: Signed enrollment, cancellation, interrupted application and stale proof cas
 path: coherence-seed/ground/recovery-case.ck
 got: 2026-11-28
 at: 2026-11-28
+
+n: 2.30.47
+name: intent-study.ck
+kind: source
+is: A separately authored sealed cohort drives native and deterministic interpretation against retained neural predictions.
+path: coherence-seed/ground/intent-study.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.48
+name: window.ck
+kind: source
+is: The private PCM window reads its actual sink and appends through a recipient-chosen frame.
+path: coherence-seed/voice/window.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.49
+name: search-reenter.ck
+kind: source
+is: A BML source reader reconstructs the projected interface, concrete class and search function and invokes them.
+path: coherence-seed/ground/search-reenter.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.50
+name: scope.ck
+kind: source
+is: A retained multilingual position and a queued reading are reconciled into an exact proposed review scope.
+path: coherence-seed/translation/scope.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.51
+name: establish.ck
+kind: source
+is: Independent first-roster endorsements publish one protected initial state.
+path: coherence-seed/participant/establish.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.52
+name: participant.mk
+kind: source
+is: Ordinary participant commands drive independent private accounts, attribution, withdrawal and receipt.
+path: coherence-seed/ground/checks/participant.mk
+got: 2026-11-28
+at: 2026-11-28

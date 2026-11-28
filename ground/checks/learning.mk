@@ -24,6 +24,42 @@ define verify_owned_model
   cp "$$2" "$$work/letters/$$1.artifact"; change learning/allow allowed genesis approved; \
   ./ck text learning/activate.ck 3<"$$work/channel" 4<"$$work/plan" 5<"$$work/parent" 6<"$$work/fit" 7<"$$work/shuffled" <"$$work/round" >"$$work/active"; \
   }; \
+  begin intent_fit "synthetic specialist training"; \
+  cp ground/intent-contract.ck "$$work/protocol"; \
+  cp ground/intent-corpus.ck "$$work/data"; \
+  parent=$$(digest learning/intent-network.ck); \
+  admit; \
+  word "[bytes $$protocol]" >"$$work/policy"; \
+  expected_fit=b33f368a02160ccf0f69dcd387931c9aeabb639cb93134dac189adaa65959c1e; \
+  fit_intent() { ./ck text learning/intent-admitted-fit.ck 3<"$$work/channel" 4<"$$work/policy" <"$$work/round"; }; \
+  fit_intent >"$$work/model"; \
+  test "$$(digest "$$work/model")" = "$$expected_fit"; \
+  ./ck text learning/intent-fit.ck <"$$work/admitted" | cmp - "$$work/model"; \
+  cp "$$work/model" "$$rounds/frozen"; \
+  change circle/authorize none issued withdrawn; \
+  if fit_intent >"$$work/refusal"; then exit 1; fi; \
+  test "$$(cat "$$work/refusal")" = "fault $$(word share.ungranted)"; \
+  begin intent_eval "synthetic specialist evaluation"; \
+  cp ground/intent-contract.ck "$$work/protocol"; \
+  ./ck text ground/intent-statements.ck <ground/intent-sealed.ck >"$$work/statements"; \
+  word "[bytes $$(digest "$$work/protocol")]" >"$$work/policy"; \
+  word "(teach.material [bytes $$(digest "$$work/statements")] \"$$work/letters\" [bytes $$expected_fit] [bytes $$expected_fit] [bytes $$(digest "$$work/protocol")])" >"$$work/material"; \
+  ./ck text learning/intent-evaluation-source.ck 3<"$$work/channel" 4<"$$work/material" <"$$work/statements" >"$$work/source"; \
+  g permit source granted nonce; \
+  g ticket source ticket nonce; \
+  change circle/authorize granted genesis issued; \
+  change circle/listen ticket genesis listener; \
+  if ./ck text learning/teach.ck 3<"$$work/channel" <"$$work/ticket" >"$$work/refusal"; then exit 1; fi; \
+  test "$$(cat "$$work/refusal")" = "fault $$(word teach.wrong-purpose)"; \
+  score_intent() { ./ck text learning/intent-evaluate.ck 3<"$$work/channel" 4<"$$work/policy" 5<"$$1" <"$$work/ticket"; }; \
+  score_intent "$$rounds/frozen" >"$$work/measured"; \
+  ./ck text learning/intent-read.ck 3<"$$rounds/frozen" <"$$work/statements" | cmp - "$$work/measured"; \
+  if score_intent "$$work/statements" >"$$work/refusal"; then exit 1; fi; \
+  test "$$(cat "$$work/refusal")" = "fault $$(word e.id)"; \
+  change circle/listen none listener paused; \
+  if score_intent "$$rounds/frozen" >"$$work/refusal"; then exit 1; fi; \
+  test "$$(cat "$$work/refusal")" = "fault $$(word inbox.paused)"; \
+  test "$$(./ck text ground/intent-study.ck)" = "$$(word yes)"; \
   begin grammar "owned grammar round"; \
   cp ground/language-corpus.ck "$$work/data"; run parent data >"$$work/parent-model"; parent=$$(digest "$$work/parent-model"); cases=$$(digest ground/language-cases.ck); \
   printf '%s\n' "Owned grammar v1; six finite completions in canonical request order; score every next gold token and EOS using top-1 mistakes; control rotates all final verbs by one; assess all cases as protected." "$$cases" "$$(digest ground/owned-study.ck)" "$$(digest learning/network.ck)" >"$$work/protocol"; \

@@ -73,6 +73,34 @@ model output. Other owners, stale proposed changes and invented option reference
 are refused. Host authentication and durable ownership of the current position belong
 to the caller.
 
+## Offering chosen wording to a reader
+
+`translation/scope.ck` takes the queued position on stdin, a protected channel
+on fd 3 and the owner's current retained position on fd 4. It compares the two
+positions and checks the owner against the channel. Replaying the original study once
+recovers its offered choices. The seed checks each retained position, including
+every ancestor, for the same study and owner and a valid choice. An impossible
+earlier attestation prevents a later correction from inheriting that provenance. An attestation selects the offered wording. A correction
+selects the owner's exact replacement. A decline produces no scope. The
+result binds the recipient, circle, review purpose, study and position IDs,
+both language tags and exact UTF-8 payload. The translation alternatives and
+private notes stay with the owner.
+
+This command prepares a proposed scope. The owner still issues a separate
+grant, and the recipient decides whether to invite the resulting ticket.
+Correction changes the proposed scope. An already issued grant must be
+withdrawn at its broker. The current position is supplied from the owner's
+trusted local custody. A disconnected broker learns a change when its owner
+sends the appropriate control.
+
+In the maintained replay a local model had rendered “We may listen.” as
+“Kami mungkin mendengarkan.” A new owner position changed *mungkin* to
+*boleh*. The stale queued position failed, the old ticket failed after the
+grant was withdrawn, and the corrected ticket waited until the listener
+invited it. The new ticket delivered only “Kami boleh mendengarkan.” A
+subsequent decline produced no scope. A bilingual person's judgment of this
+distinction is an independent observation.
+
 ## What was observed
 
 A local MLX-LM run used the 4-bit Llama 3.2 3B Instruct checkpoint, greedy decoding

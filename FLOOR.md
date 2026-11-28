@@ -146,9 +146,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. The portable comparison executes typed methods with
-  ordered choice and failure after reading their emitted BML. It compares these with native
-  evaluation on successful and empty branches. The encoder and compiler also project in all five
+  into a syntax tree with the BML reader. For the cross-object search example, Seed reads
+  back the emitted BML interface, implementing class and free function, invokes the concrete
+  receiver, and matches six native value and callback traces. The other four emitted languages
+  ran the same cases. The encoder and compiler also project in all five
   languages. Reading those larger packages as syntax trees and executing a supported method are
   separate checks. For a linked projection, the writer follows referenced declarations to
   determine whether each call can yield several answers. [Component views](spec/nums.md)
@@ -401,6 +402,11 @@ The same delivery and evidence boundaries now support these observed runs.
 | Can a gauge reading keep its uncertainty? | Two independent readers agreed on 12,090 mV in eight overlapping windows. The journal retained both readers' raw values and time brackets, including when the declared allowance crossed the interpretation boundary. [Instrument evidence](spec/observations.md) |
 | Can a fitted adapter improve its task and preserve unrelated behavior? | A step-by-step gate let generated text activate the adapter during an unrelated request. Binding the single adapted decision to the original caller context produced 22/22 expected results, including longer protected continuations. Its parent and matched control produced 16/22 each. Withdrawing the grant prevented a fresh use. [Native rank adapter](spec/rank-adapter.md) |
 | Who can replace a lost key? | An owner can enroll an independent delegate and later cancel that authority. A chartered transition established a new episode after a worker interruption and refused old controls. A disconnected copy still acted on the old episode. [Key recovery](spec/key-recovery.md) |
+| Can a recipient pause during a word or sentence and recover from a lost reply? | The recipient paused a synthetic English turn at 13,486 frames. Local recognition recovered “We may listen before.” Two resumed processes produced the complete bilingual file once. [Spoken turns](spec/voice.md#pausing-inside-an-utterance) |
+| How do learned and transparent readers interpret the same owner's words? | On 32 independently written synthetic statements the cue reader got 6 correct with 25 abstentions, the native specialist 20, the unchanged 3B model 22, and each raw LoRA 28. Each LoRA interpreted two stops or undecided statements as permission to release. [Intent comparison](spec/intent-specialist.md) |
+| Can a multilingual correction reach a listener under fresh consent? | The corrected Indonesian wording changed the exact review scope. A queued superseded position failed. After the original grant was withdrawn, the corrected text reached the receiving file only under a new listener invitation. [Translation and consent](spec/translation.md#offering-chosen-wording-to-a-reader) |
+| How is first enrollment distinguished from permission to share? | Both roles signed statements about the same roster and their own roles. Another validly endorsed episode could open a new broker. The advanced broker refused it and preserved its two consent records and delivered letter. [Participant commands](spec/participant-circle.md) |
+| Can a person keep their account private and later select what to share? | Two synthetic roles exercised private correction and retraction, exact excerpt selection, an unanswered invitation, pause, and separate grants. Each author kept their own private editions. One returned a chosen excerpt under a separately endorsed reverse route. Withdrawing it preserved the forward correspondence. [Private account](spec/participant-circle.md) |
 
 ## Not there
 
@@ -453,7 +459,7 @@ The same delivery and evidence boundaries now support these observed runs.
 - **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and the
   files of nodes in the canonical print. Everything else stored is neither: the recorder and the
   graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
-  graph as 56 text files, and the axioms' text. The Makefile still drives cross-process checks.
+  graph as text files, and the axioms' text. The Makefile still drives cross-process checks.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
 - **Threads.** One walker runs on one thread. A fault on a thread the host made ends the process

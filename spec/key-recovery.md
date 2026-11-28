@@ -25,6 +25,38 @@ withdrawn charter or supplying a charter for the first time during recovery
 fails. A recovered owner can enroll a new charter while the new episode is
 pristine.
 
+## Initial enrollment
+
+For a new circle, `make circle-propose` produces a public roster with a fresh
+episode. Each role can inspect the names, circle and public keys locally with
+`make circle-inspect`. On their own machine each runs `make circle-endorse`
+with their role, the same roster file and their local key directory.
+The signed message is the 32-byte content ID of a typed `pact.acceptance`
+containing the roster ID and the signing role. A signature over a grant,
+invitation, recovery charter or another episode cannot stand in for this
+endorsement.
+
+`make circle-establish` verifies the two signatures before creating a broker.
+Under the broker directory lock it prepares the original roster, the two empty
+consent registers and a `pact.record` with both endorsements. A single
+directory rename makes them available together. Repeating an interrupted
+setup reconstructs the unpublished files. Once published, an identical
+request returns the original roster and preserves the current registers.
+This makes the original `private/first-roster` evidence available after
+later operations. Recovery subsequently uses the currently pinned roster.
+
+A rehearsal exchanged the role signatures and failed before a broker existed.
+Two worker processes then finished an incomplete staged directory and returned
+the same verified roster. Repeating establishment after delivery preserved
+the advanced registers. Another episode endorsed by the same two keys
+established a fresh broker and was refused by the original.
+
+The broker directory is private to its operator. The filesystem must support
+directory locks and same-filesystem directory rename. The tests cover process
+restart. Power-loss guarantees depend on the underlying storage. Public key
+ownership by a particular person requires their own corroboration.
+[Participant commands](participant-circle.md#establish-the-circle)
+
 ## What crosses the restart
 
 Under the existing directory lock the broker retains the signed decision and

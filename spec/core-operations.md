@@ -698,7 +698,10 @@ An owner and a listener can sign decisions on separately administered endpoints.
 keeps the draft locally. The portable proof carries the roster ID, role, change ID and detached
 signature. The change ID covers both the proposed permission and the expected prior revision,
 including a withdrawal. The public roster binds a 32-byte episode identifier, owner, circle,
-recipient and two distinct Ed25519 public keys. Provisioning establishes who owns each key.
+recipient and two distinct Ed25519 public keys. Two local roles can inspect a proposed
+roster and each sign a typed first-enrollment statement with its own key. The broker verifies
+both before publishing the initial protected registers. Identification of the people holding
+those keys remains a participant decision. [Establishing a circle](participant-circle.md#establish-the-circle)
 
 | Step | Interface |
 |---|---|
@@ -721,8 +724,9 @@ The finite-grant comparison gives two brokers the same signed window from 100 th
 One receives the withdrawal before 100. The other accepts at 100, reports a replay at 109
 and declines at 110. A separate schedule crosses 110 while staging a first delivery. After
 restart at 109 that broker still has an empty receiving directory. The owner can inspect
-the signed terms offline. They establish neither when each broker received the withdrawal
-nor which broker delivered a letter. The protocol has no signed broker acknowledgment.
+the signed terms offline. Those control signatures identify what was authorized. An enrolled receiving broker can also
+attest to a specific arrival, including the ticket, control revisions and observed time.
+The sender can check that separate receipt on reconnection. [Mesh receipts](mesh-receipts.md)
 
 `host/ed25519.ck` uses a locally installed libsodium provider. Malformed inputs, invalid
 signatures and an unavailable or failing provider have distinct outcomes. The maintained

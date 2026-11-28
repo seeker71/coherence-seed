@@ -13,6 +13,7 @@ occupy the same position.
 | `voice/ticket.ck` | Permit on stdin | Ticket for the listener and receiver |
 | `voice/expect.ck` | The same permit on stdin | Expected full-letter ID, which the recipient can retain independently of the delivery location |
 | `voice/render.ck` | Queue of `voice.clip` entries pairing each recipient path with its retained ID on stdin, byte sink on fd 5 | PCM in order on fd 5 and a measurement on stdout |
+| `voice/window.ck` | Recipient queue on stdin, absolute frame ceiling on fd 3, seekable private PCM file opened read/write on fd 5 | Verified cumulative progress and additional PCM through the selected frame |
 
 The recipient selects letters from its trusted delivery directory. Before
 writing, the renderer checks the whole selection for missing slots, mixed
@@ -20,8 +21,7 @@ turns or formats, incomplete frames and conflicting duplicates. It checks
 each complete letter against its independently supplied ID. Replacing a
 single letter's audio while preserving its genuine ticket stops the whole
 render before the first byte. The source of the expected IDs is a trust
-boundary. Repeating an
-identical letter counts its slot once. A short sink write ends the render and
+boundary. Repeating an identical letter counts its slot once. A short sink write ends the render and
 reports the completed slots, accepted bytes, whole frames and remaining
 bytes. A consumer can use the measurement to reconcile its own sink.
 Replaying to an empty sink reproduces the stream. Playing a second time to
@@ -43,3 +43,25 @@ assembled output at the accepted frame boundary reproduced both source
 files byte for byte. Local Whisper small transcribed the two segments with
 the intended words. This run establishes machine-recognized speech and
 the receiving process's byte counts. Listener experience remains open.
+
+## Pausing inside an utterance
+
+The recipient may select an absolute frame ceiling, including zero. Open a private
+output file for the turn with `5<>playback.pcm` and keep its contents between
+calls. Under an exclusive advisory lock on that file, the renderer validates the
+whole queue, reads the actual PCM already present, compares its complete prefix
+with the selected letters, and appends up to the ceiling. A mismatch or an
+overlong prefix stops before any write. A lower or repeated ceiling preserves
+all bytes already present. A partial frame can be completed on a later call.
+A lost status reply can be recovered by opening the same file again. Clients
+sharing the file must honor its lock. The file contains audio samples; identity
+of the turn and the independently retained letter IDs come from the recipient's
+chosen queue. Identical samples on their own cannot authenticate their source.
+
+In the bilingual recording the recipient paused the first English utterance at
+frame 13,486. Its file then held exactly 26,972 bytes. Local Whisper small
+transcribed that prefix as “We may listen before.” The resumed file matched
+the complete 113,140 bytes, including the corrected Indonesian turn. Two
+processes requesting the same final frame produced the same cumulative result.
+This evidence establishes which samples reached the file. A recipient can
+supply their own account of what they heard.

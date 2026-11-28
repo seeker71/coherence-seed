@@ -36,6 +36,19 @@ define verify_render
   if [ -n "$${VOICE_RENDERED:-}" ]; then cp "$$work/sound" "$$VOICE_RENDERED"; fi; \
   ./ck text ground/voice-short.ck 5>"$$work/short-sound" <"$$work/queue" >"$$work/short"; head -c 1 "$$work/expected" | cmp - "$$work/short-sound"; \
   test "$$(cat "$$work/short")" = "$$(word '(voice.result 0 1 0 1 voice.short)')"; \
+  window() { word "$$1" >"$$work/through"; ./ck text voice/window.ck 3<"$$work/through" 5<>"$$work/playback" <"$$work/queue" >"$$work/window-result"; }; \
+  : >"$$work/playback"; cp "$$work/queue" "$$work/valid-queue"; qtype=$$(word voice.queue); printf '[%s]' "$$qtype" >"$$work/queue"; rc=0; window 1 || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/window-result")" = "fault $$(word voice.invalid)"; test ! -s "$$work/playback"; mv "$$work/valid-queue" "$$work/queue"; \
+  : >"$$work/playback"; window 0; test ! -s "$$work/playback"; test "$$(cat "$$work/window-result")" = "$$(word '(voice.result 0 0 0 0 voice.paused)')"; \
+  firstlen=$$(wc -c <"$$work/en.pcm"); mid=$$((firstlen/4)); window "$$mid"; head -c "$$((mid*2))" "$$work/expected" | cmp - "$$work/playback"; \
+  test "$$(cat "$$work/window-result")" = "$$(word "(voice.result 0 $$((mid*2)) $$mid 0 voice.paused)")"; \
+  window "$$mid"; window 0; head -c "$$((mid*2))" "$$work/expected" | cmp - "$$work/playback"; \
+  if [ -n "$${VOICE_PAUSED:-}" ]; then cp "$$work/playback" "$$VOICE_PAUSED"; fi; \
+  head -c 1 "$$work/expected" >"$$work/playback"; window 0; test "$$(cat "$$work/window-result")" = "$$(word '(voice.result 0 1 0 1 voice.paused)')"; \
+  window "$$((firstlen/2))"; cmp "$$work/playback" "$$work/en.pcm"; test "$$(cat "$$work/window-result")" = "$$(word "(voice.result 1 $$firstlen $$((firstlen/2)) 0 voice.paused)")"; \
+  window "$$((length/2))" & pid=$$!; word "$$((length/2))" >"$$work/final-limit"; ./ck text voice/window.ck 3<"$$work/final-limit" 5<>"$$work/playback" <"$$work/queue" >"$$work/concurrent"; wait "$$pid"; \
+  cmp "$$work/playback" "$$work/expected"; test "$$(cat "$$work/window-result")" = "$$(cat "$$work/receipt")"; cmp "$$work/window-result" "$$work/concurrent"; \
+  printf x >>"$$work/playback"; cp "$$work/playback" "$$work/unaltered"; rc=0; window 3 || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/window-result")" = "fault $$(word voice.different)"; cmp "$$work/playback" "$$work/unaltered"; \
+  printf '\377' >"$$work/playback"; rc=0; window 1 || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/window-result")" = "fault $$(word voice.different)"; test "$$(wc -c <"$$work/playback")" -eq 1; \
   control authorize old-permit a a; control listen old-ticket b b; receive old inbox.conflict; play; cmp "$$work/expected" "$$work/sound"; \
-  echo "voice: both owners controlled the two ordered slots; withdrawal emitted no second clip, replay produced identical PCM, a short write retained its exact frame remainder"
+  echo "voice: both owners controlled the two ordered slots; withdrawal emitted no second clip, replay produced identical PCM, a partial frame, duplicate ceilings, a changed prefix and racing resumes reconciled against the private playback file"
 endef

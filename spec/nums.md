@@ -789,8 +789,15 @@ Typed method bodies also link guarded alternatives, ordered `choice`, `fail`, `f
 `??` and `all`. The declared return type and boolean guards are checked. The portable
 comparison projects a method to BML, links it again and invokes both versions with both
 search evaluators. A failed fallback yields 22 where an earlier successful branch yields 11.
-False and zero are separate list entries. Class type parameters, inheritance clauses,
-method calls in BML bodies and automatic whole-package linking remain open.
+False and zero are separate list entries.
+
+`bml.function-decl(grammar, syntax, resolve)` links a typed free function. A call
+on another object resolves the method under the receiver's declared type, checks the
+argument count and types, and emits ordinary NUMS receiver dispatch. Nested bindings keep
+their lexical slots. `bml.interface-decl` reads a caller-designated contract whose method
+bodies are `fail`. A concrete class may implement previously declared interfaces.
+The linker accepts the supplied name resolver and declarations. Generic class definitions,
+general whole-file discovery, and the entire writer's own emitted BML remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
@@ -928,12 +935,19 @@ unvisited. A sixth invocation uses a concrete receiver whose field changes the r
 The caller names a local `answer2` and a parameter `answer2_`. The extra first iterator
 required by query syntax uses the same normalized clause and name allocator as the other
 iterators. Its generated binding becomes `answer2__`. The caller observes the receiver’s
-field in all four profiles. The target fixtures provide the small part of each runtime used
-by this package. They run in `make check-held-back` when their toolchain is
+field in all four foreign runtimes. `ground/search-reenter.ck` rebuilds the abstract
+contract, concrete class and free function from the emitted BML. It dispatches on an
+independently supplied observer and runs the six cases through the same observation
+recipe. The portable comparison separately rejects an unknown method, a wrong argument
+count, a wrong type inside a later alternative, and an implemented method presented as
+an abstract contract. The target fixtures provide the small part of each runtime used by
+this package. They run in `make check-held-back` when their toolchain is
 available. `JAVA_HOME` can select a JDK.
 Different declarations of the same name fault. A native search target can declare an operation's
 answer count in its language rows. The BML row for `recover` lets the writer show the signature
 provider's cleanup path. An external operation whose answer contract is unknown still faults
-with `e.unbound` of `write.answers`. Where an expression is
+with `e.unbound` of `write.answers`. The shared writer rows for Form's integer division
+and remainder admit an empty answer at a zero divisor. The projected PCM progress component
+preserves this behavior through its frame and remainder calculations. Where an expression is
 expected the writer takes no throw, Java no `let` and BML no sequence; the BML reader takes a
 class of one interface only.
