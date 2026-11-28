@@ -60,7 +60,9 @@ The source owner grants the exact bytes for `teach.examples` and `teach.gradient
 the participant, recipient directory, training base, parent and protocol. The listener
 accepts that ticket. After delivery or exact replay, the broker writes a private admission receipt that pins both revisions. Activation and use check the receipt. Reconstructing a round from current permissions alone cannot establish admission. The artifact grant
 separately covers the round, complete design, three complete reports, destination and SHA-256
-of the candidate. Stage the candidate at `<recipient directory>/<lowercase SHA-256>.safetensors`.
+of the candidate. Stage new candidates at `<recipient directory>/<lowercase SHA-256>.artifact`.
+Existing content-addressed `.safetensors` files can still be read when the
+new path is absent. Both paths require the same byte check.
 
 Activation recomputes the three-arm judgment, requires `trial.better`, verifies the
 candidate bytes and publishes the selection by renaming its staged record. The broker lock

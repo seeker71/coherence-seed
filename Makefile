@@ -140,6 +140,42 @@ ground-together: ck
 
 check-ice: ck
 	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  word '(trial.template "Read: " ".")' >"$$work/template"; word '"B"' >"$$work/other"; \
+	  word '(trial.scene "room" "A" (list (trial.statement "A" "Both statements") (trial.statement "B" "Both statements")))' >"$$work/scene"; \
+	  rc=0; ./ck text learning/pair.ck 3<"$$work/template" 4<"$$work/other" <"$$work/scene" >"$$work/out" || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/out")" = "fault $$(word trial.indistinguishable)"
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  mkdir "$$work/private" "$$work/letters"; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  digest() { openssl dgst -sha256 -binary "$$1" | od -An -tx1 -v | tr -d ' \n'; }; \
+	  run() { printf %s "$$1" >"$$work/mode"; ./ck text ground/owned-study.ck 3<"$$work/mode" 4<"$$work/$${3:-none}" 5<"$$work/$${4:-none}" <"$$work/$$2"; }; \
+	  g() { printf %s "$$1" >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" 4<"$$work/$${4:-none}" <"$$work/$$2" >"$$work/$$3"; }; \
+	  change() { g change "$$2" update "$$3"; ./ck text "$$1.ck" 3<"$$work/channel" <"$$work/update" >"$$work/$$4"; }; \
+	  printf '#32' >"$$work/none"; for a in authority listening adapter-authority; do cp "$$work/none" "$$work/private/$$a"; done; \
+	  printf %s "$$work" >"$$work/location"; word '"owned grammar round"' >"$$work/nonce"; g channel location channel; g identity none genesis; \
+	  cp ground/language-corpus.ck "$$work/data"; run parent data >"$$work/parent-model"; parent=$$(digest "$$work/parent-model"); cases=$$(digest ground/language-cases.ck); \
+	  printf '%s\n' "Owned grammar v1; six finite completions in canonical request order; score every next gold token and EOS using top-1 mistakes; control rotates all final verbs by one; assess all cases as protected." "$$cases" "$$(digest ground/owned-study.ck)" "$$(digest learning/network.ck)" >"$$work/protocol"; \
+	  protocol=$$(digest "$$work/protocol"); word "(teach.material [bytes $$(digest "$$work/data")] \"$$work/letters\" [bytes $$parent] [bytes $$parent] [bytes $$protocol])" >"$$work/material"; \
+	  ./ck text learning/source.ck 3<"$$work/channel" 4<"$$work/material" <"$$work/data" >"$$work/source"; g permit source granted nonce; g ticket source ticket nonce; \
+	  change circle/authorize granted genesis issued; change circle/listen ticket genesis listener; \
+	  ./ck text learning/teach.ck 3<"$$work/channel" <"$$work/ticket" >"$$work/round"; \
+	  set -- "$$work/letters/"*; test "$$#" = 1; cp "$$1" "$$work/received"; g bytes received admitted; cmp "$$work/data" "$$work/admitted"; \
+	  ./ck text learning/train.ck <"$$work/admitted" >"$$work/fit-model"; run control admitted >"$$work/perturbed"; ./ck text learning/train.ck <"$$work/perturbed" >"$$work/shuffled-model"; \
+	  fit=$$(digest "$$work/fit-model"); shuffled=$$(digest "$$work/shuffled-model"); word "(list [bytes $$parent] [bytes $$fit] [bytes $$shuffled] [bytes $$protocol])" >"$$work/identities"; \
+	  run design identities >"$$work/plan"; for arm in parent fit shuffled; do word "[bytes $$(digest "$$work/$$arm-model")]" >"$$work/model-id"; run run plan "$$arm-model" model-id >"$$work/$$arm"; done; \
+	  ./ck text learning/assess.ck 3<"$$work/parent" 4<"$$work/fit" 5<"$$work/shuffled" <"$$work/plan" >"$$work/decision"; \
+	  ./ck text learning/artifact-scope.ck 3<"$$work/plan" 4<"$$work/parent" 5<"$$work/fit" 6<"$$work/shuffled" <"$$work/round" >"$$work/derivative"; g permit derivative allowed nonce; \
+	  cp "$$work/fit-model" "$$work/letters/$$fit.artifact"; change learning/allow allowed genesis approved; \
+	  ./ck text learning/activate.ck 3<"$$work/channel" 4<"$$work/plan" 5<"$$work/parent" 6<"$$work/fit" 7<"$$work/shuffled" <"$$work/round" >"$$work/active"; \
+	  ./ck text learning/use.ck 3<"$$work/channel" <"$$work/active" >"$$work/received-model"; cmp "$$work/received-model" "$$work/fit-model"; \
+	  word '(lm.request (list 2 6) 3)' >"$$work/question"; ./ck text learning/generate.ck 3<"$$work/received-model" <"$$work/question" >"$$work/reply"; test "$$(cat "$$work/reply")" = "$$(word '(lm.completion (list 12) lm.eos)')"; \
+	  mv "$$work/letters/$$fit.artifact" "$$work/letters/$$fit.safetensors"; ./ck text learning/use.ck 3<"$$work/channel" <"$$work/active" | cmp - "$$work/fit-model"; \
+	  change learning/allow none approved stopped; rc=0; ./ck text learning/use.ck 3<"$$work/channel" <"$$work/active" >"$$work/refusal" || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/refusal")" = "fault $$(word share.ungranted)"; \
+	  ./ck text lens/to-words.ck lens/all.ck <"$$work/decision"
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  [ "$$(./ck run ground/supervision-reference.ck)" = 'node #33' ]; \
 	  [ "$$(./ck run ground/language-reference.ck)" = 'node #33' ]; \
 	  ./ck text learning/train.ck <ground/language-corpus.ck >"$$work/model"; \
 	  ./ck text learning/train.ck <ground/language-corpus.ck | cmp - "$$work/model"; \
@@ -164,6 +200,30 @@ check-native: ck
 
 # The first recorded page starts at byte 44. Its layout version follows the 16-byte identity prefix.
 check-replay: ck fb
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  station() { word "(meter.station (world.station \"$$work/sensor\" (list [bytes 4c] [bytes 48] [bytes 3f]) (list (world.rule \"stay\" (list 0 1 2)))) (meter.profile \"io-kit\" \"registry-tool\" \"mV\" 12090 $$1 [bytes 4c] [bytes 48] [bytes 3f]))"; }; \
+	  packet() { word "(meter.packet $$1 (meter.reading \"io-kit\" \"mV\" $$2 $$3 $$4) (meter.reading \"$$5\" \"mV\" $$6 $$7 $$8))" >"$$work/sensor"; }; \
+	  sample() { printf '%s' "$$1" | ./ck text lens/to-nodes.ck lens/all.ck >"$$work/index"; ./ck text ground/instrument-input.ck <"$$work/index" >"$$work/sensor"; }; \
+	  refuses() { code=$$(word "$$1"); shift; rc=0; "$$@" >"$$work/cause" || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/cause")" = "fault $$code"; }; \
+	  open_station() { ./ck text world/open.ck 3<"$$work/station"; }; \
+	  predict() { ./ck text world/predict.ck 3<"$$work/station" <"$$work/history"; }; \
+	  observe() { ./ck text world/observe.ck 3<"$$work/station" 4<"$$work/prediction" <"$$work/history"; }; \
+	  for margin in 0 1; do \
+	   station "$$margin" >"$$work/station"; sample 0; open_station >"$$work/history"; \
+	   for i in 1 2 3 4 5 6 7; do predict >"$$work/prediction"; sample "$$i"; observe >"$$work/updated"; cp "$$work/updated" "$$work/history"; done; \
+	   predict >"$$work/prediction"; observe | cmp - "$$work/history"; printf '%s' "$$margin" >"$$work/mode"; \
+	   ./ck text ground/instrument-result.ck 3<"$$work/mode" 4<"$$work/station" <"$$work/history" >"$$work/checked"; test "$$(cat "$$work/checked")" = '#33'; \
+	  done; \
+	  packet 7 200 205 12090 registry-tool 201 204 12090; refuses world.conflict observe; \
+	  packet 8 200 205 12090 registry-tool 206 209 12090; refuses meter.outside-window observe; \
+	  packet 8 200 208 12090 io-kit 201 202 12090; refuses meter.wrong-reader observe; \
+	  packet 8 200 205 12088 registry-tool 201 204 12092; refuses world.stale observe; \
+	  packet 8 200000000000000 200000000000005 12088 registry-tool 200000000000001 200000000000004 12092; observe >"$$work/updated"; cp "$$work/updated" "$$work/history"; \
+	  predict >"$$work/prediction"; packet 9 210 215 9223372036854775807 registry-tool 211 214 9223372036854775807; refuses world.invalid observe; \
+	  echo "instrument: eight overlapping reader pairs replayed with the exact time brackets; a changed calibration preserved ambiguity and a changed duplicate was refused"
 	@set -eu; \
 	  work=$$(mktemp -d); \
 	  trap 'rm -rf "$$work"' EXIT; \
@@ -634,6 +694,46 @@ check-held-back: ck seed-run
 	    set -- "$$destination/letters/"*; test "$$#" = 2; if test "$$1" -ef "$$destination/first-proof"; then second=$$2; else test "$$2" -ef "$$destination/first-proof"; second=$$1; fi; \
 	    printf bytes >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$second" >"$$work/observed"; printf 'second\n' | cmp - "$$work/observed"; \
 	  done; \
+	  mkdir "$$work/crossed" "$$work/crossed/private" "$$work/crossed/letters"; printf %s "$$work/crossed" >"$$work/location"; g channel location alpha-channel; c other-owner alpha-channel beta-channel; \
+	  cp "$$work/none" "$$work/crossed/private/authority"; cp "$$work/none" "$$work/crossed/private/listening"; cp "$$work/caller" "$$work/alpha-caller"; cp "$$work/other" "$$work/beta-caller"; \
+	  g identity none source-head; cp "$$work/source-head" "$$work/listen-head"; \
+	  pair_call() { ./ck text "continuation/$$2.ck" 3<"$$work/$$1-channel" 4<"$$work/$$1-caller" 5<"$$work/$${3:-none}" <"$$work/$$1-job"; }; \
+	  pair_rights() { cp "$$work/$$1-channel" "$$work/channel"; control authorize "$$1-$$2-permit" source-head source-head; control listen "$$1-$$2-ticket" listen-head listen-head; }; \
+	  pair_delivered() { c "$$2-path" "$$1-job" pair-path; printf bytes >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$(cat "$$work/pair-path")" >"$$work/actual-bytes"; printf '%s' "$$1/$$2" | cmp - "$$work/actual-bytes"; }; \
+	  for who in alpha beta; do \
+	    for slot in first second; do \
+	      marker=$$(printf '%s' "$$who/$$slot" | od -An -v -tx1 | tr -d ' \n'); printf '[#1 %s]' "$$marker" >"$$work/marker"; c "$$slot" "$$who-channel" "$$who-$$slot-scope" marker; \
+	      nonce=one; if test "$$slot" = second; then nonce=two; fi; g permit "$$who-$$slot-scope" "$$who-$$slot-permit" "$$nonce"; g ticket "$$who-$$slot-scope" "$$who-$$slot-ticket" "$$nonce"; \
+	      ./ck text continuation/action.ck 3<"$$work/$$who-$$slot-ticket" <"$$work/$$who-$$slot-scope" >"$$work/$$who-$$slot-action"; \
+	    done; \
+	    c pair "$$who-first-action" "$$who-actions" "$$who-second-action"; ./ck text continuation/plan.ck 3<"$$work/$$who-channel" 4<"$$work/$$who-caller" <"$$work/$$who-actions" >"$$work/$$who-job"; \
+	    pair_call "$$who" begin >"$$work/$$who-wait"; c cause "$$who-wait" pair-cause; test "$$(cat "$$work/pair-cause")" = "$$(word share.ungranted)"; \
+	  done; \
+	  pair_rights alpha first; pair_call alpha wake >"$$work/wake-alpha"; refused care.unchanged pair_call beta wake; \
+	  pair_rights beta first; pair_call beta wake >"$$work/wake-beta"; refused care.unchanged pair_call alpha wake; \
+	  refused care.stale pair_call alpha resume wake-beta; refused care.stale pair_call beta resume wake-alpha; refused care.stale pair_call alpha resume wake-alpha; \
+	  for who in alpha beta; do pair_call "$$who" resume | cmp - "$$work/$$who-wait"; done; test -z "$$(ls -A "$$work/crossed/letters")"; \
+	  pair_call beta resume wake-beta >"$$work/beta-middle"; pair_delivered beta first; pair_call alpha resume | cmp - "$$work/alpha-wait"; \
+	  pair_rights beta second; pair_call beta wake >"$$work/updated"; pair_call beta resume updated >"$$work/beta-finished"; pair_delivered beta second; refused care.unchanged pair_call alpha wake; \
+	  for slot in first second; do pair_rights alpha "$$slot"; pair_call alpha wake >"$$work/updated"; pair_call alpha resume updated >"$$work/alpha-last"; pair_delivered alpha "$$slot"; done; \
+	  pair_call beta resume | cmp - "$$work/beta-finished"; pair_call alpha resume | cmp - "$$work/alpha-last"; set -- "$$work/crossed/letters/"*; test "$$#" = 4; \
+	  echo "continuation: beta finished before alpha in one store; crossed wakes left both checkpoints unchanged and all four owner-specific letters retained their exact bytes"; \
+	  clock_call() { word "$$2" >"$$work/now"; ./ck text "continuation/$$1.ck" ground/broker-clock.ck 3<"$$work/channel" 4<"$$work/caller" 5<"$$work/$${3:-none}" 7<"$$work/now" <"$$work/job"; }; \
+	  for scene in allowed expired; do \
+	    mkdir "$$work/$$scene" "$$work/$$scene/private" "$$work/$$scene/letters"; printf %s "$$work/$$scene" >"$$work/location"; g channel location channel; \
+	    cp "$$work/none" "$$work/$$scene/private/authority"; cp "$$work/none" "$$work/$$scene/private/listening"; g identity none genesis; \
+	    c first channel first-scope; c second channel second-scope; g permit first-scope first-permit one; g ticket first-scope first-ticket one; g ticket second-scope second-ticket two; \
+	    word '(list 100 110)' >"$$work/window"; c finite first-permit timed-permit window; control authorize timed-permit genesis owner-a; control listen first-ticket genesis listener-a; \
+	    for slot in first second; do ./ck text continuation/action.ck 3<"$$work/$$slot-ticket" <"$$work/$$slot-scope" >"$$work/$$slot-action"; done; \
+	    c pair first-action actions second-action; run plan actions >"$$work/job"; clock_call begin 99 >"$$work/early"; c cause early cause; test "$$(cat "$$work/cause")" = "$$(word share.early)"; \
+	    refused care.unchanged clock_call wake 99; clock_call wake 100 >"$$work/edge"; \
+	    if test "$$scene" = expired; then \
+	      refused care.stale clock_call resume 110 edge; run resume | cmp - "$$work/early"; test -z "$$(ls -A "$$work/$$scene/letters")"; \
+	    else \
+	      clock_call resume 100 edge >"$$work/middle"; c first-path job path; printf bytes >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$(cat "$$work/path")" >"$$work/actual"; printf 'first\0' | cmp - "$$work/actual"; \
+	    fi; \
+	  done; \
+	  echo "continuation: changing only the time woke the exact finite grant at 100; the same signal at the exclusive cutoff 110 left the original checkpoint and destination untouched"; \
 	  echo "continuation: two intended letters, original consent and caller retained; dropped and stale wakes kept the checkpoint; another receiver reconciled an unacknowledged link"
 
 	@set -eu; \
@@ -721,6 +821,115 @@ check-held-back: ck seed-run
 	  printf 'received canonical letter bytes: '; wc -c <"$$area/letter"; \
 	  printf 'refused provider inbox bytes: '; find "$$area/refused/letters" -type f -exec cat {} + | wc -c; \
 	  echo "provider: exact dispatch, signed answer, epoch change, late refusal and local preference agreed"
+
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  ./ck text ground/search-trace.ck > "$$work/reference"; \
+	  module() { printf '%s\n' ground/search-package.ck "nums/lang-$$1.ck" | ./ck text nums/write-text.ck > "$$2"; }; \
+	  adapter() { printf %s "$$1" | ./ck text ground/search-targets.ck; }; \
+	  compare() { test "$$(cat "$$work/actual")" = "$$(cat "$$work/reference")" || { diff -u "$$work/reference" "$$work/actual"; return 1; }; }; \
+	  if command -v python3 >/dev/null 2>&1; then \
+	  module python "$$work/search.py"; adapter python-runtime > "$$work/form.py"; adapter python-reader >> "$$work/search.py"; \
+	  python3 "$$work/search.py" > "$$work/actual"; compare; echo "projection: Python observed all five native answer and effect traces"; \
+	  fi; \
+	  if command -v deno >/dev/null 2>&1; then \
+	  module typescript "$$work/search.ts"; adapter typescript-runtime > "$$work/form.ts"; adapter typescript-reader >> "$$work/search.ts"; \
+	  deno run "$$work/search.ts" > "$$work/actual"; compare; echo "projection: TypeScript observed all five native answer and effect traces"; \
+	  fi; \
+	  jhome=$${JAVA_HOME:-}; javac=$${jhome:+$$jhome/bin/}javac; java=$${jhome:+$$jhome/bin/}java; \
+	  if "$$javac" -version >/dev/null 2>&1; then \
+	  mkdir -p "$$work/j/form/write"; module java "$$work/j/form/write/Writer.java"; \
+	  for type in Node Entry Blueprinted Fault Runtime; do adapter "java-$$type" > "$$work/j/form/$$type.java"; done; \
+	  adapter java-reader > "$$work/j/Check.java"; "$$javac" "$$work/j"/form/*.java "$$work/j/form/write/Writer.java" "$$work/j/Check.java"; \
+	  "$$java" -cp "$$work/j" Check > "$$work/actual"; compare; echo "projection: Java observed all five native answer and effect traces"; \
+	  fi; \
+	  if command -v dotnet >/dev/null 2>&1 && version=$$(dotnet --version 2>/dev/null); then \
+	  mkdir "$$work/cs"; module csharp "$$work/cs/Writer.cs"; adapter csharp-runtime > "$$work/cs/Program.cs"; \
+	  printf '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net%s.0</TargetFramework></PropertyGroup></Project>\n' "$${version%%.*}" > "$$work/cs/Fixture.csproj"; \
+	  dotnet build "$$work/cs/Fixture.csproj" -o "$$work/net" --nologo --verbosity quiet; \
+	  dotnet "$$work/net/Fixture.dll" > "$$work/actual"; compare; echo "projection: C# observed all five native answer and effect traces"; \
+	  fi;
+
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  pc() { printf %s "$$1" >"$$work/mode"; ./ck text ground/mesh-case.ck 3<"$$work/mode" <"$${2:-$$work/no}" ; }; \
+	  word no >"$$work/no"; \
+	  for name in roster foreign-roster episode withdraw-change withdraw-proof wrong-role altered-time competing-receipt; do pc "$$name" >"$$work/$$name"; done; \
+	  for tag in A B; do for kind in ticket expectation arrival receipt letter owner-change owner-proof listener-change listener-proof; do pc "$$tag-$$kind" >"$$work/$$tag-$$kind"; done; done; \
+	  setup() { area="$$work/$$1"; mkdir -p "$$area/private" "$$area/letters"; word "\"$$area\"" >"$$area/path"; pc channel "$$area/path" >"$$area/channel"; }; \
+	  for place in sender receiver; do setup "$$place"; cp "$$work/roster" "$$area/private/peers"; ./ck text circle/pin.ck <"$$work/roster" >"$$area/private/authority"; cp "$$area/private/authority" "$$area/private/listening"; done; \
+	  setup witness; \
+	  ./ck text mesh/pin.ck <"$$work/roster" >"$$area/private/mesh-time"; \
+	  apply() { for actor in owner listener; do ./ck text circle/apply.ck 3<"$$work/$$1/channel" 4<"$$work/$$2-$$actor-change" <"$$work/$$2-$$actor-proof" >"$$work/last-change"; done; }; \
+	  expecting() { ./ck text mesh/expect.ck 3<"$$work/sender/channel" <"$$work/$$1-ticket" >"$$work/expectation"; cmp "$$work/expectation" "$$work/$$1-expectation"; }; \
+	  apply sender A; apply receiver A; expecting A; \
+	  cp -R "$$work/receiver" "$$work/early-receiver"; \
+	  mkfifo "$$work/to-clock" "$$work/from-clock"; \
+	  cross() { \
+	   sample=$$1; shift; \
+	   word "$$sample" >"$$work/tick"; \
+	   ./ck text "$${CLOCK_SERVICE:-ground/mesh-clock.ck}" 3<"$$work/witness/channel" 4<"$$work/tick" <"$$work/to-clock" 5>"$$work/from-clock" >"$$work/service-log" & clock_pid=$$!; \
+	   code=0; "$$@" 5>"$$work/to-clock" <"$$work/from-clock" >"$$work/delivered" || code=$$?; \
+	   wait "$$clock_pid" || return 1; \
+	   return "$$code"; \
+	  }; \
+	  deliver() { cross "$$2" ./ck text mesh/deliver.ck 3<"$$work/receiver/channel" 4<"$$work/$$1-expectation"; }; \
+	  check_error() { test "$$(cat "$$work/$$1")" = "fault $$(word "$$2")"; }; \
+	  for sample in mesh.episode mesh.challenge no; do \
+	   if deliver A "$$sample"; then exit 1; fi; \
+	   reason=e.id; if test "$$sample" = no; then reason=e.short; fi; check_error delivered "$$reason"; \
+	   test -z "$$(ls -A "$$work/receiver/letters")"; \
+	  done; \
+	  deliver A 100; \
+	  cmp "$$work/delivered" "$$work/A-arrival"; set -- "$$work/receiver/letters/"*; test "$$#" = 1; cmp "$$1" "$$work/A-letter"; \
+	  test -z "$$(ls -A "$$work/sender/letters")"; \
+	  if ./ck text mesh/confirm.ck 3<"$$work/sender/channel" <"$$work/B-receipt" >"$$work/confirmed"; then exit 1; fi; check_error confirmed e.unbound; \
+	  for p in sender receiver; do apply "$$p" B; done; expecting B; \
+	  deliver B 120; cmp "$$work/delivered" "$$work/B-arrival"; \
+	  confirm() { ./ck text mesh/confirm.ck 3<"$$work/sender/channel" <"$$work/$$1" >"$$work/confirmed"; }; \
+	  confirm B-receipt; cmp "$$work/confirmed" "$$work/B-receipt"; \
+	  if test -n "$${MESH_WITNESS:-}"; then cp "$$MESH_WITNESS" "$$work/guest-delivery"; confirm guest-delivery; cmp "$$work/confirmed" "$$work/A-receipt"; fi; \
+	  confirm A-receipt; cmp "$$work/confirmed" "$$work/A-receipt"; \
+	  confirm B-receipt; cmp "$$work/confirmed" "$$work/B-receipt"; \
+	  for event in altered-time wrong-role competing-receipt; do \
+	   if confirm "$$event"; then exit 1; fi; \
+	   reason=ed25519.invalid-signature; if test "$$event" = competing-receipt; then reason=inbox.conflict; fi; \
+	   test "$$(cat "$$work/confirmed")" = "fault $$(word "$$reason")"; \
+	  done; \
+	  confirm A-receipt; cmp "$$work/confirmed" "$$work/A-receipt"; \
+	  cp "$$work/foreign-roster" "$$work/sender/private/peers"; \
+	  if confirm A-receipt; then exit 1; fi; check_error confirmed e.id; \
+	  cp "$$work/roster" "$$work/sender/private/peers"; \
+	  mv "$$work/receiver" "$$work/later-receiver"; cp -R "$$work/early-receiver" "$$work/receiver"; \
+	  if deliver A 110; then exit 1; fi; \
+	  test "$$(cat "$$work/delivered")" = "fault $$(word share.clock-regressed)"; \
+	  test -z "$$(ls -A "$$work/receiver/letters")"; \
+	  pc tick "$$work/witness/private/mesh-time" >"$$work/watermark"; word 120 >"$$work/want"; test "$$(cat "$$work/watermark")" = "$$(cat "$$work/want")"; \
+	  if deliver A 125; then exit 1; fi; \
+	  test "$$(cat "$$work/delivered")" = "fault $$(word inbox.stale)"; test -z "$$(ls -A "$$work/receiver/letters")"; \
+	  if deliver B 125; then exit 1; fi; \
+	  test "$$(cat "$$work/delivered")" = "fault $$(word inbox.stale)" || test "$$(cat "$$work/delivered")" = "fault $$(word inbox.paused)"; \
+	  test -z "$$(ls -A "$$work/receiver/letters")"; \
+	  cp "$$work/later-receiver/private/authority" "$$work/later-receiver/private/listening" "$$work/receiver/private"; \
+	  ./ck text circle/apply.ck 3<"$$work/sender/channel" 4<"$$work/withdraw-change" <"$$work/withdraw-proof" >"$$work/stopped"; \
+	  cross 130 ./ck text mesh/checkpoint.ck 3<"$$work/sender/channel"; \
+	  if deliver B 135; then exit 1; fi; check_error delivered inbox.stale; \
+	  test -z "$$(ls -A "$$work/receiver/letters")"; \
+	  cross 201 ./ck text mesh/now.ck 3<"$$work/episode"; \
+	  pc tick "$$work/witness/private/mesh-time" >"$$work/watermark"; test "$$(cat "$$work/watermark")" = "$$(word 201)"; \
+	  word 205 >"$$work/tick"; \
+	  ./ck text ground/mesh-clock.ck 3<"$$work/witness/channel" 4<"$$work/tick" <"$$work/to-clock" 5>"$$work/from-clock" >"$$work/service-log" & session_pid=$$!; \
+	  exec 7>"$$work/to-clock" 8<"$$work/from-clock"; \
+	  ./ck text mesh/now.ck 3<"$$work/episode" 5>&7 <&8 >"$$work/clock-observation"; \
+	  pc witness-busy "$$work/witness/channel" >"$$work/busy"; test "$$(cat "$$work/busy")" = "$$(word yes)"; \
+	  exec 7>&- 8<&-; wait "$$session_pid"; \
+	  pc witness-busy "$$work/witness/channel" >"$$work/busy"; test "$$(cat "$$work/busy")" = "$$(word no)"; \
+	  CLOCK_SERVICE=mesh/clock.ck cross 0 ./ck text mesh/now.ck 3<"$$work/episode"; \
+	  pc tick "$$work/witness/private/mesh-time" >"$$work/watermark"; cmp "$$work/watermark" "$$work/delivered"; \
+	  echo "mesh: signed arrival, reordered receipts, changed attestations and rollback agreed"
 
 	@set -eu; \
 	  work=$$(mktemp -d); \

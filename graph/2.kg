@@ -459,3 +459,51 @@ is: Retained local model proposals and source-edition references exercise invita
 path: coherence-seed/ground/translation-reference.ck
 got: 2026-11-28
 at: 2026-11-28
+
+n: 2.30.39
+name: mesh-case.ck
+kind: source
+is: A sender compares signed arrival observations from two deliveries against pending expectations.
+path: coherence-seed/ground/mesh-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.40
+name: instrument-samples.ck
+kind: source
+is: Eight paired battery voltage readings retain monotonic time brackets for both readers.
+path: coherence-seed/ground/instrument-samples.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.41
+name: owned-study.ck
+kind: source
+is: A fitted local model, its cold parent and a rotated-label control run through consent, measurement, publication and inference.
+path: coherence-seed/ground/owned-study.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.42
+name: supervision-reference.ck
+kind: source
+is: The completion loss mask is compared against an independent enumeration of valid next-token positions.
+path: coherence-seed/ground/supervision-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.43
+name: model-behavior.md
+kind: source
+is: The exact four synthetic prompts and eight replies record a local and hosted model comparison.
+path: coherence-seed/spec/model-behavior.md
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.44
+name: search-trace.ck
+kind: source
+is: A native observer records which branches executed and what a nested search returned for comparison with emitted programs.
+path: coherence-seed/ground/search-trace.ck
+got: 2026-11-28
+at: 2026-11-28

@@ -33,3 +33,24 @@ other rule and correctly predicted sequence 12. The ground also compares all
 32 binary histories of five observations with an independent error count.
 These results cover an instrument with a declared alphabet and hypothesis
 set. Open-ended perception remains a separate capability.
+
+## Two readers of a physical gauge
+
+A `meter.station` wraps an ordinary station with two distinct named readers,
+a common unit, a decision boundary and an allowance. Each `meter.packet`
+keeps both readings and the monotonic time brackets in which they were
+taken. The brackets must overlap. The station classifies the full range
+from the lower reading minus the allowance to the higher reading plus the
+allowance. A range crossing the boundary has its own observable class.
+Forecasts concern these classifications. Every visit retains both raw
+readings, so a new reader can recompute the class and detect a substituted
+packet even if its classification is unchanged.
+
+On the M4 Max, independent IOKit and `ioreg` readers both reported 12,090
+mV from the same OS battery gauge in eight overlapping windows over 3.76 s.
+The maintained replay uses 12,090 mV as a test boundary. At zero allowance
+all readings fell in the upper class. A declared one-millivolt allowance
+placed all eight in the overlap class. Substituted duplicate evidence,
+nonoverlapping windows, a substituted reader and overflowing interval
+endpoints were refused. The allowance is an input to the interpretation.
+Establishing physical calibration needs evidence independent of that gauge.

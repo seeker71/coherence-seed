@@ -30,8 +30,12 @@ with canonical `no` on descriptor 5. An interrupted attempt can then be reconcil
 A recorded refusal retains the job, completed receipts, exact cause and the source
 and listener revision identities. It stays pending until a matching event arrives.
 The broker checks the event against both the saved checkpoint and its current
-registers and recipient-directory availability. It can regenerate a dropped wake
-from the current observations.
+registers and recipient-directory availability. A new source grant must match the
+ticket nonce, full scope identity and channel address. A new listener invitation
+must name the exact ticket. An unchanged finite grant can wake at its start time.
+Resume checks the time again before delivering. Directory restoration can wake
+the exact failed publication. The broker can regenerate a dropped wake from its
+current observations.
 
 Before issuing a letter the worker persists the intended effect and the revisions
 that approved it. On replacement, it verifies earlier receipts against the actual
@@ -49,6 +53,14 @@ signal and restoration of the recipient directory after the exact publish fault.
 A separate reader replaced the second completed letter with the first and observed
 `inbox.conflict` on resume. Restoring the original bytes and ticket restored the
 confirmed state.
+
+A second comparison opens two jobs from distinct callers and source owners in one
+private store, with a shared recipient directory and identical ordinal nonces.
+The second job finishes first. Crossed signals and a signal superseded by another
+owner’s grant leave both checkpoints byte-for-byte unchanged. The four files
+contain the four distinct intended payloads. With a grant valid from 100 through
+109, changing only the clock from 99 to 100 also supplies a wake. Delivering
+that wake at 110 leaves the checkpoint and recipient directory untouched.
 
 The receipt covers an immutable local file publication. A payment or another
 effect without an observable, stable identity needs its own confirmation protocol.

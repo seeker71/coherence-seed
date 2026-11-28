@@ -578,3 +578,75 @@ conf: mid
 why: Eight captured model responses included ambiguous pronouns and a shifted temporal meaning. A separate reader rejected a changed source edition or target language.
 limit: These observations cover the sampled languages and local provider. They do not establish universal equivalence or a human endorsement.
 at: 2026-11-28
+
+n: 5.19.53
+name: a-separate-witness-can-detect-receiver-rollback
+kind: observation
+is: A normal broker can refuse a superseded grant even after local time and consent records have been restored.
+status: observed
+from: 5.19.50
+src: 2.30.39
+conf: mid
+why: An independently retained control head refused the previously delivered 137 bytes. A real guest signed its observed letter, both revisions and time. The sender reconciled receipts in reverse order.
+limit: A disconnected owner must still communicate a changed grant. The receipt establishes arrival at the broker.
+at: 2026-11-28
+
+n: 5.19.54
+name: physical-reading-uncertainty-can-survive-replay
+kind: observation
+is: The same raw readings can yield a determinate or overlapping classification under different declared allowances.
+status: observed
+from: 5.19.47
+src: 2.30.40
+conf: mid
+why: Two reader paths agreed in eight intersecting windows. Fresh history replay recomputed both calibrations, and changed raw evidence at the same ordinal was refused.
+limit: The readers observed one OS gauge. This comparison supplies no independent physical calibration.
+at: 2026-11-28
+
+n: 5.19.55
+name: an-admitted-fitted-model-can-reach-an-actual-consumer
+kind: observation
+is: An owner can permit a real fitting round, allow a tested artifact to be used and withdraw that permission before another use.
+status: observed
+from: 5.19.46
+src: 2.30.41
+conf: mid
+why: The owned model yielded six of six held-out completions. The parent and control yielded none. A receiving process used the checked model bytes and a later consumer met the withdrawal.
+limit: The model learns a finite synthetic grammar. Previously disclosed bytes stay with their recipient.
+at: 2026-11-28
+
+n: 5.19.56
+name: lower-loss-and-more-correct-pairs-can-still-lose-a-protected-owner-decision
+kind: observation
+is: An adapter can improve the aggregate answer while changing one owner’s correct refusal into permission.
+status: observed
+from: 5.19.44
+src: 2.30.42
+conf: mid
+why: Two further raw adapters increased complete pairs by two each and failed the protected comparison. Correcting the installed padding mask reduced a four-row validation batch from twelve supervised positions to eight.
+limit: These are independently sealed synthetic cases. The owner and listener remain the authority over delivery.
+at: 2026-11-28
+
+n: 5.19.57
+name: false-premise-handling-can-differ-across-local-and-hosted-models
+kind: observation
+is: Two model providers can follow the same stop request while disagreeing on a cited fact and unsupported motive.
+status: observed
+from: 5.19.45
+src: 2.30.43
+conf: mid
+why: The local 3B model accepted an incorrect colour and invented a motive. The hosted session identified the changed source. Independent readers agreed on the predeclared scoring.
+limit: Four prompts and an unpinned hosted model do not establish an attention incentive, fear, trust or health outcome.
+at: 2026-11-28
+
+n: 5.19.58
+name: nested-search-effects-can-be-compared-across-written-languages
+kind: observation
+is: A nested ordered choice can be tested for both its answer and the effects of the branches it takes.
+status: observed
+from: 5.19.48
+src: 2.30.44
+conf: mid
+why: Python, TypeScript, Java and C# matched five native answer and effect traces. A sibling made an earlier zero succeed and an untaken branch throw.
+limit: These observations cover the checked constructs and supplied runtimes.
+at: 2026-11-28

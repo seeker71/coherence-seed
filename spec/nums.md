@@ -785,8 +785,12 @@ right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
 It projects linked classes through `write.text` with `nums/lang-bml.ck`, parses the output
 and compares the entire linked declaration. The comparison includes a nominal receiver and
 `Pair<Box<Int>, Int>`. Source spellings live beside the declarations.
-Class type parameters, inheritance clauses, method calls in BML bodies and automatic
-whole-package linking remain open.
+Typed method bodies also link guarded alternatives, ordered `choice`, `fail`, `first`,
+`??` and `all`. The declared return type and boolean guards are checked. The portable
+comparison projects a method to BML, links it again and invokes both versions with both
+search evaluators. A failed fallback yields 22 where an earlier successful branch yields 11.
+False and zero are separate list entries. Class type parameters, inheritance clauses,
+method calls in BML bodies and automatic whole-package linking remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
@@ -913,6 +917,16 @@ packages and computes how often their calls can answer. In a search, keeping the
 still yields an iterable with zero or one element. A linked example, run as Python, C# and
 TypeScript, agreed with the walker on empty input, a first answer of false, and a first answer of zero
 with more candidates available. Repeated identical declarations coalesce.
+The nested search in `ground/search-package.ck` calls an observer inside
+guards, ordinary alternatives and first-answer alternatives.
+`ground/search-trace.ck` supplies an observer that records every actual call
+and compares both its history and the returned list with five explicit
+references. The emitted Python, C#, TypeScript and Java ran against ordinary
+language observers with the same results. One result contained both false
+and integer zero. An unselected branch with an observable method call stayed
+unvisited. The target fixtures provide the small part of each runtime used
+by this package. They run in `make check-held-back` when their toolchain is
+available. `JAVA_HOME` can select a JDK.
 Different declarations of the same name fault. A native search target can declare an operation's
 answer count in its language rows. The BML row for `recover` lets the writer show the signature
 provider's cleanup path. An external operation whose answer contract is unknown still faults

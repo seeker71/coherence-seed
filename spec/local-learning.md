@@ -89,3 +89,53 @@ second design the fitted adapter raised loss from 0.4180 to 1.5435. Both
 candidates stayed inactive. These decisions concern a synthetic register
 task. Human trust, vitality and consent to learn from personal utterances
 require their own evidence.
+
+## Supervised positions and protected regressions
+
+A sequence of length *n* has its final target at position *n* − 1.
+For completion training, the label at the prompt boundary and its final
+end token both contribute to loss. The installed MLX-LM trainer included
+one padding token in each of four actual validation rows. It scored
+12 targets and reported mean loss 13.2682. The same frozen logits scored
+on the intended eight targets gave 0.3477.
+
+`learning/supervise.ck` emits the inclusive final target positions for
+a backend's declared range of sequence lengths. The corrected trial used
+this table through the trainer's batch-iterator interface for fitting and
+validation. The native ground compares selected positions across empty
+prompts, truncated sequences, empty completions and padded batches.
+
+Both subsequent fits used 192 synthetic teaching statements released
+through the ordinary owner and listener flow. Each set of independent
+paired evaluations was sealed before the model was scored. Every row
+compares complete owner-swapped pairs on identical inputs.
+
+| Evaluation | Parent | Candidate | Shuffled control | Why the candidate stayed held |
+| --- | ---: | ---: | ---: | --- |
+| Lower learning rate, original trainer | 7/12 | 9/12 | 6/12 | Changed a correct withhold into release |
+| Corrected loss boundary | 8/12 | 10/12 | 7/12 | Changed a correct withhold into release |
+| Equal-weight parent and adapter logits | 7/16 | 11/16 | 8/16 | Changed an undecided answer into withhold on a protected pair |
+
+The pooled trial initially put the same two-speaker transcript into both
+owner prompts. That comparison could not distinguish the owners.
+`learning/pair.ck` now rejects identical rendered prompts. The reported
+result used the original sealed transcripts, projected each owner's
+attributed words separately and checked all 32 input bytestrings against
+an independent rendering. The architecture and weights were fixed for
+both runs.
+
+## An admitted model in use
+
+The owned finite-grammar model completed the source-grant, teaching,
+evaluation, derivative-grant, activation and inference path. The fresh
+parent answered 0/6 held-out completions with 12 next-token mistakes.
+The fitted model answered 6/6 with zero mistakes. A matched control,
+trained on rotated verb labels, answered 0/6 with six mistakes.
+`learning/grade.ck` retains the prompt identity, expected and actual
+completion, and each mistaken position, including the end token.
+
+The receiving process generated “runs” and the end token using the
+exact approved artifact bytes. Withdrawing derivative permission
+prevented a fresh consumer from obtaining those bytes. The trial
+concerns a finite grammar. It uses the same eligibility and authority
+boundary as the 3B candidates above.

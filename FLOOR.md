@@ -403,6 +403,15 @@ running compiled code against frames all the way down).
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 
+The same delivery and evidence boundaries now support these observed runs.
+
+| Question | Observation |
+| --- | --- |
+| Can someone restore an old receiver and release a superseded grant? | A time-only witness let an old grant deliver 137 bytes. A separate witness retaining both control revisions refused that replay. A Linux guest signed its actual arrival, and the sender reconciled receipts out of order. [Mesh receipts](spec/mesh-receipts.md) |
+| Does the model respect evidence and a stop request? | On four synthetic prompts, the local 3B model accepted a false premise and invented a motive. The hosted session identified the superseded source. Both followed the source switch and respected the stop. [Prompts and observed answers](spec/model-behavior.md) |
+| Can a locally trained model reach a consumer under explicit permission? | The owned model improved from 0/6 to 6/6 held-out completions, reached inference through an independent derivative grant and became unavailable to a fresh consumer after withdrawal. Three further 3B comparisons improved aggregate results while each lost a protected owner pair. [Local learning](spec/local-learning.md) |
+| Can a gauge reading keep its uncertainty? | Two independent readers agreed on 12,090 mV in eight overlapping windows. The journal retained both readers' raw values and time brackets, including when the declared allowance crossed the interpretation boundary. [Instrument evidence](spec/observations.md) |
+
 ## Not there
 
 - **The rest of the NUMS engine.** The catalogue, constructed cells, conversion between scalar
