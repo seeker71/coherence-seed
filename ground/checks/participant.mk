@@ -1,3 +1,30 @@
+define participant_turns
+(set -eu; \
+  SOURCE_LANGUAGE=en; TARGET_LANGUAGE=id; export SOURCE_LANGUAGE TARGET_LANGUAGE TURN_HEAD ACTION READING_ID; \
+  p owner-head >"$$work/turn-owner-before"; p listener-head >"$$work/turn-listener-before"; \
+  printf %s 'We may share' | p turn-open >"$$work/open-turn"; TURN_HEAD="$$work/open-turn"; p turn-inspect >"$$work/open-view"; \
+  reading_id() { printf identity >"$$work/id-mode"; word "(speech.reading \"en\" \"We may share\" (speech.permission (speech.actor speech.$$1) (speech.action speech.share)) \"id\" (list \"$$2\") yes)" >"$$work/reading"; \
+    ./ck text ground/circle-exchange.ck 3<"$$work/id-mode" <"$$work/reading" | ./ck text lens/show-canonical.ck lens/all.ck | sed -n 's/^\[bytes \([0-9a-f]*\)\]$$/\1/p'; }; \
+  inclusive=$$(reading_id inclusive 'Kita boleh berbagi'); exclusive=$$(reading_id exclusive 'Kami boleh berbagi'); test -n "$$inclusive"; test -n "$$exclusive"; \
+  grep -F "$$inclusive" "$$work/open-view" >/dev/null; grep -F "$$exclusive" "$$work/open-view" >/dev/null; \
+  KEY_DIR="$$work/listener"; ACTION=correct; READING_ID=$$exclusive; refuse satsang.wrong-role p turn-sign; ACTION=propose; \
+  (READING_ID=missing; refuse satsang.unoffered p turn-sign); p turn-sign >"$$work/proposal"; p turn-advance <"$$work/proposal" >"$$work/proposed"; \
+  (unset KEY_DIR BROKER; p turn-advance <"$$work/proposal") | cmp - "$$work/proposed"; \
+  (ROSTER="$$work/other-reading"; p propose >"$$ROSTER"; printf %s 'We may share' | p turn-open >"$$work/other-opening"; \
+    refuse peer.wrong-control p turn-inspect; TURN_HEAD="$$work/other-opening"; refuse peer.wrong-control p turn-advance <"$$work/proposal"); \
+  TURN_HEAD="$$work/proposed"; KEY_DIR="$$work/owner"; ACTION=correct; READING_ID=$$inclusive; \
+  p turn-sign >"$$work/correction"; p turn-advance <"$$work/correction" >"$$work/corrected"; \
+  TURN_HEAD="$$work/corrected"; KEY_DIR="$$work/listener"; ACTION=silence; refuse satsang.malformed p turn-sign; READING_ID=; \
+  p turn-sign >"$$work/quiet"; p turn-advance <"$$work/quiet" >"$$work/quiet-head"; \
+  ./ck text lens/show-canonical.ck lens/all.ck <"$$work/quiet" | sed 's/peer\.listener/peer.owner/g' | $(CANONICAL_WORDS) >"$$work/changed-signer"; \
+  refuse ed25519.invalid-signature p turn-advance <"$$work/changed-signer"; \
+  ACTION=refuse; p turn-sign >"$$work/refusal"; p turn-advance <"$$work/refusal" >"$$work/refused-head"; \
+  TURN_HEAD="$$work/quiet-head"; refuse satsang.stale p turn-advance <"$$work/refusal"; refuse satsang.stale p turn-advance <"$$work/proposal"; \
+  p turn-inspect >"$$work/quiet-view"; grep -F 'satsang.silence' "$$work/quiet-view" >/dev/null; grep -F 'satsang.correction' "$$work/quiet-view" >/dev/null; \
+  TURN_HEAD="$$work/refused-head"; p turn-inspect | grep -F 'satsang.refusal' >/dev/null; \
+  p owner-head | cmp - "$$work/turn-owner-before"; p listener-head | cmp - "$$work/turn-listener-before"; test -z "$$(ls -A "$$BROKER/letters")")
+endef
+
 define participant_recovery
 (set -eu; \
   BROKER="$$work/recovering"; p establish >/dev/null; \
@@ -49,6 +76,7 @@ define verify_participant_account
   p establish >"$$work/agreement" & first=$$!; p establish >"$$work/other-result"; wait "$$first"; cmp "$$ROSTER" "$$work/agreement"; cmp "$$ROSTER" "$$work/other-result"; \
   test ! -e "$$BROKER/.seed-enrollment"; test -s "$$BROKER/private/first-roster"; \
   printf %s "$$(word peer.owner)" >"$$work/owner-role"; $(participant_recovery); \
+  $(participant_turns); \
   KEY_DIR="$$work/owner"; p join; p owner-head >"$$work/owner0"; p listener-head >"$$work/listener0"; \
   refuse journal.unrecorded p show; test -z "$$(find "$$work/owner/journal" -name "account-edition-*")"; test -z "$$(ls -A "$$BROKER/letters")"; \
   printf 'Private line about a fictional tree.\nI would like a quiet moment.\n' >"$$work/first"; \

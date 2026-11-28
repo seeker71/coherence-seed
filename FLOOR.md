@@ -9,7 +9,7 @@ and a separate x86-64 Linux guest. The current seed carries AArch64 machine code
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,152 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,159 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -354,7 +354,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   it. The berth is one room of the region, taken once when the door is opened, so it lies
   inside the allowance and a call that faults midway strands nothing.
 - **Door cells: a row called through a word of the head.** The head's `doors` record holds
-  64 cells, one word each, the process's own and saved as 0 at rest. `host.call` takes a cell
+  64 cells, one word each (and 16 beside them for floor leaves), the process's own and saved as 0 at rest. `host.call` takes a cell
   for a row the first time it meets one whose slots all go as words to integer registers,
   at most five, and whose result is a word, an integer, an address, a truth or nothing: the
   address is resolved once and stored in the cell, and the row's own cell (`held` of the row)
@@ -897,7 +897,7 @@ The same delivery and evidence boundaries now support these observed runs.
 | How do learned and transparent readers interpret the same owner's words? | On 32 synthetic statements the cue reader got 6 correct with 25 abstentions, the native specialist 20, the unchanged 3B model 22, and each raw LoRA 28. Each LoRA predicted permission for three statements about stopping, indecision or correction. On a separate undecided statement the native specialist predicted permission. The broker refused that prediction and delivered the excerpt only after the owner signed the grant for the waiting listener. [Intent comparison](spec/intent-specialist.md) |
 | Can a multilingual correction reach a listener under fresh consent? | The corrected Indonesian wording changed the exact review scope. A queued superseded position failed. After the original grant was withdrawn, the corrected text reached the receiving file only under a new listener invitation. [Translation and consent](spec/translation.md#offering-chosen-wording-to-a-reader) |
 | How is first enrollment distinguished from permission to share? | Both roles signed statements about the same roster and their own roles. Another validly endorsed episode could open a new broker. The advanced broker refused it and preserved its two consent records and delivered letter. [Participant commands](spec/participant-circle.md) |
-| Can two independent cells disagree, keep private accounts and stop delivery? | Birch and Reed each controlled their signer, journal and decisions on one host. A second invitation remained unanswered. Reed's signed pause blocked the next forward read and preserved the letter it had already received. Fresh consent in the reverse direction delivered Reed's different reading to Birch. An explicit Satsang silence turn still awaits an independent-cell witness. [Participant study](spec/participant-circle.md#what-two-independent-cells-observed) |
+| Can two independent cells disagree, keep private accounts and stop delivery? | Birch and Reed kept separate accounts. An invitation remained unanswered, and a signed pause preserved the existing letter and stopped further reads. In a separate Satsang exchange, Elm proposed an exclusive “we”, Ash corrected it to inclusive, and Elm chose explicit silence. An independent replay verified all three signatures. [Participant study](spec/participant-circle.md#what-two-independent-cells-observed) · [Signed turns](spec/participant-circle.md#signed-satsang-turns) |
 
 ## Not there
 
@@ -996,9 +996,35 @@ The same delivery and evidence boundaries now support these observed runs.
   A library leaf bound as an entry's implementation does not run the map, where the C ran it
   for operands of the right shape: it declines, and the map is reached by `native`. A map makes
   its device and pipeline anew each time, as the C did. The compiler does not yet emit a row
-  as moves and a call; code reaches a row only through `native` of a door leaf. A door is
+  as moves and a call for a row of a program that is walked; code reaches such a row only through
+  `native` of a door leaf (a floor leaf's own door call is the next entry). A door is
   taken outside a search only, since resolving the address calls the host. The 64 cells are
   never given back: a row past them goes through the berth.
+- **A floor leaf calls libSystem itself.** In `emit.floor` code, `(host.call (host.function-named
+  "NAME") (tuple a b ...))` is the arguments in place, `ldr x16, [x28, #cell]`, `blr x16` and the
+  result as a value (sign-extended for an integer result). The rows it takes are `door.rows` in
+  `form/doors.ck`, each with its count of values, its kind of result and whether it leaves
+  nothing; cell k is the k-th of the 16 `leaves` cells of the head's `doors` record, a place
+  (`fb.doors-leaves-at`) and not an address, and the walked door cells (64, `cells`) are beside
+  them and never touch them. `ice/seed.ck` carries one row of each door, a name and its k, and
+  the C that puts the seed in its cells resolves each name once for the process (5 lines; they
+  leave when a start of the seed runs Form before any leaf does). A leaf finds a cell empty,
+  or a row that leaves something with a choice open in the walker, and the whole leaf
+  declines, so the walker walks the row and answers what it answers (`irreversible` for
+  `close`). The compiler refuses a leaf that has a door call and a search of its own anywhere
+  (`choice`, `all`, `range` that is not an `if`): a decline there would be read as one arm
+  failing. A row not in the table, a count that differs, or arguments not written as a
+  `tuple` stop the compile. `ground/host-refused.ck` has floor leaves for `getpid`, `strlen`
+  of a text, `creat`, `write`, `read`, `lseek`, `close`, `unlink` and the clock: they answer
+  as the door, by name and through the berth do, inside and outside a search, with a value
+  held across the call; planted by changing the code words (a cell of another row, the guard
+  taken out, two arguments in the wrong places, a live register overwritten after the call)
+  and by writing another row's address in the cell, each is seen. Measured by `/usr/bin/time -l`,
+  5,000 against 10,000 walked calls and 100,000 against 200,000 in a compiled loop: a walked
+  `host.call` of `getpid` costs 63,500 instructions more than the loop alone (83,800 against
+  20,300), and a call from a leaf 60 with its loop. Not built: `host.call` itself as a leaf, rows
+  with a text, float or varying slot (`open`, `mmap`, the texts of the berth), a door call in a
+  leaf that searches.
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
   names the same node in each, but nothing yet carries a handle from one to another: `swap`,
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
