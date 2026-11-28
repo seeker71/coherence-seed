@@ -1996,7 +1996,7 @@ static void sow(int seen) {
   for (uint32_t i = 1; i < nd[x].n; i++) { H r = KID(x, i);      /* each row: a cell and the leaf it holds */
     if (!nd[r].comp || nd[r].n != 2 || !KID(r, 0)) die("a row of the seed, ice/seed.ck, is not a cell and its leaf");
     H c = KID(r, 0); int64_t k = -1; char name[64]; void *fn;
-    if (nd[c].bp == E(TEXT)) {   /* a row of a door: the name a leaf calls, and the place of its cell among the leaves */
+    if (nd[c].bp == E(BYTES)) {   /* a row of a door: the name a leaf calls, and the place of its cell among the leaves */
       if (nd[c].n >= sizeof name || !geti(KID(r, 1), &k) || k < 0 || (size_t)k >= sizeof fb->d.leaves / 8) die("a door row of the seed, ice/seed.ck, is not a name and a place");
       memcpy(name, bytes + nd[c].off, nd[c].n); name[nd[c].n] = 0; fn = host.symbol(name);
       memcpy(fb->d.leaves + 8 * k, &fn, 8); continue; }
