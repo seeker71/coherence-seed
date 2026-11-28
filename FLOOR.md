@@ -1,6 +1,6 @@
 # Floor
 
-Observations through **2026-11-28** cover an Apple M4 Max running macOS on AArch64, earlier Rosetta runs,
+Observations through **2026-11-29** cover an Apple M4 Max running macOS on AArch64, earlier Rosetta runs,
 and a separate x86-64 Linux guest. The current seed carries AArch64 machine code and refuses an x86-64 process at startup.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
@@ -98,9 +98,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   The resident worker reads the eight token IDs in one copy and returns eight ordered
   results by ID. A second turn can reuse the layout and deliver fresh values. Only
   the selected result ranges cross the port.
-  A live worker mounted the Llama model once, kept all 255 weight mappings across turns
-  for two distinct KV histories, and released them on retirement while the worker stayed
-  alive. Both histories agreed with the previous decoder on both process architectures.
+  On the M4 Max, one read-only mapping serves all 255 file tensors of Llama 3.2 3B
+  Q4_K_M. With the file cache warm, median mount time fell from 508 to 252 ms. Two
+  workers decoded independently from the same VM object with zero dirty weight pages.
+  Retiring one released its mapping while the other kept serving. All 8,208,384
+  logits in the eight-stream comparison were byte-identical to the private-mapping run.
   [Metal batches and resident turns](spec/nums.md#named-metal-batches)
   One resident worker also serves independent local client processes. A new request
   can receive its first token while an earlier request is still generating, and a
