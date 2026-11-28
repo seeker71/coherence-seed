@@ -477,7 +477,7 @@ status: inferred
 from: 3.14.4.3 3.14.1.3 3.14.3.1 3.14.2.6 3.6.9.1 3.6.2.6 3.6.3.3 3.7.8.6 4.2.8.6
 conf: high
 why: The 2025 definition says a compiled library is gas. The 2026 body drifted to calling its compiled image ice, and that image grew to 645 times its source. A piece that leaves C must already be compiled when a process starts, since the compiler runs on it, so what the seed carries cannot be gas.
-limit: Holds while the seed carries only floor leaves, which hold no address and read only the catalogue's fixed handles; on 2026-11-28 it carries the restore of a choice, 16,408 bytes of AArch64.
+limit: Holds while the seed carries only floor leaves, which hold no address and read only the catalogue's fixed handles; on 2026-11-28 it carries the restore of a choice, 15,760 bytes of AArch64.
 at: 2026-11-28
 
 n: 5.6.5
