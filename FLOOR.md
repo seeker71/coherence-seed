@@ -686,7 +686,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   tail block and the carries of the length field) and has the operation `id` and the walked Form
   answer alike. Planted in the leaf, each made cases differ: a wrong rotation, the pad edge one
   early (the messages of 55 and 119 bytes alone), the length taken as half, a pad byte of 129, a
-  changed start value. A leaf that does not compile stops the seed build at its first id, and a
+  changed start value. `form/seed.ck` needs each file that holds a cell to answer a node, so a leaf of the seed that does not compile (planted in `walk.restore` and in the digest) stops the build with nothing written, and a
   seed without the cell or with a leaf that does not run is refused at the first id with a plain
   line. The leaf takes about 40,000 instructions a block where the C took about 1,300
   (`/usr/bin/time -l`): a cold start of the numeric port, which makes the ids of the catalogue and of
