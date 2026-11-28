@@ -258,7 +258,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   package and class and public; every record, interface, function and method has a sentence that says what
   it answers or builds, kept beside the node as a row of `nums/names.ck` and printed as a comment by the
   Java, Python, C# and TypeScript rows (BML's functional style prints how often a recipe answers instead);
-  every parameter and local has a name there. A package that links another imports its class. Where a JDK
+  every parameter and local has a name there. A package that links another imports its class. Each C#
+  file names its own namespace and class from the same row (`Form.Write.Writer`, in C# casing; no two the
+  same) and links a sibling by `using static`; each TypeScript module exports. Parsed by `dotnet build`, eleven
+  of the C# files have no syntax error; `compile`'s list expressions with no clause print `( select …)`.
+  Where a JDK
   is found the check compiles the twelve against `form.Entry`, `Blueprinted`, `Fault`, `Recipe`, `Node` and
   `Runtime` as `nums/runtime-text.ck` writes them from the nodes (the operations of `form/operations.ck`,
   the part names of the lexicon), and the errors left, which are the Java's own, may not exceed

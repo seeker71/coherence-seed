@@ -1,7 +1,9 @@
 # The component packages shown in every language. Each package nums/write.ck lists below is written in Python, C#,
 # TypeScript, Java and BML by nums/write-text.ck, which links the libraries nums/libraries.ck lists for it. A render that
 # ends otherwise than by answering text (a fault, a signal, nothing) is refused. The Java of each names its own package and
-# class, no two the same, and every record, interface and function in it is preceded by its Javadoc line. Each rule is run
+# class, no two the same, and every record, interface and function in it is preceded by its Javadoc line. The C# of each names
+# its own namespace and class (the Java's, in C# casing), no two the same, and only the writer's says Form.Write; each links
+# its siblings by using static; every TypeScript module exports. Each rule is run
 # against a planted file and must refuse it. Where a JDK is found, the twelve are also compiled against a runtime that
 # nums/runtime-text.ck writes from the nodes (the engine operations of form/operations.ck, the part names of the lexicon):
 # the errors that remain are the Java's own, and they may not exceed JAVA_ERRORS, which is lowered and never raised.
@@ -38,6 +40,21 @@ define verify_packages
   if refers "$$work/copy.java"; then echo "a copy of a linked package was taken for a reference to it"; exit 1; fi; \
   printf 'package form.a;\npublic final class A {\n' > "$$work/one.java"; printf 'package form.a;\npublic final class A {\n' > "$$work/two.java"; \
   test "$$(for f in "$$work/one.java" "$$work/two.java"; do printf '%s %s\n' "$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f")" "$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f")"; done | sort -u | wc -l | tr -d ' ')" = 1; \
+  for f in "$$work"/*.csharp; do printf '%s %s\n' "$$(sed -n 's/^namespace \(.*\);$$/\1/p' "$$f")" "$$(sed -n 's/^public static class \([A-Za-z]*\)$$/\1/p' "$$f")"; done > "$$work/cs-names"; \
+  test "$$(grep -c '^Form\.[A-Z][A-Za-z]* [A-Z][A-Za-z]*$$' "$$work/cs-names")" = "$$(wc -l < "$$work/cs-names" | tr -d ' ')"; \
+  distinct() { test "$$(sort -u "$$1" | wc -l | tr -d ' ')" = "$$(wc -l < "$$1" | tr -d ' ')"; }; \
+  distinct "$$work/cs-names" || { echo "two C# packages share a namespace and class"; exit 1; }; \
+  printf 'Form.A A\nForm.A A\n' > "$$work/planted-names"; \
+  if distinct "$$work/planted-names"; then echo "a class named twice was accepted"; exit 1; fi; \
+  says_write() { grep -l '^namespace Form\.Write;$$' "$$@"; }; \
+  test "$$(says_write "$$work"/*.csharp)" = "$$work/write.csharp" || { echo "a C# file other than the writer's says Form.Write"; exit 1; }; \
+  printf 'namespace Form.Write;\n' > "$$work/other.csharp"; \
+  test "$$(says_write "$$work/write.csharp" "$$work/other.csharp")" != "$$work/write.csharp" || { echo "a C# file that says Form.Write for another package was accepted"; exit 1; }; \
+  for p in part bml-link bml-methods; do grep -q '^using static Form\.Bmf\.Items;$$' "$$work/$$p.csharp" || { echo "the C# of $$p does not link Items by using static"; exit 1; }; done; \
+  exports() { for f in "$$@"; do grep -q '^export ' "$$f" || { echo "  $$f exports nothing"; return 1; }; done; }; \
+  exports "$$work"/*.typescript; \
+  printf 'function f() {}\n' > "$$work/planted.ts"; \
+  if exports "$$work/planted.ts" > /dev/null; then echo "a TypeScript module that exports nothing was accepted"; exit 1; fi; \
   test -z "$$(printf 'lens/words.ck' | ./ck text nums/duplicate-words.ck)" || { echo "a word of lens/words.ck is written twice"; exit 1; }; \
   printf '(bind lens.words {| (quote (list (list "a" root) (list "b" root) (list "a" root)))})' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/twice.ck"; \
   test "$$(printf '%s' "$$work/twice.ck" | ./ck text nums/duplicate-words.ck)" = a || { echo "a word written twice was not listed"; exit 1; }; \
@@ -73,5 +90,5 @@ define verify_packages
     if parses_python "$$work/planted.py"; then echo "python took an empty block"; exit 1; fi; \
     echo "packages: the Python of the twelve parses"; \
   else echo "packages: the Python was not parsed: no python3 found"; fi; \
-  echo "packages: each package written in five languages, none faulting; each Java names its own package and class and documents every part"
+  echo "packages: each package written in five languages, none faulting; each Java and C# names its own package and class, each Java documents every part, each TypeScript module exports"
 endef
