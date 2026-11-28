@@ -251,15 +251,27 @@ Each line here is held by a program in `make check-full`, or names how it was se
   languages. Reading those larger packages as syntax trees and executing a supported method are
   separate checks. For a linked projection, the writer follows referenced declarations to
   determine whether each call can yield several answers. [Component views](spec/nums.md)
-- **Twelve packages read in five languages, and the Java stands apart.** `nums/write.ck`, `arm`,
-  `compile`, `part`, `resolve`, `classes`, `bmf/items`, `bml-methods`, `bml-link`, `view-patterns`,
+- **Twelve packages read in five languages; the Java is compiled, with errors of its own.** `nums/write.ck`,
+  `arm`, `compile`, `part`, `resolve`, `classes`, `bmf/items`, `bml-methods`, `bml-link`, `view-patterns`,
   `bml-alphabet` and `lens/identifier-model` are each written in Python, C#, TypeScript, Java and BML
   without a fault (`ground/checks/packages.mk`, in `make check-held-back`). Each Java file is in its own
-  package and class, public, and every record, interface and function has a Javadoc line; a package that
-  links another imports its class and does not copy it. The Java of these packages is not yet compiled:
-  the only runtime it is run against is the one for `ground/search-package.ck`, its parameters are
-  `Object` and `List<?>` (so a receiver of either does not compile in any runtime), and about one line in
-  a hundred runs past 120 columns.
+  package and class and public; every record, interface, function and method has a sentence that says what
+  it answers or builds, kept beside the node as a row of `nums/names.ck` and printed as a comment by the
+  Java, Python, C# and TypeScript rows (BML's functional style prints how often a recipe answers instead);
+  every parameter and local has a name there. A package that links another imports its class. Where a JDK
+  is found the check compiles the twelve against `form.Entry`, `Blueprinted`, `Fault`, `Recipe`, `Node` and
+  `Runtime` as `nums/runtime-text.ck` writes them from the nodes (the operations of `form/operations.ck`,
+  the part names of the lexicon), and the errors left, which are the Java's own, may not exceed
+  `JAVA_ERRORS`, which is lowered and never raised. What stays open: a parameter or member that the nodes
+  call any is `Object`, and a list is `List<?>`, so a receiver of either does not compile (the nodes hold no
+  row that says a list holds nodes); a parameter that the body indexes and never tests as yes or no is
+  `Node`, found by a one-off pass and not by the lens; `compile` is not retyped, since its parameter types
+  change what its emitter writes; the stub's `Node` answers `Node` for every part but `place` and `arity`
+  (numbers), since the lexicon holds no kind per part; a few lines run past 120 columns; the Python
+  imports a runtime name that only a sentence mentions; the writer and the compiler are one class each;
+  there is no precondition or typed exception at a public entry. No word of `lens/words.ck` is written twice
+  (`nums/duplicate-words.ck`), and a package with no row in `nums/packages.ck` faults in a language that
+  names its package (the Java).
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed

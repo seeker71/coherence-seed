@@ -1327,8 +1327,11 @@ are not all records of the package is not declared and is spelled as the languag
 the package calls and no package declares is a row of `write.answers`, with how often it answers. A
 block, a `let` or an `if-else` in a place that holds a value is written as statements that assign a
 declared local where the language has `write.assign`, and as `seq(...)` or `let(value, name -> body)`
-where it does not. Where a language has a `write.doc` row, each record, interface and function is
-preceded by one line made from its name, its package and how often it answers. Where the Java rows have `write.composed`, a package that `nums/libraries.ck` links is not written again: its
+where it does not. Where a language has a `write.doc` row, each record, interface, function and method is
+preceded by one line. The line is a sentence kept beside the node as a row of `nums/names.ck`,
+`(write.row (write.doc owner method) "what it answers or builds")` for a method and
+`(write.row (write.doc name) "...")` for the rest, which the Java, Python, C# and TypeScript rows print as a comment; a
+declaration with no such row gets a line made from its name, its package and how often it answers. Where the Java rows have `write.composed`, a package that `nums/libraries.ck` links is not written again: its
 class is imported by `import static` and its declarations stay in it. The twelve packages are
 written in all five languages by the check `ground/checks/packages.mk`; the Java of each stands alone
 in its own package and class, and the check refuses a part without its line.
