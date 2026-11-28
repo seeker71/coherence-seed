@@ -11,6 +11,7 @@ LDLIBS ?= -pthread -ldl -lrt
 endif
 BOOT = bootstrap/ck.c bootstrap/fb.h
 LONG = ground/long-recursion.ck
+STORE = ground/region-describes-itself.ck
 # Images of starts at rest that a check makes lie in a folder of its own in the tree, ignored by git, which it removes.
 IMAGES = "$$(mktemp -d "$$PWD/.ck-images.XXXXXX")"
 # A start saves its images in the user's cache unless CK_IMAGES says where; what make runs keeps them in the tree.
@@ -184,7 +185,7 @@ G = .ck-ground
 # the machine's memory.
 ground-isolated: ck fb
 	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; stale=/ck.ground.$$$$.s; images=$(IMAGES); export CK_IMAGES="$$images"; \
-	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
+	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; ./fb drop '$$name'.d 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
 	  export CK_SHARE=$$name CK_SHARE_BYTES=536870912; \
 	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
@@ -207,7 +208,9 @@ ground-isolated: ck fb
 	  (printf %s $$stale | env -u CK_SHARE ./ck run ground/substrate-stale.ck > $(G).stale 2>&1 &); sleep 1.3; \
 	  ( (sleep 2; cat ground/add.ck) | ./ck run /dev/stdin $(MEMBER) > /dev/null 2>&1 &); sleep 3.2; \
 	  [ "$$(cat $(G).stale)" = 'node (#16)' ] && ! $(call shown,$$stale) > /dev/null 2>&1 || { echo "ground: burying through a stale mapping: $$(cat $(G).stale)"; exit 1; }; \
-	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; and a process that buried through its mapping of a substrate already ended left the live one of that name alone"
+	  direct=$$(CK_SHARE=$$name.d CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456 ./ck run $(STORE) $(MEMBER) 2>&1); alone=$$(env -u CK_SHARE CK_MEMORY_BYTES=268435456 ./ck run $(STORE) 2>&1); \
+	  [ "$$direct" = "$$alone" ] || { echo "ground: a member making with no choice open answered: $$(printf %s "$$direct" | cut -c1-300)"; exit 1; }; \
+	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; a process that buried through its mapping of a substrate already ended left the live one of that name alone; and a member running $(STORE) with no choice open, whose leaf publishes what it makes, answered what a process alone answers"
 
 # All of them in one process, which is entered from the image of its start region/all.ck, saved at rest by the process
 # before it; the image must be the one that process saved, not one made again: so each expectation is held cold, as a

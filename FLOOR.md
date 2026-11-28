@@ -504,13 +504,23 @@ Each line here is held by a program in `make check-full`, or names how it was se
   children's count and writes the record past the node count, and then writes the children's
   count, the index's place and the node count in one act. Walked it cannot be right, since its own integers are nodes made at the place it writes
   (seen: the record it wrote was an integer's); compiled it makes none. So it runs only as a leaf
-  `native` runs, where it answers `no` for what only the C can do (a member, a settling make, an
-  index or an area that must grow, content the rule may refuse), and the C's `join` makes it. The
+  `native` runs, where it answers `no` for what only the C can do (a settling make of a process
+  alone, an index or an area that must grow, content the rule may refuse, another lane's node
+  this run may not yet see), and the C's `join` makes it. In a member it makes as the C does: under
+  a choice into its working index, raising its lane's count; with no choice open it publishes
+  by one run: a swap of the substrate's tide, a swap of the settled index's empty place from 0 to
+  the node, then the counts, the lane's count and its settled mark. The place is where the probe
+  of the index stopped; equal content met before it declines, and so does either swap answering
+  another value, before any count is written (the record past the count stays unseen, and a
+  bumped tide only makes a look at the lanes repeat). The
   emitter takes three things for it: a store in such a leaf that is not its last act writes only
   past the count of a lane's area (nodes, leaf bytes, children), checked as it runs, where walked
   code and `serve` neither read nor write, so a decline after it changes nothing they can see; a
   sequence of stores as the leaf's last act, each an argument or a number and the head only at a
-  lane area's count, raised and within its peak, is checked whole before any is written; and
+  lane area's count, raised and within its peak, and the lane's own count and mark only with the
+  value the node count takes, is checked whole before any is written; such a run may begin with
+  swaps of the settled index (from 0 only) and the tide, each of which must answer what it
+  expected or none of what follows is written; and
   such a leaf may call definitions that take, swap and store in rooms nothing, but not itself
   again. A lane's area holds the rest of the page it was charged for, so there is room past its
   count. A leaf may so count records it never wrote: it is as trusted as `host`. `ground/region-describes-itself.ck`
@@ -519,12 +529,27 @@ Each line here is held by a program in `make check-full`, or names how it was se
   blueprints, and every one agrees: refused, new or the same node, the count after it, the
   children's count, blueprint, kind, length, place, children, the record's flags, and that the
   index finds it; an index place one past, a children's count not raised, a length one more, a
-  settled flag and a rule that takes the catalogue's blueprints, each planted, made cases differ. A make from walked code costs 2,700 to 5,200
+  settled flag and a rule that takes the catalogue's blueprints, each planted, made cases differ.
+  It also makes 300 composites with no choice open, compared with the C's records of their
+  siblings (a member's leaf makes them and publishes them, and its index then has no empty place
+  for content already settled), keeps the lane's count with the node count, and swaps a place of
+  the settled index and the tide with values they do not hold, two swaps whose first fails, and
+  a store to another lane's record, each of which declines: a swap whose answer is not checked, a
+  swap from any value, later swaps run after a failed one, a lane store not checked, a place taken
+  over equal content, a lane count not raised and a record with the wrong settled flag, each
+  planted, made it differ. Not seen by it: a settled mark left unraised (the next commit settles
+  it), a tide not moved (the C's own settled makes move it), and a seek that takes another lane's
+  node before that lane marked it settled (only another member can show it). `ground-isolated` runs it once more as a
+  member with no choice open, in a substrate of its own. Members racing to make the same content (the
+  round probes race, fwd and fwd2 with every list made by the leaf, and 3,000 makes of the same
+  content in three members at once, `.kit/jit/r6`) answered what one member answers, and the
+  holder made every settled node again as itself. A make from walked code costs 2,700 to 5,200
   instructions against 400 to 2,400 for the C's `join` over four runs (2,000 and 4,000 makes of
   new content, less the loop; runs vary), so the C's make stays the store.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
-  `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
-  and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in
+  `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
+  (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls
+  `serve` as before; `handle` keeps what `adopt` asks of it in
   two words of the machine (layout 29), not in C. A leaf's first word branches to a check that
   declines, so the walker answers, while a binding from outside or of the program's own sits on an
   operation the leaf runs, or a definition it carries is bound to another recipe than the one it
