@@ -453,7 +453,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   declines, so the walker answers, while a binding from outside or of the program's own sits on an
   operation the leaf runs, or a definition it carries is bound to another recipe than the one it
   was compiled from or by a binding made since, or the leaf carries definitions and runs in another
-  process than the one that made it; calls inside the leaf go past it. `ground/code-on-nodes.ck` binds `count` and
+  process than the one that made it, or is itself bound from outside; calls inside the leaf go past
+  it. The emitter compiled by itself writes the same leaves as walked (`ground/compiles-its-own.ck`),
+  measured once at 2.4 s against 8.5 s for the definitions it does not compile. `ground/code-on-nodes.ck` binds `count` and
   a callee inside a run, under a fail and kept, and from outside, bound and taken away, while two
   compiled definitions and a leaf run by `native` are live: every answer is the walker's, and the
   emitter with either check taken out made cases differ. The check costs about 90 instructions at
