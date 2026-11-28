@@ -11,6 +11,7 @@ define verify_participant_account
   OWNER=Juniper; LISTENER=Lark; CIRCLE="Imagined rehearsal"; BROKER="$$work/broker"; ROSTER="$$work/roster"; export OWNER LISTENER CIRCLE BROKER ROSTER; \
   KEY_DIR="$$work/owner"; export KEY_DIR; p key; KEY_DIR="$$work/listener"; p key; \
   OWNER_PUBLIC="$$work/owner/public"; LISTENER_PUBLIC="$$work/listener/public"; export OWNER_PUBLIC LISTENER_PUBLIC; p propose >"$$ROSTER"; inspect_roster; ROLE=owner; KEY_DIR="$$work/owner"; export ROLE; p endorse >"$$work/owner.ok"; ROLE=listener; KEY_DIR="$$work/listener"; p endorse >"$$work/listener.ok"; \
+  dd if="$$work/roster.records" of="$$work/partial-roster" bs=20 count=1 2>/dev/null; (ROSTER="$$work/partial-roster"; refuse '"short"' p inspect); \
   printf %s same-keys >"$$work/mode"; printf %s '#32' | ./ck text ground/peer-case.ck 3<"$$work/mode" >"$$work/invalid-roster"; (ROSTER="$$work/invalid-roster"; refuse peer.invalid-roster p inspect); \
   OWNER_ENDORSEMENT="$$work/owner.ok"; LISTENER_ENDORSEMENT="$$work/listener.ok"; export OWNER_ENDORSEMENT LISTENER_ENDORSEMENT; \
   rc=0; (OWNER_ENDORSEMENT="$$work/listener.ok"; p establish) >"$$work/refusal" 2>"$$work/failure-reason" || rc=$$?; test "$$rc" != 0; grep -F "fault $$(word ed25519.invalid-signature)" "$$work/failure-reason" >/dev/null; test ! -e "$$BROKER"; \

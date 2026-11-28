@@ -107,9 +107,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   paused client can resume its own context. Eight clients on nine requests matched
   all 106 predictions from llama.cpp at the same batch width on arm64 and Rosetta.
   On an M4 Max, eight local clients decoding eight positions on Llama 3.2 3B Q4_K_M
-  reached 635 tokens/s with the packed stream service, up from 611. llama.cpp reached
-  767 on the same weights and inputs. These are medians of 15 warm runs; all three
-  returned the same 64 tokens on every run.
+  reached 647 tokens/s when the worker submitted the first 48 of 468 dispatches early.
+  The single-buffer service reached 615 and llama.cpp reached 740 on the same weights
+  and inputs. All three returned the same 64 tokens in each of 15 measured warm runs.
+  In 40 traced turns the GPU ran the prefix while the CPU encoded the suffix, with a
+  median overlap of 0.79 ms.
   [Independent local decode streams](spec/nums.md#independent-local-decode-streams)
   On Apple Silicon, a generation request can run a model-selected Form recipe by
   ID. Two local clients elicited different operators from the same mounted Llama
@@ -627,8 +629,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
     process. The rows after the first are called only by the leaf itself: they keep x27 and x28
     as the caller has them, save x19 to x26 and the arguments they read, and give the status as
     it is. An area's base and bound are read once for a run of loads and stores of it in a
-    `seq` or `let`, and again after the slow path. An inlined callee's constant or argument is
-    put in place of its slot.
+    `seq` or `let`, and again after the slow path, and it passes through a call to an inlined row
+    whose arguments are all put in place. An offset of a small constant added to or taken from
+    a value is a plain add or sub: a wrapped sum is negative or beyond every bound, so the
+    check sends it to C, which refuses it as before. An area access in every mode checks sign
+    and alignment with one `tst`. An inlined callee's constant or argument is put in place of
+    its slot.
   - In every mode, a part is spilled only when the registers it can use do not fit, a constant
     area and width are put in registers only on the slow path, and add and sub of a constant
     under 4,096 take it as an immediate.
@@ -652,7 +658,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   - The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles both
     leaves, and writes the list with `bin.write`. `make header` writes it, and `check-header`
     builds it again on the seed itself, walking with its own return, and compares the bytes:
-    the same 23,839, leaves of 8,996 and 14,740 bytes. `check-held-back` holds that leaves the
+    the same 22,167 bytes. `check-held-back` holds that leaves the
     run compiles again and holds mid-run return and restore as the seed's do.
   - Held: the catalogue answered alike under the C walker of `733d27a` and under the seed's
     return, each of the 77 programs' outcome and its verdict, one process each at the default
@@ -671,8 +677,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
     process). A refusal at the stack's floor inside code is now said to the caller, where
     before the caller read the argument it gave as the answer.
   - Cost, measured with `/usr/bin/time -l`, N rounds against 2N: a round of a counting loop
-    `{n | (if (n = 0) 0 (call (self) (n - 1)))}` takes about 7,800 instructions against 4,420
-    with the C return of `733d27a`, and a call of `fib` about 9,100 against 4,650 (10,000 and
+    `{n | (if (n = 0) 0 (call (self) (n - 1)))}` takes about 7,100 instructions against 4,420
+    with the C return of `733d27a`, and a call of `fib` about 8,300 against 4,650 (10,000 and
     11,800 before the floor mode above). The return is the walker's step and costs about twice
     the C until `eval` is in compiled code too and a run stays inside it.
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one

@@ -320,6 +320,18 @@ pairs the batch with byte updates to declared scratch views. This lets one plan
 serve changing rotary positions, KV slots, masks and initial token IDs. `metal.retire`
 releases the worker's ownership and makes the ID available for a fresh mount.
 
+A worker can call `metal.schedule-batch(batch, boundary)` by ID. A positive boundary
+counts the stages in the first submission and must leave at least one stage in the
+second. Zero restores single-buffer execution. The choice belongs to that exact
+batch in the worker and takes effect on its next resident turn.
+
+The station prepares both call lists before submitting either. Each encoder starts
+with its own pipeline and argument bindings. Both command buffers use the station's
+queue, so the GPU can execute the prefix while Form replays the suffix onto the
+second encoder. Readback follows completion of both buffers. The station tracks
+the last submitted buffer so it can finish pending work before releasing resources
+on a fault or failed choice. [Metal command ordering](https://developer.apple.com/library/archive/documentation/Miscellaneous/Conceptual/MetalProgrammingGuide/Cmd-Submiss/Cmd-Submiss.html)
+
 The station keeps the layout of its most recent readback list. When the list changes,
 Form validates each selection against the allocation, then groups consecutive selections
 of the same buffer whose combined span fits within one logical VM page. A selection
