@@ -445,7 +445,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **From outside the run.** A binding made outside is seen at every layer and is not undone by
   a fail. A second process asks a running program to evaluate a node and gets back how it
   ended: it put a counter on every addition, read it twice as it rose and took it off. The
-  asker takes `region/all.ck` as its start, so every ask after the first enters its image: about
+  asker takes `region/all.ck` as its start, so where an image folder is found an ask after the
+  first enters its image: about
   240 M instructions an ask against 2,370 M when it stepped the file itself, the same answers.
 - **The encoding.** All of it is written in form from its page: the reader and printer of the
   print, the canonical bytes, SHA-256 and the id, and the reader of bytes. Bound in place of the

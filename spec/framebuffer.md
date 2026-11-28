@@ -425,7 +425,8 @@ refused with `kind`. The answer is what `outcome` gives: `(list "node" v)`, `(li
 `(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
 in `answered`, is answered with no bytes, and the asker answers `(list "nothing" "unanswered")`.
 
-`region/ask.ck`, written in form, is the asker, run with `region/all.ck` as its start. Its first line of input is the region's name and
+`region/ask.ck`, written in form, is the asker, run with `region/all.ck` as its start. Its first
+line of input is the region's name and
 the rest a node in the lens's words:
 
 ```bash

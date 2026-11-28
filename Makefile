@@ -47,8 +47,8 @@ PLACES = printf '(seq (step (read (file "form/nodes.ck"))) (step (read (file "re
 PRINTER = printf '(seq (step (read (file "form/nodes.ck"))) (bin.write (step (read (file "form/printer.ck")))))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-printer.run && ./ck text .ck-printer.run
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
-	$(PLACES) > .ck-places && mv .ck-places region/places.ck; rm -f .ck-places.run
-	$(PRINTER) > .ck-print && mv .ck-print form/print.ck; rm -f .ck-printer.run
+	$(PLACES) > .ck-places && mv .ck-places region/places.ck && rm -f .ck-places.run
+	$(PRINTER) > .ck-print && mv .ck-print form/print.ck && rm -f .ck-printer.run
 	./ck text form/seed.ck > .ck-seed && mv .ck-seed ice/seed.ck
 
 # Wait until the region named $name stands, for at most ten seconds.
