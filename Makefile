@@ -48,6 +48,7 @@ header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
 	$(PLACES) > .ck-places && mv .ck-places region/places.ck; rm -f .ck-places.run
 	$(PRINTER) > .ck-print && mv .ck-print form/print.ck
+	./ck text form/seed.ck > .ck-seed && mv .ck-seed ice/seed.ck
 
 # Wait until the region named $name stands, for at most ten seconds.
 up = n=0; until ./fb show $$name > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
@@ -159,17 +160,16 @@ check-full: check
 	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
 
 check-header: ck
-	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && rm -f .ck-places.run && echo "header: bootstrap/fb.h, region/places.ck and form/print.ck are what the nodes generate" || \
-	  { rm -f .ck-places.run; echo "header: bootstrap/fb.h, region/places.ck or form/print.ck is not what the nodes write; run make header"; exit 1; }
+	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && rm -f .ck-places.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck and the seed ice/seed.ck are what the nodes generate, the seed built again on itself the same bytes" || \
+	  { rm -f .ck-places.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck or ice/seed.ck is not what the nodes write; run make header"; exit 1; }
 
 
 # A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which loads the host's and
 # the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
 # it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
-# Once $(FLOOR) is read a fail is restored by the walker's restore compiled from Form, not by the C: ground-isolated
-# runs the catalogue so, and ground-together on the C, so both hold every expectation. A member reads it in its program,
-# after joining: compiling asks for handles, and a start that gave handles is not adopted.
+# Every process restores a fail by the leaf the seed, ice/seed.ck, holds in the cell of choice-point. $(FLOOR) compiles
+# that leaf again in the run that reads it, and the leaf it makes must restore as the seed's does.
 FLOOR = form/walk.ck
 # A canonical print written here is read by the reader in form and stored as the records ck reads.
 NODES = ./ck text form/from-print.ck
@@ -189,12 +189,11 @@ G = .ck-ground
 # the machine's memory.
 ground-isolated: ck fb
 	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; stale=/ck.ground.$$$$.s; images=$(IMAGES); export CK_IMAGES="$$images"; \
-	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; ./fb drop '$$name'.d 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2 $(G).floored; exit $$rc' EXIT; \
-	  printf '(seq (step (read (file "%s"))) (step (read (file "ground/check-one.ck"))))' $(FLOOR) | ./ck text lens/to-nodes.ck lens/all.ck > $(G).floored; \
+	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; ./fb drop '$$name'.d 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
 	  export CK_SHARE=$$name CK_SHARE_BYTES=536870912; \
 	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
-	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run $(G).floored $(MEMBER) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
+	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck $(MEMBER) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
 	    wait; $(call shown,$$name) > $(G).lanes; cat region/one-handle.ck; } | ./ck text /dev/stdin $(MEMBER) > $(G).held; \
 	  differences=$$(cat $(G).differences); held=$$(cat $(G).held); victim=$$(cat $(G).victim); \
 	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \
@@ -215,7 +214,7 @@ ground-isolated: ck fb
 	  [ "$$(cat $(G).stale)" = 'node (#16)' ] && ! $(call shown,$$stale) > /dev/null 2>&1 || { echo "ground: burying through a stale mapping: $$(cat $(G).stale)"; exit 1; }; \
 	  direct=$$(CK_SHARE=$$name.d CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456 ./ck run $(STORE) $(MEMBER) 2>&1); alone=$$(env -u CK_SHARE CK_MEMORY_BYTES=268435456 ./ck run $(STORE) 2>&1); \
 	  [ "$$direct" = "$$alone" ] || { echo "ground: a member making with no choice open answered: $$(printf %s "$$direct" | cut -c1-300)"; exit 1; }; \
-	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate, each fail restored by the leaf of $(FLOOR), while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; a process that buried through its mapping of a substrate already ended left the live one of that name alone; and a member running $(STORE) with no choice open, whose leaf publishes what it makes, answered what a process alone answers"
+	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate, each fail restored by the leaf of the seed, which a member holds before it joins, while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; a process that buried through its mapping of a substrate already ended left the live one of that name alone; and a member running $(STORE) with no choice open, whose leaf publishes what it makes, answered what a process alone answers"
 
 # All of them in one process, which is entered from the image of its start region/all.ck, saved at rest by the process
 # before it; the image must be the one that process saved, not one made again: so each expectation is held cold, as a
@@ -252,8 +251,8 @@ check-ice: ck fb
 	  pages "$$one" > "$$d/pages"; rm -f "$$one"; CK_MEMORY_BYTES=67108864 ./ck run "$$d/program.ck" "$$d/start.ck" > /dev/null; \
 	  pages "$$one" | cmp -s - "$$d/pages" || { echo "  a start saved at another allowance saved other pages"; fail=1; }; \
 	  if [ "$$(uname -m)" = arm64 ] && arch -x86_64 /usr/bin/true 2>/dev/null && mkdir -p "$$d/x86/region" "$$d/x86/form" && cp region/rest.ck "$$d/x86/region/" && cp form/nodes.ck form/print.ck "$$d/x86/form/" && $(CC) -arch x86_64 $(CFLAGS) -o "$$d/x86/ck" bootstrap/ck.c 2>/dev/null; then \
-	    rm -f "$$one"; is "$$(arch -x86_64 "$$d/x86/ck" run "$$d/program.ck" "$$d/start.ck" 2>&1)" 'node [#4 01]' 'built for x86-64'; \
-	    pages "$$one" | cmp -s - "$$d/pages" || { echo "  the executable built for x86-64 saved other pages"; fail=1; }; fi; \
+	    mkdir -p "$$d/x86/ice" && cp ice/seed.ck "$$d/x86/ice/"; rm -f "$$one"; is "$$({ arch -x86_64 "$$d/x86/ck" run "$$d/program.ck" "$$d/start.ck" 2>&1; echo "exit $$?"; } | tr '\n' ' ')" 'ck: the seed, ice/seed.ck, carries code for AArch64 alone, and this processor is another exit 2 ' 'built for x86-64'; \
+	    is "$$(image)" '' 'a start refused for its processor'; fi; \
 	  rm -f "$$one"; ask > /dev/null; cmp -s "$$one" "$$d/first" || { echo "  a build after the others differs from the first"; fail=1; }; \
 	  bind 2; is "$$(ask)" 'node [#4 02]' 'a start file changed'; \
 	  cp -p "$$d/start.ck" "$$d/before"; bind 3; touch -r "$$d/before" "$$d/start.ck"; is "$$(ask)" 'node [#4 03]' 'changed with its size and times put back'; \
@@ -295,12 +294,12 @@ check-ice: ck fb
 	  shared=$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l); is "$$(env -u CK_IMAGES HOME= ./ck run "$$d/program.ck" "$$d/start.ck")" "$$(CK_IMAGES= ask)" 'a start with no HOME'; is "$$(ls -R /Library/Caches/coherence-seed 2>/dev/null | wc -l)" "$$shared" 'images kept without a HOME'; \
 	  printf '(#89 #103 (#34 (#89 [#2 61] [#4 01])))' | $(NODES) > "$$d/a.ck"; printf '(#89 #103 (#34 (#89 [#2 62] [#4 02])))' | $(NODES) > "$$d/b.ck"; printf '(#70 #16 (#43 (#40 (#90 [#2 61]) (#90 [#2 62]))))' | $(NODES) > "$$d/ab.ck"; \
 	  is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'two files each leaving what runs after'; is "$$(./ck run "$$d/ab.ck" "$$d/a.ck" "$$d/b.ck")" 'node (#16 [#4 01] [#4 02])' 'the same start entered'; \
-	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start saved at another allowance, and by the executable built for x86-64 where it runs, saved the same pages; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept, and nothing not its own touched"; \
+	  [ $$fail = 0 ] && echo "stale: every case answered as a cold start, and no image it must not enter was entered; a start saved at another allowance saved the same pages, and the executable built for x86-64, where it runs, was refused at start and saved none; a start entered the image of its part at rest and ran the rest; a directory over its cap after a save was under it, the image just saved kept, and nothing not its own touched"; \
 	  [ $$fail = 0 ]
 
 check-native: ck
 	@set -e; if [ "$$(uname -s)" = Darwin ] && ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/native-add.ck; then \
-	  home=$$(mktemp -d); binary="$$home/ck"; trap 'rm -rf "$$home"' EXIT; mkdir "$$home/form"; cp form/print.ck "$$home/form/"; cp ck "$$binary"; chmod +x "$$binary"; \
+	  home=$$(mktemp -d); binary="$$home/ck"; trap 'rm -rf "$$home"' EXIT; mkdir "$$home/form"; cp form/print.ck "$$home/form/"; mkdir "$$home/ice"; cp ice/seed.ck "$$home/ice/"; cp ck "$$binary"; chmod +x "$$binary"; \
 	  codesign -f -s - --options runtime --entitlements bootstrap/jit.entitlements "$$binary" 2>/dev/null; \
 	  test "$$("$$binary" run ground/native-add.ck)" = 'node [#4 2a]'; \
 	  echo "native: generated code and frames agree under the hardened runtime"; \
@@ -324,7 +323,7 @@ check-replay: ck fb
 check-held-back: ck
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); floor=$$(./ck run ground/held-back.ck $(FLOOR) | tr '\n' ' '); \
 	  if [ "$$floor" = "$$got" ] && [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
-	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it, restored by the C and by the leaf of $(FLOOR) alike"; \
+	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it, restored by the seed's leaf and by the leaf $(FLOOR) compiles in the run alike"; \
 	  else echo "held back: '$$got', after $(FLOOR): '$$floor'"; exit 1; fi
 
 check-bare: ck

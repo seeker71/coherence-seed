@@ -470,14 +470,15 @@ conf: high
 at: 2026-11-24
 
 n: 5.6.4
-name: compiled-code-is-not-ice
+name: compiled-code-is-gas-but-the-seed
 kind: decision
-is: Machine code is a materialization of a recipe for one target. It lives as gas in memory and may be kept as water in a cache keyed by recipe id, generator id and target id. Losing it loses nothing.
+is: Machine code is a materialization of a recipe for one target. It lives as gas in memory and may be kept as water in a cache keyed by recipe id, generator id and target id; losing it loses nothing. The one exception is the seed: the leaves a process holds before anything is walked, which only compiled code can be, are ice, kept in git, small, and made again by the seed itself the same bytes.
 status: inferred
 from: 3.14.4.3 3.14.1.3 3.14.3.1 3.14.2.6 3.6.9.1 3.6.2.6 3.6.3.3 3.7.8.6 4.2.8.6
 conf: high
-why: The 2025 definition says a compiled library is gas. The 2026 body drifted to calling its compiled image ice, and that image grew to 645 times its source.
-at: 2026-11-24
+why: The 2025 definition says a compiled library is gas. The 2026 body drifted to calling its compiled image ice, and that image grew to 645 times its source. A piece that leaves C must already be compiled when a process starts, since the compiler runs on it, so what the seed carries cannot be gas.
+limit: Holds while the seed carries only floor leaves, which hold no address and read only the catalogue's fixed handles; on 2026-11-28 it carries the restore of a choice, 16,408 bytes of AArch64.
+at: 2026-11-28
 
 n: 5.6.5
 name: state-invariants
@@ -716,12 +717,12 @@ at: 2026-11-24
 n: 5.9.6
 name: self-replacement
 kind: decision
-is: The system replaces its bootstrap one host function at a time: it compiles a replacement, offers it, and the table's entry moves to the new code. The last step is writing its own signed executable image. The C file stays as the cold start and as the thing a person can audit.
+is: The system replaces its bootstrap one piece at a time: it compiles the piece from Form, the seed carries it, and the C of that piece is deleted in the same change. The seed is the cold start: every process runs it before anything is walked. What a person audits is the seed's nodes through the lens and the fixpoint, the seed built on itself giving the same bytes. The last step is writing its own signed executable image.
 status: inferred
 from: 1.9.7 4.1.8.5 4.2.3.1 3.9 3.6.8.6
 conf: mid
-limit: The old body's own object-file writer produces an unsigned object with one section; a signed executable written by the system has no working reference.
-at: 2026-11-24
+limit: The old body's own object-file writer produces an unsigned object with one section; a signed executable written by the system has no working reference. A leaf shows through the lens as bytes until a lens reads instructions back. A lost seed is taken from git history, or built by the last commit whose C walker restores a fail alone.
+at: 2026-11-28
 
 n: 5.9.7
 name: authoring-test
@@ -761,12 +762,12 @@ at: 2026-11-24
 n: 5.10.2
 name: recipe-is-the-unit
 kind: decision
-is: Compilation and caching work per recipe, under the key of recipe content id, generator id and target id. No image of a whole closure is built or stored, and no cache key contains a path, a time or a spelling.
+is: Compilation and caching work per recipe, under the key of recipe content id, generator id and target id, and no cache key contains a path, a time or a spelling. The seed is the one whole image we store: the leaves the walker needs before it can walk, built by a Form program and checked by building it again on itself.
 status: inferred
 from: 3.6.3.3 3.6.9.1 3.7.8.6 4.2.8.6 3.7.2.8 3.6.3.4
 conf: high
-why: In the old body a 59 KB source became a 38 MB image and one edited definition cost a 13 s rebuild, because the cache unit was the closure.
-at: 2026-11-24
+why: In the old body a 59 KB source became a 38 MB image and one edited definition cost a 13 s rebuild, because the cache unit was the closure. The seed holds what the walker stands on, not what programs are made of, so it stays small.
+at: 2026-11-28
 
 n: 5.10.3
 name: walker

@@ -1,6 +1,7 @@
 # Floor
 
-What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS, including Rosetta and an emulated x86-64 Linux guest.
+What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS on AArch64. A process on another processor
+(Rosetta, x86-64) is refused at start, since the seed carries code for AArch64 alone.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -8,7 +9,7 @@ What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,182 lines, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,179 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first runs the seed `ice/seed.ck` and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -32,7 +33,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **`make check` runs three flows.** A BML expression passes through the source lens and the
   runtime. A standalone process receives a packed image and answers requests by id. A live
   recursion accepts an addition counter from another process and finishes with the expected answer.
-  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64, 63 on x86-64), compares the
+  `make check-full` also runs the applicable ground programs separately and together (77 on AArch64), compares the
   generated header and checks encoding, freeze and thaw, hardened native execution, framebuffer
   replay, deferred writes and the budget for bare numeric reads.
 - **Fail undoes.** A fail, the end of an `all` and of an `outcome` put back cells, bindings and
@@ -60,13 +61,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
   ids. Its packed image contains zero text leaves. One process constructed a cell and stored
   and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID
-  and ran a generated NUMS function directly on macOS AArch64, macOS x86-64 under Rosetta,
-  and Linux x86-64 under QEMU. The same image ran a conditional by ID before and after compilation
+  and ran a generated NUMS function directly on macOS AArch64. The NUMS compiler writes x86-64
+  too, but no process runs there now: `ck` and `seed-run` refuse that processor at start. The same image ran a conditional by ID before and after compilation
   and returned 2 and 42 for its two arms. The x86-64 compiler also handles guarded returns and
   nested integer or Boolean selections. Calls, loops and floating-point bodies use frames on
   this target. [Backend interface and coverage](spec/nums.md#execution-and-specialization)
-- **Metal runs by ID on both macOS process architectures.** On the M4 Max, one image
-  returned identical replies on arm64 and Rosetta x86-64. The image comparison runs the
+- **Metal runs by ID.** The image comparison runs the
   65-lane word map directly, through an attached Form recipe under an open choice, and
   through two dependent stages. All three answers agree with NUMS frames. A fault while
   binding an encoder's buffer releases the encoder and permits the next map. Both runtime
@@ -385,11 +385,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   instructions where main took 14.7 M, and 13.37 M at 64 MiB where main took 13.59 M.
 - **A region is laid out alike on every host.** Each area reserves what `region/layout.ck` says
   and is offset into its page by `fb.hue`, a row, where it was clamped to the allowance and offset
-  by the cache line the host reported. So a start's image is the same pages at any allowance and
-  on either processor: the lens's start saved by this executable and by the same file built for
-  x86-64, run under Rosetta, gave the same 1,884,494 bytes of pages and the same name, where
-  before they differed in 885,298 bytes and an allowance of 64 MiB saved other pages too.
-  `check-ice` holds both, and a clamp or an offset that follows the processor planted in the
+  by the cache line the host reported. So a start's image is the same pages at any allowance. `check-ice`
+  holds it, holds that the executable built for x86-64 is refused at start under Rosetta and saves
+  nothing, and a clamp or an offset that follows the processor planted in the
   layout is reported. A process alone takes 14.0 M instructions as before; it reserves 49 GB of
   addresses at every allowance.
 
@@ -548,35 +546,46 @@ Each line here is held by a program in `make check-full`, or names how it was se
   holder made every settled node again as itself. A make from walked code costs 2,700 to 5,200
   instructions against 400 to 2,400 for the C's `join` over four runs (2,000 and 4,000 makes of
   new content, less the loop; runs vary), so the C's make stays the store.
-- **A fail is restored by compiled Form when the cell of `choice-point` holds a leaf.**
-  `form/walk.ck` is the walker's restore of a choice: the frames, links, activations, arguments,
-  held-back calls and the machine's `env` and `k` set from the choice's marks, the bindings made
-  since undone, cells put back from the trail, the trail kept of what no fail undoes, and room
-  words put back, as integers over the region's records at places `make header` writes. Reading
-  it compiles it with `emit.floor`, the emitter's floor mode: stores anywhere in the process's own
-  areas and the head, bounded by what each holds, and no entry check, since the leaf lies beneath
-  every binding as the C does; and it holds the leaf in the cell of `choice-point`. The walker's
-  fail calls that leaf and goes on with the giving back of nodes, ranges, outcomes and gathering
-  in C; a leaf that does not answer the choice it was given ends the process, and so does a cell
-  that holds no code; a processor fault in the leaf is the walker's own. With the cell empty, or a
-  leaf for another processor (under Rosetta), the C restores. A fault while `emit.floor` compiles
-  takes its mode off before it goes on, and a leaf it cannot make faults the reading of
-  `form/walk.ck`. `make check-full` holds both over the catalogue: `ground-isolated` runs every
-  program as a member after reading `form/walk.ck` (in the program, after joining: compiling asks
-  for handles, and a start that gave them is not adopted), `ground-together` on the C, `check-held-back` runs its program
-  both ways, and `ground/gives-back.ck` answers its cases once each way in one run (two bindings,
-  nested cells, room words of three widths, the trail kept after notes, and that a fail deep in
-  a call's arguments leaves the frames, links, activations and arguments where a fail at once
-  does). A binding's old entry put back for its prev, a trail of notes restored as cells, a room
-  word given its place for its value, every trail entry kept, the trail's count left uncompacted,
-  `k` written over `env`, one binding fewer undone, any of the four counts left unrestored or the
-  arguments' or the held-back calls' set to 0, each planted, made them differ. Not seen by them:
-  which faster forms' trail entries are kept (all kept, none kept, or the bound of those made
-  from outside moved; only a reclaim that moves their leaf reads them), and the restore's answer
-  shows that the leaf ran, not what it restored. The leaf is 16,408 bytes and making it takes
-  about 1.2 G instructions, in every member of `ground-isolated`, whose starts are not saved; a
-  round of a range with a choice failed twice took about 6,400 instructions against 2,900 with
-  the C restore (20,000 and 40,000 rounds, less each other), about 1,200 more a fail.
+- **A fail is restored by compiled Form the seed carries; the C has no restore.** `ice/seed.ck`
+  beside the executable is node records: a program that holds in the cell of `choice-point` a
+  leaf of AArch64, the walker's restore of a choice. Every process runs it before anything else
+  is walked, and again when a look at a saved image leaves the region fresh; a start entered from
+  an image has it from the image, and the seed is among the files that image checks. The leaf is
+  `form/walk.ck`: the frames, links, activations, arguments, held-back calls and the machine's
+  `env` and `k` set from the choice's marks, the bindings made since undone, cells put back from
+  the trail, the trail kept of what no fail undoes, and room words put back, as integers over the
+  region's records at places `make header` writes. It is compiled by `emit.floor`, the emitter's
+  floor mode: stores anywhere in the process's own areas and the head, bounded by what each
+  holds, and no entry check, since the leaf lies beneath every binding. The walker's fail calls
+  it and goes on with the giving back of nodes, ranges, outcomes and gathering in C. A cell with
+  no code this processor runs, or a leaf that does not answer the choice it was given or leaves
+  the frames, bindings or room trail off the choice's marks, ends the process; a processor fault
+  in it is the walker's own. A process with no seed beside it, or on
+  another processor than AArch64, is refused at start with a plain line.
+  The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles the
+  leaf, and writes the program with `bin.write` of `form/nodes.ck`. The program opens no choice,
+  since nothing can restore one before it ends, and holds the leaf only where the region's layout
+  version is the one it was made for: elsewhere it answers nothing and the process is refused. `make header` writes it, and
+  `check-header` builds it again on the seed itself and compares the bytes: the same 16,480. A
+  member of a substrate holds the leaf before it joins: the seed's program gives no handle, so
+  `adopt` takes the start, and `ground-isolated` runs every program as a member with nothing more
+  read. The whole catalogue answered alike under the C restore of the last commit that had one
+  (`4d7b155`) and under the seed: each of the 77 programs' outcome and its verdict, `cmp` of
+  154 answers. With no C restore left, what holds the leaf is the answers the catalogue pins in
+  `ground/expect.ck`, which the C restore gave too; among them `ground/gives-back.ck` (two
+  bindings, nested cells, room words of three widths, the trail kept after notes, and that a fail
+  deep in a call's arguments leaves the frames, links, activations and arguments where a fail at
+  once does). `check-held-back` holds that a leaf the run compiles again restores as the seed's
+  does. Planted in the seed: a leaf that returns at once, one whose first word is no
+  instruction, a cell holding bytes, a seed that is no records and one made for another layout
+  version each end the process with its line. Not seen by any test: which faster forms'
+  trail entries are kept (only a reclaim that moves their leaf reads them), and a leaf that
+  leaves a cell or a trail entry wrong while the counts it is checked by stand. A round of a range with a choice failed
+  twice took about 6,850 instructions against 3,280 with the C restore (20,000 and 40,000
+  rounds, less each other), about 1,190 more a fail.
+  When the seed is lost or broken: every seed is in git, and `make header` with the previous one
+  builds the current. With none that runs, the last commit whose C restores a fail alone
+  (`4d7b155`) builds a seed from the nodes, and that seed builds the next.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls

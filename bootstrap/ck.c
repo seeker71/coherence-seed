@@ -1702,21 +1702,10 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = notice(S_NO_PATH); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node; W->v = 0;      /* a fail carries no answer: what the failed path last answered is not kept */
-    H door = USED(A_CELLS, E(CHOICE_POINT)) ? held[E(CHOICE_POINT)] : 0;   /* a leaf held in the cell of choice-point, beneath every */
-    void *fn = door && local_code(door) ? birth(door) : NULL;  /* binding, puts back what lies below the nodes and answers the choice; */
-    if (door && !code_target(door)) die("the cell of choice-point holds no code");   /* else the process ends, and a fault in it is */
-    if (fn) { int64_t arg[8] = { ncp - 1 }; arg[6] = (int64_t)(intptr_t)fb; arg[7] = 1; Ret r;   /* the walker's. Code for another */
-      if ((r = host.call(fn, arg)).k || r.v != (int64_t)ncp - 1) die("the restore of a choice in the cell of choice-point did not answer it");
-    } else {                              /* processor leaves it to the C */
-    nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
-    while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
-    for (uint32_t t = ntrail; t > q->mtrail; t--)                      /* and cells hold what they held, */
-      if (trail[t-1].bp == E(TRAIL)) held[trail[t-1].key] = trail[t-1].old;
-    uint32_t kw = q->mtrail;                                            /* while what no fail undoes is kept, */
-    for (uint32_t t = q->mtrail; t < ntrail; t++)                       /* a faster form as long as its binding */
-      if (trail[t].bp != E(TRAIL) && (trail[t].bp != E(FAST) || trail[t].key > OUT || trail[t].key <= nbind)) trail[kw++] = trail[t];
-    ntrail = kw;
-    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); } }   /* rooms too; */
+    H door = USED(A_CELLS, E(CHOICE_POINT)) ? held[E(CHOICE_POINT)] : 0; void *fn = door && local_code(door) ? birth(door) : NULL; Ret r;
+    int64_t arg[8] = { ncp - 1, 0, 0, 0, 0, 0, (int64_t)(intptr_t)fb, 1 };   /* the leaf the seed holds in the cell of choice-point puts back */
+    if (!fn || (r = host.call(fn, arg)).k || r.v != (int64_t)ncp - 1 || nfr != q->mfr || nbind != q->mbind || nrtrail != q->mroom)   /* what lies below */
+      die("the cell of choice-point holds no restore for this processor, or it did not restore the choice");   /* the nodes, or the process ends */
     reclaim(q);                                                        /* the nodes made since are given back, */
     for (uint32_t t = q->mtrail; t < ntrail; t++) if (trail[t].bp == E(NOTE)) held[trail[t].key] = trail[t].old;   /* notes stand */
     if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
@@ -2028,12 +2017,19 @@ static void show(const char *word, H v) {
   put(1, word); if (!send_fd(1, bytes + nd[t].off, nd[t].n)) exit(2); put(1, "\n");
 }
 #endif
+/* ice/seed.ck beside the executable, built by form/seed.ck, runs before anything is walked: it holds the leaves the walker needs in their cells. */
+static void sow(int seen) {
+  static char path[PATH_MAX]; size_t len; Status why; int was = reading; snprintf(path, sizeof path, "%sice/seed.ck", home);   /* read_seen keeps it */
+  if (HOST_ABI != TARGET_AAPCS64 || !*home || access(path, R_OK)) die(HOST_ABI != TARGET_AAPCS64 ? "the seed, ice/seed.ck, carries code for AArch64 alone, and this processor is another" : "no seed beside the executable, ice/seed.ck");
+  uint8_t *b = load(path, &len); H x = read_nodes(b, len, &why); reading = seen; read_seen(path, 0, 0, 0, x); reading = was;
+  if (!x || (run(x), W->outcome != 'n')) die("the seed beside the executable, ice/seed.ck, did not run to its end: not records, or made for another layout");
+}
 static int command(int argc, char **argv) {
 #ifndef NUMERIC_PORT
   const char *cmd = argc > 1 ? argv[1] : "";
   numeric_io = argc == 3 && !strcmp(cmd, "execute");
 #endif
-  text_base = ntext; store_init();
+  text_base = ntext; store_init(); sow(0);
   char entered[PATH_MAX] = "";                              /* the start: the image seed-run opens, or the files before the program */
 #ifdef NUMERIC_PORT
   int start = 1, starts = argc == 2;
@@ -2043,6 +2039,7 @@ static int command(int argc, char **argv) {
   int keyed = image_enter(starts, argv + start, entered), warm = keyed > 0 ? keyed : 0;   /* warm: how many of the start's files it stands for */
   keyed = keyed >= 0;
   for (int i = 0; i < A_COUNT + S_COUNT; i++) full_at[i] = seen_as(S_FULL, numeric_io ? mki(i) : txt(AREA_NAME[i]));
+  if (!warm) sow(1);
 #ifdef NUMERIC_PORT
   return argc == 2 ? execute_image(argv[1], warm, keyed, argv + start) : 2;
 #else
