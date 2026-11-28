@@ -349,6 +349,32 @@ With the same 128 first-layer K/V input rows and slot indices, Seed preserved al
 131,072 Float32 values. The ggml cache contained their exact Float16 conversions.
 Rounding changed 131,057 values before attention read the cache.
 
+The Metal calls at Seed revision `a2f9997` show where the eight-stream turn spends its
+time on the 40-core M4 Max.
+With identical fixed input IDs at eight positions, four warm runs gave 28.35 aggregate
+tokens/s in Seed and 763.41 in llama.cpp. In 32 separately timed warm turns the median
+interval from command-buffer creation to final submission was 254.22 ms for Seed and
+0.39 ms for llama.cpp. The GPU occupied 29.76 ms and 8.78 ms respectively. Both paths
+waited once. Seed made one compute encoder with 1,090 dispatches. llama.cpp made two
+compute encoders with 453 dispatches and a blit encoder to copy the logits.
+
+A diagnostic replay sent the same 8,707 compute commands per turn directly to Metal,
+preserving Seed's argument bytes, buffer offsets, pipeline states, barriers and grids.
+Across all eight positions the median host encoding time was 0.38 ms. After clearing
+the destinations, every replay reproduced all 1,026,048 logits and eight token IDs
+for its position. This locates the main host cost in preparing and issuing the
+resolved schedule through the Form walker. The production turn still takes that path.
+
+The stored Float32 grouped-query attention kernel also accounts for the increase in GPU
+time with context length. In a separate replay, Metal timestamp samples around its 28
+groups measured 5.39 ms at position zero and 36.09 ms at position seven. The rest of
+the turn took 9.96 and 10.16 ms. The live buffer bindings identified the same 197 packed
+weight tensors in both programs. Among the corresponding matrix dispatches, the archived
+Apple GPU instruction bytes matched for the final projection alone. The full launch
+geometry differed at all 197. A GPU checksum over those 2,010,839,040 weight bytes
+measured 501 GB/s, with every tensor sum verified on the CPU. This measures a read pass
+through the checkpoint. Decode also performs the matrix products, attention and sampling.
+
 A `metal.rotary-panel` holds a compact Float32 layout (head width, heads, tokens),
 scaling parameters, source, positions, frequency factors, destination and barrier.
 Scaling carries the original context length and the six Float32 parameter bit patterns
