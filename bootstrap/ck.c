@@ -1243,8 +1243,7 @@ static uint8_t *spot(int64_t a, int64_t o, int64_t w, int *far) {
   uint64_t base, top; int s = a >= A_COUNT;
   if ((w != 1 && w != 2 && w != 4 && w != 8) || a < 0 || a > A_COUNT + S_COUNT + 1 || a == A_STACK || o < 0) return NULL;
   if (a >= A_COUNT + S_COUNT) { s = a > A_COUNT + S_COUNT; base = s ? fb->me.share : 0; top = s ? sizeof(Substrate) : sizeof(Head); }
-  else { const Area *r = AR(a); base = r->off + (s ? fb->me.share : 0); top = (r->peak > r->n && (s || !LANED[a]) ? r->peak : r->n) * r->size; }   /* a substrate made in form may count its records in n alone; */
-  /* past a lane's count is only code's, which makes a node there before it counts it */
+  else { const Area *r = AR(a); base = r->off + (s ? fb->me.share : 0); top = (r->peak > r->n && (s || !LANED[a]) ? r->peak : r->n) * r->size; }   /* a substrate made in form may count its records in n alone; past a lane's count is code's */
   if ((uint64_t)o + (uint64_t)w > top || (uint64_t)o % (uint64_t)w) return NULL;
   *far = s; return (uint8_t *)fb + base + (uint64_t)o;
 }
