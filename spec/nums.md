@@ -333,10 +333,54 @@ pressure reading outside the normal state releases the resident objects and retu
 starts with fresh mutable state. Two interleaved Llama contexts used the same mapped
 weights and returned the previous decoder's token IDs on both macOS process ABIs.
 
-Routing separate clients to one worker per model, admitting new streams between decode
-steps, sharing complete prefix blocks, and coordinating memory reservations across
-workers are open in Seed. The previous kernel's resident Qwen server supplies a running
-reference for these behaviors.
+### Independent local decode streams
+
+`host/streams.ck` serves independent clients on one mounted Metal model. The owner
+supplies one connected Darwin Unix datagram socket per physical lane of the decode
+plan. Each client controls its own prompt, generation pace and context resets.
+The worker polls the sockets together and advances all ready token requests in
+one resident batch. It sleeps in the host poll when every client is idle. A
+paused sequence keeps its KV history while other sequences advance or start.
+The Metal plan still dispatches its declared panel width.
+
+Load `nums/projection.ck` and `host/streams.ck` through `part.load` after the
+resident Metal bindings. Construct `stream.decode-model` with the model ID,
+batch, flash layout, decode input views, one disjoint four-byte feedback
+readback per lane, and vocabulary size. Each readback addresses the token used by
+that lane's next embedding gather. The model owner mounts once, calls
+`stream.start(decoder, descriptors)`, then invokes `stream.run` by ID. It
+returns after the clients finish. An event loop can instead call
+`stream.step(timeoutMilliseconds)` for one poll and batch, followed by
+`stream.stop` when done. A step returns the number of lanes advanced, zero for
+control or timeout, and minus one after the last lane closes. The owner keeps
+the model mounted and the descriptors open through service, then retires the
+model and closes its descriptors.
+
+Each client sends one eight-byte datagram and reads one eight-byte reply. Both
+contain two little-endian unsigned 32-bit words. One request permits one token
+step, so a client can pause simply by waiting before its next request.
+
+| Request word | Second word | Effect on the lane |
+| --- | --- | --- |
+| 0 | Token ID | Start a new context at position zero |
+| 1 | Token ID | Append a prompt token at the next position |
+| 2 | Ignored | Feed the previous prediction into the next position |
+| 3 | Ignored | Finish using this channel |
+
+Reply status 0 carries the predicted token. Status 1 rejects the datagram and
+preserves the cursor. Status 2 acknowledges closure. Status 3 reports a terminal
+model fault to the clients and the owner receives the original numeric reason.
+A full reply queue holds its datagram until writable while other channels run.
+A connected channel can start another request with operation 0 after any token.
+
+Eight client processes exercised nine requests on one Llama 3.2 3B Q4_K_M
+worker, including staggered arrivals, pause and resume, and reuse of a lane.
+All 106 prompt and generation positions matched llama.cpp at the same batch
+width on both supported macOS process architectures. The maintained Metal image
+comparison drives two socket pairs through the same service and checks the
+results against an identity batch. Endpoint discovery, assignment beyond the
+provisioned sockets, variable-width panels, sharing complete prefix blocks and
+cross-worker memory reservations remain open.
 
 The word instance of subtraction is shared by signed and unsigned integer layouts. The layout
 recipe reads the operands and packs the result at its own width. The word recipe works on the

@@ -102,6 +102,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   for two distinct KV histories, and released them on retirement while the worker stayed
   alive. Both histories agreed with the previous decoder on both process architectures.
   [Metal batches and resident turns](spec/nums.md#named-metal-batches)
+  One resident worker also serves independent local client processes. A new request
+  can receive its first token while an earlier request is still generating, and a
+  paused client can resume its own context. Eight clients on nine requests matched
+  all 106 predictions from llama.cpp at the same batch width on arm64 and Rosetta.
+  [Independent local decode streams](spec/nums.md#independent-local-decode-streams)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
