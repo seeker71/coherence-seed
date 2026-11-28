@@ -110,6 +110,14 @@ check-image: seed-run
 	  cmp -s "$$work/cold" "$$work/replies" && cmp -s "$$work/cold" "$$work/warm" && [ "$$saved" = "$$(ls -i "$$images")" ] || { echo "image: the replies of a start entered from its image differ from a cold start's, or it was not entered"; exit 1; }; \
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
+	  [ "$$(./ck run ground/resident-owners.ck)" = 'node #33' ]; \
+	  for part in policy first second; do printf %s "$$part" | ./ck text ground/resident-case.ck > "$$work/$$part"; done; \
+	  mkfifo "$$work/turns" "$$work/returns"; \
+	  (cd "$$work/run" && exec "$$root/seed-run" image) <"$$work/turns" >"$$work/returns" & worker=$$!; \
+	  exec 5>"$$work/turns" 6<"$$work/returns"; \
+	  for part in first second; do ./ck text resident/call.ck 3<"$$work/policy" 4<"$$work/$$part" <&6 >"$$work/$$part.out"; done; \
+	  exec 5>&- 6<&-; wait "$$worker"; \
+	  [ "$$(printf verify | ./ck text ground/resident-case.ck 3<"$$work/first.out" 4<"$$work/second.out")" = '#33' ]; \
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image, cold and entered from its start saved at rest, the same bytes"; \
 	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
 	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work" "$$images"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | $(NODES) | ./ck text /dev/stdin; }; \
@@ -182,6 +190,8 @@ MEMBER = share/all.ck
 FLOOR = form/walk.ck
 # A canonical print written here is read by the reader in form and stored as the records ck reads.
 NODES = ./ck text form/from-print.ck
+# Signed feature protocols retain the canonical print; stored Form programs use records.
+CANONICAL_WORDS = ./ck text lens/to-canonical.ck lens/all.ck
 shown = printf %s $(1) | ./ck text share/show.ck share/load.ck
 # Wait until the substrate named $(1) has a member, for at most ten seconds.
 joined = n=0; until $(call shown,$(1)) > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
@@ -235,12 +245,25 @@ ground-together: ck
 	  if [ "$$got" = "node (#16)" ] && [ -n "$$saved" ] && [ "$$saved" = "$$(ls -i "$$d")" ]; then echo "one run: all of them in one process, entered from the image of its start, end as expected, since a fail gives back what it returns past"; \
 	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got; the image before '$$saved', after '$$(ls -i "$$d")'"; exit 1; fi
 
+include participant/commands.mk participant/enrollment.mk
+include ground/checks/circle.mk ground/checks/components.mk ground/checks/continuation.mk \
+        ground/checks/learning.mk ground/checks/mesh.mk ground/checks/participant.mk \
+        ground/checks/provider.mk ground/checks/recovery.mk ground/checks/translation.mk \
+        ground/checks/value.mk ground/checks/voice.mk ground/checks/world.mk
+
 # A region saved at rest by one process is entered by the next, and each case where it must not be is not, pinned by
 # what a cold start answers there: a start file binds entry 4096 to a recipe and the program answers it. Two builds of
 # one start are the same bytes, and an image replaced after a case is the one a build makes.
 # A node is frozen by one process and thawed by a member of a substrate, which answers the node's handle; a second
 # member, the one that made the substrate, names the node by that handle alone and prints it.
 check-ice: ck fb
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  word() { printf %s "$$1" | $(CANONICAL_WORDS); }; \
+	  word '(trial.template "Read: " ".")' >"$$work/template"; word '"B"' >"$$work/other"; \
+	  word '(trial.scene "room" "A" (list (trial.statement "A" "Both statements") (trial.statement "B" "Both statements")))' >"$$work/scene"; \
+	  rc=0; ./ck text learning/pair.ck 3<"$$work/template" 4<"$$work/other" <"$$work/scene" >"$$work/out" || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/out")" = "fault $$(word trial.indistinguishable)"
+	$(verify_owned_model)
+	$(verify_fit_replay)
 	@name=/ck.ice.$$$$; export CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456; trap './fb drop '$$name' 2>/dev/null; rm -f .ck-check.ice .ck-check.named' EXIT; \
 	  ./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$({ $(call joined,$$name); CK_SHARE=$$name ./ck text ice/named.ck $(MEMBER) lens/all.ck ice/ice.ck < .ck-check.ice > .ck-check.named; cat .ck-check.named; } | CK_SHARE=$$name ./ck run /dev/stdin $(MEMBER)); \
@@ -320,6 +343,8 @@ check-native: ck
 
 # The first recorded page starts at byte 44. Its layout version follows the 16-byte identity prefix.
 check-replay: ck fb
+	$(verify_instrument)
+	$(verify_forecast)
 	@name=/ck.check.$$$$; (CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); ./fb record $$name .ck-check.rec 5 > /dev/null; \
 	  frames=$$(./fb play .ck-check.rec | grep -c moving); last=$$(./fb play .ck-check.rec -1 | grep '^outcome'); \
 	  printf '\000\000\000\000' | dd of=.ck-check.rec bs=1 seek=60 conv=notrunc 2>/dev/null || exit 1; \
@@ -329,11 +354,57 @@ check-replay: ck fb
 	  if [ $$ok = 1 ] && [ $$frames -ge 2 ]; then echo "framebuffer: a second process recorded $$frames frames of a run in motion; the last holds the answer and its writer"; \
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
 
-check-held-back: ck
+check-held-back: ck seed-run
+	@test "$$(./ck run ground/learning-trial.ck)" = 'node #33'
+	@test "$$(./ck run ground/witness-review.ck)" = 'node #33'
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); floor=$$(./ck run ground/held-back.ck $(FLOOR) | tr '\n' ' '); \
 	  if [ "$$floor" = "$$got" ] && [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
 	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it, restored by the seed's leaf and by the leaf $(FLOOR) compiles in the run alike"; \
 	  else echo "held back: '$$got', after $(FLOOR): '$$floor'"; exit 1; fi
+
+	@test "$$(./ck run ground/circle-turns.ck)" = 'node #33'
+	$(verify_exchange)
+
+	$(verify_signed_controls)
+
+	$(verify_derivative)
+
+	$(verify_stewardship)
+
+	$(verify_resume)
+
+	$(verify_dispatch)
+
+	$(verify_projection)
+
+	$(verify_reconnection)
+
+	$(verify_render)
+	$(verify_translation_delivery)
+	$(verify_participant_account)
+
+	@test "$$(./ck run ground/translation-reference.ck)" = 'node #33'
+
+	$(verify_key_recovery)
+
+# The resident model image and its matching native runtime are deployment inputs.
+.PHONY: resident-replay
+resident-replay: ck
+	@set -eu; : "$${RESIDENT_NATIVE:?Set RESIDENT_NATIVE to the built 55b5b95 checkout}" "$${RESIDENT_MANIFEST:?Set RESIDENT_MANIFEST to its single-bos manifest}" "$${RESIDENT_GGUF:?Set RESIDENT_GGUF to the mounted 3B GGUF}"; \
+	  root=$$PWD; native=$$(cd "$$RESIDENT_NATIVE" && pwd); work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  test "$$(shasum -a 256 "$$RESIDENT_GGUF" | cut -d' ' -f1)" = dba8d50e3c63bde16cd918bb4de8e7cde6c5a2dae9a8360bd14480e71d8d7fa4; \
+	  printf %s "$$RESIDENT_GGUF" > "$$work/path"; cp "$$RESIDENT_MANIFEST" "$$work/source"; \
+	  ./ck text lens/to-words.ck lens/all.ck < ground/resident-inputs.ck > "$$work/inputs.words"; \
+	  (cd "$$native"; ./ck text lens/to-nodes.ck lens/all.ck < "$$work/inputs.words" > "$$work/inputs"; \
+	    printf '%s' '(seq (step (read (file "lens/all.ck"))) (lens.to-store (step (read (file "/dev/fd/3")))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/build"; \
+	    ./ck text "$$work/build" 3<"$$work/inputs" 4<"$$work/path" < "$$work/source" > "$$work/manifest"; \
+	    ./ck text nums/pack.ck < "$$work/manifest" > "$$work/image"; \
+	    printf '%s' '(let keys (child (read (file "/dev/stdin")) 1) (pack bytes (all (let digest (id (child keys (range 0 (count keys)))) (byte digest (range 0 32))))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/exports"; \
+	    ./ck text "$$work/exports" < "$$work/manifest" > "$$work/ids"); \
+	  mkfifo "$$work/turns" "$$work/returns"; \
+	  CK_IMAGES= CK_MEMORY_BYTES=6442450944 "$$native/seed-run" "$$work/image" <"$$work/turns" >"$$work/returns" & worker=$$!; \
+	  "$$root/ck" text ground/resident-neural.ck 5>"$$work/turns" <"$$work/returns" 3<"$$work/ids" >"$$work/observed"; wait "$$worker"; \
+	  ./ck text lens/show-canonical.ck lens/all.ck < "$$work/observed"
 
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
@@ -345,3 +416,21 @@ clean:
 	rm -rf .ck-images
 
 .PHONY: all views metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
+
+.PHONY: translate-local
+translate-local: ck
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  model=$${TRANSLATION_MODEL:?set TRANSLATION_MODEL to a local MLX checkpoint directory}; input=$${TRANSLATION_UTTERANCE:?set TRANSLATION_UTTERANCE to the owned utterance file}; \
+	  model=$$(cd "$$model" && pwd -P); test -r "$$input"; engine=$$(command -v mlx_lm.generate); \
+	  fingerprint() { root=$$1; mkdir "$$root"; (cd "$$model"; test -f model.safetensors; set -- *.safetensors; test "$$#" -eq 1; test -f tokenizer.json; openssl dgst -sha256 -binary model.safetensors >"$$root/weights"; openssl dgst -sha256 -binary tokenizer.json >"$$root/vocabulary"; for file in *.json *.model *.tiktoken *.jinja; do if test -f "$$file"; then shasum -a 256 "$$file"; fi; done) >"$$root/assets"; }; \
+	  fingerprint "$$work/before"; printf '%s' "$${TRANSLATION_MODEL_NAME:-local MLX checkpoint}" >"$$work/name"; \
+	  { (cd "$$(dirname "$$engine")" && shasum -a 256 "$$(basename "$$engine")"); interpreter=$$(sed -n '1s/^#!//p' "$$engine"); prefix=$$(dirname "$$(dirname "$$interpreter")"); for meta in "$$prefix"/lib/python*/site-packages/mlx_lm-*.dist-info/METADATA "$$prefix"/lib/python*/site-packages/mlx-*.dist-info/METADATA; do if test -f "$$meta"; then sed -n -e '/^Name: /p' -e '/^Version: /p' "$$meta"; fi; done; } >"$$work/engine"; \
+	  ./ck text translation/model.ck 3<"$$work/name" 4<"$$work/before/weights" 5<"$$work/before/vocabulary" 6<"$$work/engine" <"$$work/before/assets" >"$$work/model"; \
+	  { printf '@review\n'; cat "$$input"; } >"$$work/open"; ./ck text lens/translate.ck 3<"$$work/model" <"$$work/open" >"$$work/request"; \
+	  ./ck text translation/prompt.ck <"$$work/request" >"$$work/prompt"; ./ck text translation/settings.ck <"$$work/request" >"$$work/settings"; \
+	  if test -s "$$work/prompt"; then set -- --model "$$model" --prompt -; while IFS= read -r arg; do set -- "$$@" "$$arg"; done <"$$work/settings"; \
+	    if HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 "$$engine" "$$@" <"$$work/prompt" >"$$work/answer" 2>"$$work/diagnostic"; then status=1; code=0; else code=$$?; status=2; fi; \
+	    fingerprint "$$work/after"; for part in weights vocabulary assets; do cmp "$$work/before/$$part" "$$work/after/$$part" || { echo 'Model files changed during translation.' >&2; exit 1; }; done; \
+	  else status=0; code=0; : >"$$work/answer"; : >"$$work/diagnostic"; fi; \
+	  printf '%s' "$$code" | $(CANONICAL_WORDS) >"$$work/code"; printf '%s' "$$status" | $(CANONICAL_WORDS) >"$$work/status"; ./ck text translation/respond.ck 3<"$$work/request" 4<"$$work/status" 5<"$$work/code" 6<"$$work/diagnostic" <"$$work/answer" >"$$work/reply"; \
+	  ./ck text translation/review.ck 3<"$$work/request" <"$$work/reply"

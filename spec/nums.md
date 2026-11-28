@@ -38,7 +38,7 @@ The export list can carry arbitrary user data. Argument names and the lexicon li
 authoring lens. The `nums.image` method `image.then(dependency, application)` in
 `nums/images.ck` composes two manifests. Initialization runs in that order, and public
 entries from both manifests keep their content IDs. The generic NUMS library with its float
-definition, both AArch64 compilers and the example exports pack together as 14,523 nodes containing zero text leaves.
+definition, the compilers, a small conditional model and the example exports pack together with zero text leaves.
 
 ```sh
 make
@@ -456,6 +456,14 @@ a list of target ids with `no` in ordinary token slots. A mapped token produces 
 request as a direct call. An ordinary token or an index outside the vocabulary answers nothing
 with `e.unbound`. The vocabulary has its own content id, so two models can give the same token
 number different meanings. In the image example, token 1 calls the word instance of subtraction.
+The categorical model in `nums/conditional.ck` fits counts from context/token pairs. A unique
+highest count selects a token. An unseen context and a tied maximum give different reasons.
+The vocabulary and weights travel together. In `make check-image` the client chooses subtraction
+or unsigned comparison, calls the image, and the reply checker continues from the value the port
+actually returned. The image serves its fitted checkpoint to that checker. Faults and unanswered
+requests keep their outcomes. This flow uses ordered replies and a small discrete vocabulary.
+The [owned language model](local-learning.md) trains from seeded weights. The [resident inference route](resident-inference.md) exercises a pinned 3B decoder with an actual recipe result.
+
 The resident decoder accepts a sparse vocabulary per lane. The owner calls
 `stream.attach-tokens(lane, map)` after starting the worker. A `nums.token-map`
 holds sorted, disjoint `nums.token-window(firstToken, targets)` ranges. Each target
@@ -725,6 +733,12 @@ that constructs it.
   words.
 
 ### Viewing a component declaration
+
+Local adapters can call `nums.member-named shape key value` to read a fixed record field by
+its declared member identity. It consults the installed class, counts only member declarations,
+and checks the record shape and resulting position. Missing or repeated keys and positions at
+or beyond a variadic field are refused. The local inbox uses this for records shared between
+its control and receiving processes.
 
 The BML lexer calls the typed predicates in `nums/bml-alphabet.ck`. Both the lexer and
 the BMF range matcher use `bmf.in-range` from `bmf/items.ck`. The interval has two
@@ -1126,8 +1140,19 @@ right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
 It projects linked classes through `write.text` with `nums/lang-bml.ck`, parses the output
 and compares the entire linked declaration. The comparison includes a nominal receiver and
 `Pair<Box<Int>, Int>`. Source spellings live beside the declarations.
-Class type parameters, inheritance clauses, method calls in BML bodies and automatic
-whole-package linking remain open.
+Typed method bodies also link guarded alternatives, ordered `choice`, `fail`, `first`,
+`??` and `all`. The declared return type and boolean guards are checked. The portable
+comparison projects a method to BML, links it again and invokes both versions with both
+search evaluators. A failed fallback yields 22 where an earlier successful branch yields 11.
+False and zero are separate list entries.
+
+`bml.function-decl(grammar, syntax, resolve)` links a typed free function. A call
+on another object resolves the method under the receiver's declared type, checks the
+argument count and types, and emits ordinary NUMS receiver dispatch. Nested bindings keep
+their lexical slots. `bml.interface-decl` reads a caller-designated contract whose method
+bodies are `fail`. A concrete class may implement previously declared interfaces.
+The linker accepts the supplied name resolver and declarations. Generic class definitions,
+general whole-file discovery, and the entire writer's own emitted BML remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
@@ -1228,8 +1253,8 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   ladder on one subject, and declared types are documentation. A blueprint holds a class's data
   and a class its methods, whose receiver is `self` and no parameter. A def that does not answer
   exactly once is preceded by a note saying how often it answers. The writer's own package and
-  the encoder's, written as BML, read back into syntax trees with the BML reader; no reader yet
-  lowers their searches to recipes.
+  the encoder's, written as BML, read back into syntax trees. Lowering the entire writer and encoder
+  remains open. The typed cross-object search example below re-enters as runnable declarations.
 - **A method is called on its receiver.** `part.load` (`nums/part.ck`) binds each method a package
   declares to a recipe that calls the receiver's own method (`nums.method-key`), in one layer with
   the package's own declarations, so that a method can call the package's functions and they its
@@ -1246,8 +1271,38 @@ back, and the encoder's and the compiler's packages are written the same way. On
 Python parses with Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C#
 against stubs of the runtime and still refuse parts of them. A record takes as many fields as
 memory holds: its fields are the arguments of one call, and the walker holds a call's values in
-the region. The writer does not write a call of another package's function, since it knows how
-often only its own package's functions and a table of operations answer (`e.unbound` of
-`write.answers`); a package reaches another through recipes it is handed. Where an expression is
+the region. To show a component with its dependencies, give `nums/write-text.ck` the subject and
+language rows on the first two lines, then one dependency package path per line. For example,
+`printf '%s\n' lens/participation.ck nums/lang-python.ck nums/view-patterns.ck bmf/items.ck | ./ck text nums/write-text.ck`
+shows the participating declarations together. The writer follows references through the supplied
+packages and computes how often their calls can answer. In a search, keeping the first result
+still yields an iterable with zero or one element. A linked example, run as Python, C# and
+TypeScript, agreed with the walker on empty input, a first answer of false, and a first answer of zero
+with more candidates available. Repeated identical declarations coalesce.
+The nested search in `ground/search-package.ck` calls an observer inside
+guards, ordinary alternatives and first-answer alternatives.
+`ground/search-trace.ck` supplies an observer that records every actual call
+and compares both its history and the returned list with five explicit
+references. The emitted Python, C#, TypeScript and Java ran against ordinary
+language observers with the same results. One result contained both false
+and integer zero. An unselected branch with an observable method call stayed
+unvisited. A sixth invocation uses a concrete receiver whose field changes the result.
+The caller names a local `answer2` and a parameter `answer2_`. The extra first iterator
+required by query syntax uses the same normalized clause and name allocator as the other
+iterators. Its generated binding becomes `answer2__`. The caller observes the receiver’s
+field in all four foreign runtimes. `ground/search-reenter.ck` rebuilds the abstract
+contract, concrete class and free function from the emitted BML. It dispatches on an
+independently supplied observer and runs the six cases through the same observation
+recipe. The portable comparison separately rejects an unknown method, a wrong argument
+count, a wrong type inside a later alternative, and an implemented method presented as
+an abstract contract. The target fixtures provide the small part of each runtime used by
+this package. They run in `make check-held-back` when their toolchain is
+available. `JAVA_HOME` can select a JDK.
+Different declarations of the same name fault. A native search target can declare an operation's
+answer count in its language rows. The BML row for `recover` lets the writer show the signature
+provider's cleanup path. An external operation whose answer contract is unknown still faults
+with `e.unbound` of `write.answers`. The shared writer rows for Form's integer division
+and remainder admit an empty answer at a zero divisor. The projected PCM progress component
+preserves this behavior through its frame and remainder calculations. Where an expression is
 expected the writer takes no throw, Java no `let` and BML no sequence; the BML reader takes a
 class of one interface only.

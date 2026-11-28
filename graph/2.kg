@@ -341,3 +341,251 @@ path: coherence-seed/share/share.ck
 date: 2026-11-27
 got: 2026-11-27
 at: 2026-11-27
+
+n: 2.30.24
+name: nums-portable.ck
+kind: source
+is: The lens comparisons include a bilingual reference for complete, ambiguous, absent and unrenderable readings.
+path: coherence-seed/ground/nums-portable.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.25
+name: circle-exchange.ck
+kind: source
+is: The local exchange driven by check-held-back compares the retained turn, two consent revisions, receipt and published letter across process boundaries.
+path: coherence-seed/ground/circle-exchange.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.26
+name: peer-vectors.ck
+kind: source
+is: Public test keys, synthetic consent drafts, signing digests and detached proofs anchor the signed-control comparison driven by check-held-back.
+path: coherence-seed/ground/peer-vectors.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.27
+name: broker-clock.ck
+kind: source
+is: A controlled sequence of host seconds drives signed finite grants through the normal receive command in check-held-back.
+path: coherence-seed/ground/broker-clock.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.28
+name: language-reference.ck
+kind: source
+is: The language update comparison perturbs the weights and checks the direction and clipping of the actual training step.
+path: coherence-seed/ground/language-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.29
+name: resident-neural.ck
+kind: source
+is: The optional native resident replay drives a mounted 3B model through two recipe returns and observes its subsequent tokens.
+path: coherence-seed/ground/resident-neural.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.30
+name: learning-trial.ck
+kind: source
+is: The paired trial compares a fitted artifact against its immediate parent and shuffled control, with exact emissions and integer losses.
+path: coherence-seed/ground/learning-trial.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.31
+name: witness-review.ck
+kind: source
+is: The sourced review and retention ground compares a claim against its exact cited surface rows and checks recall after a change.
+path: coherence-seed/ground/witness-review.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.32
+name: teaching-case.ck
+kind: source
+is: This fixture constructs source and derivative authority for the full admission, activation, withdrawal and byte-use run.
+path: coherence-seed/ground/teaching-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.33
+name: world-reference.ck
+kind: source
+is: 32 binary histories compare independently accumulated errors to the predictions and revisions.
+path: coherence-seed/ground/world-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.34
+name: continuation-reference.ck
+kind: source
+is: The resumed two-letter job is compared to independently captured grants, invitations, paths and bytes.
+path: coherence-seed/ground/continuation-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.35
+name: cases.ck
+kind: source
+is: The stewardship comparison reconstructs service and gift receipts at the channel boundary.
+path: coherence-seed/value/cases.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.36
+name: provider-case.ck
+kind: source
+is: Two signed enrollment episodes route a job and verify a complete return.
+path: coherence-seed/ground/provider-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.37
+name: voice-short.ck
+kind: source
+is: A bounded physical sink measures a single byte consumed from an accepted spoken turn.
+path: coherence-seed/ground/voice-short.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.38
+name: translation-reference.ck
+kind: source
+is: Retained local model proposals and source-edition references exercise invitation, interpretation and owner correction.
+path: coherence-seed/ground/translation-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.39
+name: mesh-case.ck
+kind: source
+is: A sender compares signed arrival observations from two deliveries against pending expectations.
+path: coherence-seed/ground/mesh-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.40
+name: instrument-samples.ck
+kind: source
+is: Eight paired battery voltage readings retain monotonic time brackets for both readers.
+path: coherence-seed/ground/instrument-samples.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.41
+name: owned-study.ck
+kind: source
+is: A fitted local model, its cold parent and a rotated-label control run through consent, measurement, publication and inference.
+path: coherence-seed/ground/owned-study.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.42
+name: supervision-reference.ck
+kind: source
+is: The completion loss mask is compared against an independent enumeration of valid next-token positions.
+path: coherence-seed/ground/supervision-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.43
+name: model-behavior.md
+kind: source
+is: The exact four synthetic prompts and eight replies record a local and hosted model comparison.
+path: coherence-seed/spec/model-behavior.md
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.44
+name: search-trace.ck
+kind: source
+is: A native observer records which branches executed and what a nested search returned for comparison with emitted programs.
+path: coherence-seed/ground/search-trace.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.45
+name: rank-reference.ck
+kind: source
+is: Dense-logit comparisons and factor-training evidence exercise the owned low-rank derivative.
+path: coherence-seed/ground/rank-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.46
+name: recovery-case.ck
+kind: source
+is: Signed enrollment, cancellation, interrupted application and stale proof cases drive a local key handover.
+path: coherence-seed/ground/recovery-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.47
+name: intent-study.ck
+kind: source
+is: A separately authored sealed cohort drives native and deterministic interpretation against retained neural predictions.
+path: coherence-seed/ground/intent-study.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.48
+name: window.ck
+kind: source
+is: The private PCM window reads its actual sink and appends through a recipient-chosen frame.
+path: coherence-seed/voice/window.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.49
+name: search-reenter.ck
+kind: source
+is: A BML source reader reconstructs the projected interface, concrete class and search function and invokes them.
+path: coherence-seed/ground/search-reenter.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.50
+name: scope.ck
+kind: source
+is: A retained multilingual position and a queued reading are reconciled into an exact proposed review scope.
+path: coherence-seed/translation/scope.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.51
+name: establish.ck
+kind: source
+is: Independent first-roster endorsements publish one protected initial state.
+path: coherence-seed/participant/establish.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.52
+name: participant.mk
+kind: source
+is: Ordinary participant commands drive independent private accounts, attribution, withdrawal and receipt.
+path: coherence-seed/ground/checks/participant.mk
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.53
+name: nums-replies.ck
+kind: source
+is: The numeric port comparison reads the fitted checkpoint and the answers to the selected tool calls and compares their continuations with the reference.
+path: coherence-seed/ground/nums-replies.ck
+got: 2026-11-27
+at: 2026-11-27
+
+n: 2.30.54
+name: scoped-delivery.ck
+kind: source
+is: A selected bilingual reading, scoped grants and a local port are exercised together. The ground checks authorization, callback compatibility, receipts and the bytes in the receiving stream.
+path: coherence-seed/ground/scoped-delivery.ck
+got: 2026-11-27
+at: 2026-11-27

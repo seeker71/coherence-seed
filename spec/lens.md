@@ -152,8 +152,11 @@ changes to one stored file are merged through their views: the base, ours and th
 reads anything. `lens/all.ck` evaluates the three files of the lens. Inside a program, after
 `(step (read (file "lens/all.ck")))`, `(lens.read t)` answers the node a text leaf shows,
 `(lens.show x)` the one-line text of x, `(lens.lower x)` and `(lens.raise x)` run the rows,
-`(lens.stored raw)` reads stored records and learns their names, and
-`(lens.to-store x)` the bytes of the file that stores x.
+`(lens.stored raw)` reads the stored records and learns their names; `(lens.to-store x)`
+writes those records. At a text protocol boundary, `./ck text lens/to-canonical.ck lens/all.ck`
+converts words to the canonical print and its optional line of names. Its inverse,
+`./ck text lens/show-canonical.ck lens/all.ck`, renders a canonical protocol value as words.
+A standalone catalogue entry such as `yes` prints as `#33`; it has no record of its own.
 
 For a protocol that exchanges canonical text, the two text lenses preserve the
 value and its optional line of names. This also works for a single catalogue
@@ -176,6 +179,33 @@ printf %s '{left right | (left + right)}' |
   nodes in `ground/files.ck`: none differs, its node or its names; and for each, the node read
   back from the records `bin.write` makes of it is the same node, and writing it again gives the
   same bytes.
+
+## Readings of a human utterance
+
+`lens/participation-views.ck` holds a bounded English and Indonesian vocabulary of speakers,
+listeners and actions. An English “we” admits inclusive and exclusive readings. Each carries
+the original wording, an actor and action, and the first complete target wording for that
+meaning. Run
+`printf 'en\nid\nWe may share\n' | ./ck text lens/translate.ck` to see both.
+A known source meaning survives a missing target wording or an unsupported target language.
+A reader who chooses one interpretation can refer to its complete node. Permission to send
+the wording is a separate offer to the recipient's port. An explicit model request through
+this same command preserves grammar readings alongside owned free-text candidates.
+[Local translation and owned corrections](translation.md)
+
+`circle/turns.ck` keeps an original utterance, its participants and the candidate readings in
+an immutable statement. Each new turn names its predecessor. A listener can propose a reading,
+the speaker can correct it, and either role can explicitly refuse or choose silence.
+`satsang.position` retrieves the named participant's latest turn. `satsang.selected` retrieves
+the speaker's correction even after the listener disagrees. An absent turn has no recorded
+stance. A request against an earlier or divergent head is stale. Use a distinct circle identity
+for an independently intended episode with the same opening. `ground/circle-turns.ck` exercises
+these choices through both language directions; `make check-held-back` carries them across
+processes and checks the independently granted delivery.
+
+The same check runs a small ordered decision through the native component runtime and the
+Python writer. On hosts with Python 3, three executable examples exercise the emitted function.
+An empty proposal returns its first applicable answer before any later branch reads a field.
 
 ## Limits
 

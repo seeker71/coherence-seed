@@ -1,0 +1,92 @@
+# Observations when a result crosses a component or participant boundary.
+
+n: 5.20
+name: evidence-at-runtime-boundaries
+kind: hub
+is: Results from executable comparisons of what moves between a producer and a recipient, how its source and meaning are retained, and whose decision permits the next effect.
+see: 5.19
+at: 2026-11-28
+
+n: 5.20.1
+name: a-higher-accuracy-reader-can-falsely-infer-permission
+kind: observation
+is: Higher aggregate accuracy on the same speaker statements can coincide with new false release interpretations.
+status: observed
+from: 5.19.56
+src: 2.30.47
+conf: mid
+why: Of 32 individually attributed synthetic statements the native learner read 20 correctly and the deterministic reader six. Each raw 3B adapter read 28 correctly but labeled two withholding or undecided statements as release. The unchanged model read 22 correctly with no such errors.
+limit: These are English examples written for evaluation. A predicted label supplies no permission and there are no participant accounts.
+at: 2026-11-28
+
+n: 5.20.2
+name: a-listener-can-stop-rendering-within-an-utterance
+kind: observation
+is: The recipient can pause delivery to its own playback file inside a sentence and resume against the physical prefix after losing the status reply.
+status: observed
+from: 5.19.51
+src: 2.30.48
+conf: mid
+why: At 13,486 frames, local recognition read the prefix as “We may listen before.” Resumption reproduced the 113,140 bytes of the corrected bilingual turn. Competing identical ceilings added the remaining bytes once.
+limit: The recipient provides the exact queue and retained letter commitments. A machine can attest to the recorded samples; only a person can report what they heard.
+at: 2026-11-28
+
+n: 5.20.3
+name: cross-object-search-can-survive-a-source-round-trip
+kind: observation
+is: Source projection can preserve a search involving method dispatch, object fields, alternatives and observable effects.
+status: observed
+from: 5.19.58
+src: 2.30.49
+conf: mid
+why: The observer compared all six returned results and ordered callbacks from native Form with the BML reader and four emitted languages. A substituted concrete field value changed the returned result.
+limit: This is a specific typed component package. Parsing larger packages as syntax trees alone does not demonstrate executable round trips.
+at: 2026-11-28
+
+n: 5.20.4
+name: a-corrected-reading-can-require-a-different-invitation
+kind: observation
+is: An owner correction can change both what a recipient is invited to receive and which proposal can reach the delivery boundary.
+status: observed
+from: 5.19.52
+src: 2.30.50
+conf: mid
+why: A stale queued reading and withdrawn ticket failed. The actual receiver published the corrected Indonesian bytes only after the owner and recipient accepted the new scope. A declined position could not prepare another proposal.
+limit: The trusted current position comes from owner custody. Previously issued grants require an explicit withdrawal and real speakers must judge the meaning.
+at: 2026-11-28
+
+n: 5.20.5
+name: each-role-can-bind-the-first-roster-without-granting-a-delivery
+kind: observation
+is: Two independent role keys can confirm the same first roster while all subsequent source and listener decisions remain unissued.
+status: observed
+from: 5.19.60
+src: 2.30.51
+conf: mid
+why: Two valid roles endorsed an episode. Initial publishers converged after a partial staged register. Swapped endorsements failed. A differently endorsed fresh roster could open its own broker but could not reset an already advanced broker.
+limit: This identifies key endorsement, not the real-world identity of the signers. Broker storage and local key custody remain trusted.
+at: 2026-11-28
+
+n: 5.20.6
+name: a-private-account-can-stay-separate-from-what-another-person-receives
+kind: observation
+is: An owner can retain an optional first-person account and choose one excerpt with independently controlled delivery.
+status: observed
+from: 5.19.48
+src: 2.30.52
+conf: mid
+why: In a synthetic two-role rehearsal the author corrected and retracted their private words. An uninvited receiver stayed empty. Both roles later signed for an excerpt, and the author traced identical public wording back to two distinct private editions.
+limit: Synthetic actions supply no evidence of how a person felt. Only participants can choose whether to give an account.
+at: 2026-11-28
+
+n: 5.20.7
+name: taking-the-other-turn-needs-its-own-permission
+kind: observation
+is: Two roles can keep distinct private accounts within the same circle and authorize delivery in either direction independently.
+status: observed
+from: 5.20.5 5.20.6
+src: 2.30.52
+conf: mid
+why: Under the same original roster, both authors kept and corrected identical words in distinct private editions. A return roster derived from the original episode required both endorsements, a new source grant and a new listening decision before its first delivery. Withdrawing it left the two earlier forward letters intact.
+limit: Both roles used synthetic keys and synthetic words. Independent control of these paths gives no evidence of what a participant felt, heard or intended.
+at: 2026-11-28
