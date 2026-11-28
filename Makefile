@@ -168,8 +168,8 @@ check-header: ck
 # the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
 # it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
-# Every process restores a fail by the leaf the seed, ice/seed.ck, holds in the cell of choice-point. $(FLOOR) compiles
-# that leaf again in the run that reads it, and the leaf it makes must restore as the seed's does.
+# Every process returns by the leaf the seed, ice/seed.ck, holds in the cell of frame, and restores a fail by the one in the
+# cell of choice-point. $(FLOOR) compiles both again in the run that reads it, and the leaves it makes must do as the seed's.
 FLOOR = form/walk.ck
 # A canonical print written here is read by the reader in form and stored as the records ck reads.
 NODES = ./ck text form/from-print.ck

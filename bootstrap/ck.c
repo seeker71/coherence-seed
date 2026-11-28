@@ -1498,11 +1498,12 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   return !W->v ? (Ret){ 0, 2 } : geti(W->v, &m) ? (Ret){ m, 0 } : (Ret){ 0, 3 };
 }
 
+static H ret_door; static void *ret_fn;   /* the leaf of the cell of frame, born */
 static uint32_t top = ~COOL;            /* what the top of a run sees: every binding, or with 0 the bootstrap's code alone */
 static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n' node, '0' nothing, 'f' fault */
   Status why; H *a = hand;
   const uint64_t text_base = ntext;
-  W->serve = (uint64_t)(uintptr_t)serve; W->x = x0; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
+  ret_door = 0; ret_fn = NULL; W->serve = (uint64_t)(uintptr_t)serve; W->x = x0; W->v = W->reason = 0; W->env = W->cut = W->k = 0; W->outcome = 0; W->mode = M_EVAL;
   nfr = nlink = nact = 1; nargp = ncp = ncoll = 0; act[0] = (Activation){ E(ACTIVATION), 0, 0, 0, 0, top, 0, 0 }; W->one = 0;
   switch (sigsetjmp(in_code, 1)) {        /* the walker goes on from here after what cannot go on where it happened: */
   case 1: coding = 0; ntk = left; nnoted = 0; fb->me.taken += reading; fault(S_CRASH); break;              /* the processor faulted inside code a program gave */
@@ -1601,24 +1602,19 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       if (W->v) W->reason = 0; else if (!W->reason) W->reason = notice(S_NO_ANSWER);
       W->outcome = W->v ? 'n' : '0'; W->mode = M_DONE; return;
     }
-    uint32_t k = W->k; Frame f = fr[k]; W->at = f.node;
-    if (!ncp || k >= cp[ncp-1].mfr) {     /* nothing can return to it, nor to the frames a commit left above it, */
-      nfr = k; if (f.mlink < nlink && (!ncp || f.mlink >= cp[ncp-1].mlink)) nlink = f.mlink; }      /* nor to the values linked since */
-    uint32_t keep = (ncp && cp[ncp-1].mact > f.mact) ? cp[ncp-1].mact : f.mact;
-    if (keep < nact) { nargp = act[keep].off; nact = keep; }       /* calls made since the frame have returned */
-    W->k = f.k;
+    H door = USED(A_CELLS, E(FRAME)) ? held[E(FRAME)] : 0; Ret r;   /* the leaf the seed holds in the cell of frame returns: it pops */
+    if (door != ret_door) { void *fn = door && local_code(door) ? birth(door) : NULL; ret_fn = fn; ret_door = door; }   /* frames while it */
+    int64_t arg[8] = { W->k, 0, 0, 0, 0, 0, (int64_t)(intptr_t)fb, 1 }; room(A_FRAMES, (uint64_t)nfr + 1); room(A_LINKS, (uint64_t)nlink + 1);
+    left = ntk;                           /* can, and answers 0, or the frame it popped and left to what follows: */
+    if (!ret_fn || (r = host.call(ret_fn, arg)).k || r.v < 0 || (uint64_t)r.v >= fb->a[A_FRAMES].peak || (r.v && fr[r.v].k != W->k))
+      die("the cell of frame holds no return for this processor, or it answered no frame it popped");
+    if (!r.v) break;
+    Frame f = fr[r.v];
     switch (f.t) {
-    case F_SEQ:
-      W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL;
-      if (f.i + 1 < nd[f.node].n) W->k = push(F_SEQ, f.node, f.i + 1, W->env, W->cut, 0, W->k, 0);
-      break;
     case F_CUT: cutto(f.cut); break;
-    case F_FAIL: W->reason = W->v; W->mode = M_FAILED; break;
     case F_ALL:
       if (W->v) { room(A_GATHERED, (uint64_t)ncoll + 1); coll[ncoll] = (Gathered){ E(GATHERED), W->at, f.aux, W->v }; ncoll++; }
       W->mode = M_FAILED; break;
-    case F_NEED: if (!W->v || W->v == E(NO)) W->mode = M_FAILED; break;
-    case F_RECOVER: break;
     case F_ASIDE: {                       /* something done between two steps is over: the run goes on where it was */
       if (f.aux == 2) { W->v = f.node; break; }            /* or ends with the answer it had */
       if (f.aux == 3) { H c[2] = { f.node, mk(1, E(QUOTE), &W->v, 1, &why) }; W->x = mk(1, E(CALL), c, 2, &why);   /* the outcome, */
@@ -1634,10 +1630,6 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       uint32_t j = (uint32_t)argn(KID(f.node, 0));
       W->env = again(f.env, j + 1); argp[act[W->env].off + j] = W->v;
       W->cut = f.cut; W->x = KID(f.node, 2); W->mode = M_EVAL; break; }
-    case F_LAYER:                         /* made together, they see each other */
-      for (uint32_t i = f.aux; i < nbind; i++) bd[i].sees = nbind;
-      for (uint32_t i = f.vals; i < nout; i++) out[i].sees = nout;
-      break;
     case F_OUTCOME:
       if (ncp <= f.aux) die("an outcome's choice was closed under it");
       cp[f.aux].coll = W->v ? seen_as(S_NODE, W->v) : seen_as(S_NOTHING, W->reason ? W->reason : notice(S_NO_ANSWER));
@@ -1646,11 +1638,8 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       const H *full; H node = f.node; uint32_t n; H to = callee(W->v, &node, 1, &full, &n);
       if (!to) { fault(S_NOT_A_RECIPE); break; }
       W->env = enter(W->v, full, n, act[f.env].lim, act[f.env].up, act[f.env].cut); W->cut = ncp; W->x = KID(to, 0); W->mode = M_EVAL; break; }
-    case F_ARGS: {
-      room(A_LINKS, (uint64_t)nlink + 1); lk[nlink] = (Link){ E(LINK), W->at, W->v, f.vals }; uint32_t vals = nlink++;
-      uint32_t c = nd[f.node].n;
-      if (f.i < c) { W->k = push(F_ARGS, f.node, f.i + 1, f.env, f.cut, vals, W->k, f.aux);
-        W->env = f.env; W->cut = f.cut; W->x = KID(f.node, f.i); W->mode = M_EVAL; break; }
+    case F_ARGS: {                        /* the leaf linked the last value */
+      uint32_t c = nd[f.node].n, vals = nlink - 1; if (lk[vals].next != f.vals) die("the cell of frame linked no value");
       a = in_hand(c); for (uint32_t j = c, q = vals; j > 0; j--, q = lk[q].next) a[j-1] = lk[q].v;
       unlink_vals(vals, c);
       long long op = catn(nd[f.node].bp);
@@ -1697,6 +1686,7 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
       }
       if (op > LAST) { fault(S_KIND); break; }       /* an entry only code ran, and the code declined these values */
       base(op, a, c, f.env, f.node); break; }
+    default: die("the cell of frame left a frame it takes itself");
     }
     break; }
   case M_FAILED: {
@@ -2022,7 +2012,10 @@ static void sow(int seen) {
   static char path[PATH_MAX]; size_t len; Status why; int was = reading; snprintf(path, sizeof path, "%sice/seed.ck", home);   /* read_seen keeps it */
   if (HOST_ABI != TARGET_AAPCS64 || !*home || access(path, R_OK)) die(HOST_ABI != TARGET_AAPCS64 ? "the seed, ice/seed.ck, carries code for AArch64 alone, and this processor is another" : "no seed beside the executable, ice/seed.ck");
   uint8_t *b = load(path, &len); H x = read_nodes(b, len, &why); reading = seen; read_seen(path, 0, 0, 0, x); reading = was;
-  if (!x || (run(x), W->outcome != 'n')) die("the seed beside the executable, ice/seed.ck, did not run to its end: not records, or made for another layout");
+  int64_t v = 0; if (!x || !nd[x].comp || nd[x].bp != E(LIST) || !nd[x].n || !geti(KID(x, 0), &v) || v != FB_VERSION) die("the seed beside the executable, ice/seed.ck, is not records of its rows, or was made for another layout");
+  for (uint32_t i = 1; i < nd[x].n; i++) { H r = KID(x, i);      /* each row: a cell and the leaf it holds */
+    if (!nd[r].comp || nd[r].n != 2 || !KID(r, 0)) die("a row of the seed, ice/seed.ck, is not a cell and its leaf");
+    touch(A_CELLS, KID(r, 0)); held[KID(r, 0)] = KID(r, 1); }
 }
 static int command(int argc, char **argv) {
 #ifndef NUMERIC_PORT

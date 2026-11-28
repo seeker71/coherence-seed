@@ -9,7 +9,7 @@ What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS on A
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,179 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first runs the seed `ice/seed.ck` and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,172 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -551,52 +551,59 @@ Each line here is held by a program in `make check-full`, or names how it was se
   holder made every settled node again as itself. A make from walked code costs 2,700 to 5,200
   instructions against 400 to 2,400 for the C's `join` over four runs (2,000 and 4,000 makes of
   new content, less the loop; runs vary), so the C's make stays the store.
-- **A fail is restored by compiled Form the seed carries; the C has no restore.** `ice/seed.ck`
-  beside the executable is node records: a program that holds in the cell of `choice-point` a
-  leaf of AArch64, the walker's restore of a choice. Every process runs it before anything else
-  is walked, and again when a look at a saved image leaves the region fresh; a start entered from
-  an image has it from the image, and the seed is among the files that image checks. The leaf is
-  `form/walk.ck`: the frames, links, activations, arguments, held-back calls and the machine's
-  `env` and `k` set from the choice's marks, the bindings made since undone, cells put back from
-  the trail, the trail kept of what no fail undoes, and room words put back, as integers over the
-  region's records at places `make header` writes; a choice's place is computed once, and each
-  loop over the bindings, the trail or the room trail is entered only when its count grew past
-  the choice's mark. It is compiled by `emit.floor`, the emitter's
-  floor mode: stores anywhere in the process's own areas and the head, bounded by what each
-  holds, and no entry check, since the leaf lies beneath every binding. The walker's fail calls
-  it and goes on with the giving back of nodes, ranges, outcomes and gathering in C. A cell with
-  no code this processor runs, or a leaf that does not answer the choice it was given or leaves
-  the frames, bindings, room trail or trail off the choice's marks, ends the process; a processor fault
-  in it is the walker's own. A process with no seed beside it, or on
-  another processor than AArch64, is refused at start with a plain line.
-  The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles the
-  leaf, and writes the program with `bin.write` of `form/nodes.ck`. The program opens no choice,
-  since nothing can restore one before it ends, and holds the leaf only where the region's layout
-  version is the one it was made for: elsewhere it answers nothing and the process is refused. `make header` writes it, and
-  `check-header` builds it again on the seed itself and compares the bytes: the same 16,155. A
-  member of a substrate holds the leaf before it joins: the seed's program gives no handle, so
-  `adopt` takes the start, and `ground-isolated` runs every program as a member with nothing more
-  read. The whole catalogue answered alike under the C restore of the last commit that had one
-  (`4d7b155`) and under the seed: each of the 77 programs' outcome and its verdict, `cmp` of
-  154 answers. With no C restore left, what holds the leaf is the answers the catalogue pins in
-  `ground/expect.ck`, which the C restore gave too; among them `ground/gives-back.ck` (two
-  bindings, nested cells, room words of three widths, the trail kept after notes, and that a fail
-  deep in a call's arguments leaves the frames, links, activations and arguments where a fail at
-  once does). `check-held-back` holds that a leaf the run compiles again restores as the seed's
-  does. Planted in the seed: a leaf that returns at once, one whose first word is no
-  instruction, a cell holding bytes, a seed that is no records and one made for another layout
-  version each end the process with its line. Not seen by any test: which faster forms'
-  trail entries are kept (only a reclaim that moves their leaf reads them), and a leaf that
-  leaves a cell or a trail entry wrong while the counts it is checked by stand. A round of a range with a choice failed
-  twice (three restores: the range's next and the two fails) took about 5,610 instructions against 3,280 with the C restore of `4d7b155` (20,000 and
-  40,000 rounds, less each other), about 780 more a fail; before the loops were guarded and the
-  place computed once it was 6,850. Each guard turned the wrong way, and the choice's place
-  computed with another record size, planted, made the catalogue's programs differ or ended the
-  process at the counts the C checks after the leaf: frames, bindings and room trail at the
-  choice's marks, and the trail not below its mark.
+- **The walker returns and restores a fail by compiled Form the seed carries; the C has neither.**
+  `ice/seed.ck` beside the executable is node records of one list: the layout version it was
+  made for, then rows of a cell and the leaf of AArch64 it holds. The walker cannot return
+  before the seed is in place, so the seed is not walked: the C checks the version and holds
+  each row's leaf in its cell before anything runs, and again when a look at a saved image
+  leaves the region fresh; a start entered from an image has them from the image, and the seed
+  is among the files that image checks. Both leaves are `form/walk.ck`, compiled by
+  `emit.floor`, the emitter's floor mode: stores anywhere in the process's own areas and the
+  head, bounded by what each holds, a load or store of the head at a constant place as one
+  instruction, and no entry check, since the leaves lie beneath every binding.
+  - The cell of `frame` holds `walk.ret`, the walker's return: it pops the frame as the C did
+    (the frames and links above it given back when no open choice returns to them, the
+    activations made since given back), takes a sequence's next step, links an argument's
+    value and starts the next, and takes `fail`, `need`, `recover` and `layer`, popping frame
+    after frame in a loop while the run keeps returning. What it leaves, it answers by the
+    frame's place: a cut, an all, a let, an outcome, a handler, an aside, and a call or an
+    operation whose values are all linked, which the C goes on with. An answer that is no frame
+    it popped, or a frame it takes itself, ends the process.
+  - The cell of `choice-point` holds `walk.restore`, the restore of a choice: the frames, links,
+    activations, arguments, held-back calls and the machine's `env` and `k` set from the
+    choice's marks, the bindings made since undone, cells put back from the trail, the trail
+    kept of what no fail undoes, and room words put back. The walker's fail calls it and goes on
+    with the giving back of nodes, ranges, outcomes and gathering in C; a leaf that leaves the
+    frames, bindings, room trail or trail off the choice's marks ends the process.
+  - A cell with no code this processor runs ends the process at its first use; a processor fault
+    in a leaf is the walker's own. A process with no seed beside it, a seed made for another
+    layout version, or a processor other than AArch64 is refused at start with a plain line.
+  - The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles both
+    leaves, and writes the list with `bin.write`. `make header` writes it, and `check-header`
+    builds it again on the seed itself, walking with its own return, and compares the bytes:
+    the same 30,287, leaves of 11,164 and 19,020 bytes. `check-held-back` holds that leaves the
+    run compiles again and holds mid-run return and restore as the seed's do.
+  - Held: the whole catalogue answered alike under the C walker of `733d27a` and under the seed's
+    return, each of the 77 programs' outcome and its verdict, `cmp` of 154 answers, one
+    process each. `ground/need-moves-on.ck` returns through 200,000 frames of `need` in a row:
+    the loop of returns is a jump, so it runs in a constant stack. Planted in `walk.ret`, each
+    made a program differ or the process end: `no` let through a `need` (the answer `no`
+    where 7 is pinned, and the lens loops), a pushed frame's link mark taken from the
+    activations (no answer line), a frame dropped though a choice can return to it (faults of
+    kind), a layer's bindings seeing one fewer (`ground/loop-in-place.ck`), and the loop of
+    returns made a call that is not a jump (the stack's floor is met, and the C ends the
+    process). A refusal at the stack's floor inside code is now said to the caller, where
+    before the caller read the argument it gave as the answer.
+  - Cost, measured with `/usr/bin/time -l`, N rounds against 2N: a round of a counting loop
+    `{n | (if (n = 0) 0 (call (self) (n - 1)))}` took about 10,200 instructions against 4,590
+    with the C return, crossing from the C walker into the leaf 7 times a round, about 800
+    instructions a crossing; a round of a range with a choice failed twice (three restores)
+    about 4,470 against 4,580. The restore cost less once a head place became one load; the
+    return is the walker's step and costs 2.2 times the C until `eval` is in compiled code too
+    and a run stays inside it.
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one
-  builds the current. With none that runs, the last commit whose C restores a fail alone
-  (`4d7b155`) builds a seed from the nodes, and that seed builds the next.
+  builds the current. With none that runs, the last commit whose C walker returns and restores a
+  fail alone, with no seed (`4d7b155`), builds a seed from the nodes, and that seed builds the next.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls
