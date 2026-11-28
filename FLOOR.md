@@ -106,6 +106,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   can receive its first token while an earlier request is still generating, and a
   paused client can resume its own context. Eight clients on nine requests matched
   all 106 predictions from llama.cpp at the same batch width on arm64 and Rosetta.
+  On an M4 Max, eight local clients decoding eight positions on Llama 3.2 3B Q4_K_M
+  reached 635 tokens/s with the packed stream service, up from 611. llama.cpp reached
+  767 on the same weights and inputs. These are medians of 15 warm runs; all three
+  returned the same 64 tokens on every run.
   [Independent local decode streams](spec/nums.md#independent-local-decode-streams)
   On Apple Silicon, a generation request can run a model-selected Form recipe by
   ID. Two local clients elicited different operators from the same mounted Llama

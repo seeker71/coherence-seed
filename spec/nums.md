@@ -133,7 +133,8 @@ and library linker. The image holds the compiled library, the numeric map entry
 `(b.instance b.gpu declaration)` and the supplied operands. A request addresses that entry
 and two operands by content ID. Each operand packs one 64-bit word per lane. The entry ID
 depends on the declaration and stays the same across builds of its Metal library.
-The optional `METAL_APPLICATION` supplies a `nums.image` manifest. In this example its
+The optional `METAL_APPLICATION` supplies a `nums.image` manifest or a zero-argument
+recipe that builds one during packing. In this example its
 caller receives the map entry and two byte operands by ID. One search calls the map in
 both operand orders and returns the direct, attached and batched results in a single reply.
 
@@ -343,8 +344,14 @@ one resident batch. It sleeps in the host poll when every client is idle. A
 paused sequence keeps its KV history while other sequences advance or start.
 The Metal plan still dispatches its declared panel width.
 
-After the resident Metal bindings, load `nums/projection.ck`, `nums/by-id.ck`
-and `host/streams.ck` in that order through `part.load`. Construct `stream.decode-model` with the model ID,
+With the resident Metal bindings loaded, step `host/stream-image.ck` while building the
+image and compose the returned service with the application using `image.then`. The
+builder compiles the stream word operations once. On startup, the service attaches each
+compiled entry when the host ABI, framebuffer version and bound recipe match the build.
+The image carries the portable recipes and can serve without loading the compiler.
+For an interpreted session, step `host/streams-all.ck` after the Metal bindings.
+
+Construct `stream.decode-model` with the model ID,
 batch, flash layout, decode input views, one disjoint four-byte feedback
 readback per lane, and vocabulary size. Each readback addresses the token used by
 that lane's next embedding gather. The model owner mounts once, calls
@@ -357,7 +364,9 @@ the model mounted and the descriptors open through service, then retires the
 model and closes its descriptors.
 
 Each request contains two little-endian unsigned 32-bit words. Ordinary replies
-use the same layout. Clients with recipe tokens enabled receive up to 48 bytes. One request permits one token
+use the same layout. The worker reads the pair from its socket buffer as one integer.
+A lane holds its own reply until the socket accepts it, so other lanes can reuse
+the buffer. Clients with recipe tokens enabled receive up to 48 bytes. One request permits one token
 step, so a client can pause simply by waiting before its next request.
 
 | Request word | Second word | Effect on the lane |
