@@ -9,7 +9,7 @@ and a separate x86-64 Linux guest. The current seed carries AArch64 machine code
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,159 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,145 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images: its loop, its reading of requests and its writing of replies are the recipe `ice/port.ck`, made by `form/port.ck`; what stays in C is the walk of one request and the listing of a reply's closure. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -58,6 +58,39 @@ Each line here is held by a program in `make check-full`, or names how it was se
   million nodes in forty thousand outcomes and ends with a note from a failed branch, an all's
   answers, an outcome's answer and a kept node's own id standing. Giving back costs 2 to 4
   percent of the time.
+- **The numeric port is Form.** `ice/port.ck` beside the executable is one recipe, built by
+  `form/port.ck` (`make header`) as `form/print.ck` is: the recipe, and beside it the leaves the
+  emitter made of `read`, `write`, `calloc`, `free` and `ck_freeze` as door calls, of `node`
+  (an id's address to the node, entry 56 in `form/operations.ck`) and the two words of the host
+  package that load a word and give the region's address. A call of it answers the reply to the
+  request before and reads the next: it reads the count and the ids with `read`, finds each node
+  by `node`, builds the call (`quote`d arguments to a recipe or a closed recipe, the entry's own
+  node with them when it is bound, the node itself when not), and answers it as a list of that node,
+  for C to run alone: a choice open under a request would refuse the host (`irreversible`), so
+  `outcome` cannot be what runs it. A request that names an id no node has is answered by a
+  refusal and the next is read; one cut short is, and the port leaves with 1. The reply is one
+  `write`: the bootstrap's `ck_freeze` (a host row of the door table, 24 lines, the only part of
+  the reply left in C) writes the status, the value's id, the size and the closure, each part
+  before what holds it, into a buffer the port owns; a closure larger than 64 KiB is written
+  again into a buffer of its size. The same 12 requests of `make check-image` answer the same
+  12,427 bytes cold and from the image, and six more cases (an id of none, a request cut short,
+  a count over two requests, a reply of the whole image of 1,931,700 bytes, a part of the image,
+  a request after a refused one) the same bytes and the same exit code as the C port did.
+  Measured by `/usr/bin/time -l`, instructions retired (the C port in brackets): a start with no
+  request 2,762.6 M (2,760.9 M), 12 and 24 requests of the image flow 3,042.3 M and 3,264.3 M
+  (3,030.0 M and 3,240.2 M); from the image, 40.2 M with none and 325.9 M and 548.1 M with 12
+  and 24 (38.9 M, 312.5 M, 522.6 M); a request for a leaf 0.39 M each (0.09 M), a request
+  of 3,032 bytes of reply 0.41 M each (1.63 M, which wrote each record on its own). So the Form
+  port costs more than the C on the image's flows, 0.4% to 0.7% cold and 4.3% to 4.9% warm, by
+  640 to 1,100 steps of the walker a request. Not built: the closure's
+  listing in Form. Walked (`ice.freeze`'s own marks, `encode` of each part and the bytes packed) it
+  costs 7 M a request of 37 parts, against the C's 1 M: a walked recursion step is 8,000
+  instructions, a `join` 6,400, so a part costs 100,000; a leaf of the emitter would cost about
+  5,000 a part (estimated: eight asks of the bootstrap at 1,600), but it did not compile two
+  small leaves that `hold` a mark (one that `held` alone did), and `note` keeps what it marks
+  beyond the reply, so the marks would be a table of handles in a room, as the printer's are.
+  Not built either: running a request from Form with no choice open (`walk` is not re-entered), so
+  C still runs each one.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
   ids. Its packed image contains zero text leaves. One process constructed a cell and stored
   and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID

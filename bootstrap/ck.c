@@ -128,7 +128,8 @@ static int h_code_publish(void *p, const void *source, size_t n) {
 static Ret h_call(void *fn, const int64_t *a) {
   return ((Ret (*)(int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t, int64_t))fn)(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
-static void *h_symbol(const char *name) { return dlsym(RTLD_DEFAULT, name); }
+static int64_t ck_freeze(int64_t value, int64_t status, uint8_t *out, int64_t cap);
+static void *h_symbol(const char *name) { return strcmp(name, "ck_freeze") ? dlsym(RTLD_DEFAULT, name) : (void *)ck_freeze; }
 static void h_guard(void (*on)(int), void *stack, size_t n) {
   stack_t ss; struct sigaction sa; memset(&sa, 0, sizeof sa); memset(&ss, 0, sizeof ss);
   ss.ss_sp = stack; ss.ss_size = n; sa.sa_handler = on; sa.sa_flags = SA_ONSTACK; sigemptyset(&sa.sa_mask);
@@ -1761,38 +1762,6 @@ static H open_image(const uint8_t *p, size_t n, Status *why) {
       || nd[last].n != 2 || nd[KID(last, 1)].bp != E(LIST)) { *why = S_IMAGE; return 0; }
   return last;
 }
-static int send_bytes(const uint8_t *p, size_t n) { return send_fd(1, p, n); }
-static int recv_bytes(uint8_t *p, size_t n) {
-  while (n) { ssize_t got = read(0, p, n); if (got < 0 && errno == EINTR) continue;
-    if (got <= 0) return 0;
-    p += got; n -= (size_t)got;
-  }
-  return 1;
-}
-/* A reply holds its value's closure, each part before what holds it. A part may lie in any lane, above its holder's
- * too, so the closure is found from the value: a node is listed once its blueprint and children are, in their order. */
-static int send_answer(uint8_t status, H value) {
-  uint8_t header[37]; uint64_t size = sizeof ice_header, base = ntk, first = nhand;
-  room(A_GATHERING_CHILDREN, ntk + 1); tk[ntk++] = value;
-  while (ntk > base) {                    /* print-numbers: 1 while a node's parts are being listed, 2 once it is */
-    H h = tk[ntk - 1]; Node *x = nd + h; touch(A_PRINT_NUMBERS, h);
-    if (pnum[h]) { ntk--; if (pnum[h] == 1) { pnum[h] = 2; *in_hand(1) = h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n); } continue; }
-    pnum[h] = 1; room(A_GATHERING_CHILDREN, ntk + (x->comp ? x->n : 0) + 1);
-    for (uint64_t j = x->comp ? x->n : 0; j-- > 0; ) if (KID(h, j) > ROOT && !(USED(A_PRINT_NUMBERS, KID(h, j)) && pnum[KID(h, j)])) tk[ntk++] = KID(h, j);
-    if (x->bp > ROOT && !(USED(A_PRINT_NUMBERS, x->bp) && pnum[x->bp])) tk[ntk++] = x->bp;
-  }
-  int sent = size <= UINT32_MAX; header[0] = status; memcpy(header + 1, idof(value), 32); put4(header + 33, (uint32_t)size);
-  sent = sent && send_bytes(header, sizeof header) && send_bytes(ice_header, sizeof ice_header);
-  for (uint64_t i = first; i < nhand; i++) {
-    uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(hand[i], &len); put4(header, (uint32_t)len);
-    sent = sent && send_bytes(header, 4) && send_bytes(record, len); ntext = mark; pnum[hand[i]] = 0;
-  }
-  nhand = first; return sent;
-}
-static int send_outcome(void) {
-  return W->outcome == 'n' ? send_answer(1, W->v) : send_answer(W->outcome == 'f' ? 2 : 0, W->reason);
-}
-
 /* ---- the region at rest: saved once, entered by every later start ------------------------------
  * A start is the files run before the program, or the image seed-run opens with its first part. When it has run and
  * the region is at rest, nothing open, held back, asked, bound from outside or taken from the host or the process, the
@@ -1938,39 +1907,57 @@ static void after_join(void) { H now = USED(A_CELLS, E(AFTER)) ? held[E(AFTER)] 
   if (now && after_seen && now != after_seen) now = held[E(AFTER)] = mk(1, E(SEQ), p, 2, &why); after_seen = now; }
 #endif
 static int reborn(void) { H r = USED(A_CELLS, E(AFTER)) ? held[E(AFTER)] : 0; if (r) run(r); return !r || W->outcome == 'n'; }
+/* A reply: the status, the value's id, the size of what follows, then the value's closure as records, each part before what holds it.
+ * It is written at out when it fits in cap bytes, and its size answered either way. A part may lie in any lane, above its holder's too, so the closure is found from the value:
+ * a node is listed once its blueprint and children are, in their order. A leaf of the port calls it as it calls the host. */
+static int64_t ck_freeze(int64_t value, int64_t status, uint8_t *out, int64_t cap) {
+  uint64_t size = sizeof ice_header, base = ntk, n = 0;
+  if (!known(value)) return -1;           /* a leaf of a program may ask: a node this run does not see is no reply */
+  room(A_GATHERING_CHILDREN, ntk + 1); tk[ntk++] = (H)value;
+  while (ntk > base) {                    /* print-numbers: 1 while a node's parts are being listed, 2 once it is */
+    H h = tk[ntk - 1]; Node *x = nd + h; touch(A_PRINT_NUMBERS, h);
+    if (pnum[h]) { ntk--; if (pnum[h] == 1) { pnum[h] = 2; room(A_READER_OPENED, n + 1); opened[n++] = h; size += 4 + 33 + (x->comp ? (uint64_t)x->n * 32 : x->n); } continue; }
+    pnum[h] = 1; room(A_GATHERING_CHILDREN, ntk + (x->comp ? x->n : 0) + 1);
+    for (uint64_t j = x->comp ? x->n : 0; j-- > 0; ) if (KID(h, j) > ROOT && !(USED(A_PRINT_NUMBERS, KID(h, j)) && pnum[KID(h, j)])) tk[ntk++] = KID(h, j);
+    if (x->bp > ROOT && !(USED(A_PRINT_NUMBERS, x->bp) && pnum[x->bp])) tk[ntk++] = x->bp;
+  }
+  if (size <= UINT32_MAX && cap > 0 && out && size + 37 <= (uint64_t)cap) {
+    out[0] = (uint8_t)status; memcpy(out + 1, idof((H)value), 32); put4(out + 33, (uint32_t)size); out += 37;
+    memcpy(out, ice_header, sizeof ice_header); out += sizeof ice_header;
+    for (uint64_t i = 0; i < n; i++) { uint64_t mark = ntext; size_t len; uint8_t *record = cbytes(opened[i], &len); put4(out, (uint32_t)len); memcpy(out + 4, record, len); out += 4 + len; ntext = mark; }
+  }
+  for (uint64_t i = 0; i < n; i++) pnum[opened[i]] = 0;
+  return size > UINT32_MAX ? -1 : (int64_t)size + 37;
+}
+/* The numeric port is the recipe of ice/port.ck beside the executable, built by form/port.ck. A call of it answers the reply to the
+ * request before (a status and what to say, or nothing) and then reads the next, which it answers as a list of the node to run,
+ * or answers the number the process leaves with. A request is run here, alone, since a choice open under it refuses the host. */
+static H turn(H code, H status, H why, H more) {
+  Status w; H q[4] = { code, status, why, more };
+  for (int i = 0; i < 4; i++) q[i] = mk(1, E(QUOTE), &q[i], 1, &w);
+  run(mk(1, E(CALL), q, 4, &w)); return W->outcome == 'n' ? W->v : 0;
+}
+static int port(int status, H why) {
+  char path[PATH_MAX]; size_t len; Status w; int64_t rc = 2; snprintf(path, sizeof path, "%sice/port.ck", home);
+  H code = read_nodes(load(path, &len), len, &w), r = code ? turn(code, why ? mki(status) : E(NO), why ? why : E(NO), E(NO)) : 0;
+  if (!code) die("the port beside the executable, ice/port.ck, is not records");
+  while (r && nd[r].comp && nd[r].bp == E(LIST) && !why) {
+    run(KID(r, 0)); H v = W->outcome == 'n' ? W->v : W->reason;
+    r = turn(code, mki(W->outcome == 'n' ? 1 : W->outcome == 'f' ? 2 : 0), v, E(YES));
+  }
+  return r && geti(r, &rc) ? (int)rc : 2;
+}
 static int execute_image(const char *path, int warm, int keyed, char **starts) {
   Status why; char saved[PATH_MAX] = "";
   if (!warm) {
     size_t len; uint8_t *raw = load(path, &len); reading = 1; read_seen(path, (uint64_t)(raw - text), len, 0, 0); H image = open_image(raw, len, &why);
-    if (!image) { send_answer(2, notice(why)); return 1; }
+    if (!image) return port(2, notice(why));
     run(KID(image, 0)); reading = 0;
-    if (W->outcome != 'n') { send_outcome(); return 1; }
+    if (W->outcome != 'n') return port(W->outcome == 'f' ? 2 : 0, W->reason);
     if (keyed) image_rest(1, 1, starts, 0, saved);
   }
-  if (!reborn()) { send_outcome(); return 1; }
-  for (;;) {
-    uint8_t count, id[32]; ssize_t n = read(0, &count, 1);
-    if (!n) return 0;
-    if (n < 0 && errno == EINTR) continue;
-    if (n < 0) { send_answer(2, notice(S_SHORT)); return 1; }
-    nhand = 0; H *refs = in_hand((uint64_t)count + 1), *args = in_hand((uint64_t)count + 1);
-    int missing = 0;
-    for (unsigned j = 0; j <= count; ++j) {
-      if (!recv_bytes(id, sizeof id)) { send_answer(2, notice(S_SHORT)); return 1; }
-      catalogue_ids(); refs[j] = byid(id); if (!refs[j]) missing = 1;
-    }
-    if (missing) { if (!send_answer(2, notice(S_ID))) return 2; continue; }
-    H target = refs[0], top = target;
-    int call = is_recipe(target) || (nd[target].comp && nd[target].bp == E(CLOSED));
-    if (call || count || bound(target, 0, ~COOL)) {
-      uint32_t argc = call ? 1 : 0;
-      if (call) args[0] = mk(1, E(QUOTE), &target, 1, &why);
-      for (unsigned j = 1; j <= count; ++j) args[argc++] = mk(1, E(QUOTE), refs + j, 1, &why);
-      top = mk(1, call ? E(CALL) : target, args, argc, &why);
-      if (!top) { if (!send_answer(2, notice(why))) return 2; continue; }
-    }
-    run(top); if (!send_outcome()) return 2;
-  }
+  if (!reborn()) return port(W->outcome == 'f' ? 2 : 0, W->reason);
+  return port(0, 0);
 }
 #ifndef NUMERIC_PORT
 /* The answer line: a word and the node's canonical print, made by the recipe form/print.ck beside the executable answers.
