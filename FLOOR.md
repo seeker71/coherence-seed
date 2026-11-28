@@ -1,7 +1,7 @@
 # Floor
 
-What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS on AArch64. A process on another processor
-(Rosetta, x86-64) is refused at start, since the seed carries code for AArch64 alone.
+Observations through **2026-11-28** cover an Apple M4 Max running macOS on AArch64, earlier Rosetta runs,
+and a separate x86-64 Linux guest. The current seed carries AArch64 machine code and refuses an x86-64 process at startup.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
 ## What runs
@@ -22,7 +22,7 @@ What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS on A
 | Programs | [`ground/`](ground) | The ground expectation table is exercised by a program in Form under `make check-full` |
 | Observer | [`tools/fb.c`](tools/fb.c) | in C, from a second process: records a run in motion and replays it. A named substrate and its lanes are shown by `share/show.ck`, in Form |
 | Substrate | [`share/`](share) | written in form, a component package over the host's rows: making or joining a named substrate, claiming a lane, telling whether a member stands, retiring, burying, leaving, and listing one |
-| Claim graph | [`graph/`](graph) | 1,461 nodes: the ground, the design, what is open, the path, and the evidence they stand on |
+| Claim graph | [`graph/`](graph) | the ground, the design, what is open, the path and their evidence |
 
 ## Observed
 
@@ -107,6 +107,14 @@ Each line here is held by a program in `make check-full`, or names how it was se
   paused client can resume its own context. Eight clients on nine requests matched
   all 106 predictions from llama.cpp at the same batch width on arm64 and Rosetta.
   [Independent local decode streams](spec/nums.md#independent-local-decode-streams)
+  On Apple Silicon, a generation request can run a model-selected Form recipe by
+  ID. Two local clients elicited different operators from the same mounted Llama
+  model. Each recipe assembled a Metal frame, returned its result by content ID
+  and fed a token into its own next prediction. Both predictions matched llama.cpp.
+  Ready tools that name the same panel planner share a Metal submission. Eight
+  add/argmax calls and their next decode used two command buffers. Their eight
+  replies were byte-identical to the nine-buffer scalar run.
+  [Recipe tokens and live variants](spec/nums.md#recipe-tokens-and-live-variants)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
@@ -195,21 +203,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. Through `nums/write-text.ck` the writer writes itself
-  as 2,949 lines of Python, 4,980 of C#, 3,374 of TypeScript, 3,522 of Java and 2,916 of BML.
-  Python's parser takes the Python, and ruff finds in it no undefined name, redefinition, unused
-  local or comparison with `None`, `True` or `False`. Against a stub of the runtime that types
-  every name `any`, Deno's checker refuses 81 places in the TypeScript, 77 of them a value of type
-  unknown used where a type is needed; against small stubs, javac 21 refuses 121 and Roslyn 349.
-  A member read is cast to the shape it reads where the receiver's static type is another, and a
-  value of unknown type to the type its place declares. Numbers the package names are written by
-  name, and long argument lists are broken at the language's width. The BML is written as
-  `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first lines say
-  it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
-  those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
-  `nums/compile.ck`, are written by the same writer in all five; the compiler's Python parses and
-  its BML reads back. The writer writes no call into another package, so the compiler is handed
-  the encoder's functions and the runtime's as recipes.
+  into a syntax tree with the BML reader. For the cross-object search example, Seed reads
+  back the emitted BML interface, implementing class and free function, invokes the concrete
+  receiver, and matches six native value and callback traces. The other four emitted languages
+  ran the same cases. The encoder and compiler also project in all five
+  languages. Reading those larger packages as syntax trees and executing a supported method are
+  separate checks. For a linked projection, the writer follows referenced declarations to
+  determine whether each call can yield several answers. [Component views](spec/nums.md)
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -702,8 +702,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
 
 **Writing**
 
-- **The lens reads its own definition**: shown and read back to the file it is, byte for byte, as
-  is each file of nodes here. Text it cannot read is a fault
+- **The lens reads its own definition.** It shows and reads back the records listed in
+  `ground/files.ck`, including their names, byte for byte. Text it cannot read is a fault
   that names what and where.
 - **Names lie beside the nodes.** Arguments are numbers in a node and names in records stored after
   the node's in its file. Every module and ground program was named; naming changed no node. A sign stands
@@ -721,7 +721,81 @@ return whose value was nothing answered yes, and a call's arguments lost what th
 because a list built with `all` drops a nothing and undoes what was done inside it (found by
 running compiled code against frames all the way down).
 
-- **The graph holds.** `./kg check`: no errors over 1,265 claims, none reviewed by a second reader.
+- **A small model can continue from a tool result.** In `make check-image`, nine examples fit a
+  categorical model. Its predictions select subtraction or comparison. A separate process reads
+  the fitted model from the image and uses the actual answers to make the next prediction across
+  eighteen calls. A sibling changed one learned continuation and observed the image comparison
+  fail. The categorical model is separate from the fitted language model below.
+- **A bilingual reading can be shared under an exact grant.** English “We may share” gives two
+  actor/action readings. `ground/scoped-delivery.ck` selects the exclusive one and sends “Kami
+  boleh berbagi” to an anonymous local stream. The same recipient and bytes under the other
+  reading are declined. The ground also withdraws permission after queueing and compares the
+  bytes left by complete, empty and partial writes. A sibling substituted a writer that claimed
+  success without writing. The physical stream comparison caught it. [Scoped delivery](spec/core-operations.md#scoped-delivery)
+- **Two local roles can disagree and still exchange one authorized letter.** A listener proposes
+  the inclusive reading of “We may share”. The speaker selects the exclusive reading. A refusal
+  and an explicit silence retain both positions. Separate processes publish “Kami boleh berbagi”
+  only after the owner grants that delivery and the listener invites it. A retry after a lost
+  acknowledgment finds the same file. Eight sibling-run receivers racing for another occurrence
+  produced one acceptance and seven replay receipts. This witnesses local process behavior.
+  Participants' experience of trust and vitality remains an open question.
+  [Local inbox and its boundaries](spec/core-operations.md#local-inbox)
+- **A receiving broker can attest what arrived across machines.** A Linux guest signed its
+  invitation using an independently enrolled listener key. A signed owner grant and listener
+  invitation permitted publication of a 137-byte letter. The guest signed its observation of
+  those bytes, and the macOS sender verified the 591-byte receipt against the original
+  expectation. [Signed controls](spec/core-operations.md#signed-consent-controls) and
+  [receipt verification](spec/mesh-receipts.md)
+- **What a broker knows depends on which controls reached it.** A broker with a withdrawal
+  refused a delivery that a disconnected peer still allowed. Retaining the highest observed time
+  stopped a clock rollback at that broker. A separate witness that retained the latest control
+  revisions also stopped a restored receiver from publishing under a superseded grant. A
+  withdrawal still held only by its owner cannot inform the receiver or witness.
+  [Time and control revisions](spec/mesh-receipts.md#independent-time-and-control-revisions)
+- **Seed can train its own causal language model and generate with the saved weights.**
+  Eighteen synthetic sentences trained a 15-token model. A new process generated the
+  expected verb and an end token for all six withheld adjective and noun combinations.
+  A separate scalar implementation matched every fitted weight. [Local language learning](spec/local-learning.md)
+- **A resident 3B model consumed the result of a Form recipe.** Changing the subtraction
+  result from token 20 to 22 changed the next prediction from 14 to 56012. A separate
+  local decoder reproduced both. The run used a pinned native Metal worker and GGUF.
+  [Resident inference](spec/resident-inference.md)
+- **Better token loss alone can select the wrong adapter.** On independently written
+  paired dialogues, two locally fitted adapters failed to answer both owners correctly
+  on any pair. The unchanged model given a public codebook and the selected owner's
+  statement succeeded on 16 of 18 fresh pairs. [Measured trials](spec/local-learning.md#measured-3b-adapter-trials)
+- **An owner can grant teaching and still withhold use of the fitted artifact.**
+  The local consumer required an admitted teaching round, a current derivative grant,
+  a passing comparison and the exact selected bytes. A grant for the first fitted 3B
+  adapter left the active selection empty because its evaluation was held. A separate
+  run corrected a false claim against its cited sources and retained the original
+  wording alongside the correction. [Witness and teaching](spec/witness-and-teaching.md)
+- **An observed event can overturn a forecast and change the next one.** A local
+  instrument contradicted the preferred rule at sequence 11. A fresh process retained
+  that forecast, the measured bytes and both rules' error counts. The next reading
+  confirmed the newly preferred rule. [Predictions and observed events](spec/observations.md)
+- **A recipient assembled two spoken turns after a correction.** Withdrawing the
+  first Indonesian offer kept it out of the stream. After both roles accepted
+  the correction, local transcription of the received PCM recovered the English
+  sentence and the corrected Indonesian pronoun. [Spoken turns](spec/voice.md)
+- **The graph holds.** `./kg check` reports structural errors, warnings and the review state
+  of the claims. The sibling experiments above are behavioral comparisons.
+
+The same delivery and evidence boundaries now support these observed runs.
+
+| Question | Observation |
+| --- | --- |
+| Can someone restore an old receiver and release a superseded grant? | A time-only witness let an old grant deliver 137 bytes. A separate witness retaining both control revisions refused that replay. A Linux guest signed its actual arrival, and the sender reconciled receipts out of order. [Mesh receipts](spec/mesh-receipts.md) |
+| Does the model respect evidence and a stop request? | On four synthetic prompts, the local 3B model accepted a false premise and invented a motive. The hosted session identified the superseded source. Both followed the source switch and respected the stop. [Prompts and observed answers](spec/model-behavior.md) |
+| Can a locally trained model reach a consumer under explicit permission? | The owned model improved from 0/6 to 6/6 held-out completions, reached inference through an independent derivative grant and became unavailable to a fresh consumer after withdrawal. Three further 3B comparisons improved aggregate results while each lost a protected owner pair. [Local learning](spec/local-learning.md) |
+| Can a gauge reading keep its uncertainty? | Two independent readers agreed on 12,090 mV in eight overlapping windows. The journal retained both readers' raw values and time brackets, including when the declared allowance crossed the interpretation boundary. [Instrument evidence](spec/observations.md) |
+| Can a fitted adapter improve its task and preserve unrelated behavior? | A step-by-step gate let generated text activate the adapter during an unrelated request. Binding the single adapted decision to the original caller context produced 22/22 expected results, including longer protected continuations. Its parent and matched control produced 16/22 each. Withdrawing the grant prevented a fresh use. [Native rank adapter](spec/rank-adapter.md) |
+| Who can replace a lost key? | An owner can enroll an independent delegate and later cancel that authority. A chartered transition established a new episode after a worker interruption and refused old controls. A disconnected copy still acted on the old episode. [Key recovery](spec/key-recovery.md) |
+| Can a recipient pause during a word or sentence and recover from a lost reply? | The recipient paused a synthetic English turn at 13,486 frames. Local recognition recovered “We may listen before.” Two resumed processes produced the complete bilingual file once. [Spoken turns](spec/voice.md#pausing-inside-an-utterance) |
+| How do learned and transparent readers interpret the same owner's words? | On 32 synthetic statements the cue reader got 6 correct with 25 abstentions, the native specialist 20, the unchanged 3B model 22, and each raw LoRA 28. Each LoRA predicted permission for three statements about stopping, indecision or correction. On a separate undecided statement the native specialist predicted permission. The broker refused that prediction and delivered the excerpt only after the owner signed the grant for the waiting listener. [Intent comparison](spec/intent-specialist.md) |
+| Can a multilingual correction reach a listener under fresh consent? | The corrected Indonesian wording changed the exact review scope. A queued superseded position failed. After the original grant was withdrawn, the corrected text reached the receiving file only under a new listener invitation. [Translation and consent](spec/translation.md#offering-chosen-wording-to-a-reader) |
+| How is first enrollment distinguished from permission to share? | Both roles signed statements about the same roster and their own roles. Another validly endorsed episode could open a new broker. The advanced broker refused it and preserved its two consent records and delivered letter. [Participant commands](spec/participant-circle.md) |
+| Can a person keep their account private and later select what to share? | Two synthetic roles exercised private correction and retraction, exact excerpt selection, an unanswered invitation, pause, and separate grants. Each author kept their own private editions. One returned a chosen excerpt under a separately endorsed reverse route. Withdrawing it preserved the forward correspondence. [Private account](spec/participant-circle.md) |
 
 ## Not there
 
@@ -729,7 +803,7 @@ running compiled code against frames all the way down).
   layouts, typed method dispatch and specialization, a genetic population and two expression
   lenses run, and so does a generic runtime for declared functions: frames in rooms, control as
   written, integer arithmetic of every width, arithmetic on every float layout, and machine
-  code for whole functions. Whole-package BML lowering, the full Go grammar, GPU code and
+  code for whole functions. Whole-package BML lowering, the full Go grammar, floating-point GPU reductions and
   the recipes for switch, foreach, try, defer and go are open. Members and objects run neither on frames nor in compiled
   code, and the compiler takes no more than six parameters at a call from outside and eight
   between declarations. A function the compiler refuses keeps a note of the construct no rule
@@ -796,10 +870,9 @@ running compiled code against frames all the way down).
   x86-64 the answer line is walked.
 - **The home lens.** Every form of the first lens is in brackets: a sign stands between two and
   no more. The BML lens has character patterns and precedence. The home lens still uses brackets.
-- **Form everywhere.** Stored here are the bootstrap, whose header is made from nodes, and 221
-  files of nodes, stored as records. Everything else stored is neither: the recorder and the
-  graph's checker (681 lines of C under `tools/`), the Makefile, eleven pages, the claim
-  graph as 57 text files, and the axioms' text. The Makefile still drives cross-process checks.
+- **Form everywhere.** Form source and its names are stored as records. The remaining host sources
+  include the bootstrap with its generated header, the recorder and graph checker, and the
+  Makefile that drives the cross-process checks. The graph, documentation and axioms are text.
 - **More of objects.** Attributes are not built, and the activation does not carry the reference: a
   method is handed it.
 - **Threads.** One walker runs on one thread. A fault on a thread the host made ends the process
@@ -842,8 +915,8 @@ running compiled code against frames all the way down).
   when it would join as other than the maker, since that number would name the maker's node at
   that place after; a number computed and not given by `handle` has no such claim and may name
   another node, as a number kept across a fail can. The joiner's catalogue is compared by a digest
-  of its words and numbers; a mismatch was provoked by hand and is held by no check. The writer cannot show `share/share.ck` in a language, nor `host/host.ck`: it
-  does not write a call of another package's function. The observer shows a member but does not
+  of its words and numbers; a mismatch was provoked by hand and is held by no check. The writer follows calls in supplied dependency packages. Projection of the full substrate and host packages
+  still requires known answer contracts for their reachable operations. The observer shows a member but does not
   record one. The lane rows count the nodes forwarded, not those settled in place or refused.
 - **A dispatch makes nodes of addresses.** What the host answers a row is an integer node, an
   address among them, different in each run; a map leaves one whenever the host hands it an

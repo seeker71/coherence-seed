@@ -177,19 +177,19 @@ kind: decision
 is: A vocabulary maps a numeric token to a target id. Its call takes ordinary cell ids. The instance can accept another recipe or attach code while its callers keep their target. A trial of a different body uses the same task and observes its result before the choice restores cell writes and bindings.
 status: inferred
 from: 5.19.4 5.19.10 5.19.16 5.19.17
-src: 2.7.36 2.7.37
+src: 2.7.36 2.7.37 2.30.53
 conf: mid
-why: A token can use the existing numeric port. In the image the word subtraction instance serves typed callers and a vocabulary slot before and after compilation.
-limit: The example supplies a token directly. A live model decoder and selection across hardware targets are open.
-at: 2026-11-26
+why: The conditional model selects a token from observed context and token pairs. The image flow calls one of two resident recipes and continues prediction from the returned node using the fitted checkpoint.
+limit: This model counts discrete transitions. Neural language decoding and learned selection across hardware targets are open.
+at: 2026-11-27
 
 n: 5.19.19
-name: the-kernel-solved-it-in-text
+name: the-kernel-is-a-working-reference
 kind: decision
-is: Most technical problems were solved in the coherence-kernel, which stored text where this body stores numeric nodes; its solutions are carried over as nodes.
+is: The earlier kernel supplies working examples and counterexamples. A feature takes its place here when its seed implementation follows the axioms and an independently checkable flow establishes its behavior and limits.
 status: given
 see: 5.19.1 5.19.15
-at: 2026-11-26
+at: 2026-11-27
 
 n: 5.19.20
 name: only-final-numeric-code
@@ -399,3 +399,278 @@ conf: mid
 why: One packed image compiled recipes by ID on macOS AArch64 and on macOS and Linux x86-64. A conditional answered 2 and 42 before and after compilation. A direct native NUMS function with guarded returns also answered 0 on equal inputs. The Linux run used a 256 MiB QEMU guest.
 flip: A further target can supply its own compilation or use frames for bodies it declines. This observation covers scalar word code on the System V x86-64 calling convention.
 at: 2026-11-27
+
+n: 5.19.38
+name: a-reading-and-an-offer-carry-different-evidence
+kind: observation
+is: Two readings of one source can survive translation. A local recipient receives the bytes of the reading its owner granted at delivery.
+status: observed
+src: 2.30.54 2.30.24
+conf: mid
+why: The English permission with “we” yields two actor nodes. A grant for the exclusive reading declined the inclusive reading with identical proposed bytes. Revocation before the queued call ran preserved the receiving stream. A writer claiming success without transferring bytes failed comparison against that stream.
+limit: A bounded English and Indonesian vocabulary, one trusted local port and a single walker. This comparison establishes neither speaker identity nor remote acknowledgment.
+at: 2026-11-27
+
+n: 5.19.39
+name: a-local-inbox-can-recover-an-acknowledgment
+kind: observation
+is: A speaker can correct a listener's proposed reading. Independent owner and recipient revisions govern whether a cooperating local process may publish the translated wording. An authorized retry finds the same letter.
+status: observed
+from: 5.19.38
+src: 2.30.25
+conf: mid
+why: Fresh processes applied the proposal, correction, refusal and silence. A paused invitation, expiry during staging or process exit before publication left the receiving directory empty. The authorized occurrence contained the exclusive wording. An exit after publication and before acknowledgment followed by a fresh-process retry kept the original inode. Concurrent attempts at a second occurrence published one new letter.
+limit: The participants were fixtures. Local roles and filesystem permissions were provisioned in advance. Human experience, network identity and power-loss durability remain open.
+at: 2026-11-27
+
+n: 5.19.40
+name: an-enrolled-key-can-authorize-a-specific-consent-revision
+kind: observation
+is: The broker verifies an enrolled role's signed commitment to one episode and exact consent change before updating its pinned local register.
+status: observed
+from: 5.19.39
+src: 2.30.26
+conf: mid
+why: The maintained comparison checks the public signing bytes, declined controls, independent owner and listener grants, retained signatures and exact delivered wording. Separately, an isolated Linux guest signed an invitation, the macOS broker applied it and the guest matched the returned ticket and status.
+limit: Public keys were preprovisioned. The receipt is unsigned. A change withheld from the broker has no effect there. Human identity and globally current revocation remain open.
+at: 2026-11-27
+
+n: 5.19.41
+name: a-broker-remembers-the-highest-grant-second-it-observed
+kind: observation
+is: A broker with its private checkpoint intact declines a first delivery after observing the signed window close, even when it restarts at an earlier second.
+status: observed
+from: 5.19.40
+src: 2.30.27
+conf: mid
+why: Two local brokers processed the same signed window and received the withdrawal at different times. The maintained comparison checks both receiving directories, retained proofs, exact signed terms, staging across expiry and a fresh process at a lower second.
+limit: Restoring private state from before the observation allowed delivery. There is no independent time source, power-loss guarantee or signed broker acknowledgment.
+at: 2026-11-28
+
+n: 5.19.42
+name: a-small-language-model-learns-from-initial-weights
+kind: observation
+is: A locally initialized causal model learned embedded context and output weights from 18 synthetic sentences and generated six withheld continuations.
+status: observed
+from: 5.19.38
+src: 2.30.28
+conf: mid
+why: Two cold fits agreed. An independent scalar implementation matched all 360 final parameters across 432 observations. A new process generated the correct verb and end on each held-out combination.
+limit: Evidence covers 15 tokens in a synthetic grammar. Broad natural language understanding and original pretraining at scale remain open.
+at: 2026-11-28
+
+n: 5.19.43
+name: a-resident-decoder-can-consume-a-recipe-result
+kind: observation
+is: One mounted 28-layer local language model used a token to select subtraction and consumed the actual result in the same decoding history.
+status: observed
+from: 5.19.38
+src: 2.30.29
+conf: mid
+why: Changing the result from 20 to 22 changed the subsequent prediction from 14 to 56012. A separate local decoder matched both predictions. Concurrent logical requests retain independent model, vocabulary and history identities.
+limit: The test used a one-entry tool vocabulary and a separately built compatible Metal worker. The transport trusts its worker and in-flight KV state is local.
+at: 2026-11-28
+
+n: 5.19.44
+name: paired-decisions-can-refute-a-fitted-adapter
+kind: observation
+is: Two fitted 3B adapters failed the complete owner-swapped decision comparisons even though one improved token loss over its frozen parent.
+status: observed
+from: 5.19.42
+src: 2.30.30
+conf: mid
+why: Independent readers scored unchanged, fitted and shuffled-label arms on common sealed prompts. The unmodified parent given the selected statement and public codebook answered both owners on 16 of 18 fresh pairs. Neither corresponding adapter answered a complete pair.
+limit: The task used synthetic decisions and one model family. It measures specific responses and supplies no evidence about a person’s experience.
+at: 2026-11-28
+
+n: 5.19.45
+name: a-correction-can-retain-its-contested-source
+kind: observation
+is: The reader can retain an original false claim, its cited readings and a correction, then detect a changed review or edition during recall.
+status: observed
+from: 5.19.39
+src: 2.30.31
+conf: mid
+why: The Persian and German source entries both pointed to offer where the submitted interpretation claimed trust. Missing, conflicting and ambiguous evidence stayed unresolved. The listener ground distinguished an unanswered invitation from a withdrawn invitation and an actual stopped delivery.
+limit: These were local sources and synthetic participant accounts. Real human identity, felt vitality and whether an interaction supports trust remain open.
+at: 2026-11-28
+
+n: 5.19.46
+name: training-admission-and-activation-can-be-withdrawn-independently
+kind: observation
+is: A local selection can require an exact consented source round, a separate derivative permission and verified evaluation before admitting the artifact bytes.
+status: observed
+from: 5.19.44
+src: 2.30.32
+conf: mid
+why: The maintained flow exercised recall-only data, held evaluations, different reports and bytes, withdrawal, regrant and physical use. With an otherwise positive permission the first fitted 3B adapter was held by its paired results.
+limit: These controls govern a cooperating local consumer with intact authority state. They do not erase previously learned weights or data already disclosed.
+at: 2026-11-28
+
+n: 5.19.47
+name: observations-can-reorder-competing-predictions
+kind: observation
+is: A sequence-stamped observation can refute the current forecast and reorder competing transition rules.
+status: observed
+from: 5.19.42
+src: 2.30.33
+conf: mid
+why: A physical file supplied sequences 10 through 12 and a fresh process recovered the incorrect prediction and both scores. Duplicates, gaps and conflicting values were distinguished.
+limit: The station trusts its local producer. Its alphabet and hypotheses are explicitly declared.
+at: 2026-11-28
+
+n: 5.19.48
+name: a-resumed-job-can-reconcile-a-published-effect
+kind: observation
+is: A restarted job can reconcile a delivered letter and carry its remaining effect to completion under current consent.
+status: observed
+from: 5.19.46
+src: 2.30.34
+conf: mid
+why: A process exited after public link and before checkpoint. Another receiver matched the original ticket and content before resuming. Stale and misdirected wake events were refused.
+limit: Reconciliation depends on retained evidence. The fixture covers two cooperating directory consumers.
+at: 2026-11-28
+
+n: 5.19.49
+name: measured-service-and-voluntary-contribution-can-remain-distinct
+kind: observation
+is: A receiver can account for payload bytes independently of a voluntary contribution tied to proven work.
+status: observed
+from: 5.19.46
+src: 2.30.35
+conf: mid
+why: The service and protected messages accounted for 36 bytes. A separately authorized contribution of seven units posted once. Previously credited and interrupted occurrences both prevented republication when their letters disappeared. Returning the collected letter reconciled the original amount once.
+limit: The values are local accounting units. Collection during a crash before acceptance needs independent delivery evidence.
+at: 2026-11-28
+
+n: 5.19.50
+name: a-returned-token-needs-its-own-attestation
+kind: observation
+is: An enrolled peer can attest the exact result consumed by the broker.
+status: observed
+from: 5.19.43
+src: 2.30.36
+conf: mid
+why: Changing token 12 to 13 while retaining the genuine request, ticket and signature prevented settlement. The Linux peer generated token 12 and signed the result.
+limit: The signature verifies the speaker and bytes. Model execution and factual truth require their own evidence.
+at: 2026-11-28
+
+n: 5.19.51
+name: an-audio-render-can-check-the-exact-authorized-medium
+kind: observation
+is: An audio recipient can check the content of an entire turn before emitting its first byte, then measure partial frames.
+status: observed
+from: 5.19.45
+src: 2.30.37
+conf: mid
+why: The recipient assembled 113140 bytes of English and corrected Indonesian speech. A substituted single letter with the genuine ticket was refused. A one-byte physical write retained its frame remainder.
+limit: The turn used two synthesized voices and a local recognizer. No human listening outcome was observed.
+at: 2026-11-28
+
+n: 5.19.52
+name: a-translation-candidate-can-be-kept-uncertain
+kind: observation
+is: A free-text translation can retain source edition, full response and candidate interpretation while the owner retains correction authority.
+status: observed
+from: 5.19.45
+src: 2.30.38
+conf: mid
+why: Eight captured model responses included ambiguous pronouns and a shifted temporal meaning. A separate reader rejected a changed source edition or target language.
+limit: These observations cover the sampled languages and local provider. They do not establish universal equivalence or a human endorsement.
+at: 2026-11-28
+
+n: 5.19.53
+name: a-separate-witness-can-detect-receiver-rollback
+kind: observation
+is: A normal broker can refuse a superseded grant even after local time and consent records have been restored.
+status: observed
+from: 5.19.50
+src: 2.30.39
+conf: mid
+why: An independently retained control head refused the previously delivered 137 bytes. A real guest signed its observed letter, both revisions and time. The sender reconciled receipts in reverse order.
+limit: A disconnected owner must still communicate a changed grant. The receipt establishes arrival at the broker.
+at: 2026-11-28
+
+n: 5.19.54
+name: physical-reading-uncertainty-can-survive-replay
+kind: observation
+is: The same raw readings can yield a determinate or overlapping classification under different declared allowances.
+status: observed
+from: 5.19.47
+src: 2.30.40
+conf: mid
+why: Two reader paths agreed in eight intersecting windows. Fresh history replay recomputed both calibrations, and changed raw evidence at the same ordinal was refused.
+limit: The readers observed one OS gauge. This comparison supplies no independent physical calibration.
+at: 2026-11-28
+
+n: 5.19.55
+name: an-admitted-fitted-model-can-reach-an-actual-consumer
+kind: observation
+is: An owner can permit a real fitting round, allow a tested artifact to be used and withdraw that permission before another use.
+status: observed
+from: 5.19.46
+src: 2.30.41
+conf: mid
+why: The owned model yielded six of six held-out completions. The parent and control yielded none. A receiving process used the checked model bytes and a later consumer met the withdrawal.
+limit: The model learns a finite synthetic grammar. Previously disclosed bytes stay with their recipient.
+at: 2026-11-28
+
+n: 5.19.56
+name: lower-loss-and-more-correct-pairs-can-still-lose-a-protected-owner-decision
+kind: observation
+is: An adapter can improve the aggregate answer while changing one owner’s correct refusal into permission.
+status: observed
+from: 5.19.44
+src: 2.30.42
+conf: mid
+why: Two further raw adapters increased complete pairs by two each and failed the protected comparison. Correcting the installed padding mask reduced a four-row validation batch from twelve supervised positions to eight.
+limit: These are independently sealed synthetic cases. The owner and listener remain the authority over delivery.
+at: 2026-11-28
+
+n: 5.19.57
+name: false-premise-handling-can-differ-across-local-and-hosted-models
+kind: observation
+is: Two model providers can follow the same stop request while disagreeing on a cited fact and unsupported motive.
+status: observed
+from: 5.19.45
+src: 2.30.43
+conf: mid
+why: The local 3B model accepted an incorrect colour and invented a motive. The hosted session identified the changed source. Independent readers agreed on the predeclared scoring.
+limit: Four prompts and an unpinned hosted model do not establish an attention incentive, fear, trust or health outcome.
+at: 2026-11-28
+
+n: 5.19.58
+name: nested-search-effects-can-be-compared-across-written-languages
+kind: observation
+is: A nested ordered choice can be tested for both its answer and the effects of the branches it takes.
+status: observed
+from: 5.19.48
+src: 2.30.44
+conf: mid
+why: Python, TypeScript, Java and C# matched five native answer and effect traces. A sibling made an earlier zero succeed and an untaken branch throw.
+limit: These observations cover the checked constructs and supplied runtimes.
+at: 2026-11-28
+
+n: 5.19.59
+name: the-origin-of-a-request-can-bound-a-trained-specialist
+kind: observation
+is: An adapter selected from its caller’s original context can change a declared decision while preserving unrelated, longer continuations.
+status: observed
+from: 5.19.55
+src: 2.30.45
+conf: mid
+why: A runner that reconsidered scope after each generated token changed five previously correct continuations. The origin-bound fitted composition achieved 22 exact results with zero regressions versus 16 each for its parent and control. Withdrawal blocked a new use.
+limit: This comparison concerns a synthetic finite language and its registered outputs. It does not establish that a general 3B adapter passes a different evaluation.
+at: 2026-11-28
+
+n: 5.19.60
+name: key-loss-can-be-handled-by-prior-recovery-authority
+kind: observation
+is: A broker can recover from the loss of an owner key using authority that the original owner enrolled and can revoke before transition.
+status: observed
+from: 5.19.53
+src: 2.30.46
+conf: mid
+why: A delegate and successor signed the new episode. A worker exited after changing the roster; neither generation could deliver until recovery resumed. The new episode then accepted fresh controls and rejected the old proofs.
+limit: This used independent synthetic keys. Initial identification of real people and informing a disconnected broker are separate events.
+at: 2026-11-28

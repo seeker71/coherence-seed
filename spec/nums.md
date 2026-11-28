@@ -38,7 +38,7 @@ The export list can carry arbitrary user data. Argument names and the lexicon li
 authoring lens. The `nums.image` method `image.then(dependency, application)` in
 `nums/images.ck` composes two manifests. Initialization runs in that order, and public
 entries from both manifests keep their content IDs. The generic NUMS library with its float
-definition, both AArch64 compilers and the example exports pack together as 14,523 nodes containing zero text leaves.
+definition, the compilers, a small conditional model and the example exports pack together with zero text leaves.
 
 ```sh
 make
@@ -343,8 +343,8 @@ one resident batch. It sleeps in the host poll when every client is idle. A
 paused sequence keeps its KV history while other sequences advance or start.
 The Metal plan still dispatches its declared panel width.
 
-Load `nums/projection.ck` and `host/streams.ck` through `part.load` after the
-resident Metal bindings. Construct `stream.decode-model` with the model ID,
+After the resident Metal bindings, load `nums/projection.ck`, `nums/by-id.ck`
+and `host/streams.ck` in that order through `part.load`. Construct `stream.decode-model` with the model ID,
 batch, flash layout, decode input views, one disjoint four-byte feedback
 readback per lane, and vocabulary size. Each readback addresses the token used by
 that lane's next embedding gather. The model owner mounts once, calls
@@ -356,15 +356,15 @@ control or timeout, and minus one after the last lane closes. The owner keeps
 the model mounted and the descriptors open through service, then retires the
 model and closes its descriptors.
 
-Each client sends one eight-byte datagram and reads one eight-byte reply. Both
-contain two little-endian unsigned 32-bit words. One request permits one token
+Each request contains two little-endian unsigned 32-bit words. Ordinary replies
+use the same layout. Clients with recipe tokens enabled receive up to 48 bytes. One request permits one token
 step, so a client can pause simply by waiting before its next request.
 
 | Request word | Second word | Effect on the lane |
 | --- | --- | --- |
 | 0 | Token ID | Start a new context at position zero |
 | 1 | Token ID | Append a prompt token at the next position |
-| 2 | Ignored | Feed the previous prediction into the next position |
+| 2 | Ignored | Accept the previous prediction and advance one position |
 | 3 | Ignored | Finish using this channel |
 
 Reply status 0 carries the predicted token. Status 1 rejects the datagram and
@@ -378,7 +378,9 @@ worker, including staggered arrivals, pause and resume, and reuse of a lane.
 All 106 prompt and generation positions matched llama.cpp at the same batch
 width on both supported macOS process architectures. The maintained Metal image
 comparison drives two socket pairs through the same service and checks the
-results against an identity batch. Endpoint discovery, assignment beyond the
+ordinary predictions against an identity batch. A mapped prediction constructs
+a Metal input frame, runs a compiled NUMS polynomial, feeds back the result and
+returns its content ID while the other socket continues. Endpoint discovery, assignment beyond the
 provisioned sockets, variable-width panels, sharing complete prefix blocks and
 cross-worker memory reservations remain open.
 
@@ -454,7 +456,78 @@ a list of target ids with `no` in ordinary token slots. A mapped token produces 
 request as a direct call. An ordinary token or an index outside the vocabulary answers nothing
 with `e.unbound`. The vocabulary has its own content id, so two models can give the same token
 number different meanings. In the image example, token 1 calls the word instance of subtraction.
-A model decoder feeding the reply to its next prediction is still to be connected.
+The categorical model in `nums/conditional.ck` fits counts from context/token pairs. A unique
+highest count selects a token. An unseen context and a tied maximum give different reasons.
+The vocabulary and weights travel together. In `make check-image` the client chooses subtraction
+or unsigned comparison, calls the image, and the reply checker continues from the value the port
+actually returned. The image serves its fitted checkpoint to that checker. Faults and unanswered
+requests keep their outcomes. This flow uses ordered replies and a small discrete vocabulary.
+The [owned language model](local-learning.md) trains from seeded weights. The [resident inference route](resident-inference.md) exercises a pinned 3B decoder with an actual recipe result.
+
+The resident decoder accepts a sparse vocabulary per lane. The owner calls
+`stream.attach-tokens(lane, map)` after starting the worker. A `nums.token-map`
+holds sorted, disjoint `nums.token-window(firstToken, targets)` ranges. Each target
+is the content ID of a resident recipe or panel descriptor, or `no` for an ordinary
+token. Attaching resolves the whole map, including each panel planner, before
+replacing the lane’s binding and clearing its previous tool result. An empty map
+clears the binding.
+
+A generation request accepts the previous prediction. An ordinary token enters
+the embedding gather directly. A mapped token calls its recipe by ID with a
+`stream.invocation(modelID, lane, position, prediction, previousResultID)`.
+The first invocation carries `no` for the previous result. The recipe can look up
+a node with `nums.node-by-id(id)`, assemble a composite with
+`nums.node-form(blueprintID, childIDs).assemble()`, and invoke a target with
+`nums.call-by-id(targetID, argumentIDs)`. These use the resident content index.
+Each argument reaches the target as a value.
+
+A planner returns `stream.yield(value, feedbackToken)` or
+`nums.metal-effect(commands, readbacks, continuationID)`. For an effect the
+worker submits the frame or batch to the mounted model through `metal.advance`.
+The continuation receives the invocation and readbacks by ID and returns a yield.
+Planning and completion use Form’s reversible `outcome`. The GPU submission
+runs once between them. The feedback token enters the next decode in that lane.
+Explicit prompt tokens leave intermediate predictions unconsumed.
+
+A successful invocation replies with four little-endian 32-bit words
+`[4, nextPrediction, selectedToken, feedbackToken]` and the 32-byte value ID.
+A lane-local failure replies with `[5, selectedToken, selectedToken, 0]` and the
+32-byte reason ID. The same generation request repeats that failure until the
+client appends a token, resets, or the owner rebinds the map. A reset clears the
+previous result. A full socket queues the materialized reply. If the Metal
+station retires on a device fault, the service uses its terminal model-fault reply.
+
+Two client processes asked one resident Llama 3.2 3B Q4_K_M for the operator
+in “7 plus 5” and “7 minus 5”. The model selected tokens 10 and 12.
+Their Form recipes submitted an addition of signed vectors followed by a GPU
+argmax. The first result was `[12, 7, 3]`, the second `[2, -1, -1]`.
+Both operators used the same continuation. It read the winning Float32 value
+and looked it up in a numeric table of the model’s tokens for integers 0 to 20,
+returning the tokens for `12` and `2`. Both subsequent predictions matched
+llama.cpp supplied with those feedback tokens.
+
+A token bound to `nums.panel-call(plannerID, input)` offers its argument to a
+shared recipe. During one socket poll, ready calls with the same planner ID
+form an ordered list of `nums.panel-input(invocation, input)` records. An idle
+lane or ordinary vocabulary token leaves the group open. Another planner, a
+scalar tool, or the end of the poll closes it. The worker submits the ready
+group immediately, including a singleton. A scalar tool runs after the
+preceding group has published its results.
+
+The planner receives the list by ID and supplies a yield per member in that
+order. It can also supply one `nums.metal-effect`; its continuation receives
+the same list and the GPU readbacks and returns the yields. The planner owns
+the kernel geometry, data packing and result partition. A planning fault or
+wrong result count reaches every member of that group. An invalid feedback
+token reaches just its lane. Each socket retains its own reply and result ID.
+
+On an M4 Max with eight ready clients, eight scalar add/argmax tools and one
+Llama decode used nine command buffers and 484 compute dispatches. The shared
+planner ran one vector addition across all eight inputs, eight independent
+argmax dispatches and the same 468-dispatch decode, in two command buffers.
+Across batch widths one through eight, all 36 signed-vector results, feedback
+tokens, next predictions and content IDs agreed with scalar execution.
+The decode still waits for the feedback from the tool batch.
 
 A recipe body has an immutable id. Its instance has a binding that a trial can replace.
 A candidate genome can therefore hold recipes or typed subtrees. Development fills a template,
@@ -660,6 +733,12 @@ that constructs it.
   words.
 
 ### Viewing a component declaration
+
+Local adapters can call `nums.member-named shape key value` to read a fixed record field by
+its declared member identity. It consults the installed class, counts only member declarations,
+and checks the record shape and resulting position. Missing or repeated keys and positions at
+or beyond a variadic field are refused. The local inbox uses this for records shared between
+its control and receiving processes.
 
 The BML lexer calls the typed predicates in `nums/bml-alphabet.ck`. Both the lexer and
 the BMF range matcher use `bmf.in-range` from `bmf/items.ck`. The interval has two
@@ -1061,8 +1140,19 @@ right shift, `<`, `<=`, same-type equality, and boolean AND and negation.
 It projects linked classes through `write.text` with `nums/lang-bml.ck`, parses the output
 and compares the entire linked declaration. The comparison includes a nominal receiver and
 `Pair<Box<Int>, Int>`. Source spellings live beside the declarations.
-Class type parameters, inheritance clauses, method calls in BML bodies and automatic
-whole-package linking remain open.
+Typed method bodies also link guarded alternatives, ordered `choice`, `fail`, `first`,
+`??` and `all`. The declared return type and boolean guards are checked. The portable
+comparison projects a method to BML, links it again and invokes both versions with both
+search evaluators. A failed fallback yields 22 where an earlier successful branch yields 11.
+False and zero are separate list entries.
+
+`bml.function-decl(grammar, syntax, resolve)` links a typed free function. A call
+on another object resolves the method under the receiver's declared type, checks the
+argument count and types, and emits ordinary NUMS receiver dispatch. Nested bindings keep
+their lexical slots. `bml.interface-decl` reads a caller-designated contract whose method
+bodies are `fail`. A concrete class may implement previously declared interfaces.
+The linker accepts the supplied name resolver and declarations. Generic class definitions,
+general whole-file discovery, and the entire writer's own emitted BML remain open.
 
 `bml.bmf` links a syntax block's rule references and formal parameters to numbers. Its
 linker indexes all rule signatures before resolving bodies. A reference carries its rule number
@@ -1163,8 +1253,8 @@ printf 'nums/write.ck\nnums/lang-python.ck\n' | ./ck text nums/write-text.ck
   ladder on one subject, and declared types are documentation. A blueprint holds a class's data
   and a class its methods, whose receiver is `self` and no parameter. A def that does not answer
   exactly once is preceded by a note saying how often it answers. The writer's own package and
-  the encoder's, written as BML, read back into syntax trees with the BML reader; no reader yet
-  lowers their searches to recipes.
+  the encoder's, written as BML, read back into syntax trees. Lowering the entire writer and encoder
+  remains open. The typed cross-object search example below re-enters as runnable declarations.
 - **A method is called on its receiver.** `part.load` (`nums/part.ck`) binds each method a package
   declares to a recipe that calls the receiver's own method (`nums.method-key`), in one layer with
   the package's own declarations, so that a method can call the package's functions and they its
@@ -1181,8 +1271,38 @@ back, and the encoder's and the compiler's packages are written the same way. On
 Python parses with Python's own parser; Deno, javac and Roslyn check the TypeScript, Java and C#
 against stubs of the runtime and still refuse parts of them. A record takes as many fields as
 memory holds: its fields are the arguments of one call, and the walker holds a call's values in
-the region. The writer does not write a call of another package's function, since it knows how
-often only its own package's functions and a table of operations answer (`e.unbound` of
-`write.answers`); a package reaches another through recipes it is handed. Where an expression is
+the region. To show a component with its dependencies, give `nums/write-text.ck` the subject and
+language rows on the first two lines, then one dependency package path per line. For example,
+`printf '%s\n' lens/participation.ck nums/lang-python.ck nums/view-patterns.ck bmf/items.ck | ./ck text nums/write-text.ck`
+shows the participating declarations together. The writer follows references through the supplied
+packages and computes how often their calls can answer. In a search, keeping the first result
+still yields an iterable with zero or one element. A linked example, run as Python, C# and
+TypeScript, agreed with the walker on empty input, a first answer of false, and a first answer of zero
+with more candidates available. Repeated identical declarations coalesce.
+The nested search in `ground/search-package.ck` calls an observer inside
+guards, ordinary alternatives and first-answer alternatives.
+`ground/search-trace.ck` supplies an observer that records every actual call
+and compares both its history and the returned list with five explicit
+references. The emitted Python, C#, TypeScript and Java ran against ordinary
+language observers with the same results. One result contained both false
+and integer zero. An unselected branch with an observable method call stayed
+unvisited. A sixth invocation uses a concrete receiver whose field changes the result.
+The caller names a local `answer2` and a parameter `answer2_`. The extra first iterator
+required by query syntax uses the same normalized clause and name allocator as the other
+iterators. Its generated binding becomes `answer2__`. The caller observes the receiver’s
+field in all four foreign runtimes. `ground/search-reenter.ck` rebuilds the abstract
+contract, concrete class and free function from the emitted BML. It dispatches on an
+independently supplied observer and runs the six cases through the same observation
+recipe. The portable comparison separately rejects an unknown method, a wrong argument
+count, a wrong type inside a later alternative, and an implemented method presented as
+an abstract contract. The target fixtures provide the small part of each runtime used by
+this package. They run in `make check-held-back` when their toolchain is
+available. `JAVA_HOME` can select a JDK.
+Different declarations of the same name fault. A native search target can declare an operation's
+answer count in its language rows. The BML row for `recover` lets the writer show the signature
+provider's cleanup path. An external operation whose answer contract is unknown still faults
+with `e.unbound` of `write.answers`. The shared writer rows for Form's integer division
+and remainder admit an empty answer at a zero divisor. The projected PCM progress component
+preserves this behavior through its frame and remainder calculations. Where an expression is
 expected the writer takes no throw, Java no `let` and BML no sequence; the BML reader takes a
 class of one interface only.

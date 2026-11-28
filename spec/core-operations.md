@@ -698,6 +698,134 @@ written before its outcome. A hundred calls held back are made in the order they
 a fault caught after a cut in its body closed every choice keeps the calls held outside it. It runs in the open under `make check-full`, since the checker's
 own `outcome` would end by failing over it.
 
+### Scoped delivery
+
+`circle/export.ck` is a NUMS search package that composes `after` with a recipient's local
+port. After loading `nums/search.ck` and the package, call `share.offer port scope`.
+The scope holds the owner, circle, original source, recipient, fidelity, purpose and exact
+bytes offered. An owner can distinguish two interpretations of the same utterance by putting
+the selected reading in the source field.
+
+The port binds one recipient to its writer, current-grant lookup, clock and receipt observer.
+The caller that installs these callbacks is trusted. Each callback supplies one answer.
+The lookup takes the owner and circle and returns the active grant or `no`. The grant carries
+the entire scope and two integer times in the clock's units. The dispatch accepts equality at
+the start and declines equality at expiry. It reads the grant and clock when the held call runs.
+A missing clock reading declines the delivery with its own reason.
+A failed branch therefore performs no delivery, and a later withdrawal can stop a queued one.
+
+The observer receives the scope's content ID, a result and the measured byte count. A declined
+scope writes zero bytes. For an admitted scope, the writer returns the number actually written.
+A short write reports its count. An absent or out-of-range count leaves the count unknown.
+A callback fault follows ordinary Form fault handling. A fault after a write can leave bytes at
+the sink. No retry is implicit. The observed boundary is one walker and a trusted local sink.
+Authentication, concurrent remote withdrawal and delivery acknowledgment require their own carrier.
+
+`./ck run ground/scoped-delivery.ck` answers `node #33` when the grant decisions, receipts
+and bytes in the receiving stream agree. The maintained deferred-write flow runs it under
+`make check-held-back`. Its callback objects use `nums.callable`, which takes a one-body recipe
+or a nested closure over one. The ground compares that judgment with the walker's own `close`.
+
+### Local inbox
+
+A cooperating pair of local roles can hand off a letter across process restarts. The channel
+binds one owner, circle, recipient, private directory and receiving directory. Provision both
+directories on the same local filesystem. The local broker controls writes to both directories,
+and the reader can inspect published letters. The launcher is responsible for identifying
+each participant and routing its control commands. The ground supplies two fixture roles.
+Initialize `authority` and `listening` inside the private directory to the canonical node
+`#32` (no). A trusted local caller supplies a canonical `inbox.channel` through file descriptor
+3. Each command below reads one canonical node from standard input and prints a canonical reply.
+The broker accepts an exact canonical print with an optional line ending, or one complete
+CKNODES value. It checks the complete input against the decoded value. A second
+record set appended to a roster is refused. Both encodings of the same roster
+produce the same initial register. Published letters and signed control revisions
+keep their original canonical bytes.
+
+| Command | Input and effect |
+|---|---|
+| `./ck text circle/authorize.ck` | An `inbox.change` holds the expected revision ID and an `inbox.permit` pairing an occurrence nonce with an exact `share.grant`. Supply `no` to withdraw. Grant times are Unix seconds. |
+| `./ck text circle/listen.ck` | The recipient changes its invitation using the expected revision ID and the exact `inbox.ticket`, or `no` to pause. |
+| `./ck text circle/receive.ck` | An `inbox.ticket` holds the nonce and the scope's content ID. A reply binds the same ticket to the outcome. |
+
+Both registers start at `id(no)`. Each successful change returns its new revision ID.
+Reapplying a current change returns that revision. An intervening change makes the old update
+stale, including after withdrawal. One private-directory lock serializes the two controls with
+delivery. A grant includes its first Unix second and excludes its ending second. Under the
+same lock the broker keeps the highest valid second it has observed in the private
+`observed-time` file. A fresh process reads that checkpoint. For an otherwise matching
+grant, a lower sample returns `share.clock-regressed` and a missing sample returns
+`share.no-clock`. A withdrawal still returns `share.ungranted`.
+
+After staging a letter, the broker samples again. If recording an advance takes it to a
+later second, it records that second too. Expiry takes effect immediately. A still-eligible
+delivery returns `share.clock-unsettled` and can be retried. These paths leave the receiving
+directory untouched. The checkpoint protects an intact store across process restarts. Restoring
+a snapshot taken before expiry can allow delivery again. An inaccurate or frozen host clock
+can also keep a disconnected broker inside the grant window.
+
+The receiver gets one immutable `inbox.letter` holding the ticket and the permitted bytes.
+The original turn, alternative readings and grant stay in the private scope. The letter's
+filename identifies an occurrence by owner, circle, recipient and nonce. A hard link publishes
+the complete record without replacing a previous one. A retry with current consent reports a
+replay for an identical record or a conflict for different content under that occurrence.
+A new nonce permits a second intentional delivery of identical content. The maintained comparison
+terminates a receiver immediately before the link and observes an empty receiving directory.
+It terminates a second receiver immediately after the link. A fresh process then recovers the
+same file and bytes, although the publishing process sent no acknowledgment.
+
+Run `make check-held-back` to exercise the actual commands. This carrier assumes trusted
+role provisioning and a local filesystem for the broker's state and receiving directory.
+Host power failure, separate downstream effects and human acknowledgment remain open.
+
+### Signed consent controls
+
+An owner and a listener can sign decisions on separately administered endpoints. The broker
+keeps the draft locally. The portable proof carries the roster ID, role, change ID and detached
+signature. The change ID covers both the proposed permission and the expected prior revision,
+including a withdrawal. The public roster binds a 32-byte episode identifier, owner, circle,
+recipient and two distinct Ed25519 public keys. Two local roles can inspect a proposed
+roster and each sign a typed first-enrollment statement with its own key. The broker verifies
+both before publishing the initial protected registers. Identification of the people holding
+those keys remains a participant decision. [Establishing a circle](participant-circle.md#establish-the-circle)
+
+| Step | Interface |
+|---|---|
+| Enroll a fresh channel | Put the canonical `peer.roster` in the broker's private `peers` file. Run `./ck text circle/pin.ck < roster` and use its output as the initial contents of both registers. Each register retains the roster ID when it advances. |
+| Prepare a decision | `./ck text circle/statement.ck 3<roster < intent` takes a `peer.intent` containing the role and the signer's reviewed `inbox.change`. Its output is a canonical `peer.control`. |
+| Sign and package | `./ck text circle/signing-bytes.ck < control` produces the 32 raw bytes to sign: the content ID of the entire typed control. Sign those bytes with ordinary detached Ed25519. `./ck text circle/seal.ck 4<signature < control` produces the portable proof. |
+| Verify independently | `./ck text circle/check-proof.ck 3<roster 4<draft < proof` checks the exact local draft against the roster and signature and returns the signing role. The caller supplies its trusted copy of the roster. |
+| Apply at the broker | `./ck text circle/apply.ck 3<channel 4<draft < proof` reads the pinned roster from the broker's private directory, verifies the signature, then rechecks the pin and revision under the same lock used by local delivery. Success returns the new revision ID. |
+| Read the owner's signed terms | `./ck text circle/validity.ck 3<roster 4<draft < proof` verifies the proof against the supplied roster and draft. A grant returns the signed control, exact ticket, first second and ending second. A withdrawal returns its signed control. A listener decision gives `peer.not-owner`. |
+
+The current register keeps the verified proof alongside its private authority state and prior
+revision ID. No private signing key is needed by the verifier. An unsigned command against a
+pinned register is refused, and a signed command cannot silently enroll an existing local
+register. Distinct episodes use separate occurrence namespaces even when the participants
+and nonce coincide. In a separate run, two brokers held the same roster and signed grant.
+The broker that had received the withdrawal declined delivery. Its disconnected counterpart
+accepted the same ticket, then declined it once the signed withdrawal arrived.
+
+The finite-grant comparison gives two brokers the same signed window from 100 through 109.
+One receives the withdrawal before 100. The other accepts at 100, reports a replay at 109
+and declines at 110. A separate schedule crosses 110 while staging a first delivery. After
+restart at 109 that broker still has an empty receiving directory. The owner can inspect
+the signed terms offline. Those control signatures identify what was authorized. An enrolled receiving broker can also
+attest to a specific arrival, including the ticket, control revisions and observed time.
+The sender can check that separate receipt on reconnection. [Mesh receipts](mesh-receipts.md)
+
+`host/ed25519.ck` uses a locally installed libsodium provider. Malformed inputs, invalid
+signatures and an unavailable or failing provider have distinct outcomes. The maintained
+comparison covers published vectors, including empty and binary messages, and exercises
+provider cleanup. [libsodium detached signatures](https://doc.libsodium.org/public-key_cryptography/public-key_signatures) · [RFC 8032 test vectors](https://www.rfc-editor.org/rfc/rfc8032#section-7.1)
+
+Run `make check-held-back` for the fixture proofs. On a host without a usable installed
+provider the check verifies refusal and preservation of the register. In a separate observed
+run, an offline Alpine guest generated and used its own listener key and exchanged the proof
+and receipt with the macOS broker over a serial console. The signature authenticates the
+enrolled key's control decision. The return receipt carries a ticket and status; its origin
+is still a property of the return channel.
+
 ## Entry 104: nothing, with its reason
 
 `(nothing r)` answers nothing, and r is the reason beside it: what an operation of the bootstrap

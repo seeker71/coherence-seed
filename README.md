@@ -6,6 +6,7 @@ fixed: [`axioms/core-axioms.form`](axioms/core-axioms.form).
 
 - [`NORTH_STAR.md`](NORTH_STAR.md): where this is going.
 - [`FLOOR.md`](FLOOR.md): what stands today, with the date it was observed.
+- The [feature progress worksheet](spec/feature-progress.xlsx) tracks what has run, which architecture challenges remain open, and the evidence each next step needs.
 - [`AGENTS.md`](AGENTS.md): where a new session starts.
 
 It builds with a C compiler and `make`, and nothing else.
