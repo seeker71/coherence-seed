@@ -507,16 +507,19 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `native` runs, where it answers `no` for what only the C can do (a member, a settling make, an
   index or an area that must grow, content the rule may refuse), and the C's `join` makes it. The
   emitter takes three things for it: a store in such a leaf that is not its last act writes only
-  past its area's count, checked as it runs, so a decline after it changes nothing that is read;
-  a sequence of stores as the leaf's last act, each an argument or a number and the head only at
-  a lane area's count, is checked whole before any is written; and such a leaf may call
-  definitions that take, swap and store in rooms nothing. A lane's area holds the rest of the
-  page it was charged for, so there is room past its count. `ground/region-describes-itself.ck`
+  past the count of a lane's area (nodes, leaf bytes, children), checked as it runs, where walked
+  code and `serve` neither read nor write, so a decline after it changes nothing they can see; a
+  sequence of stores as the leaf's last act, each an argument or a number and the head only at a
+  lane area's count, raised and within its peak, is checked whole before any is written; and
+  such a leaf may call definitions that take, swap and store in rooms nothing, but not itself
+  again. A lane's area holds the rest of the page it was charged for, so there is room past its
+  count. A leaf may so count records it never wrote: it is as trusted as `host`. `ground/region-describes-itself.ck`
   makes 1,800 composites of every 61st node's children under three blueprints both ways, the C's
-  `join` and the leaf (1,560 made or found by the leaf), and every one agrees: new or the same
-  node, the count after it, the children's count, blueprint, kind, length, place, children, and
-  that the index finds it; an index place one past, a children's count not raised and a length
-  one more, each planted, made cases differ. A make from walked code costs about 2,700
+  `join` and the leaf (1,560 made or found by the leaf), and a list under each of the first 33
+  blueprints, and every one agrees: refused, new or the same node, the count after it, the
+  children's count, blueprint, kind, length, place, children, the record's flags, and that the
+  index finds it; an index place one past, a children's count not raised, a length one more, a
+  settled flag and a rule that takes the catalogue's blueprints, each planted, made cases differ. A make from walked code costs about 2,700
   instructions against about 380 for the C's `join` (2,000 and 4,000 makes of new content, less
   the loop), so the C's make stays the store.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
