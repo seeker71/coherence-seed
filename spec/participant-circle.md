@@ -10,29 +10,38 @@ reasons for a pause and anyone else's experience require their own evidence.
 These commands run from a built seed checkout with Make and an Ed25519-capable
 OpenSSL. Commands that accept wording read literal standard input, including
 line breaks. The examples use fictional wording. Run the role commands in each
-person's own environment. Keep private inputs and outputs in a directory that
+participant's own environment. Keep private inputs and outputs in a directory that
 only its owner can access. Set `umask 077` before creating redirected files.
 
-## A first exchange with two people
+## A first exchange with two independent cells
 
-Two people who each want to try the circle can begin with a fictional sentence
-of their choosing. The speaker chooses an excerpt, the listener decides whether
-to receive it, and either can stop. If they try a return turn, each reviews the
+The study requires two independent cells. Each cell controls its own signing
+key and private journal and decides each turn for itself. A person or an
+independently acting agent can hold a cell. Check who can read each private
+store and who chose each action. Two keys driven by one script exercise the
+protocol but leave independence untested.
+
+The cells can begin with a fictional sentence of their choosing. The speaker
+chooses an excerpt, the listener decides whether to receive it, and either
+can stop. If they try a return turn, each reviews the
 reversed roles before signing. If someone pauses or withdraws, the broker can
 check the same invitation again without requesting a new signature. Record
-what the recipient already held when the stop took effect. A separate invitation
-may remain unanswered. Silence records no reason.
+what the recipient already held when the stop took effect. For the study,
+also offer a separate invitation that the recipient can leave unanswered.
+Distinguish an explicit turn choosing silence from an invitation with no reply.
+Silence records no reason.
 
 For the feature sheet, the participants may share just the actions they chose
 and what reached the recipient before and after the stop. Either may separately
-offer an account of how that felt and choose the exact words to share. The
-exercise requires neither personal material nor an assessment of their health.
+offer a private account and choose the exact words to share. Only a person can
+speak for their experience of trust or vitality. A cell's signature records
+the choice it made.
 
 ## Establish the circle
 
-1. Each person chooses a new local directory for `KEY_DIR` and runs
+1. Each cell chooses a new local directory for `KEY_DIR` and runs
    `make -s circle-key`. Exchange the 32-byte `public` file. The private
-   `signing.pem` stays with the person who created it. Protect it using local
+   `signing.pem` stays with the cell that created it. Protect it using local
    account permissions and device storage controls. The journal stores canonical
    records locally without encryption. Use separate operating-system accounts
    or devices when the participants need private custody from one another.
@@ -97,7 +106,9 @@ make -s circle-ticket < permit.ck > invitation.ck
 The broker returns the current revision of each role with `circle-owner-head`
 and `circle-listener-head`. Each participant receives only the revision needed
 for their decision. The owner signs the grant in their own environment. The
-listener can sign the invitation in theirs or leave it unanswered.
+listener can sign the invitation in theirs or leave it unanswered. The signed
+owner grant contains the excerpt. Send it privately to the broker. The opaque
+invitation can go directly to the listener.
 
 ```sh
 # Owner
@@ -159,17 +170,45 @@ make -s circle-propose-return > return-roster.ck
 ```
 
 The proposed return roster identifies the same circle and two keys, reverses
-their roles and binds a distinct episode to the original roster. Each person
+their roles and binds a distinct episode to the original roster. Each cell
 inspects and endorses that roster. The original listener endorses as its owner, and
 the original speaker endorses as its listener. A broker operator establishes
 the return roster in a separate `BROKER` directory. With `ROSTER` set to
 `return-roster.ck`, use the ordinary preview, ticket, head, sign, submit and
 read commands above. The return channel starts without a grant or invitation.
 The original listener grants the excerpt and the original speaker chooses
-whether to receive it. Returning to the original `ROSTER` lets each person
+whether to receive it. Returning to the original `ROSTER` lets each cell
 continue their private journal. The complete entry stays there.
 
-## What was checked
+## What two independent cells observed
+
+Birch and Reed, two independently acting agent cells, each reviewed the same
+roster, signed it and wrote in their own journal. Both ran on one host. From
+each of the two participant profiles and the broker profile, a probe could
+read its own private marker and was denied access to the other two. This
+exercise used separate process profiles under one operating-system account.
+
+Both cells corrected their own readings of “We may share”. Birch heard an
+invitation. Reed read “may” as possibility and wanted to clarify who “we”
+included. With only Reed's signature, the forward broker produced no letter.
+Once Birch granted the excerpt, Reed received 109 bytes of attributed text.
+Reed left a distinct second ticket unanswered. Its arrival left the listening
+revision unchanged, and the broker refused to reuse the first grant for it.
+
+Reed then signed a pause. Reading the first ticket again returned
+`inbox.paused` with the original owner grant still current. The one stored
+letter kept its inode, size and digest, and Reed retained the same 109 bytes.
+Both cells separately endorsed a reverse roster and consented to a return
+excerpt. Birch received it, and Reed compared all 127 rendered bytes with
+the selected words and attribution.
+
+Birch acknowledged their different readings in conversation and both chose
+to end. Neither chose the explicit silence action in the Satsang turn flow.
+That choice still needs an independent-cell witness. The cells authorized
+reporting their operational choices and excerpts. Their full accounts stayed
+private.
+
+## What the protocol checks cover
 
 Two synthetic role keys exercised these ordinary commands. They recorded
 identical words in separate private journals and obtained distinct revisions.
