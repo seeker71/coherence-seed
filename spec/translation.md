@@ -128,3 +128,12 @@ pronoun readings for its exact unpunctuated permission construction. A fresh-rea
 comparison separately changed just the edition and just the target of the public
 *kita* study. Both returned `lingua.stale`. A speaker’s
 endorsement is recorded through a separate attributed decision.
+
+Two fresh English passages about photographing a map are available for
+independent Indonesian review. One begins “We may photograph” and the other
+“We have permission to photograph”. The same local 3B checkpoint returned
+one framed candidate for each. The first begins “Kita mungkin”; the second
+begins “Kami memiliki izin”. Both studies retain the complete source and raw
+reply. Neither has a participant decision. The local review sheet places the
+two English passages before the proposals so readers can record their own
+interpretations first.

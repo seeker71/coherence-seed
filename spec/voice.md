@@ -65,3 +65,9 @@ the complete 113,140 bytes, including the corrected Indonesian turn. Two
 processes requesting the same final frame produced the same cumulative result.
 This evidence establishes which samples reached the file. A recipient can
 supply their own account of what they heard.
+
+For the listening study, the recipient comparison rendered the bilingual
+recordings again. Decoding the local WAV file reproduced all 56,570 mono
+frames byte for byte. A listener can open the 3.54-second recording, pause
+where they choose, and report the last words they heard. They can correct or
+withhold that account. Only the listener can say which words they heard.
