@@ -20,7 +20,7 @@ export CK_IMAGES ?= $(CURDIR)/.ck-images
 all: ck fb kg seed-run
 
 ck: $(BOOT)
-	@echo "bootstrap: $$(cat $(BOOT) | wc -l | tr -d ' ') lines of C"
+	@echo "bootstrap: $$(cat $(BOOT) | wc -l | tr -d ' ') lines of C" >&2
 	$(CC) $(CFLAGS) -o ck bootstrap/ck.c $(LDLIBS)
 
 seed-run: ck $(BOOT)

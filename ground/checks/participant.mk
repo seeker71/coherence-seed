@@ -1,3 +1,33 @@
+define participant_recovery
+(set -eu; \
+  BROKER="$$work/recovering"; p establish >/dev/null; \
+  for key in delegate replacement; do KEY_DIR="$$work/$$key" p key; done; \
+  draft() { printf %s "$$1" >"$$work/recovery-mode"; ./ck text recovery/draft.ck 3<"$$work/recovery-mode" 4<"$${2:-/dev/null}"; }; \
+  sign_statement() { ./ck text recovery/signing-bytes.ck <"$$work/$$2" >"$$work/signing-bytes"; openssl pkeyutl -sign -rawin -inkey "$$work/$$1/signing.pem" -in "$$work/signing-bytes"; }; \
+  seal() { ./ck text recovery/seal.ck 4<"$$work/$$2" 5<"$${3:-/dev/null}" <"$$work/$$1"; }; \
+  draft charter "$$work/delegate/public" <"$$ROSTER" >"$$work/charter"; \
+  sign_statement owner charter >"$$work/appointment"; seal charter appointment >"$$work/enrollment"; \
+  p recovery-enroll <"$$work/enrollment" | cmp - "$$work/enrollment"; \
+  p owner-head >"$$work/old-revision"; \
+  KEY_DIR="$$work/owner" ACTION=withdraw HEAD="$$work/old-revision" p sign </dev/null >"$$work/old-packet"; \
+  mkdir "$$work/cold"; ln -s "$$PWD/bootstrap" "$$work/cold/bootstrap"; \
+  $(MAKE) --no-print-directory -s -C "$$work/cold" -I "$$PWD" -f "$$PWD/Makefile" ck >"$$work/bootstrap-output"; test ! -s "$$work/bootstrap-output"; \
+  (unset BROKER KEY_DIR; p verify <"$$work/old-packet") | cmp - "$$work/owner-role"; \
+  p submit <"$$work/old-packet" >/dev/null; \
+  OWNER_PUBLIC="$$work/replacement/public" p propose >"$$work/successor"; \
+  draft transfer "$$work/successor" <"$$work/charter" >"$$work/transfer"; \
+  sign_statement delegate transfer >"$$work/approval"; sign_statement replacement transfer >"$$work/acceptance"; \
+  seal transfer approval "$$work/acceptance" >"$$work/proof"; \
+  draft notice <"$$work/charter" >"$$work/notice"; sign_statement owner notice >"$$work/cancel-signature"; \
+  seal notice cancel-signature >"$$work/cancellation"; \
+  (BROKER="$$work/canceled"; p establish >/dev/null; p recovery-enroll <"$$work/enrollment" >/dev/null; \
+    p recovery-cancel <"$$work/cancellation" | cmp - "$$work/cancellation"; refuse rekey.withdrawn p recovery-apply <"$$work/proof"); \
+  (unset ROSTER KEY_DIR; p recovery-apply <"$$work/proof" >"$$work/recovered"; p recovery-apply <"$$work/proof" | cmp - "$$work/recovered"); \
+  cmp "$$BROKER/private/peers" "$$work/successor"; \
+  (ROSTER="$$work/successor"; refuse peer.wrong-control p verify <"$$work/old-packet"); \
+  p verify <"$$work/old-packet" | cmp - "$$work/owner-role")
+endef
+
 define verify_participant_account
 @set -eu; \
   work=$$(mktemp -d); \
@@ -18,6 +48,7 @@ define verify_participant_account
   mkdir -p "$$BROKER/.seed-enrollment"; printf interrupted >"$$BROKER/.seed-enrollment/authority"; \
   p establish >"$$work/agreement" & first=$$!; p establish >"$$work/other-result"; wait "$$first"; cmp "$$ROSTER" "$$work/agreement"; cmp "$$ROSTER" "$$work/other-result"; \
   test ! -e "$$BROKER/.seed-enrollment"; test -s "$$BROKER/private/first-roster"; \
+  printf %s "$$(word peer.owner)" >"$$work/owner-role"; $(participant_recovery); \
   KEY_DIR="$$work/owner"; p join; p owner-head >"$$work/owner0"; p listener-head >"$$work/listener0"; \
   refuse journal.unrecorded p show; test -z "$$(find "$$work/owner/journal" -name "account-edition-*")"; test -z "$$(ls -A "$$BROKER/letters")"; \
   printf 'Private line about a fictional tree.\nI would like a quiet moment.\n' >"$$work/first"; \
