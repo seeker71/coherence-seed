@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,176 lines, 46 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,182 lines, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -546,6 +546,34 @@ Each line here is held by a program in `make check-full`, or names how it was se
   holder made every settled node again as itself. A make from walked code costs 2,700 to 5,200
   instructions against 400 to 2,400 for the C's `join` over four runs (2,000 and 4,000 makes of
   new content, less the loop; runs vary), so the C's make stays the store.
+- **A fail is restored by compiled Form when the cell of `choice-point` holds a leaf.**
+  `form/walk.ck` is the walker's restore of a choice: the frames, links, activations, arguments,
+  held-back calls and the machine's `env` and `k` set from the choice's marks, the bindings made
+  since undone, cells put back from the trail, the trail kept of what no fail undoes, and room
+  words put back, as integers over the region's records at places `make header` writes. Reading
+  it compiles it with `emit.floor`, the emitter's floor mode: stores anywhere in the process's own
+  areas and the head, bounded by what each holds, and no entry check, since the leaf lies beneath
+  every binding as the C does; and it holds the leaf in the cell of `choice-point`. The walker's
+  fail calls that leaf and goes on with the giving back of nodes, ranges, outcomes and gathering
+  in C; a leaf that does not answer the choice it was given ends the process, and so does a cell
+  that holds no code; a processor fault in the leaf is the walker's own. With the cell empty, or a
+  leaf for another processor (under Rosetta), the C restores. A fault while `emit.floor` compiles
+  takes its mode off before it goes on, and a leaf it cannot make faults the reading of
+  `form/walk.ck`. `make check-full` holds both over the catalogue: `ground-isolated` runs every
+  program after `form/walk.ck`, `ground-together` on the C, `check-held-back` runs its program
+  both ways, and `ground/gives-back.ck` answers its cases once each way in one run (two bindings,
+  nested cells, room words of three widths, the trail kept after notes, and that a fail deep in
+  a call's arguments leaves the frames, links, activations and arguments where a fail at once
+  does). A binding's old entry put back for its prev, a trail of notes restored as cells, a room
+  word given its place for its value, every trail entry kept, the trail's count left uncompacted,
+  `k` written over `env`, one binding fewer undone, any of the four counts left unrestored or the
+  arguments' or the held-back calls' set to 0, each planted, made them differ. Not seen by them:
+  which faster forms' trail entries are kept (all kept, none kept, or the bound of those made
+  from outside moved; only a reclaim that moves their leaf reads them), and the restore's answer
+  shows that the leaf ran, not what it restored. The leaf is 16,408 bytes and making it takes
+  about 1.2 G instructions, in every member of `ground-isolated`, whose starts are not saved; a
+  round of a range with a choice failed twice took about 6,400 instructions against 2,900 with
+  the C restore (20,000 and 40,000 rounds, less each other), about 1,200 more a fail.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls

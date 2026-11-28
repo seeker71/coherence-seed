@@ -1702,6 +1702,12 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
   case M_FAILED: {
     if (!ncp) { if (!W->reason) W->reason = notice(S_NO_PATH); W->v = 0; W->outcome = '0'; W->mode = M_DONE; return; }
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node; W->v = 0;      /* a fail carries no answer: what the failed path last answered is not kept */
+    H door = USED(A_CELLS, E(CHOICE_POINT)) ? held[E(CHOICE_POINT)] : 0;   /* a leaf held in the cell of choice-point, beneath every */
+    void *fn = door && local_code(door) ? birth(door) : NULL;  /* binding, puts back what lies below the nodes and answers the choice; */
+    if (door && !code_target(door)) die("the cell of choice-point holds no code");   /* else the process ends, and a fault in it is */
+    if (fn) { int64_t arg[8] = { ncp - 1 }; arg[6] = (int64_t)(intptr_t)fb; arg[7] = 1; Ret r;   /* the walker's. Code for another */
+      if ((r = host.call(fn, arg)).k || r.v != (int64_t)ncp - 1) die("the restore of a choice in the cell of choice-point did not answer it");
+    } else {                              /* processor leaves it to the C */
     nfr = q->mfr; nlink = q->mlink; nact = q->mact; nargp = q->marg; W->env = q->env; W->k = q->k; nafter = q->mafter;
     while (nbind > q->mbind) { nbind--; bykey[bd[nbind].entry] = bd[nbind].prev; }     /* bindings made since are undone */
     for (uint32_t t = ntrail; t > q->mtrail; t--)                      /* and cells hold what they held, */
@@ -1710,8 +1716,8 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
     for (uint32_t t = q->mtrail; t < ntrail; t++)                       /* a faster form as long as its binding */
       if (trail[t].bp != E(TRAIL) && (trail[t].bp != E(FAST) || trail[t].key > OUT || trail[t].key <= nbind)) trail[kw++] = trail[t];
     ntrail = kw;
-    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); }   /* rooms too; */
-    reclaim(q);                                                         /* the nodes made since are given back, */
+    while (nrtrail > q->mroom) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); } }   /* rooms too; */
+    reclaim(q);                                                        /* the nodes made since are given back, */
     for (uint32_t t = q->mtrail; t < ntrail; t++) if (trail[t].bp == E(NOTE)) held[trail[t].key] = trail[t].old;   /* notes stand */
     if (q->all == 3) {                    /* a range: its next integer, and the choice closes with the last */
       int64_t m = 0, n = 0; geti((H)q->i, &m); geti((H)q->coll, &n);

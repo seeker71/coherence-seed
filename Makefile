@@ -167,6 +167,9 @@ check-header: ck
 # the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
 # it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
+# After the prelude $(FLOOR) a fail is restored by the walker's restore compiled from Form, not by the C: ground-isolated
+# runs the catalogue so, and ground-together on the C, so both hold every expectation.
+FLOOR = form/walk.ck
 # A canonical print written here is read by the reader in form and stored as the records ck reads.
 NODES = ./ck text form/from-print.ck
 shown = printf %s $(1) | ./ck text share/show.ck share/load.ck
@@ -189,7 +192,7 @@ ground-isolated: ck fb
 	  export CK_SHARE=$$name CK_SHARE_BYTES=536870912; \
 	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
-	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck $(MEMBER) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
+	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck $(MEMBER) $(FLOOR) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
 	    wait; $(call shown,$$name) > $(G).lanes; cat region/one-handle.ck; } | ./ck text /dev/stdin $(MEMBER) > $(G).held; \
 	  differences=$$(cat $(G).differences); held=$$(cat $(G).held); victim=$$(cat $(G).victim); \
 	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \
@@ -210,7 +213,7 @@ ground-isolated: ck fb
 	  [ "$$(cat $(G).stale)" = 'node (#16)' ] && ! $(call shown,$$stale) > /dev/null 2>&1 || { echo "ground: burying through a stale mapping: $$(cat $(G).stale)"; exit 1; }; \
 	  direct=$$(CK_SHARE=$$name.d CK_SHARE_BYTES=67108864 CK_MEMORY_BYTES=268435456 ./ck run $(STORE) $(MEMBER) 2>&1); alone=$$(env -u CK_SHARE CK_MEMORY_BYTES=268435456 ./ck run $(STORE) 2>&1); \
 	  [ "$$direct" = "$$alone" ] || { echo "ground: a member making with no choice open answered: $$(printf %s "$$direct" | cut -c1-300)"; exit 1; }; \
-	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; a process that buried through its mapping of a substrate already ended left the live one of that name alone; and a member running $(STORE) with no choice open, whose leaf publishes what it makes, answered what a process alone answers"
+	  echo "ground: $$(printf '%s\n' "$$paths" | wc -l | tr -d ' ') applicable programs passed as members of one substrate, each fail restored by the leaf of $(FLOOR), while one more member was killed in mid-run; over what they left: $$held; after every member of a second substrate was killed, its burying and a lane left in the name of a process that runs but was started at another instant, the next to open it buried it and made a new one; a process that buried through its mapping of a substrate already ended left the live one of that name alone; and a member running $(STORE) with no choice open, whose leaf publishes what it makes, answered what a process alone answers"
 
 # All of them in one process, which is entered from the image of its start region/all.ck, saved at rest by the process
 # before it; the image must be the one that process saved, not one made again: so each expectation is held cold, as a
@@ -317,10 +320,10 @@ check-replay: ck fb
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
 
 check-held-back: ck
-	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
-	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
-	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it"; \
-	  else echo "held back: '$$got'"; exit 1; fi
+	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); floor=$$(./ck run ground/held-back.ck $(FLOOR) | tr '\n' ' '); \
+	  if [ "$$floor" = "$$got" ] && [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
+	  then echo "held back: of five tries in a search only the one that held wrote its line; a faulted path wrote nothing; a hundred held calls ran in the order held, and a fault past a closed choice kept what was held outside it, restored by the C and by the leaf of $(FLOOR) alike"; \
+	  else echo "held back: '$$got', after $(FLOOR): '$$floor'"; exit 1; fi
 
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
