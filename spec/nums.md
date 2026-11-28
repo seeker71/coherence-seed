@@ -173,10 +173,11 @@ Stages in the submission share the allocations and one pipeline per distinct ent
 | `metal.file-region` | UTF-8 path bytes, file offset, logical length |
 | `metal.scratch` | Length in bytes of a zero-initialized private buffer |
 | `metal.readback` | Allocation index, byte offset, length of the requested reply |
-| `metal.stage` | Entry-name bytes or a `metal.specialization`, buffer views, unsigned 32-bit dispatch constants, grid |
+| `metal.stage` | Entry-name bytes or a `metal.specialization`, ordered buffer views or inline arguments, trailing unsigned 32-bit constants, grid |
 | `metal.specialization` | UTF-8 function name and an ordered list of `metal.constant-value` nodes |
 | `metal.constant-value` | Metal function constant index, Metal scalar data type and its native payload bytes |
 | `launch.view` | Zero-based input buffer index, byte offset |
+| `launch.inline` | An immutable byte leaf of 1–4,096 bytes, copied by Metal into this argument slot |
 | `launch.grid` | `launch.threads` or `launch.groups`, extent, threads per group, dynamic threadgroup bytes at index zero, buffer barrier before dispatch |
 | `launch.dimensions` | Positive X, Y and Z sizes for the extent or the threadgroup |
 
@@ -321,6 +322,42 @@ The generic runtime shares one word instance across unsigned `<`, `>`, `<=` and 
 Operand order and Boolean negation express the four relations. In the resolved image,
 `r.gt` places 2⁶³ above 2⁶³ − 1 through that instance. Calling the instance by its own id
 on the M4 Max took 21 walker steps, then 5 after Seed attached its 296-byte AArch64 body.
+
+#### Llama decode by operation
+
+For Llama 3.2 3B Q4_K_M, an eight-stream decode produced the following ggml graph.
+The graph callback recorded tensor operations. The separate Metal encoder trace
+showed fusion, which can absorb several graph operations into one encoder call.
+
+| ggml operation | Calls per turn | Seed execution in the measured image |
+| --- | ---: | --- |
+| `GET_ROWS` | 4 | Eight packed embedding-row reads. The ggml trace also contains a mixed-input lookup and two final output-row gathers. Seed returns dense rows for this batch. |
+| `DUP` | 1 | ggml builds a mixed embedding buffer. The Seed replay takes token IDs directly. |
+| `RMS_NORM`, `MUL` | 57 each | The two operations share one upstream weighted RMS dispatch at each site. |
+| `MUL_MAT` | 197 | All 197 bound weight offsets matched the graph's source tensor in the GGUF directory. The stored types selected 168 Q4_K and 29 Q6_K dispatches. |
+| `ROPE` | 56 | One upstream normal Float32 rotation per Q or K tensor, covering all streams. |
+| `SET_ROWS` | 57 | ggml writes 56 K/V tensors and populates the mixed-input buffer once. Seed writes 448 separate stream slices into Float32 KV storage. The reference used Float16 KV storage. |
+| `FLASH_ATTN_EXT` | 28 | Seed dispatches its grouped-query decode kernel once per stream per layer, 224 times. |
+| `ADD` | 56 | Seed uses 56 binary-map stages. The reference encoder fuses 55 residual additions into matrix operations for this batch. |
+| `GLU` | 28 | Seed dispatches SwiGLU across each contiguous activation panel. |
+| `RESHAPE`, `VIEW`, `PERMUTE` | 168, 140, 84 | Seed expresses the measured layouts through allocation offsets, dimensions and strides. General tensor-view equivalence remains open. |
+
+Sampling sits outside that ggml graph. The Seed token replay uses two argmax stages per
+stream. [Llama graph builder](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/src/models/llama.cpp)
+
+With the same 128 first-layer K/V input rows and slot indices, Seed preserved all
+131,072 Float32 values. The ggml cache contained their exact Float16 conversions.
+Rounding changed 131,057 values before attention read the cache.
+
+A `metal.rotary-panel` holds a compact Float32 layout (head width, heads, tokens),
+scaling parameters, source, positions, frequency factors, destination and barrier.
+Scaling carries the original context length and the six Float32 parameter bit patterns
+in ggml order. The lowerer builds the 160-byte argument record at slot zero, binds four
+buffer views and launches a grid of heads × tokens × 1. It handles full-width forward
+rotation in normal pair order, with either disjoint tensors or an in-place update.
+On captured first-layer Q and K, all 524,288 Float32 values across two position
+schedules matched llama.cpp byte for byte on each Mac process ABI.
+[Reference encoder](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/ggml-metal-ops.cpp#L4538) · [Reference shader](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/kernels/rope.metal#L48)
 
 ### Recipe tokens and live variants
 
