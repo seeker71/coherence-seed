@@ -2,7 +2,12 @@
 # TypeScript, Java and BML by nums/write-text.ck, which links the libraries nums/libraries.ck lists for it. A render that
 # ends otherwise than by answering text (a fault, a signal, nothing) is refused. The Java of each names its own package and
 # class, no two the same, and every record, interface and function in it is preceded by its Javadoc line. Each rule is run
-# against a planted file and must refuse it.
+# against a planted file and must refuse it. Where a JDK is found, the twelve are also compiled against a runtime that
+# nums/runtime-text.ck writes from the nodes (the engine operations of form/operations.ck, the part names of the lexicon):
+# the errors that remain are the Java's own, and they may not exceed JAVA_ERRORS, which is lowered and never raised.
+# No word of lens/words.ck is written twice (nums/duplicate-words.ck lists them), and a package with no row in
+# nums/packages.ck faults and does not write a header with nothing in it.
+JAVA_ERRORS = 380
 define verify_packages
 @set -eu; \
   work=$$(mktemp -d); \
@@ -33,6 +38,10 @@ define verify_packages
   if refers "$$work/copy.java"; then echo "a copy of a linked package was taken for a reference to it"; exit 1; fi; \
   printf 'package form.a;\npublic final class A {\n' > "$$work/one.java"; printf 'package form.a;\npublic final class A {\n' > "$$work/two.java"; \
   test "$$(for f in "$$work/one.java" "$$work/two.java"; do printf '%s %s\n' "$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f")" "$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f")"; done | sort -u | wc -l | tr -d ' ')" = 1; \
+  test -z "$$(printf 'lens/words.ck' | ./ck text nums/duplicate-words.ck)" || { echo "a word of lens/words.ck is written twice"; exit 1; }; \
+  printf '(bind lens.words {| (quote (list (list "a" root) (list "b" root) (list "a" root)))})' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/twice.ck"; \
+  test "$$(printf '%s' "$$work/twice.ck" | ./ck text nums/duplicate-words.ck)" = a || { echo "a word written twice was not listed"; exit 1; }; \
+  if printf 'nums/names.ck\nnums/lang-java.ck\n' | ./ck text nums/write-text.ck 2>&1 | grep -q '^fault '; then :; else echo "a package with no row in nums/packages.ck was written"; exit 1; fi; \
   jhome=$${JAVA_HOME:-}; javac=$${jhome:+$$jhome/bin/}javac; \
   if "$$javac" -version > /dev/null 2>&1; then \
     parses() { "$$javac" -XDshould-stop.ifError=PARSE -XDshould-stop.ifNoError=PARSE -proc:none -d "$$work/classes" "$$@" > "$$work/javac.out" 2>&1; }; \
@@ -41,6 +50,19 @@ define verify_packages
     printf 'public final class P {\n    static void f() {\n        true;\n    }\n}\n' > "$$work/Planted.java"; \
     if parses "$$work/Planted.java"; then echo "javac took a statement that is only true; for Java"; exit 1; fi; \
     echo "packages: the Java of the twelve parses (JDK $$("$$javac" -version 2>&1))"; \
+    tree="$$work/tree"; mkdir -p "$$tree/form"; \
+    for p in $$packages; do f="$$work/$$(basename $$p .ck).java"; pkg=$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f"); cls=$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f"); mkdir -p "$$tree/$$(echo "$$pkg" | tr . /)"; cp "$$f" "$$tree/$$(echo "$$pkg" | tr . /)/$$cls.java"; done; \
+    for c in Entry Blueprinted Fault Recipe Node Runtime; do printf '%s' "$$c" | ./ck text nums/runtime-text.ck > "$$tree/form/$$c.java"; done; \
+    if printf 'Nothing' | ./ck text nums/runtime-text.ck | grep -q '^fault '; then :; else echo "the runtime writer answered for a class it has no row for"; exit 1; fi; \
+    errors_of() { "$$javac" -proc:none -Xmaxerrs 100000 -d "$$work/built" "$$@" 2>&1 | grep -c 'error:' || true; }; \
+    mkdir -p "$$work/probe/form"; cp "$$tree"/form/*.java "$$work/probe/form/"; \
+    printf 'import static form.Runtime.*;\nclass Clean {\n    static long f(Object x) {\n        return count(x);\n    }\n}\n' > "$$work/probe/Clean.java"; \
+    printf 'class Broken {\n    static int f() {\n        return "text";\n    }\n}\n' > "$$work/probe/Broken.java"; \
+    test "$$(errors_of "$$work"/probe/form/*.java "$$work/probe/Clean.java")" = 0 || { echo "the runtime made from the nodes does not declare count"; exit 1; }; \
+    test "$$(errors_of "$$work"/probe/form/*.java "$$work/probe/Broken.java")" -ge 1 || { echo "javac took a type error for Java"; exit 1; }; \
+    errors=$$(errors_of $$(find "$$tree" -name '*.java')); \
+    test "$$errors" -le $(JAVA_ERRORS) || { echo "packages: $$errors javac errors in the Java of the twelve, over the budget of $(JAVA_ERRORS)"; exit 1; }; \
+    echo "packages: the Java of the twelve compiles against the runtime made from the nodes with $$errors errors of its own, within the budget of $(JAVA_ERRORS)"; \
   else echo "packages: the Java was not parsed: no JDK found (set JAVA_HOME)"; fi; \
   echo "packages: each package written in five languages, none faulting; each Java names its own package and class and documents every part"
 endef
