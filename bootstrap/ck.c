@@ -1288,8 +1288,8 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     }
     uint64_t mask = w == 8 ? ~0ull : (1ull << (8 * w)) - 1;
     if (!nd[a[0]].comp && nd[a[0]].bp != E(ROOM) && geti(a[0], &ar)) {   /* an area of the region by its number, past them the head and the substrate's */
-      if (!(p = spot(ar, o, w, &far))) { W->v = 0; W->reason = notice(S_RANGE); return; }   /* head: bytes the bootstrap keeps, written as they are and */
-      if (reading && (op != LOAD || !as_saved((uint64_t)(p - (uint8_t *)fb), (uint64_t)w))) fb->me.taken++;   /* given back by their counts, not the trail */
+      if (!(p = spot(ar, o, w, &far)) || (op != LOAD && ar >= A_COUNT + S_COUNT)) { W->v = 0; W->reason = notice(S_RANGE); return; }   /* the heads, which place the areas, are only read; */
+      if (reading && (op != LOAD || !as_saved((uint64_t)(p - (uint8_t *)fb), (uint64_t)w))) fb->me.taken++;   /* an area's bytes are written as they are, given back by their counts, not the trail */
       if (op == LOAD) { W->v = mki((int64_t)word_load(p, w, far)); return; }
       if (op == STORE) { word_store(p, w, far, (uint64_t)v); W->v = a[3]; return; }
       W->v = mki((int64_t)word_cas(p, w, (uint64_t)old & mask, (uint64_t)v & mask)); return;

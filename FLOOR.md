@@ -457,12 +457,14 @@ Each line here is held by a program in `make check-full`, or names how it was se
   walked (`.kit/jit/area-cost.sh`, same answers). Code writes an area only inline and only as the
   last act of a leaf `native` runs, where a room's store may compile: asked of `serve`, a `store`
   or `cas` on an area answers nothing unwritten, so code that would go on declines before it
-  writes and the walker writes once; a declined leaf run again never writes twice. `ground/rooms.ck`
-  reads seven areas at four widths at and past their edges, writes and swaps a word of the head and
+  writes and the walker writes once; such a leaf calls no definition, itself included, so a
+  declined leaf run again never writes twice. The heads, which place the areas, are only read. `ground/rooms.ck`
+  reads seven areas at four widths at and past their edges, writes and swaps a word of a room and
   of the lane's own record at every width over nine values, walked and as code, and answers no case
-  that differs; a counter swapped and then a read past the edge counts one either way. A wrong
+  that differs; a counter swapped and then a read past the edge, and a recursion that swaps and then
+  stores, count once either way. A wrong
   width, a wrong swap width and the alignment check taken out, each planted in the emitter, made it
-  answer some, and with `serve` writing the counter counted two.
+  answer some; with `serve` writing, or the recursion allowed, a word was written twice.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
   and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in

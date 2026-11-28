@@ -765,7 +765,7 @@ and swaps words of areas walked and as code at every edge of what they hold.
 
 `load`, `store` and `cas` also take, in place of a room, an integer naming an area of the region:
 its number in the layout's rows (`region/layout.ck`: the process's own areas, then the
-substrate's), and past them the process's head and then the substrate's head. o is then a byte
+substrate's), and past them the process's head and then the substrate's head, which are only read. o is then a byte
 offset from the area's start, a multiple of w, and o + w at most what the area holds at its peak or
 its count, whichever is more, of records times their size; the stack cannot be named. Outside that the answer is
 nothing, `range`. These are the bootstrap's own bytes: written as they are, never put on the
