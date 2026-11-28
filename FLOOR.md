@@ -452,7 +452,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   two words of the machine (layout 29), not in C. A leaf's first word branches to a check that
   declines, so the walker answers, while a binding from outside or of the program's own sits on an
   operation the leaf runs, or a definition it carries is bound to another recipe than the one it
-  was compiled from; calls inside the leaf go past it. `ground/code-on-nodes.ck` binds `count` and
+  was compiled from or by a binding made since, or the leaf carries definitions and runs in another
+  process than the one that made it; calls inside the leaf go past it. `ground/code-on-nodes.ck` binds `count` and
   a callee inside a run, under a fail and kept, and from outside, bound and taken away, while two
   compiled definitions and a leaf run by `native` are live: every answer is the walker's, and the
   emitter with either check taken out made cases differ. The check costs about 90 instructions at
