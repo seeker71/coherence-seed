@@ -1230,6 +1230,31 @@ static void parts(long long op, const H *a, uint32_t c, int own) {
 
 /* The operations on values alone, the values in hand. env is the activation they are done in, and
  * node the node that asked, for a range. */
+/* w bytes at o in area a of the region, or past the areas its head (A_COUNT + S_COUNT) and the substrate's head, within
+ * what the area holds at its peak or its count; far: a substrate's bytes, which another member reads and writes, so they are read
+ * whole after what made them (acquire), written after what they make reachable (release) and swapped in one step. */
+static uint8_t *spot(int64_t a, int64_t o, int64_t w, int *far) {
+  uint64_t base, top; int s = a >= A_COUNT;
+  if ((w != 1 && w != 2 && w != 4 && w != 8) || a < 0 || a > A_COUNT + S_COUNT + 1 || a == A_STACK || o < 0) return NULL;
+  if (a >= A_COUNT + S_COUNT) { s = a > A_COUNT + S_COUNT; base = s ? fb->me.share : 0; top = s ? sizeof(Substrate) : sizeof(Head); }
+  else { const Area *r = AR(a); base = r->off + (s ? fb->me.share : 0); top = (r->peak > r->n ? r->peak : r->n) * r->size; }   /* a substrate made in form may count its records in n alone */
+  if ((uint64_t)o + (uint64_t)w > top || (uint64_t)o % (uint64_t)w) return NULL;
+  *far = s; return (uint8_t *)fb + base + (uint64_t)o;
+}
+static uint64_t word_load(const uint8_t *p, int64_t w, int far) {
+  if (far) return w == 1 ? LD(*(const uint8_t *)p) : w == 2 ? LD(*(const uint16_t *)p) : w == 4 ? LD(*(const uint32_t *)p) : LD(*(const uint64_t *)p);
+  uint64_t u = 0; memcpy(&u, p, (size_t)w); return u;   /* both targets are little-endian */
+}
+static void word_store(uint8_t *p, int64_t w, int far, uint64_t v) {
+  if (!far) { memcpy(p, &v, (size_t)w); return; }
+  if (w == 1) ST(*(uint8_t *)p, (uint8_t)v); else if (w == 2) ST(*(uint16_t *)p, (uint16_t)v); else if (w == 4) ST(*(uint32_t *)p, (uint32_t)v); else ST(*(uint64_t *)p, v);
+}
+static uint64_t word_cas(uint8_t *p, int64_t w, uint64_t old, uint64_t v) {   /* what was there; it is v now when that was old */
+  if (w == 1) { uint8_t e = (uint8_t)old; CAS(*(uint8_t *)p, &e, (uint8_t)v); return e; }
+  if (w == 2) { uint16_t e = (uint16_t)old; CAS(*(uint16_t *)p, &e, (uint16_t)v); return e; }
+  if (w == 4) { uint32_t e = (uint32_t)old; CAS(*(uint32_t *)p, &e, (uint32_t)v); return e; }
+  uint64_t e = old; CAS(*(uint64_t *)p, &e, v); return e;
+}
 static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
   Status why; int64_t m, n, r = 0;
   if (op == HOST_TARGET) { if (c) fault(S_ARITY); else W->v = catalogue(HOST_ABI ? HOST_ABI : NO); return; }
@@ -1248,11 +1273,12 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (c != 1) { fault(S_ARITY); return; }
     W->reason = a[0] ? a[0] : notice(S_NOTHING_IN); W->mode = M_FAULT; return;
   }
-  if (op >= TAKE && op <= STORE) {    /* a room: bytes in the region under a blueprint, read and changed in place. While */
-    int64_t o = 0, w = 0, v = 0; uint64_t at = 0; Room *h;   /* a choice is open a store puts what it changes on the */
-    if (c != (uint32_t)(op - TAKE + 2)) { fault(S_ARITY); return; }   /* room trail, and a fail puts it back */
-    if (!a[0] || !a[1] || (op == STORE && !a[3])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v))) { fault(S_KIND); return; }
+  if ((op >= TAKE && op <= STORE) || op == CAS) {   /* a room: bytes in the region under a blueprint, read and changed in place. While */
+    int64_t o = 0, w = 0, v = 0, old = 0, ar = 0; uint64_t at = 0, found = 0; Room *h; uint8_t *p; int far = 0;   /* a choice is open a */
+    uint32_t want = op == CAS ? 5 : (uint32_t)(op - TAKE + 2), j;   /* store puts what it changes on the room trail, and a fail puts it back */
+    if (c != want) { fault(S_ARITY); return; }
+    for (j = 0; j < c; j++) if (!a[j]) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
+    if (!geti(a[1], &o) || (op != TAKE && !geti(a[2], &w)) || (op == STORE && !geti(a[3], &v)) || (op == CAS && (!geti(a[3], &old) || !geti(a[4], &v)))) { fault(S_KIND); return; }
     if (op == TAKE) {
       if (o < 0) { W->v = 0; W->reason = notice(S_RANGE); return; }
       at = N(A_ROOMS); uint64_t len = sizeof(Room) + (((uint64_t)o + 7) & ~7ull); room(A_ROOMS, at + len);
@@ -1260,20 +1286,30 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
       uint8_t b[8]; for (int i = 0; i < 8; i++) b[i] = (uint8_t)(at >> (8 * i));
       W->v = mk(0, E(ROOM), b, 8, &why); return;
     }
+    uint64_t mask = w == 8 ? ~0ull : (1ull << (8 * w)) - 1;
+    if (!nd[a[0]].comp && nd[a[0]].bp != E(ROOM) && geti(a[0], &ar)) {   /* an area of the region by its number, past them the head and the substrate's */
+      if (!(p = spot(ar, o, w, &far))) { W->v = 0; W->reason = notice(S_RANGE); return; }   /* head: bytes the bootstrap keeps, written as they are and */
+      if (reading && (op != LOAD || !as_saved((uint64_t)(p - (uint8_t *)fb), (uint64_t)w))) fb->me.taken++;   /* given back by their counts, not the trail */
+      if (op == LOAD) { W->v = mki((int64_t)word_load(p, w, far)); return; }
+      if (op == STORE) { word_store(p, w, far, (uint64_t)v); W->v = a[3]; return; }
+      W->v = mki((int64_t)word_cas(p, w, (uint64_t)old & mask, (uint64_t)v & mask)); return;
+    }
     if (nd[a[0]].comp || nd[a[0]].bp != E(ROOM) || nd[a[0]].n != 8) { fault(S_KIND); return; }
     memcpy(&at, bytes + nd[a[0]].off, 8); h = (Room *)(rooms + at);
     if (at % 8 || at + sizeof(Room) > N(A_ROOMS) || (w != 1 && w != 2 && w != 4 && w != 8) || o < 0 || (uint64_t)o + (uint64_t)w > h->size) {
       W->v = 0; W->reason = notice(S_RANGE); return; }
-    uint8_t *p = rooms + at + sizeof(Room) + o; uint64_t from = (uint64_t)(p - rooms);
-    if (op == LOAD) { uint64_t u = 0; for (int64_t i = w; i > 0; i--) u = u << 8 | p[i-1]; W->v = mki((int64_t)u); return; }
+    p = rooms + at + sizeof(Room) + o; uint64_t from = (uint64_t)(p - rooms);
+    found = word_load(p, w, 0);
+    if (op == LOAD) { W->v = mki((int64_t)found); return; }
+    if (op == CAS && found != ((uint64_t)old & mask)) { W->v = mki((int64_t)found); return; }
     if (!ncp) nrtrail = 0;
     else {                                /* the bytes it changes, and the room's writer and count */
       uint64_t g0 = from & ~3ull, n4 = (from + (uint64_t)w - g0 + 3) / 4; room(A_ROOM_TRAIL, nrtrail + n4 + 2);
-      for (uint64_t j = 0; j < n4 + 2; j++) {
-        uint64_t g = j == 0 ? at + offsetof(Room, by) : j == 1 ? at + offsetof(Room, writes) : g0 + 4 * (j - 2);
+      for (uint64_t g, k = 0; k < n4 + 2; k++) {
+        g = k == 0 ? at + offsetof(Room, by) : k == 1 ? at + offsetof(Room, writes) : g0 + 4 * (k - 2);
         RoomTrail t = { E(ROOM_TRAIL), W->at, 0, {0}, g }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; } }
-    for (int64_t i = 0; i < w; i++) p[i] = (uint8_t)((uint64_t)v >> (8 * i));
-    h->by = W->at; h->writes++; W->v = a[3]; return;
+    word_store(p, w, 0, (uint64_t)v);
+    h->by = W->at; h->writes++; W->v = op == CAS ? mki((int64_t)found) : a[3]; return;
   }
   if (op >= BLUEPRINT && op < DIV) { parts(op, a, c, act[env].lim >> 31); return; }
   if (op == ENCODE || op == DECODE) {             /* the encoding's section 2, forwards and backwards */
@@ -1395,7 +1431,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (m == INT64_MIN && n == -1) { W->v = 0; W->reason = notice(S_RANGE); return; }
     W->v = mki(op == DIV ? m / n : m % n); return;
   }
-  if (op != ADD && op != SUB && op != MUL) { fault(S_KIND); return; }   /* a number no operation stands at, as 97 since look left */
+  if (op != ADD && op != SUB && op != MUL) { fault(S_KIND); return; }   /* a number no operation stands at */
   if (op == ADD ? __builtin_add_overflow(m, n, &r) : op == SUB ? __builtin_sub_overflow(m, n, &r)
                 : __builtin_mul_overflow(m, n, &r)) { W->v = 0; W->reason = notice(S_RANGE); return; }
   W->v = mki(r);
@@ -1444,7 +1480,8 @@ static Ret serve(int64_t a0, int64_t a1, int64_t a2, int64_t a3, int64_t a4, int
   if (x && op == CHILD && c == 2 && !(cm >> 9 & 1) && nd[x].comp && (uint64_t)v[1] < nd[x].n) W->v = KID(x, v[1]);
   else {
     for (uint32_t j = 0; j < c; j++) if (!(cm >> (8 + j) & 1)) a[j] = mki(v[j]);
-    if (op == QUOTE) W->v = c == 1 ? a[0] : 0;
+    if ((op == STORE || op == CAS) && c && geti(a[0], &m)) return (Ret){ 0, num ? 2 : 4 };   /* an area is written by code only inline, as its last act: */
+    if (op == QUOTE) W->v = c == 1 ? a[0] : 0;   /* asked here, code declines unwritten and the walker writes once */
     else if (op == ALL) { for (uint32_t j = 0; j < c; j++) if (a[j]) a[n++] = a[j]; W->v = mk(1, E(LIST), a, n, &why); }
     else if (!basic(op)) fault(S_KIND); else base(op, a, c, W->env, 0);
     if (W->mode == M_FAULT) siglongjmp(in_code, 3);

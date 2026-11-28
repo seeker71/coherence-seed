@@ -446,6 +446,23 @@ Each line here is held by a program in `make check-full`, or names how it was se
   keep a store the walker undoes, the emitter refuses. `ground/encoding-in-form.ck` runs both room
   operations at every width over rooms of six sizes at and past their edges, compiled and walked,
   and a narrowed bound and a wrong width planted in the emitter each made cases differ.
+- **Code reads and writes the region's areas, and swaps a word of the substrate in one step.**
+  `load`, `store` and `cas` (entry 97) take an area's number where they take a room: the region's
+  own bytes at an offset, within what the area holds at its peak or its count, never trailed. Where the area and
+  the width are constants the emitter writes the head's place of the area's offset, peak and size
+  from the layout's rows (`fb.area-at` and the rest in `region/places.ck`), a bound and an
+  alignment check, and one `ldr`/`str` at base plus offset; a substrate's bytes as `ldar`, `stlr`
+  and `casal`, the orderings the C's own reads, writes and swaps of the substrate have. A word read
+  inline costs 95 instructions a step of a compiled loop, against 1,649 through `serve` and 10,070
+  walked (`.kit/jit/area-cost.sh`, same answers). Code writes an area only inline and only as the
+  last act of a leaf `native` runs, where a room's store may compile: asked of `serve`, a `store`
+  or `cas` on an area answers nothing unwritten, so code that would go on declines before it
+  writes and the walker writes once; a declined leaf run again never writes twice. `ground/rooms.ck`
+  reads seven areas at four widths at and past their edges, writes and swaps a word of the head and
+  of the lane's own record at every width over nine values, walked and as code, and answers no case
+  that differs; a counter swapped and then a read past the edge counts one either way. A wrong
+  width, a wrong swap width and the alignment check taken out, each planted in the emitter, made it
+  answer some, and with `serve` writing the counter counted two.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
   and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in
@@ -472,8 +489,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `make check-live` reads its live region from outside and holds the magic, the size read two
   ways, the last word, an empty read, three reads past an edge and a name that is no region; a
   byte mask, a shift and a bound planted in the package each made it fail. A region of another
-  layout version is refused, where `look` read it as this one. 97 has no operation now: a node
-  of it faults, where the bootstrap's arithmetic would have multiplied its two values.
+  layout version is refused, where `look` read it as this one.
 - **Emitted code is the walker or faster, never different.** It answers a number or a node, or declines. For
   an entry it is a faster form of the entry's own binding, used wherever the recipe would run,
   and it steps aside while something from outside watches an operation it replaced.

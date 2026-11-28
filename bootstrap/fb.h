@@ -18,7 +18,7 @@ BLUEPRINT = 64, COUNT = 65, CHILD = 66, BYTE = 67, LEAF = 68, PACK = 69, JOIN = 
 BINDING = 72, UP = 73, BASE = 74, LAZY = 75, READ = 76, PRINT = 77, ID = 78, FILE_OP = 79,
 CLOCK = 80, STEP = 81, OUTCOME = 82, DIV = 83, MOD = 84, FAULT = 85, LAYER = 86, ENCODE = 87,
 DECODE = 88, HOLD = 89, HELD = 90, TRAIL = 91, NOTE = 92, UNBIND = 93, PEEK = 94, HANDLE = 95,
-AT = 96, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
+AT = 96, CAS = 97, HOST = 98, RANGE = 99, LET = 100, OUTSIDE = 101, BOUND = 102, AFTER = 103,
 NOTHING = 104, CLOSE = 105, CLOSED = 106, BAND = 107, BOR = 108, BXOR = 109, SHL = 110, SHR = 111,
 FAST = 112, ROOM = 113, ROOM_TRAIL = 114, TAKE = 115, LOAD = 116, STORE = 117, WADD = 118, WSUB = 119,
 WMUL = 120, ULT = 121, UDIV = 122, UMOD = 123, HOST_TARGET = 124, HAS_TARGET = 125, SUBSTRATE = 126, LANE = 127,
@@ -37,7 +37,7 @@ LAST = 127 };
 [78] = "id", [79] = "file", [80] = "clock", [81] = "step", [82] = "outcome", [83] = "div", \
 [84] = "mod", [85] = "fault", [86] = "layer", [87] = "encode", [88] = "decode", [89] = "hold", \
 [90] = "held", [91] = "trail", [92] = "note", [93] = "unbind", [94] = "peek", [95] = "handle", \
-[96] = "at", [98] = "host", [99] = "range", [100] = "let", [101] = "outside", \
+[96] = "at", [97] = "cas", [98] = "host", [99] = "range", [100] = "let", [101] = "outside", \
 [102] = "bound", [103] = "after", [104] = "nothing", [105] = "close", [106] = "closed", [107] = "band", \
 [108] = "bor", [109] = "bxor", [110] = "shl", [111] = "shr", [112] = "fast", [113] = "room", \
 [114] = "room-trail", [115] = "take", [116] = "load", [117] = "store", [118] = "wadd", [119] = "wsub", \
@@ -74,7 +74,7 @@ typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
 #define FB_VERSION 29u
-#define FB_CATALOGUE UINT64_C(33329149175459548)
+#define FB_CATALOGUE UINT64_C(63731160999100191)
 #define FB_PAGE 16384u
 #define FB_HUE 128u
 enum { FB_LANE, FB_HANDLES, FB_STACK, FB_BITS };   /* a reservation made by the bootstrap */

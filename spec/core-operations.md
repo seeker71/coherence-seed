@@ -10,7 +10,7 @@ the floor's own records. 64 to 70 take a node apart and build one; 71 to 75 let 
 what runs; 76 to 80 are what the bootstrap does for itself. 81 is the walker's step and 82
 observes an outcome. 83 and 84 divide, 85 is a program's own fault and 86 makes bindings one
 layer. 87 and 88 are the encoding itself; 89 to 93 are cells, their trail, notes and unbinding;
-94 to 96 read its own region; 97 has no operation; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
+94 to 96 read its own region; 97 swaps a word in place; 98 calls the host, 99 counts, 100 gives a part a place, 101 binds from
 outside the run, 102 says what runs an entry, 103 holds a call back until a search has settled
 104 answers nothing with a reason, 105 with 106 close a recipe over values, 107 to 111 work on
 the bits of an integer, and 112 gives a binding a faster form. 126 and 127 are the kinds of the
@@ -556,8 +556,8 @@ Another process's region is not read by an operation. `region/far.ck` maps it to
 through the host's rows (`shm_open`, `fstat`, `mmap`), refuses with `no-region` an object that
 is not a framebuffer of this layout, whole, and reads its bytes with the load leaf, which may
 run under an open choice where a host call may not. The region is being written while it is
-read, and its writer neither knows nor waits. 97, where `look` stood, has no operation: a node
-of it faults (`kind`, or `arity` for other than two values).
+read, and its writer neither knows nor waits. 97, where `look` stood, is `cas` now (entries 113 to
+117 below).
 
 ## Entry 98: the host, called by name or by address
 
@@ -760,7 +760,22 @@ blueprint the place fixes, as its bytes alone, with the blueprint once in the ro
 room trail, with the room's writer and count, and a fail puts them back; with no choice open
 nothing is kept. A room taken since a choice point is given back when a fail returns to it,
 unless a node that stays names it. `ground/rooms.ck` stores, loads, has two
-stores undone by a fail and is refused outside a room and for a width of three.
+stores undone by a fail and is refused outside a room and for a width of three, and reads, writes
+and swaps words of areas walked and as code at every edge of what they hold.
+
+`load`, `store` and `cas` also take, in place of a room, an integer naming an area of the region:
+its number in the layout's rows (`region/layout.ck`: the process's own areas, then the
+substrate's), and past them the process's head and then the substrate's head. o is then a byte
+offset from the area's start, a multiple of w, and o + w at most what the area holds at its peak or
+its count, whichever is more, of records times their size; the stack cannot be named. Outside that the answer is
+nothing, `range`. These are the bootstrap's own bytes: written as they are, never put on the
+trail, so a fail does not put them back; what made them gives them back by its counts, as the
+store does its records. A substrate's bytes are read whole after what made them (acquire),
+written after what they make reachable (release), and `cas` is one step of the processor.
+
+| Entry | Name | Takes | Answers |
+| --- | --- | --- | --- |
+| 97 | cas | r, o, w, old, new | the w bytes at o of the room or area r as they were; when they were the low w bytes of old they are now those of new. On a room it is a store, put on the room trail while a choice is open |
 
 ## Entries 118 to 123: integers as their 64 bits
 
