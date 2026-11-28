@@ -172,6 +172,7 @@ Stages in the submission share the allocations and one pipeline per distinct ent
 | --- | --- |
 | `metal.resources` | Ordered allocation list, ordered readback list |
 | `metal.file-region` | UTF-8 path bytes, file offset, logical length |
+| `metal.weight` | A file region that kernels read as immutable model weights |
 | `metal.scratch` | Length in bytes of a zero-initialized private buffer |
 | `metal.readback` | Allocation index, byte offset, length of the requested reply |
 | `metal.stage` | Entry-name bytes or a `metal.specialization`, ordered buffer views or inline arguments, trailing unsigned 32-bit constants, grid |
@@ -278,12 +279,19 @@ free pages and free-page target, the VM page size and the explicit `CK_MEMORY_BY
 when supplied. At warning it uses the process's startup allowance. Critical or unknown
 pressure declines the batch. The framebuffer rehearses the largest requested readback.
 
-A file region maps the file privately at a page boundary. Metal wraps those pages directly.
-Both the stage view and the readback add the tensor's displacement within the first page.
-The Metal buffer retains the mapping owner until its final release. Callers keep the file
-stable while using it. The request identifies the descriptor, and the file supplies the
-weight bytes. Each allocation is charged to the submission, including overlapping views
-declared as separate allocations. Framework entry names are used at pipeline creation.
+A plain file region gets its own private mapping. A `metal.weight` uses a shared,
+read-only mapping. When every file region in a model holds immutable weights,
+`metal.shared-weights(model)` returns the corresponding model declaration. Use individual
+`metal.weight` declarations for a model that also needs private file regions.
+
+At mount, the station groups consecutive weights from the same file while their page
+ranges overlap or touch and the combined buffer fits the device's `maxBufferLength`.
+Each tensor keeps its numeric slot, byte offset within the buffer, and logical length.
+The memory budget counts each physical mapping once. Kernels and readbacks use the
+original tensor slots, including when several tensors share a page. The Metal buffer
+owns the mapping until release. Callers keep the backing file stable for that lifetime.
+The llama.cpp loader likewise maps weights read-only and exposes file pages directly
+to Metal. [llama.cpp file mapping](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/src/llama-mmap.cpp#L446) · [Metal buffer allocation](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/ggml-metal-device.m#L2064)
 
 Build an image from an existing library with a numeric batch declaration and buffer list.
 The builder fills the declaration's library field from the supplied file and exports

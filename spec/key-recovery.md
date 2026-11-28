@@ -57,6 +57,50 @@ restart. Power-loss guarantees depend on the underlying storage. Public key
 ownership by a particular person requires their own corroboration.
 [Participant commands](participant-circle.md#establish-the-circle)
 
+## Preparing and reviewing a recovery
+
+The participants exchange public statements and detached signatures. The
+delegate keeps its own signing key. Use `recovery/draft.ck` with a mode on
+file descriptor 3 to prepare the exact statement each signer will review.
+
+| Mode | Standard input | File descriptor 4 | Statement |
+| --- | --- | --- | --- |
+| `charter` | Original roster | Delegate's raw 32-byte public key | Original roster and appointed delegate |
+| `notice` | Charter | Unused | Withdrawal naming the original roster and charter |
+| `transfer` | Charter | Proposed successor roster | Both predecessor identities and the complete successor |
+
+For example, prepare a transfer and render its names and keys locally.
+
+```sh
+printf transfer > mode
+./ck text recovery/draft.ck 3<mode 4<successor.roster <charter >transfer
+./ck text lens/show-canonical.ck lens/all.ck <transfer
+./ck text recovery/signing-bytes.ck <transfer >transfer.id
+```
+
+Each signer independently compares the proposal with their own retained
+roster, charter and expected replacement public key, then signs the 32-byte
+statement identity. `recovery/seal.ck` takes the reviewed statement on
+standard input and the detached signature on file descriptor 4. For a
+transfer, give it the delegate's signature on 4 and the replacement owner's
+signature on 5. Sealing assembles the packet. The protected broker verifies
+the signatures, episode, charter and current state when it installs it.
+
+```sh
+./ck text recovery/seal.ck 4<delegate.sig 5<replacement.sig <transfer >proof
+BROKER="$broker" make -s circle-recovery-apply <proof
+```
+
+The same broker interface accepts a sealed original charter through
+`circle-recovery-enroll` and a sealed notice through `circle-recovery-cancel`.
+It derives the route from its installed roster. Either cell can independently
+authenticate a complete historical participant packet offline. With only
+its retained public roster, `ROSTER=original.roster make -s circle-verify
+<signed.packet` returns the role that signed it. The successor roster
+rejects a predecessor packet even when the listener's key stayed the same.
+This comparison authenticates a past decision. Current permission lives in
+the broker's registers.
+
 ## What crosses the restart
 
 Under the existing directory lock the broker retains the signed decision and
@@ -75,6 +119,22 @@ roster can verify its historical signatures. A broker on the successor roster
 rejects those signatures for new authority.
 
 ## What was observed
+
+Two independently operated cells, Ash and Elm, established a local broker.
+Ash appointed a separately operated delegate before either cell advanced its
+register. Ash withdrew and Elm paused. Each kept its own public evidence.
+Ash removed the disposable original signing file and could no longer sign
+a fresh challenge with it. The delegate and replacement owner independently
+reconstructed and signed the same transfer.
+
+The broker archived both original registers byte for byte. Elm verified all
+four controls, two from each episode. Each authenticated with its original
+roster and failed with the other one. Submitting the retired controls at the
+updated broker returned `peer.wrong-control`. Fresh listening consent alone
+produced no letter. After Ash granted the excerpt, Elm received 60 attributed
+bytes. Reapplying the transfer preserved both advanced successor registers
+and the same delivered letter. All roles ran on one host with distinct
+private directories and process profiles.
 
 `make check-held-back` uses public-only fixtures from independent ephemeral
 Ed25519 keys. The original private key was discarded before exercising recovery.
