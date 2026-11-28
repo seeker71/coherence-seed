@@ -559,19 +559,21 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `form/walk.ck`: the frames, links, activations, arguments, held-back calls and the machine's
   `env` and `k` set from the choice's marks, the bindings made since undone, cells put back from
   the trail, the trail kept of what no fail undoes, and room words put back, as integers over the
-  region's records at places `make header` writes. It is compiled by `emit.floor`, the emitter's
+  region's records at places `make header` writes; a choice's place is computed once, and each
+  loop over the bindings, the trail or the room trail is entered only when its count grew past
+  the choice's mark. It is compiled by `emit.floor`, the emitter's
   floor mode: stores anywhere in the process's own areas and the head, bounded by what each
   holds, and no entry check, since the leaf lies beneath every binding. The walker's fail calls
   it and goes on with the giving back of nodes, ranges, outcomes and gathering in C. A cell with
   no code this processor runs, or a leaf that does not answer the choice it was given or leaves
-  the frames, bindings or room trail off the choice's marks, ends the process; a processor fault
+  the frames, bindings, room trail or trail off the choice's marks, ends the process; a processor fault
   in it is the walker's own. A process with no seed beside it, or on
   another processor than AArch64, is refused at start with a plain line.
   The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles the
   leaf, and writes the program with `bin.write` of `form/nodes.ck`. The program opens no choice,
   since nothing can restore one before it ends, and holds the leaf only where the region's layout
   version is the one it was made for: elsewhere it answers nothing and the process is refused. `make header` writes it, and
-  `check-header` builds it again on the seed itself and compares the bytes: the same 16,480. A
+  `check-header` builds it again on the seed itself and compares the bytes: the same 16,155. A
   member of a substrate holds the leaf before it joins: the seed's program gives no handle, so
   `adopt` takes the start, and `ground-isolated` runs every program as a member with nothing more
   read. The whole catalogue answered alike under the C restore of the last commit that had one
@@ -586,8 +588,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   version each end the process with its line. Not seen by any test: which faster forms'
   trail entries are kept (only a reclaim that moves their leaf reads them), and a leaf that
   leaves a cell or a trail entry wrong while the counts it is checked by stand. A round of a range with a choice failed
-  twice took about 6,850 instructions against 3,280 with the C restore (20,000 and 40,000
-  rounds, less each other), about 1,190 more a fail.
+  twice (three restores: the range's next and the two fails) took about 5,610 instructions against 3,280 with the C restore of `4d7b155` (20,000 and
+  40,000 rounds, less each other), about 780 more a fail; before the loops were guarded and the
+  place computed once it was 6,850. Each guard turned the wrong way, and the choice's place
+  computed with another record size, planted, made the catalogue's programs differ or ended the
+  process at the counts the C checks after the leaf: frames, bindings and room trail at the
+  choice's marks, and the trail not below its mark.
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one
   builds the current. With none that runs, the last commit whose C restores a fail alone
   (`4d7b155`) builds a seed from the nodes, and that seed builds the next.

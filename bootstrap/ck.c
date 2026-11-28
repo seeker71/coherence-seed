@@ -1704,7 +1704,7 @@ static void walk(H x0) {                 /* ends with mode M_DONE; outcome is 'n
     ChoicePoint *q = &cp[ncp-1]; W->at = q->node; W->v = 0;      /* a fail carries no answer: what the failed path last answered is not kept */
     H door = USED(A_CELLS, E(CHOICE_POINT)) ? held[E(CHOICE_POINT)] : 0; void *fn = door && local_code(door) ? birth(door) : NULL; Ret r;
     int64_t arg[8] = { ncp - 1, 0, 0, 0, 0, 0, (int64_t)(intptr_t)fb, 1 };   /* the leaf the seed holds in the cell of choice-point puts back */
-    if (!fn || (r = host.call(fn, arg)).k || r.v != (int64_t)ncp - 1 || nfr != q->mfr || nbind != q->mbind || nrtrail != q->mroom)   /* what lies below */
+    if (!fn || (r = host.call(fn, arg)).k || r.v != (int64_t)ncp - 1 || nfr != q->mfr || nbind != q->mbind || nrtrail != q->mroom || ntrail < q->mtrail)   /* what lies below */
       die("the cell of choice-point holds no restore for this processor, or it did not restore the choice");   /* the nodes, or the process ends */
     reclaim(q);                                                        /* the nodes made since are given back, */
     for (uint32_t t = q->mtrail; t < ntrail; t++) if (trail[t].bp == E(NOTE)) held[trail[t].key] = trail[t].old;   /* notes stand */
