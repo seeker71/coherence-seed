@@ -955,7 +955,10 @@ emitter, runs a recursion on the walker, compiles it and runs a much longer one 
 Code for an entry is the faster form of the entry's own binding (entry 112), so it runs wherever
 the recipe would have, for the other definitions of its layer too. The emitter refuses a definition while
 any operation it uses, or the step, is bound otherwise where the definition runs: its code would
-not be what the walker does there.
+not be what the walker does there. What it assumed is checked again each time the leaf is entered
+from outside it: while a binding made from outside, or one of the program's own, sits on an
+operation the leaf runs, or a definition the leaf carries is bound to another recipe than the one
+it was compiled from, the leaf declines and the walker runs the definition.
 
 ## Limits
 

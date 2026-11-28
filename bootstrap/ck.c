@@ -314,7 +314,7 @@ static void touch(int a, uint64_t k) { if (moved(a, k)) area_full(a); }
 #define OMOST 127u
 #define OWN 0x80000000u
 static void read_seen(const char *path, uint64_t at, uint64_t n, H name, H content); static int as_saved(uint64_t o, uint64_t n);
-static void leaving(void); static void ending(int sig); static H handed; static uint32_t handeds;   /* handles given out above the catalogue: the last, and how many */
+static void leaving(void); static void ending(int sig);
 static const uint64_t SPAN = (uint64_t)1 << 32;   /* a named substrate: the handles its lanes share */
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave);
 static const struct { uint32_t of, size; uint64_t reserve; } L[A_COUNT + S_COUNT] = { FB_AREA_ROWS };   /* region/layout.ck */
@@ -1065,7 +1065,7 @@ COLD void commit(void) {
 static Ret adopt(int64_t base, int64_t lane, int64_t name, int64_t leave) {
   Substrate *to = (Substrate *)(intptr_t)base; Ret no = { 0, 0 };
   if (shared || ncp || coding != 1 || !to || !name || to->version != FB_VERSION || lane < 0 || lane >= to->lanes || fb->a[A_CELLS].cap < SPAN) return no;   /* not from inside code, which holds handles */
-  if (lane && (handeds > 1 || (handeds && handed != (H)leave))) return no;   /* a number given as a handle would name another node after: refused, not guessed */
+  if (lane && (W->handeds > 1 || (W->handeds && W->handed != (H)leave))) return no;   /* a number given as a handle would name another node after: refused, not guessed */
   if (nn > sw) commit();
   const Node *ond = nd; const H *okids = kids; const uint8_t *obytes = bytes, *oids = ids; H top = (H)nn, at = W->at; uint64_t mark = ntext, base_tk = ntk; int was = coding, over = 0;
   coding = walking = 0; sub = to; shared = 1; fb->me.share = (uint64_t)base - (uint64_t)(uintptr_t)fb; fb->me.lane = (uint32_t)lane; strncpy((char *)fb->me.name, (const char *)(intptr_t)name, 31);
@@ -1315,7 +1315,7 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     int64_t o = 0, n = 0; uint64_t guard = fb->a[A_STACK].off;
     if (c != (op == PEEK ? 2u : 1u)) { fault(S_ARITY); return; }
     if (!a[0] || (op == PEEK && !a[1])) { W->v = 0; W->reason = notice(S_NOTHING_IN); return; }
-    if (op == HANDLE) { if (a[0] > SEEDED && a[0] != handed) { handed = a[0]; handeds++; } W->v = mki(a[0]); return; }   /* adopt asks what was given */
+    if (op == HANDLE) { if (a[0] > SEEDED && a[0] != W->handed) { W->handed = a[0]; W->handeds++; } W->v = mki(a[0]); return; }   /* adopt asks what was given: the last handle above the catalogue, and how many */
     if (!geti(a[0], &o) || (op == PEEK && !geti(a[1], &n))) { fault(S_KIND); return; }
     if (op == AT && !known(o) && o > 0 && o >> 32 == 0 && (H)o < lsw((uint64_t)o >> LS, 0)) { fault(S_IRREVERSIBLE); return; }   /* settled since this search began */
     if (op == AT ? !known(o) : (o < 0 || n < 0 || ((uint64_t)o + (uint64_t)n > fb->bytes && ((uint64_t)o < fb->me.share || (uint64_t)o + (uint64_t)n > fb->me.share + sub->bytes))
@@ -1831,7 +1831,7 @@ static void wipe(void) {
     if (i < A_COUNT && L[i].reserve == FB_HANDLES) { for (uint64_t j = 0; j <= (hue + 4 * a->n) / FB_PAGE; j++) if (tbits[(tbit[i] + j) >> 3] >> ((tbit[i] + j) & 7) & 1) memset(b - hue + j * FB_PAGE, 0, FB_PAGE); }
     else memset(b, 0, (size_t)(m * a->size));
   }
-  memset(fb, 0, sizeof(Head)); memset(sub, 0, sizeof(Substrate)); memset(dense, 0, sizeof dense); handed = 0; handeds = 0;
+  memset(fb, 0, sizeof(Head)); memset(sub, 0, sizeof(Substrate)); memset(dense, 0, sizeof dense);
 }
 /* A start that will not use an image begins as fb_open left the region; what a look at an image did is gone. */
 static void fresh(Area t) { keep_own(); wipe(); put_own(); fb_reset(); fb->a[A_TEXT] = t; store_init(); }

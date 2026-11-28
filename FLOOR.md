@@ -425,9 +425,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   it names, and `make check-full` holds that the file is what the nodes make now. The leaf runs
   only on AArch64 and only under its layout version, by `native`, so where it declines the walked
   printer answers. Measured as whole `ck run`s (instructions retired): answering 42, 16.0 M against
-  15.1 M walked and 14.0 M for the C of 5bfb416; 3,000 numbers, 152 M against 1,555 M and 21 M; a
-  chain 10,000 deep, 426 M against 3,587 M and 83 M; 20,000 triples, 2.3 G against 24.0 G and
-  204 M; a chain 200,000 deep declines at the machine stack's floor and is walked, 72.8 G against
+  15.1 M walked and 14.0 M for the C of 5bfb416; 3,000 numbers, 123 M against 1,555 M and 21 M; a
+  chain 10,000 deep, 343 M against 3,587 M and 83 M; 20,000 triples, 1.8 G against 24.0 G and
+  204 M; a chain 200,000 deep declines at the machine stack's floor and is walked, 72.4 G against
   71.6 G and 1.4 G. The three printed every case byte for byte alike. `ground/encoding-in-form.ck`
   holds the two printers alike over every kind of leaf, shared parts, a recursion 300 deep and a
   table that grows, and that the code answered. Under Rosetta the printer is walked.
@@ -442,6 +442,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   keep a store the walker undoes, the emitter refuses. `ground/encoding-in-form.ck` runs both room
   operations at every width over rooms of six sizes at and past their edges, compiled and walked,
   and a narrowed bound and a wrong width planted in the emitter each made cases differ.
+- **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
+  `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
+  and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in
+  two words of the machine (layout 29), not in C. A leaf's first word branches to a check that
+  declines, so the walker answers, while a binding from outside or of the program's own sits on an
+  operation the leaf runs, or a definition it carries is bound to another recipe than the one it
+  was compiled from; calls inside the leaf go past it. `ground/code-on-nodes.ck` binds `count` and
+  a callee inside a run, under a fail and kept, and from outside, bound and taken away, while two
+  compiled definitions and a leaf run by `native` are live: every answer is the walker's, and the
+  emitter with either check taken out made cases differ. The check costs about 90 instructions at
+  each entry of the printer; node reads and `handle` took the printer from 152 M to 123 M on 3,000
+  numbers.
 - **Another process's region is read in Form, and the C that read it is gone.** Entry 97,
   `look`, and the host's `watch` left the bootstrap; `region/far.ck` maps the region by the
   host's rows that `share/share.ck` holds and reads it with the load leaf, which runs under an
