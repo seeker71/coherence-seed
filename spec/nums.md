@@ -221,6 +221,20 @@ takes one row per stream. The library can be built from the pinned
 [matrix kernel](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/kernels/mul_mv_mma.metal)
 and [normalization kernel](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/ggml/src/ggml-metal/kernels/norm.metal).
 
+A `metal.mma-product` pairs a compact projection panel with a residual view (or
+`no`) and the pipeline's thread limit. It reads Q4_K or Q6_K blocks directly
+from the declared weight file region and supports one through sixteen Float32
+input rows. The panel dimensions determine the number of SIMD groups, the
+eight-row weight and activation tiles, the reduction scratch and the grid.
+The residual can be the destination itself. A partial overlap with that output
+would overwrite another lane's input and faults during plan resolution.
+
+On the 40-core M4 Max, compiling the upstream matrix source with Metal 4.0 and
+`-O2` produced the same GPU instruction bytes as llama.cpp's runtime compiler
+for all 197 matrix dispatches in the eight-stream Llama 3.2 3B comparison.
+For that comparison the model graph supplied residuals at the same 55 sites
+as llama.cpp. The caller can also supply the final attention residual directly.
+
 A `metal.projection-panel` pairs a projection with a stream count. Its input is
 a compact Float32 array indexed by stream and column. Its output is a disjoint
 writable array indexed by stream and row. Each view can start at a byte offset.
@@ -295,7 +309,8 @@ mounting the same declaration again returns the same ID and keeps the existing s
 The caller keeps the mapped weight file stable for the lifetime of the model.
 `metal.advance` takes that ID, a batch (or an input frame wrapping it), and the desired
 readbacks. At mount, each allocation gets a numeric binding with its Metal buffer
-handle, logical length and starting byte offset. Both stage views and readbacks
+handle, logical length and starting byte offset. A scratch binding also keeps its CPU
+address until the station releases the buffer. Both stage views and readbacks
 resolve ranges through that binding. Turns reuse the device, library, pipeline
 cache, buffers and queue. On first use, Form resolves the batch into a list of Metal calls under its content ID.
 Subsequent frames replay that list on a fresh encoder. The station owns the cache,
@@ -303,6 +318,14 @@ so eviction or a fresh mount can prepare the list again. A `metal.input-frame`
 pairs the batch with byte updates to declared scratch views. This lets one plan
 serve changing rotary positions, KV slots, masks and initial token IDs. `metal.retire`
 releases the worker's ownership and makes the ID available for a fresh mount.
+
+The station keeps the layout of its most recent readback list. When the list changes,
+Form validates each selection against the allocation, then groups consecutive selections
+of the same buffer whose combined span fits within one logical VM page. A selection
+already covered by a window can reuse it even when that window spans pages. If the
+temporary room can hold only the largest individual selection, the turn reads each
+selection separately. After the GPU finishes, the worker copies fresh bytes and returns
+one node per selection in caller order, including overlapping and repeated selections.
 
 Each resident turn runs at a committed boundary. Before encoding, a host memory
 pressure reading outside the normal state releases the resident objects and returns
@@ -337,11 +360,11 @@ showed fusion, which can absorb several graph operations into one encoder call.
 | `GET_ROWS` | 4 | One packed Q6_K row gather reads eight GPU-selected token IDs. The ggml trace also contains a mixed-input lookup and two final output-row gathers. Seed returns dense rows for this batch. |
 | `DUP` | 1 | ggml builds a mixed embedding buffer. The Seed replay takes token IDs directly. |
 | `RMS_NORM`, `MUL` | 57 each | The two operations share one upstream weighted RMS dispatch at each site. |
-| `MUL_MAT` | 197 | All 197 bound weight offsets matched the graph's source tensor in the GGUF directory. The stored types selected 168 Q4_K and 29 Q6_K dispatches. |
+| `MUL_MAT` | 197 | All 197 live weight bindings, tile entries, grids, threadgroups, scratch sizes and defined argument bytes matched llama.cpp for the 168 Q4_K and 29 Q6_K projections. |
 | `ROPE` | 56 | One upstream normal Float32 rotation per Q or K tensor, covering all streams. |
 | `SET_ROWS` | 57 | ggml writes 56 K/V tensors and populates the mixed-input buffer once. Seed uses the same 56 indexed Float16 writes into the shared K and V buffers. |
 | `FLASH_ATTN_EXT` | 28 | Each layer runs one Float16 vector attention dispatch and its reduction across the eight streams. |
-| `ADD` | 56 | Seed uses 56 binary-map stages. The reference encoder fuses 55 residual additions into matrix operations for this batch. |
+| `ADD` | 56 | The reference-shaped Seed image fuses the same 55 residual additions into the matrix stores and issues one separate add. |
 | `GLU` | 28 | Seed dispatches SwiGLU across each contiguous activation panel. |
 | `RESHAPE`, `VIEW`, `PERMUTE` | 168, 140, 84 | Seed expresses the measured layouts through allocation offsets, dimensions and strides. General tensor-view equivalence remains open. |
 
@@ -363,10 +386,12 @@ the comparison under both the native arm64 and translated x86_64 process ABIs.
 
 Eight concurrent streams generated eight tokens each through Seed's numeric port.
 All 64 selected tokens matched llama.cpp for a shared start and all 64 matched for
-independently seeded streams. The resident image issued 523 compute dispatches per
-turn against 453 in llama.cpp. Residual-add fusion and differences in the packed
-matrix launches remain visible in the trace. This measurement covers short-context
-decode on one model. The first turn includes call-list preparation.
+independently seeded streams. With matching matrix launches and the same 55
+residuals fused, Seed issued 468 compute dispatches per turn, including its
+16 GPU sampling dispatches. The reference issued 453 before CPU sampling.
+Across 64 independently seeded stream-position pairs, the maximum absolute
+difference over 8,208,384 final logits was 0.007782. The first turn includes
+call-list preparation. These comparisons cover short-context decode on one model.
 
 A `metal.rotary-panel` holds a compact Float32 layout (head width, heads, tokens),
 scaling parameters, source, positions, frequency factors, destination and barrier.
