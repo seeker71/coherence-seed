@@ -583,9 +583,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
     builds it again on the seed itself, walking with its own return, and compares the bytes:
     the same 30,287, leaves of 11,164 and 19,020 bytes. `check-held-back` holds that leaves the
     run compiles again and holds mid-run return and restore as the seed's do.
-  - Held: the whole catalogue answered alike under the C walker of `733d27a` and under the seed's
-    return, each of the 77 programs' outcome and its verdict, `cmp` of 154 answers, one
-    process each. `ground/need-moves-on.ck` returns through 200,000 frames of `need` in a row:
+  - Held: the catalogue answered alike under the C walker of `733d27a` and under the seed's
+    return, each of the 77 programs' outcome and its verdict, one process each at the default
+    8 MB stack, `cmp` of 154 answers but one. The one is `ground/code-on-nodes.ck`'s
+    100,000-deep compiled recursion, which meets the stack's floor there: under `733d27a` the
+    calling row read the refusal as an answer and gave a wrong one ("differs"); now the refusal
+    reaches it and the walker answers 100,000. Under `check-full`'s 64 MB stack both pass. `ground/need-moves-on.ck` returns through 200,000 frames of `need` in a row:
     the loop of returns is a jump, so it runs in a constant stack. Planted in `walk.ret`, each
     made a program differ or the process end: `no` let through a `need` (the answer `no`
     where 7 is pinned, and the lens loops), a pushed frame's link mark taken from the
