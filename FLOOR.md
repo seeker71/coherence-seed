@@ -582,6 +582,28 @@ Each line here is held by a program in `make check-full`, or names how it was se
   ways; forty-six faults planted in the emitter and the bootstrap turned that red.
   Definitions that call each other are compiled into one leaf, and a recursion written as a loop
   runs as one: thirty million rounds, each calling a second definition, in 0.4 s.
+- **A small callee is emitted in place, and stays a row.** A call by name of a definition the leaf
+  carries, of at most six arguments and a body under 64 nodes with no search, no `self`, no recipe
+  and no store, is emitted where it is called, up to four deep: each argument kept at a place
+  free there, in the kind the callee's row wants, and the callee's body with its places moved
+  past the caller's. The callee keeps its row, so the entry check sees a swap of it and the
+  caller declines. A call of a definition by itself in last place is a loop: the arguments are
+  kept in their places and the code branches back past the start, where the start's check of how
+  many arguments came is kept by taking the loop only with as many as the body reads. Where
+  registers run out, a part is emitted at the first register with the ones below it kept in free
+  places, so a let may take any of 32 places and an `if` deep in a call's arguments compiles; a
+  row's `gives` is settled a second time from a number, so a self recursion does not stay a node.
+  `ground/code-or-walker.ck` holds these against the walker (lets at places 31 and 32, a
+  condition as a sixth argument two calls deep, inlined callees given a node, text, a failing
+  and a missing argument, a self loop given too few), and `ground/code-on-nodes.ck` swaps an
+  inlined callee under a failing choice and from outside; places moved one too far, a spill that
+  does not restore, a loop keeping its arguments in the wrong places, the callee checks taken out,
+  arguments not converted to the wanted kind and the loop taken with too few arguments, each
+  planted, made them fail. It costs code: the store's find is a leaf of 9,785 instructions where it
+  was 6,381, and the make 16,945 where it was 10,240. A find of a 32-byte leaf called 20,000 and
+  40,000 times from walked code took 6,000 to 7,200 instructions each against 9,100 to 9,400
+  before, where the C's make takes about 1,000 (runs vary); most of what is left is the walker's
+  call of code, the entry check and the hash, whose loop takes about 47 instructions a byte.
 - **Code works on nodes by asking the bootstrap.** One address in the region does any operation
   on values in hand, under the contract by which code itself is called, so emitted code reads
   and builds nodes and the store stays the bootstrap's. A node it names is named by its id, not
