@@ -9,7 +9,7 @@ and a separate x86-64 Linux guest. The current seed carries AArch64 machine code
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,172 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,152 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -677,6 +677,23 @@ Each line here is held by a program in `make check-full`, or names how it was se
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one
   builds the current. With none that runs, the last commit whose C walker returns and restores a
   fail alone, with no seed (`4d7b155`), builds a seed from the nodes, and that seed builds the next.
+- **SHA-256 of an id runs in Form the seed carries; the C has none.** `form/digest.ck` compiles the
+  hash with `emit.floor` and holds it in the cell of `id`: the message lies in the text (a message
+  lying elsewhere is copied there by the C first), the leaf is given its place, its length and a
+  scratch of 480 bytes in the text, and leaves the digest first in it. It does the blocks, the
+  padding and the length itself; `form/id.ck`'s walked `sha.of` is its reference.
+  `ground/encoding-in-form.ck` makes 31 byte leaves of 0 to 1,000 bytes (messages of 33 to 1,033,
+  around every padding edge) and has the operation `id`, the leaf, answer what the walked Form does:
+  none differs. Planted in the leaf, each made cases differ: a wrong rotation (all but a few), the
+  pad edge taken one early (the leaves of 22 and 86 bytes, the messages of 55 and 119), the length
+  of the message in bits taken as half, a pad byte 129, and a changed start value. Measured
+  (`/usr/bin/time -l`, instructions retired): the leaf takes about 40,000 a block where the C took
+  about 1,300; a cold start of the numeric port, which makes the ids of the catalogue and of what
+  it answers, takes 3.0 G where it took 1.4 G (0.10 s against 0.06 s), the replies the same 12,427
+  bytes; entered from its image, where the ids are kept, 307 M where it took 303 M. Walking is not
+  touched: a node is made without its id. A seed that does not hold the cell, or whose leaf does not
+  run, is refused at the first id. With no seed that runs, the last commit that hashes in C
+  builds one.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls
