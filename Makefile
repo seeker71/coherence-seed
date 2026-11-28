@@ -338,7 +338,7 @@ check-native: ck
 	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
 	    for run in ./ck "$$binary"; do got=$$("$$run" run ground/host-refused.ck 2>&1); \
 	      [ "$$got" = 'node (#16)' ] || { echo "host: cases that differ under $$run: $$got"; exit 1; }; done; \
-	    echo "host: a file written and read back, a host callback, float and varying values answer the same by name, by address and through the berth, also under the hardened runtime"; fi; \
+	    echo "host: a file written and read back, a host callback, float and varying values answer the same by name, by address, through the berth and through a door cell, also under the hardened runtime"; fi; \
 	else echo "native: hardened signing applies to native Darwin targets"; fi
 
 # The first recorded page starts at byte 44. Its layout version follows the 16-byte identity prefix.

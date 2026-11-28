@@ -321,15 +321,36 @@ Each line here is held by a program in `make check-full`, or names how it was se
   and the leaf's offsets, the places of the convention and the recipes are all derived from
   it. The berth is one room of the region, taken once when the door is opened, so it lies
   inside the allowance and a call that faults midway strands nothing.
+- **Door cells: a row called through a word of the head.** The head's `doors` record holds
+  64 cells, one word each, the process's own and saved as 0 at rest. `host.call` takes a cell
+  for a row the first time it meets one whose slots all go as words to integer registers,
+  at most five, and whose result is a word, an integer, an address, a truth or nothing: the
+  address is resolved once and stored in the cell, and the row's own cell (`held` of the row)
+  keeps a closure of the cell's number, the leaf for the kind of result, the count of slots
+  and whether it leaves nothing. Every later call is that closure: the count and that every
+  value is an integer are checked, then the guard for a row that may leave something, then
+  one `native` of a door leaf, which reads the cell through its place in the head
+  (`ldr x9, [region + 8k + place]; blr x9`; the code holds no address) and narrows or reads
+  the result as its kind says. A leaf that finds its cell empty declines, and the call is the
+  fault `(list host.door row)`. The five door leaves are instruction rows, assembled the first
+  time a row of their kind takes a door. Any other row, a value that is not an integer, or a
+  count that differs goes through the berth as before (`host.berth-call`), so it fails where
+  the berth fails. Measured against the berth in one run, a loop of 1,000 calls against 2,000
+  less the loop: `getpid` about 23,000 instructions a call against 915,000, `close` of -1
+  with its guard 49,000 against 1.31 M, `lseek` of three values 85,000 against 2.4 M. Most of
+  what is left is walking: each part a row's code reads by name (`nums.member-access`) costs
+  about 16,000 instructions walked and about 4,500 when the same recipe is compiled, and the
+  berth reads dozens of them a call.
 - **The flow.** `make check-native` runs `ground/host-refused.ck` by itself, with `ck` as built
   and with a copy signed for the hardened runtime: a file is written, read back three ways and
   removed; four words, two of them differing only above bit 31, are sorted by the host through
   a callback that is leaf code; the square root of 4 and of 2 and 2 to the tenth come back as
   floats; two varying values are formatted; a page is mapped, written through an absolute
   store, read and unmapped; a raw supervisor call answers the process id, and one that fails
-  answers no. Where entry 98 can carry a call, by name, by address and through the berth
-  answer the same. A value of the wrong kind for its slot, a composite where an address goes,
-  a call with more values than slots and a function with no row answer nothing. A supervisor
+  answers no. Where entry 98 can carry a call, by name, by address, through the berth and
+  through a door cell answer the same; `close` of -1 through the cell answers -1. A value of
+  the wrong kind for its slot, a composite where an address goes, a call with more values than
+  slots, through the berth or a cell, and a function with no row answer nothing. A supervisor
   call and an absolute store inside a search are the fault `irreversible`, as entry 98 is, and
   the store is not made; so is a row that may leave something behind, `close`, prepared or run
   on an address. A row whose column says it leaves nothing, `getpid` and the clock, runs inside
@@ -341,7 +362,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   program is the refusal `irreversible`, at its first call, which is by address. By hand, not
   held by a check: two wrong place rows made the run name the five cases they break; a row
   naming a library that is not there is a fault that names the library; a call before the door
-  is opened is a fault that names `host.open`.
+  is opened is a fault that names `host.open`. The flow also empties every cell and calls
+  `getpid` again, which is the fault that names its row; a text where an integer goes and a
+  call with more values than slots fail over to the next option through a cell as through the
+  berth. Five faults planted in the door by hand each made the flow fail: values not checked,
+  the count not checked, the column that says a row leaves nothing read inverted, the wrong
+  cell read, and an empty cell answering. A door leaf that does not narrow an integer result
+  made no case differ: no row the flow calls leaves the high word of an integer result unset.
 - **Limits of a row.** A text or bytes value in an address slot is copied into the berth with a
   zero after it and may hold at most 127 bytes; a longer one answers nothing. At most eight
   values go to the integer registers, eight to the float registers and eight to the stack, and
@@ -899,7 +926,10 @@ The same delivery and evidence boundaries now support these observed runs.
   A library leaf bound as an entry's implementation does not run the map, where the C ran it
   for operands of the right shape: it declines, and the map is reached by `native`. A map makes
   its device and pipeline anew each time, as the C did. The compiler does not yet emit a row
-  as moves and a call.
+  as moves and a call; code reaches a row only through `native` of a door leaf. A door is
+  taken outside a search only, since resolving the address calls the host. The 64 cells are
+  never given back: a row past them goes through the berth. Loading `host/all.ck` cold costs about 47 M instructions more
+  than before the cells, for the larger package.
 - **A channel between members.** Members of a named substrate share settled nodes, and a handle
   names the same node in each, but nothing yet carries a handle from one to another: `swap`,
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
