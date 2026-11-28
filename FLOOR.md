@@ -8,7 +8,7 @@ What stands, as observed on **2026-11-28** on an Apple M4 Max running macOS, inc
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,175 lines, 47 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,176 lines, 46 fewer since the reader and the printer of the canonical print left it for Form, and is to shrink as parts leave it for Form. A numeric port runs resolved images. It reads stored records only; the answer line of `ck run` is printed by `form/print.ck`, read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -498,6 +498,26 @@ Each line here is held by a program in `make check-full`, or names how it was se
   instructions for a 32-byte leaf where the C's make costs 1,000 to 2,000 (`.kit/jit/r4/idc.sh`:
   2,000 and 4,000 finds less the loop alone; runs vary); of a find, about 1,100 are the walker's
   call of code and about 57 each call inside it, and so the C's make stays the store.
+- **A node is made in Form as code, and only as code.** `store.joined` makes what `join` makes:
+  it copies the children past the area's count, finds the content, writes the record past the
+  node count, and then writes the children's count, the index's place and the node count in one
+  act. Walked it cannot be right, since its own integers are nodes made at the place it writes
+  (seen: the record it wrote was an integer's); compiled it makes none. So it runs only as a leaf
+  `native` runs, where it answers `no` for what only the C can do (a member, a settling make, an
+  index or an area that must grow, content the rule may refuse), and the C's `join` makes it. The
+  emitter takes three things for it: a store in such a leaf that is not its last act writes only
+  past its area's count, checked as it runs, so a decline after it changes nothing that is read;
+  a sequence of stores as the leaf's last act, each an argument or a number and the head only at
+  a lane area's count, is checked whole before any is written; and such a leaf may call
+  definitions that take, swap and store in rooms nothing. A lane's area holds the rest of the
+  page it was charged for, so there is room past its count. `ground/region-describes-itself.ck`
+  makes 1,800 composites of every 61st node's children under three blueprints both ways, the C's
+  `join` and the leaf (1,560 made or found by the leaf), and every one agrees: new or the same
+  node, the count after it, the children's count, blueprint, kind, length, place, children, and
+  that the index finds it; an index place one past, a children's count not raised and a length
+  one more, each planted, made cases differ. A make from walked code costs about 2,700
+  instructions against about 380 for the C's `join` (2,000 and 4,000 makes of new content, less
+  the loop), so the C's make stays the store.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
   and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in

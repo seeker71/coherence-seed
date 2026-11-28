@@ -280,7 +280,8 @@ static void further(int a, uint64_t need) {
   if (s && extra && need <= area->cap) { uint64_t c = LD(sub->charged);    /* asked of what stands and taken by one swap, so a growth that has no room never counts against another's */
     do if ((c + extra > sub->allowance + (answering ? SPARE : 0) && !parting) || !host_has_growth(old, next)) { need = ~0ull; break; } while (!CAS(sub->charged, &c, c + extra)); }   /* but for a member that is leaving */
   if (need > area->cap || (!s && !fits_growth(old, next))) area_full(s ? SA(LANED[a] - 1) : a);
-  area->peak = need; if (s) ln->charged += extra;
+  uint64_t whole = a < A_COUNT && LANED[a] ? (pages_for(area_extent(area, need)) - area->off % FB_PAGE) / area->size : 0;   /* a lane's last page is charged */
+  area->peak = whole > need && whole <= area->cap ? whole : need; if (s) ln->charged += extra;   /* whole: a node made in form writes into the rest of it */
 }
 /* What every step runs is kept in the walker's loop and what seldom runs is kept out of it. Left
  * to the compiler's choice, the compiled sweep took 15% more cycles (spec/framebuffer.md). */
