@@ -1115,7 +1115,7 @@ static int landed(void *fn, int64_t *arg) {
   arg[6] = (int64_t)(intptr_t)fb;         /* every call of code carries the region's address as its seventh argument */
   fb->me.taken += reading;                /* code can read anything: a start that runs it is not saved */
   uint64_t mark = nrtrail, rooms_n = N(A_ROOMS);                   /* code that declines is run again by the walker: its rooms */
-  W->fresh = rooms_n < UINT32_MAX ? (uint32_t)rooms_n : UINT32_MAX;   /* those it takes itself are given back whole */
+  W->fresh = !ncp && rooms_n < UINT32_MAX ? (uint32_t)rooms_n : UINT32_MAX;   /* those it takes itself, no choice open, are given back whole */
   left = ntk; Ret r = called(fn, arg); ntk = left;                 /* what code gathered and left is given back */
   if (r.k == 3 || (r.k == 4 && !r.v)) {                            /* are put back as they were, by the trail code always keeps, */
     while (nrtrail > mark) { nrtrail--; memcpy(rooms + rtrail[nrtrail].at, &rtrail[nrtrail].old, 4); }
@@ -1309,7 +1309,9 @@ static void base(long long op, H *a, uint32_t c, uint32_t env, H node) {
     if (op == CAS && found != ((uint64_t)old & mask)) { W->v = mki((int64_t)found); return; }
     if (!ncp && !coding) nrtrail = 0;
     else if (!coding || at < W->fresh) {  /* the bytes it changes, and the room's writer and count; in code always, so a decline */
-      uint64_t g0 = from & ~3ull, n4 = (from + (uint64_t)w - g0 + 3) / 4; room(A_ROOM_TRAIL, nrtrail + n4 + 2);
+      uint64_t g0 = from & ~3ull, n4 = (from + (uint64_t)w - g0 + 3) / 4, need = nrtrail + n4 + 2; const Area *rt = &fb->a[A_ROOM_TRAIL];
+      if (coding && need > rt->peak && (need > rt->cap || !fits_growth(area_extent(rt, rt->peak), area_extent(rt, need)))) { W->v = 0; W->reason = notice(S_FULL); return; }   /* code declines and the walker writes */
+      room(A_ROOM_TRAIL, need);
       for (uint64_t g, k = 0; k < n4 + 2; k++) {
         g = k == 0 ? at + offsetof(Room, by) : k == 1 ? at + offsetof(Room, writes) : g0 + 4 * (k - 2);
         RoomTrail t = { E(ROOM_TRAIL), W->at, 0, {0}, g }; memcpy(&t.old, rooms + g, 4); rtrail[nrtrail++] = t; } }   /* undoes them, but in a room code took itself */

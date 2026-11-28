@@ -452,7 +452,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   no room effect: `ground/rooms.ck` bumps a room at each width and offset 0 to 8 and then
   declines, and the room's bytes, writer and count of writes are the walker's, and a leaf that
   takes a room and declines leaves one room taken, not two; with either putting back taken out
-  the count rose twice, the bumped value was bumped twice, or two rooms stood.
+  the count rose twice, the bumped value was bumped twice, or two rooms stood. Under an open choice
+  code trails its own rooms too, since a fail may keep one a note names; where the trail cannot
+  grow, code declines and the walker writes.
 - **Code reads and writes the region's areas, and swaps a word of the substrate in one step.**
   `load`, `store` and `cas` (entry 97) take an area's number where they take a room: the region's
   own bytes at an offset, within what the area holds at its peak or its count, never trailed. Where the area and
@@ -481,18 +483,21 @@ Each line here is held by a program in `make check-full`, or names how it was se
   the last open choice is closed and all is settled, then the settled index (area 39) where the C
   asks it: alone where every part is settled, in a member by the rule `make_far` keeps, with a node
   of another lane counted only where this run may see it. It writes nothing: where the C's make
-  would raise another lane's settled mark, where a candidate lies in a lane above this one, or
-  where an index grew while it looked, it answers -1, for the C to decide. The places it reads are
+  would raise another lane's settled mark, or where an index grew while it looked, it answers -1,
+  for the C to decide; a member reads another lane's records through the substrate's own areas
+  (35 to 37), whose peak a named substrate sets to its cap. It says whether the content is there,
+  not whether the rule would take it: refused content is answered 0. The places it reads are
   the layout's (`fb.settled-area`, `fb.lane-sw` and the rest in `region/places.ck`), folded to
   numbers by `emit.placed` before it is compiled. `ground/region-describes-itself.ck` finds every
   node of the region by its content with the compiled find, under a choice and alone or as a member
-  beside others making nodes, makes no node while it does, and agrees with the walked find and with
+  beside others making nodes, makes no node while it does, finds the settled ones again by the path
+  taken when no choice is open, and agrees with the walked find and with
   the C's make on content made by giving a node another's blueprint; a wrong multiplier, a compare
   that skips the blueprint, a byte or child compare that always holds, and a probe that stops at
   its first slot, each planted, made cases differ. A find from walked code costs about 20,000
-  instructions for a 32-byte leaf where the C's make costs about 940 (`.kit/jit/r4/idc.sh`); of
-  a find, about 1,100 are the walker's call of code and about 57 each call inside it, and so the
-  C's make stays the store.
+  instructions for a 32-byte leaf where the C's make costs 1,000 to 2,000 (`.kit/jit/r4/idc.sh`:
+  2,000 and 4,000 finds less the loop alone; runs vary); of a find, about 1,100 are the walker's
+  call of code and about 57 each call inside it, and so the C's make stays the store.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
   and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in
