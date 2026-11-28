@@ -95,7 +95,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   match the upstream Metal trace. Eight streams generated eight successive tokens
   each for shared and distinct starts, with all 128 IDs agreeing with llama.cpp.
   [Decode by operation](spec/nums.md#llama-decode-by-operation)
-  Only the selected result ranges cross the port.
+  The resident worker reads the eight token IDs in one copy and returns eight ordered
+  results by ID. A second turn can reuse the layout and deliver fresh values. Only
+  the selected result ranges cross the port.
   A live worker mounted the Llama model once, kept all 255 weight mappings across turns
   for two distinct KV histories, and released them on retirement while the worker stayed
   alive. Both histories agreed with the previous decoder on both process architectures.

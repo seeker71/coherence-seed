@@ -309,7 +309,8 @@ mounting the same declaration again returns the same ID and keeps the existing s
 The caller keeps the mapped weight file stable for the lifetime of the model.
 `metal.advance` takes that ID, a batch (or an input frame wrapping it), and the desired
 readbacks. At mount, each allocation gets a numeric binding with its Metal buffer
-handle, logical length and starting byte offset. Both stage views and readbacks
+handle, logical length and starting byte offset. A scratch binding also keeps its CPU
+address until the station releases the buffer. Both stage views and readbacks
 resolve ranges through that binding. Turns reuse the device, library, pipeline
 cache, buffers and queue. On first use, Form resolves the batch into a list of Metal calls under its content ID.
 Subsequent frames replay that list on a fresh encoder. The station owns the cache,
@@ -317,6 +318,14 @@ so eviction or a fresh mount can prepare the list again. A `metal.input-frame`
 pairs the batch with byte updates to declared scratch views. This lets one plan
 serve changing rotary positions, KV slots, masks and initial token IDs. `metal.retire`
 releases the worker's ownership and makes the ID available for a fresh mount.
+
+The station keeps the layout of its most recent readback list. When the list changes,
+Form validates each selection against the allocation, then groups consecutive selections
+of the same buffer whose combined span fits within one logical VM page. A selection
+already covered by a window can reuse it even when that window spans pages. If the
+temporary room can hold only the largest individual selection, the turn reads each
+selection separately. After the GPU finishes, the worker copies fresh bytes and returns
+one node per selection in caller order, including overlapping and repeated selections.
 
 Each resident turn runs at a committed boundary. Before encoding, a host memory
 pressure reading outside the normal state releases the resident objects and returns
