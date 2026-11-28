@@ -1,6 +1,6 @@
 # Floor
 
-Observations through **2026-11-28** cover an Apple M4 Max running macOS on AArch64, earlier Rosetta runs,
+Observations through **2026-11-29** cover an Apple M4 Max running macOS on AArch64, earlier Rosetta runs,
 and a separate x86-64 Linux guest. The current seed carries AArch64 machine code and refuses an x86-64 process at startup.
 [`NORTH_STAR.md`](NORTH_STAR.md) says where this is going.
 
@@ -9,7 +9,7 @@ and a separate x86-64 Linux guest. The current seed carries AArch64 machine code
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,172 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,152 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -98,9 +98,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   The resident worker reads the eight token IDs in one copy and returns eight ordered
   results by ID. A second turn can reuse the layout and deliver fresh values. Only
   the selected result ranges cross the port.
-  A live worker mounted the Llama model once, kept all 255 weight mappings across turns
-  for two distinct KV histories, and released them on retirement while the worker stayed
-  alive. Both histories agreed with the previous decoder on both process architectures.
+  On the M4 Max, one read-only mapping serves all 255 file tensors of Llama 3.2 3B
+  Q4_K_M. With the file cache warm, median mount time fell from 508 to 252 ms. Two
+  workers decoded independently from the same VM object with zero dirty weight pages.
+  Retiring one released its mapping while the other kept serving. All 8,208,384
+  logits in the eight-stream comparison were byte-identical to the private-mapping run.
   [Metal batches and resident turns](spec/nums.md#named-metal-batches)
   One resident worker also serves independent local client processes. A new request
   can receive its first token while an earlier request is still generating, and a
@@ -686,6 +688,22 @@ Each line here is held by a program in `make check-full`, or names how it was se
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one
   builds the current. With none that runs, the last commit whose C walker returns and restores a
   fail alone, with no seed (`4d7b155`), builds a seed from the nodes, and that seed builds the next.
+- **SHA-256 of an id runs in Form the seed carries; the C has none.** `form/digest.ck` compiles the
+  hash by `emit.floor` into the cell of `id`. The message lies in the text (the C copies one that
+  lies elsewhere), the leaf is given its place, its length and a scratch of 480 bytes there, does
+  the blocks, the padding and the length itself, and leaves the digest first in the scratch.
+  `form/id.ck`'s walked `sha.of` is its reference: `ground/encoding-in-form.ck` makes 42 byte
+  leaves of 0 to 65,537 bytes (messages of 33 to 65,570, around every padding edge, the second
+  tail block and the carries of the length field) and has the operation `id` and the walked Form
+  answer alike. Planted in the leaf, each made cases differ: a wrong rotation, the pad edge one
+  early (the messages of 55 and 119 bytes alone), the length taken as half, a pad byte of 129, a
+  changed start value. `form/seed.ck` needs each file that holds a cell to answer a node, so a leaf of the seed that does not compile (planted in `walk.restore` and in the digest) stops the build with nothing written, and a
+  seed without the cell or with a leaf that does not run is refused at the first id with a plain
+  line. The leaf takes about 40,000 instructions a block where the C took about 1,300
+  (`/usr/bin/time -l`): a cold start of the numeric port, which makes the ids of the catalogue and of
+  what it answers, takes 3.0 G where it took 1.4 G (0.10 s against 0.06 s) with the same replies;
+  entered from its image, where the ids are kept, 307 M against 303 M. Making a node needs no id.
+  Where no seed runs, the last commit that hashes in C (`5d30285`) builds one.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls
@@ -874,7 +892,7 @@ The same delivery and evidence boundaries now support these observed runs.
 | Can a locally trained model reach a consumer under explicit permission? | The owned model improved from 0/6 to 6/6 held-out completions, reached inference through an independent derivative grant and became unavailable to a fresh consumer after withdrawal. Three further 3B comparisons improved aggregate results while each lost a protected owner pair. [Local learning](spec/local-learning.md) |
 | Can a gauge reading keep its uncertainty? | Two independent readers agreed on 12,090 mV in eight overlapping windows. The journal retained both readers' raw values and time brackets, including when the declared allowance crossed the interpretation boundary. [Instrument evidence](spec/observations.md) |
 | Can a fitted adapter improve its task and preserve unrelated behavior? | A step-by-step gate let generated text activate the adapter during an unrelated request. Binding the single adapted decision to the original caller context produced 22/22 expected results, including longer protected continuations. Its parent and matched control produced 16/22 each. Withdrawing the grant prevented a fresh use. [Native rank adapter](spec/rank-adapter.md) |
-| Who can replace a lost key? | An owner can enroll an independent delegate and later cancel that authority. A chartered transition established a new episode after a worker interruption and refused old controls. A disconnected copy still acted on the old episode. [Key recovery](spec/key-recovery.md) |
+| Who can replace a lost key? | After Ash lost its disposable signer, its enrolled delegate and replacement signer approved the same successor. Elm verified all four old and new controls offline. Each verified only under its own roster. Fresh consent delivered one letter under the successor. A disconnected copy in the restart comparison still acted on the old episode. [Key recovery](spec/key-recovery.md#what-was-observed) |
 | Can a recipient pause during a word or sentence and recover from a lost reply? | The recipient paused a synthetic English turn at 13,486 frames. Local recognition recovered “We may listen before.” Two resumed processes produced the complete bilingual file once. [Spoken turns](spec/voice.md#pausing-inside-an-utterance) |
 | How do learned and transparent readers interpret the same owner's words? | On 32 synthetic statements the cue reader got 6 correct with 25 abstentions, the native specialist 20, the unchanged 3B model 22, and each raw LoRA 28. Each LoRA predicted permission for three statements about stopping, indecision or correction. On a separate undecided statement the native specialist predicted permission. The broker refused that prediction and delivered the excerpt only after the owner signed the grant for the waiting listener. [Intent comparison](spec/intent-specialist.md) |
 | Can a multilingual correction reach a listener under fresh consent? | The corrected Indonesian wording changed the exact review scope. A queued superseded position failed. After the original grant was withdrawn, the corrected text reached the receiving file only under a new listener invitation. [Translation and consent](spec/translation.md#offering-chosen-wording-to-a-reader) |
