@@ -9,7 +9,7 @@ and a separate x86-64 Linux guest. The current seed carries AArch64 machine code
 | Piece | Where | State |
 | --- | --- | --- |
 | Node encoding | [`spec/node-encoding.md`](spec/node-encoding.md) | written, with 154 conformance vectors kept as a node; every node file is stored as its records, which the bootstrap reads by making each through the store, and is shown and reviewed through its print and the lens; the print is read and written in form only |
-| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,145 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images: its loop, its reading of requests and its writing of replies are the recipe `ice/port.ck`, made by `form/port.ck`; what stays in C is the walk of one request and the listing of a reply's closure. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
+| Bootstrap | [`bootstrap/`](bootstrap) | The C cold start is counted at each build, 2,138 lines, and shrinks as the seed carries its parts. A numeric port runs resolved images: its loop, its reading of requests and its writing of replies are the recipe `ice/port.ck`, made by `form/port.ck`; what stays in C is the walk of one request and the listing of a reply's closure. It reads stored records only; every process first holds the leaves of the seed `ice/seed.ck` in their cells and prints the answer line of `ck run` by `form/print.ck`, both read from beside the executable |
 | Framebuffer | [`spec/framebuffer.md`](spec/framebuffer.md) | all of the bootstrap's memory is one shared region with a budget based on available host memory, each record with its blueprint and writer; its node table is its lane of a substrate: inside it, or with `CK_SHARE` a named one that every member maps at one offset |
 | Walker | [`spec/core-operations.md`](spec/core-operations.md) | Control with backtracking, parts given a place, recipes closed over values, arithmetic and the bits of an integer, a node's parts, cells, binding from inside the run and from outside it, calls held back until a search settles, the step itself, the region's bytes, and any function of the host by name |
 | In form | [`form/`](form) | four operations as recipes and as machine code, the whole encoding (reader and printer of the print, canonical bytes, SHA-256 and the id, the reader of bytes), a traced step, the watcher, and the emitter: a module of named definitions that compiles definitions over numbers and nodes, with what they call, to one machine-code leaf |
@@ -956,13 +956,18 @@ The same delivery and evidence boundaries now support these observed runs.
 - **Expectations of meaning only.** Some ground programs still answer values that move without a
   change of meaning: sizes of compiled code, counts of definitions and of a lens's nodes, labels
   of what the emitter compiles, step thresholds and two comparisons of clock time.
-- **More of the warm start.** Only macOS has it: the executable's identity is its `LC_UUID`, and
-  on Linux no build id is read, so every start there is cold. The Metal package, the Metal
+- **More of the warm start.** Only macOS has it: the executable's identity is its `LC_UUID`, which
+  `region/rest.ck` reads from the mach header the loader holds in memory, and on Linux no build id
+  is read, so every start there is cold. The Metal package, the Metal
   image's first part and `share/all.ck` load, are saved, and leave their opening to run after the
   start; the opening itself is not saved, so a warm Metal image start still asks the device (839 M
   instructions and 29.7 ms against 1,360 M and 51.7 ms cold). A start that runs any code is cold,
   compiled code too: nothing yet tells code the compiler made, which reads only what it is given,
-  from code that reads anything. The name, the gate, the saver and the directory's size are
+  from code that reads anything. The layout facts an image is checked against (offsets, sizes, counts: the
+  first 28 of a row `fb.facts` of the layout nodes) are the second part of the seed `ice/seed.ck`; `region/rest.ck`
+  fills in what this process decides (the share, the places of the text, the rooms and the stack, the allowance)
+  from the head, and reads the identity itself, which costs a start 2.6 M instructions more (warm 54.8 M
+  against 52.2 M). The name, the gate, the saver and the directory's size are
   recipes of `region/rest.ck`, which every start with files before its program reads, and the saver
   reads the writer of records, `form/nodes.ck`, from beside the executable: a warm lens
   flow takes 29.2 M instructions and 2.26 ms where the gate in C took 18 M and 1.53 ms. Images are kept by default in the user's cache, held
@@ -1063,6 +1068,12 @@ The same delivery and evidence boundaries now support these observed runs.
   `share`, shared rooms, the inbox served between steps, the bell and the side front are not
   built, and asking goes by records through `asked`. The numeric port does not answer by
   handle.
+- **Joining still has one function of C, and the exec re-cut does not remove it.** `adopt` remakes every node the
+  start made alone in the substrate's lane, then forwards what the run holds. A member that enters an image has
+  its packages as nodes made alone, saved in a region of its own, so the remake is what lets a warm image feed a
+  member (113 M instructions a start, against 675 M cold); a second start that mapped the substrate
+  before it ran would have to load the packages cold, and the image's pages would map over the shared tables. The
+  forwarding is the code a fail's giving back runs too. Not built: the remake as a leaf over the lane's tables.
 - **More of the substrate.** A lane is never used again, so a named substrate has 255 members
   after its maker in its life, and the next to come is refused; its indexes never grow, and a
   member's first thousands of nodes touch nearly every page of them; what a lane charged is never

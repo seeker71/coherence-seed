@@ -290,6 +290,7 @@ check-ice: ck fb
 	  image() { ls "$$I"/*.image 2>/dev/null; }; \
 	  fail=0; is() { [ "$$1" = "$$2" ] || { echo "  $$3: '$$1', not '$$2'"; fail=1; }; }; \
 	  bind 1; is "$$(ask)" 'node [#4 01]' 'built'; one=$$(image); [ -n "$$one" ] || { echo "  no image was saved"; fail=1; }; \
+	  is "$$(xxd -s 16 -l 16 -p "$$one" | tr -d '\n')" "$$(otool -l ck | awk '/LC_UUID/ {f=1} f && /uuid/ {print $$2; exit}' | tr -d - | tr A-F a-f)" 'the identity an image is saved under'; \
 	  cp "$$one" "$$d/first"; is "$$(ask)" 'node [#4 01]' 'entered'; cmp -s "$$one" "$$d/first" || { echo "  an entered image changed"; fail=1; }; \
 	  rm -f "$$one"; is "$$(ask)" 'node [#4 01]' 'built again'; cmp -s "$$one" "$$d/first" || { echo "  two builds of one start differ"; fail=1; }; \
 	  pages() { low=$$(od -A n -t u8 -j 104 -N 8 "$$1" | tr -d ' '); spot=$$(od -A n -t u8 -j 72 -N 8 "$$1" | tr -d ' '); n=$$(od -A n -t u4 -j 12 -N 4 "$$1" | tr -d ' '); \

@@ -1794,14 +1794,6 @@ static int as_saved(uint64_t o, uint64_t n) {   /* bytes an image keeps as they 
   if (!hit) return 0;
   hit = 0; FB_OWN(OWN_HIT) return !hit;
 }
-static int self_uuid(uint8_t u[16]) {     /* the executable's identity, as the linker made it */
-#ifdef __APPLE__
-  extern const struct mach_header_64 _mh_execute_header; const struct load_command *c = (const void *)(&_mh_execute_header + 1);
-  for (uint32_t i = 0; i < _mh_execute_header.ncmds; i++, c = (const void *)((const uint8_t *)c + c->cmdsize))
-    if (c->cmd == LC_UUID) { memcpy(u, ((const struct uuid_command *)c)->uuid, 16); return 1; }
-#endif
-  (void)u; return 0;
-}
 /* Every page this process wrote, but the stack's and the text's, is zero again, and so are the heads. */
 static void wipe(void) {
   for (int i = 0; i < A_COUNT + S_COUNT; i++) {
@@ -1822,21 +1814,15 @@ static void image_load(int fd, const Extent *e, uint32_t n) {
         : mmap((uint8_t *)fb + e[i].off, (size_t)e[i].n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, (off_t)e[i].at) == MAP_FAILED) die("an image could not be mapped");
   put_own();
 }
-/* What region/rest.ck is told of a start: the executable's identity, the port, the start's paths, the layout's facts and
- * the executable's folder, where the files it reads lie. */
+/* What region/rest.ck is told of a start: the port, the start's paths, the layout's facts, which the seed carries as its
+ * second part, and the executable's folder, where the files it reads lie. It finds the executable's identity itself. */
+static H seed_facts, seed_node(void);
 static H told(int n, char **paths) {
-  uint8_t u[16]; Status why; H g[5]; if (!n || !rest_path || !self_uuid(u)) return 0;
-  const int64_t f[] = { offsetof(Head, d) + offsetof(Doors, symbol), offsetof(Head, d) + offsetof(Doors, region), (int64_t)(fb->a[A_ROOMS].off + sizeof(Room)),
-    sizeof(Head), offsetof(Head, a), sizeof(Area), (int64_t)share, sizeof(Substrate), offsetof(Substrate, a), A_COUNT, S_COUNT, A_STACK, (int64_t)(off[A_STACK] - FB_PAGE),
-    (int64_t)(off[A_TEXT] / FB_PAGE * FB_PAGE), (int64_t)pages_for(off[A_TEXT] + cap[A_TEXT]), offsetof(Head, m) + offsetof(Machine, ncode), offsetof(Head, me) + offsetof(Member, charged),
-    (int64_t)(cap[A_TOUCHED] * 8), (int64_t)fb->me.allowance, (int64_t)fb->a[A_STACK].cap, FB_VERSION, FB_PAGE, offsetof(Area, of), offsetof(Area, size), offsetof(Area, peak),
-    offsetof(Area, off), offsetof(Area, cap), offsetof(Area, n) };
-  H *v = in_hand(sizeof f / sizeof *f + (uint64_t)n);
-  for (size_t i = 0; i < sizeof f / sizeof *f; i++) v[i] = mki(f[i]);
-  for (int i = 0; i < n; i++) v[sizeof f / sizeof *f + (size_t)i] = txt(paths[i]);
-  g[0] = mk(0, E(BYTES), u, 16, &why); g[1] = mki(numeric_io + 2 * NUMERIC_PORT_FLAG);
-  g[2] = mk(1, E(LIST), v + sizeof f / sizeof *f, (uint64_t)n, &why); g[3] = mk(1, E(LIST), v, sizeof f / sizeof *f, &why); g[4] = txt(home);
-  return mk(1, E(LIST), g, 5, &why);
+  Status why; H g[4]; if (!n || !rest_path || !seed_facts) return 0;
+  H *v = in_hand((uint64_t)n);
+  for (int i = 0; i < n; i++) v[i] = txt(paths[i]);
+  g[0] = mki(numeric_io + 2 * NUMERIC_PORT_FLAG); g[1] = mk(1, E(LIST), v, (uint64_t)n, &why); g[2] = seed_facts; g[3] = txt(home);
+  return mk(1, E(LIST), g, 4, &why);
 }
 /* region/rest.ck, run: its recipes. The file and the bytes it gave are kept, for the saver's check. */
 static H rest_read;
@@ -1886,7 +1872,7 @@ static int image_rest(int k, int n, char **paths, const char *prior, char *saved
     pair[0] = reads[i].path ? txt(reads[i].path) : reads[i].name; pair[1] = reads[i].content ? reads[i].content : mk(0, E(BYTES), text + reads[i].at, reads[i].n, &why);
     list[c++] = mk(1, E(LIST), pair, 2, &why); }
   for (int i = 0; got && i < m; i++) { pair[0] = mki((int64_t)from[i]); pair[1] = mki((int64_t)to[i]); span[i] = mk(1, E(LIST), pair, 2, &why); }
-  q[0] = mki((int64_t)(uintptr_t)snap); q[1] = mk(1, E(LIST), span, (uint64_t)m, &why); q[2] = mki(k); q[3] = told(n, paths); q[5] = prior ? txt(prior) : E(NO);
+  q[0] = mki((int64_t)(uintptr_t)snap); q[1] = mk(1, E(LIST), span, (uint64_t)m, &why); q[2] = mki(k); if (prior) seed_node(); q[3] = told(n, paths); q[5] = prior ? txt(prior) : E(NO);
   signal(SIGXFSZ, SIG_IGN);                                 /* a file too large is refused, not a signal */
   H v = got && q[3] ? rest_load() : 0;                      /* region/rest.ck writes it */
   if (v) {
@@ -1974,13 +1960,19 @@ static void show(const char *word, H v) {
   put(1, word); if (!send_fd(1, bytes + nd[t].off, nd[t].n)) exit(2); put(1, "\n");
 }
 #endif
-/* ice/seed.ck beside the executable, built by form/seed.ck, runs before anything is walked: it holds the leaves the walker needs in their cells. */
+/* ice/seed.ck beside the executable, built by form/seed.ck, runs before anything is walked: it holds the leaves the walker needs in their cells
+ * and, before them, the layout's facts that region/rest.ck is told. An image entered has the nodes it was saved with: the file is read again there. */
+static char seed_path[PATH_MAX];
+static H seed_node(void) {
+  size_t len; Status why; snprintf(seed_path, sizeof seed_path, "%sice/seed.ck", home);   /* read_seen keeps it */
+  if (HOST_ABI != TARGET_AAPCS64 || !*home || access(seed_path, R_OK)) die(HOST_ABI != TARGET_AAPCS64 ? "the seed, ice/seed.ck, carries code for AArch64 alone, and this processor is another" : "no seed beside the executable, ice/seed.ck");
+  uint8_t *b = load(seed_path, &len); H x = read_nodes(b, len, &why); int64_t v = 0;
+  if (!x || !nd[x].comp || nd[x].bp != E(LIST) || nd[x].n < 2 || !geti(KID(x, 0), &v) || v != FB_VERSION || !nd[KID(x, 1)].comp) die("the seed beside the executable, ice/seed.ck, is not records of its rows, or was made for another layout");
+  seed_facts = KID(x, 1); return x;
+}
 static void sow(int seen) {
-  static char path[PATH_MAX]; size_t len; Status why; int was = reading; snprintf(path, sizeof path, "%sice/seed.ck", home);   /* read_seen keeps it */
-  if (HOST_ABI != TARGET_AAPCS64 || !*home || access(path, R_OK)) die(HOST_ABI != TARGET_AAPCS64 ? "the seed, ice/seed.ck, carries code for AArch64 alone, and this processor is another" : "no seed beside the executable, ice/seed.ck");
-  uint8_t *b = load(path, &len); H x = read_nodes(b, len, &why); reading = seen; read_seen(path, 0, 0, 0, x); reading = was;
-  int64_t v = 0; if (!x || !nd[x].comp || nd[x].bp != E(LIST) || !nd[x].n || !geti(KID(x, 0), &v) || v != FB_VERSION) die("the seed beside the executable, ice/seed.ck, is not records of its rows, or was made for another layout");
-  for (uint32_t i = 1; i < nd[x].n; i++) { H r = KID(x, i);      /* each row: a cell and the leaf it holds */
+  int was = reading; H x = seed_node(); reading = seen; read_seen(seed_path, 0, 0, 0, x); reading = was;
+  for (uint32_t i = 2; i < nd[x].n; i++) { H r = KID(x, i);      /* each row: a cell and the leaf it holds */
     if (!nd[r].comp || nd[r].n != 2 || !KID(r, 0)) die("a row of the seed, ice/seed.ck, is not a cell and its leaf");
     H c = KID(r, 0); int64_t k = -1; char name[64]; void *fn;
     if (nd[c].bp == E(BYTES)) {   /* a row of a door: the name a leaf calls, and the place of its cell among the leaves */
