@@ -45,11 +45,15 @@ PLACES = printf '(seq (step (read (file "form/nodes.ck"))) (step (read (file "re
 # form/print.ck, the printer of the answer line, is made by form/printer.ck: the walked printer and, beside it, the leaf
 # the emitter compiles of the printer for AArch64, run where the layout version is the one it was made for.
 PRINTER = printf '(seq (step (read (file "form/nodes.ck"))) (bin.write (step (read (file "form/printer.ck")))))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-printer.run && ./ck text .ck-printer.run
+# ice/port.ck, the numeric port, is made by form/port.ck: the recipe that reads a request and writes a reply, and beside it the
+# leaves the emitter made for the reads, the writes and the call of the bootstrap's reply, for AArch64.
+PORT = printf '(seq (step (read (file "form/nodes.ck"))) (bin.write (step (read (file "form/port.ck")))))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-port.run && CK_MEMORY_BYTES=2147483648 ./ck text .ck-port.run
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
 	$(PLACES) > .ck-places && mv .ck-places region/places.ck && rm -f .ck-places.run
 	$(PRINTER) > .ck-print && mv .ck-print form/print.ck && rm -f .ck-printer.run
 	./ck text form/seed.ck > .ck-seed && mv .ck-seed ice/seed.ck
+	$(PORT) > .ck-port && mv .ck-port ice/port.ck && rm -f .ck-port.run
 
 # Wait until the region named $name stands, for at most ten seconds.
 up = n=0; until ./fb show $$name > /dev/null 2>&1; do n=$$((n+1)); [ $$n -gt 400 ] && break; sleep 0.025; done
@@ -112,6 +116,15 @@ check-image: seed-run
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
 	  [ "$$(./ck run ground/resident-owners.ck)" = 'node #33' ]; \
+	  tail -c 97 "$$work/run/image" | shasum -a 256 | cut -c1-64 | xxd -r -p > "$$work/root"; test "$$(wc -c < "$$work/root" | tr -d ' ')" = 32; \
+	  { printf '\000'; cat "$$work/root"; } | (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" image) > "$$work/big"; \
+	  [ "$$(head -c 1 "$$work/big" | od -An -tu1 | tr -d ' ')" = 1 ] && [ "$$(head -c 33 "$$work/big" | tail -c 32 | xxd -p | tr -d '\n')" = "$$(xxd -p < "$$work/root" | tr -d '\n')" ] && tail -c +38 "$$work/big" | cmp -s - "$$work/run/image" || { echo "image: the reply naming the image's own root is not the image, as the reference freezes it"; exit 1; }; \
+	  { printf '\000'; head -c 32 /dev/zero; } | (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" image) > "$$work/missing"; \
+	  [ "$$(head -c 1 "$$work/missing" | od -An -tu1 | tr -d ' ')" = 2 ] && [ "$$(wc -c < "$$work/missing" | tr -d ' ')" = 90 ] || { echo "image: an id no node has is not answered by a refusal, and the next request waited for"; exit 1; }; \
+	  printf 'not an image' > "$$work/run/refused"; rc=0; (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" refused) < /dev/null > "$$work/refusal" || rc=$$?; \
+	  [ "$$rc" = 1 ] && [ "$$(head -c 1 "$$work/refusal" | od -An -tu1 | tr -d ' ')" = 2 ] && [ "$$(wc -c < "$$work/refusal" | tr -d ' ')" = 90 ] || { echo "image: a file that is no image is not answered once by a refusal, and left with 1"; exit 1; }; \
+	  rc=0; { printf '\001'; head -c 5 /dev/zero; } | (cd "$$work/run" && CK_IMAGES= "$$root/seed-run" image) > "$$work/short" || rc=$$?; \
+	  [ "$$rc" = 1 ] && [ "$$(head -c 1 "$$work/short" | od -An -tu1 | tr -d ' ')" = 2 ] && [ "$$(wc -c < "$$work/short" | tr -d ' ')" = 90 ] || { echo "image: a request cut short is not refused, and the port left with 1"; exit 1; }; \
 	  for part in policy first second; do printf %s "$$part" | ./ck text ground/resident-case.ck > "$$work/$$part"; done; \
 	  mkfifo "$$work/turns" "$$work/returns"; \
 	  (cd "$$work/run" && exec "$$root/seed-run" image) <"$$work/turns" >"$$work/returns" & worker=$$!; \
@@ -119,7 +132,7 @@ check-image: seed-run
 	  for part in first second; do ./ck text resident/call.ck 3<"$$work/policy" 4<"$$work/$$part" <&6 >"$$work/$$part.out"; done; \
 	  exec 5>&- 6<&-; wait "$$worker"; \
 	  [ "$$(printf verify | ./ck text ground/resident-case.ck 3<"$$work/first.out" 4<"$$work/second.out")" = '#33' ]; \
-	  echo "image: the standalone runtime answered by content id from a directory containing only the image, cold and entered from its start saved at rest, the same bytes"; \
+	  echo "image: the standalone runtime answered by content id from a directory containing only the image, cold and entered from its start saved at rest, the same bytes; the reply naming the image's own root is the image file, an id no node has is refused and the next request read, and a request cut short is refused and the port leaves with 1"; \
 	  if ./ck text ground/paths.ck ground/for-host.ck | grep -Fxq ground/host-refused.ck; then \
 	    name=/ck.image.$$$$; trap 'rc=$$?; set +e; ./fb drop '$$name' 2>/dev/null; rm -rf "$$work" "$$images"; exit $$rc' EXIT; idof() { printf '(#78 #%s)' $$1 | $(NODES) | ./ck text /dev/stdin; }; \
 	    ./ck text share/pack.ck < ground/nums-image.ck > "$$work/member"; \
@@ -178,8 +191,8 @@ check-header: ck
 	  for input in invalid trailing; do rc=0; ./ck text lens/show-canonical.ck lens/all.ck <"$$work/$$input" >"$$work/refusal" || rc=$$?; \
 	    test "$$rc" = 1; case "$$input" in invalid) expected='fault [#2 73796e746178]';; trailing) expected='fault [#2 747261696c696e67]';; esac; \
 	    test "$$(cat "$$work/refusal")" = "$$expected"; done
-	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && rm -f .ck-places.run .ck-printer.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck and the seed ice/seed.ck are what the nodes generate, the seed built again on itself the same bytes" || \
-	  { rm -f .ck-places.run .ck-printer.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck or ice/seed.ck is not what the nodes write; run make header"; exit 1; }
+	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && $(PORT) | cmp -s - ice/port.ck && rm -f .ck-places.run .ck-printer.run .ck-port.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck, the seed ice/seed.ck and the port ice/port.ck are what the nodes generate, the seed built again on itself the same bytes" || \
+	  { rm -f .ck-places.run .ck-printer.run .ck-port.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck, ice/seed.ck or ice/port.ck is not what the nodes write; run make header"; exit 1; }
 
 
 # A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which loads the host's and
