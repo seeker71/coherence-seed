@@ -248,7 +248,7 @@ ground-together: ck
 
 include participant/commands.mk participant/enrollment.mk
 include ground/checks/circle.mk ground/checks/components.mk ground/checks/continuation.mk \
-        ground/checks/learning.mk ground/checks/mesh.mk ground/checks/participant.mk \
+        ground/checks/learning.mk ground/checks/mesh.mk ground/checks/packages.mk ground/checks/participant.mk \
         ground/checks/provider.mk ground/checks/recovery.mk ground/checks/translation.mk \
         ground/checks/value.mk ground/checks/voice.mk ground/checks/world.mk
 
@@ -377,6 +377,8 @@ check-held-back: ck seed-run
 	$(verify_dispatch)
 
 	$(verify_projection)
+
+	$(verify_packages)
 
 	$(verify_reconnection)
 

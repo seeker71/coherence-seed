@@ -214,6 +214,13 @@ Each line here is held by a program in `make check-full`, or names how it was se
   languages. Reading those larger packages as syntax trees and executing a supported method are
   separate checks. For a linked projection, the writer follows referenced declarations to
   determine whether each call can yield several answers. [Component views](spec/nums.md)
+- **Twelve packages read in five languages, and the Java stands apart.** `nums/write.ck`, `arm`,
+  `compile`, `part`, `resolve`, `classes`, `bmf/items`, `bml-methods`, `bml-link`, `view-patterns`,
+  `bml-alphabet` and `lens/identifier-model` are each written in Python, C#, TypeScript, Java and BML
+  without a fault (`ground/checks/packages.mk`, in `make check-held-back`). Each Java file is in its own
+  package and class and every record, interface and function has a Javadoc line. The Java of these packages
+  is not yet compiled: the only runtime it is run against is the one for `ground/search-package.ck`,
+  its parameters are `Object` and `List<?>`, and about one line in a hundred runs past 120 columns.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
