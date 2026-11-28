@@ -392,6 +392,14 @@ running compiled code against frames all the way down).
   adapter left the active selection empty because its evaluation was held. A separate
   run corrected a false claim against its cited sources and retained the original
   wording alongside the correction. [Witness and teaching](spec/witness-and-teaching.md)
+- **An observed event can overturn a forecast and change the next one.** A local
+  instrument contradicted the preferred rule at sequence 11. A fresh process retained
+  that forecast, the measured bytes and both rules' error counts. The next reading
+  confirmed the newly preferred rule. [Predictions and observed events](spec/observations.md)
+- **A recipient assembled two spoken turns after a correction.** Withdrawing the
+  first Indonesian offer kept it out of the stream. After both roles accepted
+  the correction, local transcription of the received PCM recovered the English
+  sentence and the corrected Indonesian pronoun. [Spoken turns](spec/voice.md)
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 

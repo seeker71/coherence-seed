@@ -172,7 +172,9 @@ meaning. Run
 `printf 'en\nid\nWe may share\n' | ./ck text lens/translate.ck` to see both.
 A known source meaning survives a missing target wording or an unsupported target language.
 A reader who chooses one interpretation can refer to its complete node. Permission to send
-the wording is a separate offer to the recipient's port.
+the wording is a separate offer to the recipient's port. An explicit model request through
+this same command preserves grammar readings alongside owned free-text candidates.
+[Local translation and owned corrections](translation.md)
 
 `circle/turns.ck` keeps an original utterance, its participants and the candidate readings in
 an immutable statement. Each new turn names its predecessor. A listener can propose a reading,

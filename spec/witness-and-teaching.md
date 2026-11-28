@@ -78,3 +78,14 @@ change artifact permission. The first measured 3B candidate stayed inactive with
 weights, all three reports and a valid artifact grant. Successful fixture activation establishes
 permission enforcement and byte delivery. The measured training results are in
 [Local language learning](local-learning.md).
+
+## Constructing a teaching scope before fitting
+
+`./ck text learning/source.ck 3<channel 4<material <examples` builds the
+scope for exact example bytes. The material names their provenance,
+trainer location, base, parent and training protocol. The caller can pin
+the protocol and register a held-out evaluation before any candidate
+weights exist. The owner and listener use the resulting scope for
+`learning/teach.ck`. Admission identifies the actual letter available
+to the trainer. Assessment and derivative permission refer to the
+subsequently fitted artifact.

@@ -82,12 +82,6 @@ metal-image: ck
 	  mv -f "$$out" "$$METAL_IMAGE"
 
 check-image: seed-run
-	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
-	  [ "$$(./ck run ground/language-reference.ck)" = 'node #33' ]; \
-	  ./ck text learning/train.ck <ground/language-corpus.ck >"$$work/model"; \
-	  ./ck text learning/train.ck <ground/language-corpus.ck | cmp - "$$work/model"; \
-	  [ "$$(./ck run ground/language-replies.ck <"$$work/model")" = 'node #33' ]; \
-	  echo "language: fresh training reproduced the weights and a new process generated each held-out completion"
 	@set -e; root=$$PWD; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/run"; \
 	  ./ck text nums/pack.ck < ground/nums-image.ck > "$$work/run/image"; \
 	  ./ck text ground/nums-requests.ck > "$$work/requests"; test -s "$$work/requests"; \
@@ -145,6 +139,12 @@ ground-together: ck
 	  else echo "one run: path and outcome of each program that ends otherwise in one process: $$got"; exit 1; fi
 
 check-ice: ck
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  [ "$$(./ck run ground/language-reference.ck)" = 'node #33' ]; \
+	  ./ck text learning/train.ck <ground/language-corpus.ck >"$$work/model"; \
+	  ./ck text learning/train.ck <ground/language-corpus.ck | cmp - "$$work/model"; \
+	  [ "$$(./ck run ground/language-replies.ck <"$$work/model")" = 'node #33' ]; \
+	  echo "language: fresh training reproduced the weights and a new process generated each held-out completion"
 	@./ck text ice/freeze.ck lens/all.ck ice/ice.ck < ground/recursion.ck > .ck-check.ice && \
 	  b=$$(./ck run ice/thaw.ck lens/all.ck ice/ice.ck < .ck-check.ice); rm -f .ck-check.ice; \
 	  if [ "$$b" = "node $$(head -1 ground/recursion.ck)" ]; then echo "ice: frozen by a program in form, thawed by another in a second process to the same node"; \
@@ -164,6 +164,30 @@ check-native: ck
 
 # The first recorded page starts at byte 44. Its layout version follows the 16-byte identity prefix.
 check-replay: ck fb
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  word "(world.station \"$$work/source\" (list [bytes 30] [bytes 31]) (list (world.rule \"hold\" (list 0 1)) (world.rule \"toggle\" (list 1 0))))" >"$$work/station"; \
+	  predict() { ./ck text world/predict.ck 3<"$$work/station" <"$$work/$$1"; }; \
+	  observe() { ./ck text world/observe.ck 3<"$$work/station" 4<"$$work/$$2" <"$$work/$$1"; }; \
+	  refuses() { expected=$$(word "$$1"); shift; rc=0; "$$@" >"$$work/reason" || rc=$$?; [ "$$rc" = 1 ] && [ "$$(cat "$$work/reason")" = "fault $$expected" ]; }; \
+	  [ "$$(./ck run ground/world-reference.ck)" = 'node #33' ]; \
+	  word '(world.sample 10 [bytes 30])' >"$$work/source"; \
+	  ./ck text world/open.ck 3<"$$work/station" >"$$work/initial"; \
+	  predict initial >"$$work/first"; \
+	  observe initial first | cmp - "$$work/initial"; \
+	  word '(world.sample 10 [bytes 31])' >"$$work/source"; refuses world.conflict observe initial first; \
+	  word '(world.sample 12 [bytes 31])' >"$$work/source"; refuses world.gap observe initial first; \
+	  word '(world.sample 11 [bytes 31])' >"$$work/source"; \
+	  observe initial first >"$$work/next"; observe initial first | cmp - "$$work/next"; \
+	  predict next >"$$work/second"; refuses world.stale observe next first; \
+	  word '(world.sample 12 [bytes 30])' >"$$work/source"; \
+	  observe next second >"$$work/last"; \
+	  ./ck text ground/world-result.ck 3<"$$work/first" 4<"$$work/second" <"$$work/last" >"$$work/result"; \
+	  test "$$(cat "$$work/result")" = '#33'; \
+	  rm "$$work/source"; refuses world.unobserved observe next second; \
+	  echo "world: two hypotheses followed a sequenced physical source; the rejected forecast, changed ranking and exact readings survived a restart"
 	@name=/ck.check.$$$$; (CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); ./fb record $$name .ck-check.rec 5 > /dev/null; \
 	  frames=$$(./fb play .ck-check.rec | grep -c moving); last=$$(./fb play .ck-check.rec -1 | grep '^outcome'); \
 	  printf '\000\000\000\000' | dd of=.ck-check.rec bs=1 seek=60 conv=notrunc 2>/dev/null || exit 1; \
@@ -173,7 +197,7 @@ check-replay: ck fb
 	  if [ $$ok = 1 ] && [ $$frames -ge 2 ]; then echo "framebuffer: a second process recorded $$frames frames of a run in motion; the last holds the answer and its writer"; \
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
 
-check-held-back: ck
+check-held-back: ck seed-run
 	@test "$$(./ck run ground/learning-trial.ck)" = 'node #33'
 	@test "$$(./ck run ground/witness-review.ck)" = 'node #33'
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
@@ -376,6 +400,370 @@ check-held-back: ck
 	  activate new-round fit > "$$work/selection"; change circle/authorize none issued stopped; denied share.ungranted use selection; \
 	  echo "learning: recall-only, held evidence, withdrawal, later grants and changed model bytes denied; selected fixture bytes reached only the explicit local consumer"
 
+	@set -eu; \
+	  stewardship_root=$$(mktemp -d); \
+	  trap 'rm -rf "$$stewardship_root"' EXIT; \
+	  for scene in normal before collected; do work="$$stewardship_root/$$scene"; mkdir "$$work"; \
+	  mkdir "$$work/private" "$$work/letters"; \
+	  printf '#32' > "$$work/none"; \
+	  cp "$$work/none" "$$work/private/authority"; \
+	  cp "$$work/none" "$$work/private/listening"; \
+	  printf %s "$$work" > "$$work/location"; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  case_value() { \
+	  printf %s "$$2" > "$$work/mode"; \
+	  ./ck text "$$1.ck" 3<"$$work/mode" 4<"$$work/$${5:-none}" <"$$work/$$3" > "$$work/$$4"; \
+	  }; \
+	  g() { case_value ground/circle-exchange "$$@"; }; \
+	  v() { case_value value/cases "$$@"; }; \
+	  change() { \
+	  g change "$$2" update "$$3"; \
+	  ./ck text "$$1.ck" 3<"$$work/channel" <"$$work/update" > "$$work/$$4"; \
+	  }; \
+	  allow_scope() { \
+	  word "\"$$2\"" > "$$work/nonce"; \
+	  g permit "$$1" permit nonce; \
+	  g ticket "$$1" ticket nonce; \
+	  change circle/authorize permit issued issued; \
+	  change circle/listen ticket listened listened; \
+	  }; \
+	  post() { ./ck text value/post.ck 3<"$$work/channel" <"$$work/ticket"; }; \
+	  account() { \
+	  word "\"$$1\"" > "$$work/actor"; \
+	  ./ck text value/statement.ck 3<"$$work/channel" <"$$work/actor" > "$$work/actual"; \
+	  word "(value.account \"$$1\" $$2 $$3 $$4)" > "$$work/expected"; \
+	  [ "$$(cat "$$work/expected")" = "$$(cat "$$work/actual")" ]; \
+	  }; \
+	  denied() { \
+	  reason=$$1; \
+	  shift; \
+	  rc=0; \
+	  "$$@" > "$$work/denied" || rc=$$?; \
+	  expected=$$(word "$$reason"); \
+	  [ "$$rc" = 1 ] && [ "$$(cat "$$work/denied")" = "fault $$expected" ] || { echo "expected $$reason, obtained $$(cat "$$work/denied")" >&2; return 1; }; \
+	  }; \
+	  interrupt() { \
+	  printf %s "$$1" > "$$work/phase"; \
+	  rc=0; \
+	  ./ck text value/post.ck ground/circle-interrupt.ck 3<"$$work/channel" 4<"$$work/phase" <"$$work/ticket" > "$$work/lost-ack" || rc=$$?; \
+	  [ "$$rc" = "$$2" ] && [ ! -s "$$work/lost-ack" ]; \
+	  }; \
+	  disagreement() { \
+	  rc=0; post > "$$work/denial" || rc=$$?; \
+	  [ "$$rc" = 1 ] && sed -n 's/^fault //p' "$$work/denial" > "$$work/disagreement"; \
+	  v key disagreement got-key; v independent-key channel want-key nonce; cmp "$$work/got-key" "$$work/want-key"; \
+	  v prior disagreement remembered; g identity "$$1" earlier; cmp "$$work/remembered" "$$work/earlier"; \
+	  v dispute-for disagreement expected "$$2"; [ "$$(cat "$$work/disagreement")" = "$$(cat "$$work/expected")" ]; \
+	  }; \
+	  kind() { word value.kind > "$$work/field"; v field "$$1" kind field; word "$$2" > "$$work/expected"; [ "$$(cat "$$work/kind")" = "$$(cat "$$work/expected")" ]; }; \
+	  g channel location channel; \
+	  g identity none issued; \
+	  cp "$$work/issued" "$$work/listened"; \
+	  word 7 > "$$work/units"; \
+	  word 9223372036854775807 > "$$work/max"; word 9223372036854775806 > "$$work/below"; word 1 > "$$work/one"; word 0 > "$$work/zero"; \
+	  v sum below near one; test "$$(cat "$$work/max")" = "$$(cat "$$work/near")"; \
+	  v sum max edge zero; test "$$(cat "$$work/max")" = "$$(cat "$$work/edge")"; \
+	  printf sum > "$$work/mode"; \
+	  denied value.overflow ./ck text value/cases.ck 3<"$$work/mode" 4<"$$work/one" <"$$work/max"; \
+	  for component in interface operations; do \
+	  word "value.$$component" > "$$work/component"; \
+	  ./ck text value/output.ck < "$$work/component" > "$$work/$$component-output"; \
+	  v "$$component-reference" none reference; \
+	  cmp "$$work/$$component-output" "$$work/reference"; \
+	  done; \
+	  v work none work-scope interface-output; \
+	  allow_scope work-scope ordinary; \
+	  post > "$$work/service"; \
+	  kind service value.served; \
+	  post > "$$work/repeated"; \
+	  cmp "$$work/service" "$$work/repeated"; \
+	  account A 0 0 0; \
+	  account B 32 0 0; \
+	  set -- "$$work"/letters/*; first=$$1; \
+	  if test "$$scene" = before; then \
+	    pending() { ./ck text value/unconfirmed.ck 3<"$$work/channel" >"$$work/unconfirmed"; }; \
+	    reviewed() { pending; test -s "$$work/unconfirmed"; test "$$(cat "$$work/unconfirmed")" != "$$(word '(list)')"; cp "$$work/unconfirmed" "$$work/previous-review"; rc=0; post >"$$work/denial" || rc=$$?; test "$$rc" = 1; pending; cmp "$$work/previous-review" "$$work/unconfirmed"; }; \
+	    v other none other-scope operations-output; allow_scope other-scope instrument; \
+	    interrupt before 75; reviewed; account B 32 0 0; reviewed; set -- "$$work/letters/"*; test "$$#" = 1; \
+	    v gift service small-gift units; allow_scope small-gift distinct-gift; post >"$$work/independent-post"; account B 32 0 7; pending; cmp "$$work/previous-review" "$$work/unconfirmed"; \
+	    echo "stewardship: an uncertain occurrence withheld its own retry while unrelated work completed"; \
+	    continue; fi; \
+	  if test "$$scene" = collected; then \
+	    v other none other-scope operations-output; allow_scope other-scope instrument; \
+	    interrupt after 76; \
+	    for candidate in "$$work"/letters/*; do if [ ! "$$candidate" -ef "$$first" ]; then moved=$$candidate; fi; done; \
+	    mv "$$moved" "$$work/collected"; \
+	    pending() { ./ck text value/unconfirmed.ck 3<"$$work/channel"; }; \
+	    pending > "$$work/first-review"; test "$$(cat "$$work/first-review")" != "$$(word '(list)')"; \
+	    rc=0; post >"$$work/retry" || rc=$$?; test "$$rc" = 1; test ! -e "$$moved"; \
+	    pending | cmp - "$$work/first-review"; account B 32 0 0; \
+	    mv "$$work/collected" "$$moved"; ln "$$moved" "$$work/proof"; \
+	    pending >"$$work/settled"; test "$$(cat "$$work/settled")" = "$$(word '(list)')"; \
+	    post >"$$work/retry"; test "$$work/proof" -ef "$$moved"; account B 64 0 0; \
+	    echo "stewardship: the collected letter withheld replay; returning the original reconciled accounting once"; \
+	    continue; fi; \
+	  set -- "$$work"/letters/*; original=$$1; mv "$$original" "$$work/collected"; \
+	  word "\"$$original\"" > "$$work/original-path"; v missing service expected original-path; \
+	  rc=0; post > "$$work/denial" || rc=$$?; \
+	  test "$$rc" = 1 && test "$$(cat "$$work/denial")" = "fault $$(cat "$$work/expected")"; \
+	  test ! -e "$$original"; account B 32 0 0; \
+	  cp "$$work/none" "$$original"; disagreement none work-scope; \
+	  mv "$$work/collected" "$$original"; post | cmp - "$$work/service"; \
+	  g open none opening; g silence opening silence; g decline opening refusal; \
+	  v grant permit consent; v invitation work-scope invitation ticket; \
+	  cp "$$work/private/listening" "$$work/before-stop"; change circle/listen none listened listened; \
+	  ./ck text circle/receive.ck 3<"$$work/channel" <"$$work/ticket" > "$$work/paused"; \
+	  ./ck text witness/observe.ck 3<"$$work/invitation" 4<"$$work/before-stop" 5<"$$work/private/listening" <"$$work/paused" > "$$work/stopped"; \
+	  for source in silence refusal consent stopped; do \
+	  v social "$$source" social-scope; \
+	  allow_scope social-scope "$$source"; \
+	  post > "$$work/social"; \
+	  kind social value.unpriced; \
+	  v gift social social-gift units; \
+	  allow_scope social-gift "gift-$$source"; \
+	  denied value.protected post; \
+	  v disguised social wrong-material; \
+	  allow_scope wrong-material "name-$$source"; \
+	  denied value.protected post; \
+	  done; \
+	  account A 0 0 0; \
+	  account B 36 0 0; \
+	  v unknown none bad-gift units; \
+	  allow_scope bad-gift ghost; \
+	  denied value.protected post; \
+	  v wrong-content none wrong-scope; \
+	  allow_scope wrong-scope changed-content; \
+	  denied value.invalid post; \
+	  for amount in 0 -1; do \
+	  word "$$amount" > "$$work/bad-amount"; v gift service bad-amount-scope bad-amount; \
+	  allow_scope bad-amount-scope "invalid-$$amount"; \
+	  denied value.invalid post; \
+	  done; \
+	  v gift service donation units; \
+	  allow_scope donation gift; \
+	  change circle/listen none listened listened; \
+	  denied inbox.paused post; \
+	  account A 0 0 0; \
+	  change circle/listen ticket listened listened; \
+	  interrupt after 76; \
+	  change circle/authorize none issued issued; \
+	  account A 0 7 0; \
+	  account B 36 0 7; \
+	  denied share.ungranted post; \
+	  change circle/authorize permit issued issued; \
+	  post > "$$work/gift-replay"; \
+	  kind gift-replay value.given; \
+	  account B 36 0 7; \
+	  allow_scope donation second-gift; \
+	  disagreement gift-replay donation; \
+	  v other none other operations-output; \
+	  allow_scope other ordinary; \
+	  disagreement service other; \
+	  account B 36 0 7; \
+	  v other-channel channel alternate; \
+	  v other-owner donation another-gift; \
+	  mv "$$work/channel" "$$work/original-channel"; cp "$$work/alternate" "$$work/channel"; \
+	  allow_scope another-gift foreign-account; \
+	  denied value.foreign post; \
+	  account C 0 0 0; \
+	  account B 0 0 0; \
+	  mv "$$work/original-channel" "$$work/channel"; \
+	  account A 0 7 0; \
+	  account B 36 0 7; \
+	  echo "stewardship: metered resource, four protected sources, explicit contribution and two process-interruption boundaries verified"; \
+	  done
+
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  printf '#32' >"$$work/none"; printf '[#2 31]' >"$$work/one"; printf '[#2 32]' >"$$work/two"; printf '[#2 63616c6c6572]' >"$$work/caller"; printf '[#2 6775657374]' >"$$work/other"; printf %s "$$work" >"$$work/location"; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  value() { printf %s "$$2" >"$$work/mode"; ./ck text "ground/$$1.ck" 3<"$$work/mode" 4<"$$work/$${5:-none}" <"$$work/$$3" >"$$work/$$4"; }; \
+	  g() { value circle-exchange "$$@"; }; \
+	  c() { value continuation-case "$$@"; }; \
+	  run() { ./ck text "continuation/$$1.ck" 3<"$$work/channel" 4<"$$work/$${3:-caller}" 5<"$$work/$${4:-none}" <"$$work/$${2:-job}"; }; \
+	  control() { g change "$$2" change "$$3"; ./ck text "circle/$$1.ck" 3<"$$work/channel" <"$$work/change" >"$$work/$$4"; }; \
+	  refused() { why=$$1; shift; rc=0; "$$@" >"$$work/failed" || rc=$$?; test "$$rc" = 1 && test "$$(cat "$$work/failed")" = "fault $$(word "$$why")" || { echo "care expected $$why, received $$(cat "$$work/failed")" >&2; return 1; }; }; \
+	  reference() { printf %s "$$1" >"$$work/mode"; actual=$$(./ck text ground/continuation-reference.ck 3<"$$work/mode" 4<"$$work/job" 5<"$$work/a-owner" 6<"$$work/a-listener" 7<"$$work/b-owner" 8<"$$work/b-listener" <"$$work/$$2"); test "$$actual" = "$$(word yes)" || { echo "care expected $$1 reference, received $$actual" >&2; return 1; }; }; \
+	  for scene in normal orphan repaired; do \
+	    mkdir "$$work/$$scene"; destination="$$work/$$scene"; mkdir "$$destination/private" "$$destination/letters"; printf %s "$$destination" >"$$work/location"; g channel location channel; \
+	    cp "$$work/none" "$$destination/private/authority"; cp "$$work/none" "$$destination/private/listening"; \
+	    g identity none genesis; c first channel first-scope; c second channel second-scope; \
+	    g permit first-scope first-permit one; g ticket first-scope first-ticket one; g permit second-scope second-permit two; g ticket second-scope second-ticket two; \
+	    refused share.different ./ck text continuation/action.ck 3<"$$work/second-ticket" <"$$work/first-scope"; \
+	    ./ck text continuation/action.ck 3<"$$work/first-ticket" <"$$work/first-scope" >"$$work/first-action"; ./ck text continuation/action.ck 3<"$$work/second-ticket" <"$$work/second-scope" >"$$work/second-action"; c pair first-action actions second-action; \
+	    control authorize first-permit genesis owner-a; control listen first-ticket genesis listener-a; \
+	    cp "$$destination/private/authority" "$$work/a-owner"; cp "$$destination/private/listening" "$$work/a-listener"; cp "$$work/none" "$$work/b-owner"; cp "$$work/none" "$$work/b-listener"; \
+	    run plan actions >"$$work/job"; c location job head-label; head_file="$$destination/private/$$(cat "$$work/head-label")"; \
+	    if test "$$scene" = repaired; then \
+	      c first-path job expected-path; mv "$$destination/letters" "$$destination/offline"; \
+	      run begin >"$$work/io-blocked"; c cause io-blocked io-cause; expected_path=$$(cat "$$work/expected-path"); \
+	      test "$$(cat "$$work/io-cause")" = "$$(word "(list inbox.io \"publish\" \"$$expected_path\")")"; refused care.unchanged run wake; \
+	      mv "$$destination/offline" "$$destination/letters"; run wake >"$$work/restored"; run resume job caller restored >"$$work/after-io"; \
+	      c cause after-io next-cause; test "$$(cat "$$work/next-cause")" = "$$(word share.different)"; set -- "$$destination/letters/"*; test "$$#" = 1; \
+	      g bytes "$$scene/letters/$${1##*/}" observed; printf 'first\0' | cmp - "$$work/observed"; continue; \
+	    fi; \
+	    if test "$$scene" = normal; then \
+	      c wrong-id first-action lied; c pair lied wrong-actions second-action; run plan wrong-actions >"$$work/wrong-job"; run begin wrong-job >"$$work/wrong-result"; c cause wrong-result wrong-cause; \
+	      test "$$(cat "$$work/wrong-cause")" = "$$(word care.mismatch)"; test -z "$$(ls -A "$$destination/letters")"; \
+	      run begin >"$$work/blocked"; test -f "$$head_file"; cmp "$$work/blocked" "$$head_file"; reference blocked blocked; \
+	      run resume | cmp - "$$work/blocked"; refused care.unchanged run wake; \
+	    else \
+	      c first-path job target; rc=0; ./ck text continuation/begin.ck ground/continuation-interrupt.ck 6<"$$work/target" 3<"$$work/channel" 4<"$$work/caller" <"$$work/job" >"$$work/lost" || rc=$$?; \
+	      test "$$rc" = 76; test ! -s "$$work/lost"; test -s "$$head_file"; \
+	    fi; \
+	    set -- "$$destination/letters/"*; test "$$#" = 1; first_path=$$1; ln "$$first_path" "$$destination/first-proof"; g bytes "$$scene/first-proof" observed; printf 'first\0' | cmp - "$$work/observed"; \
+	    control authorize second-permit owner-a owner-b; cp "$$destination/private/authority" "$$work/b-owner"; \
+	    if test "$$scene" = normal; then \
+	      run wake >"$$work/early"; refused care.wrong-owner run resume job other early; \
+	    fi; \
+	    control listen second-ticket listener-a listener-b; cp "$$destination/private/listening" "$$work/b-listener"; \
+	    if test "$$scene" = normal; then \
+	      run resume | cmp - "$$work/blocked"; refused care.stale run resume job caller early; \
+	      run wake >"$$work/event"; c other-owner channel other-channel; \
+	      refused care.wrong-owner ./ck text continuation/resume.ck 3<"$$work/other-channel" 4<"$$work/caller" 5<"$$work/event" <"$$work/job"; \
+	      mv "$$first_path" "$$destination/temporarily-absent"; refused care.absent run resume job caller event; cmp "$$work/blocked" "$$head_file"; test -z "$$(ls -A "$$destination/letters")"; mv "$$destination/temporarily-absent" "$$first_path"; \
+	      c second-path job target; rc=0; ./ck text continuation/resume.ck ground/continuation-interrupt.ck 3<"$$work/channel" 4<"$$work/caller" 5<"$$work/event" 6<"$$work/target" <"$$work/job" >"$$work/lost" || rc=$$?; \
+	      test "$$rc" = 76; test ! -s "$$work/lost"; set -- "$$destination/letters/"*; test "$$#" = 2; \
+	      refused care.stale run resume job caller event; run resume >"$$work/finished"; reference finished finished; \
+	      refused care.stale run resume job caller event; \
+	    else \
+	      refused care.wrong-owner run resume job other; run resume >"$$work/finished"; reference orphan finished; \
+	    fi; \
+	    run resume | cmp - "$$work/finished"; run begin | cmp - "$$work/finished"; \
+	    set -- "$$destination/letters/"*; test "$$#" = 2; if test "$$1" -ef "$$destination/first-proof"; then second=$$2; else test "$$2" -ef "$$destination/first-proof"; second=$$1; fi; \
+	    printf bytes >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" <"$$second" >"$$work/observed"; printf 'second\n' | cmp - "$$work/observed"; \
+	  done; \
+	  echo "continuation: two intended letters, original consent and caller retained; dropped and stale wakes kept the checkpoint; another receiver reconciled an unacknowledged link"
+
+	@set -eu; \
+	  area=$$(mktemp -d); \
+	  trap 'rm -rf "$$area"' EXIT; \
+	  printf '#32' > "$$area/none"; \
+	  pc() { printf %s "$$1" > "$$area/mode"; ./ck text ground/provider-case.ck 3<"$$area/mode" 4<"$${4:-$$area/none}" <"$$2" >"$$3"; }; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  testword() { word "$$2" >"$$area/want"; [ "$$(cat "$$1")" = "$$(cat "$$area/want")" ]; }; \
+	  ./ck text learning/train.ck <ground/language-corpus.ck > "$$area/model"; \
+	  pc job "$$area/model" "$$area/job"; pc policy "$$area/none" "$$area/local-policy"; \
+	  pc changed-source "$$area/job" "$$area/other"; \
+	  pc roster "$$area/none" "$$area/roster"; pc alt-roster "$$area/none" "$$area/alt-roster"; \
+	  ./ck text circle/pin.ck <"$$area/roster" >"$$area/pin"; \
+	  ./ck text circle/pin.ck <"$$area/alt-roster" >"$$area/alt-pin"; \
+	  for role in owner listener withdraw alt-owner alt-listener; do pc "$$role-proof" "$$area/none" "$$area/$$role-proof"; done; \
+	  setup() { \
+	   dir="$$area/$$1"; mkdir -p "$$dir/private" "$$dir/letters"; \
+	   prefix=$${2:-}; cp "$$area/$${prefix}roster" "$$dir/private/peers"; \
+	   cp "$$area/$${prefix}pin" "$$dir/private/listening"; cp "$$area/$${prefix}pin" "$$dir/private/authority"; \
+	   word "\"$$dir\"" > "$$dir/path"; pc channel "$$dir/path" "$$dir/channel"; \
+	  }; \
+	  apply_role() { ./ck text circle/apply.ck 3<"$$dir/channel" 4<"$$area/$${prefix}$$1-change" <"$$area/$${prefix}$$1-proof" >"$$area/revision"; }; \
+	  job_run() { ./ck text provider/dispatch.ck 3<"$$dir/channel" 4<"$$1" 7<"$$2" < /dev/null > "$$3"; }; \
+	  check_route() { pc decision "$$1" "$$area/decision"; pc selected "$$area/decision" "$$area/kind"; testword "$$area/kind" "$$2"; pc cause "$$area/decision" "$$area/cause"; testword "$$area/cause" "$$3"; verify_trace; }; \
+	  verify_trace() { for record in "$$dir/private"/route-*; do if cmp -s "$$record" "$$area/decision"; then return 0; fi; done; return 1; }; \
+	  empty() { test -z "$$(ls -A "$$dir/letters")"; }; \
+	  setup refused; \
+	  pc revision "$$area/none" "$$area/genesis"; pc permit "$$area/job" "$$area/permit" "$$dir/channel"; \
+	  pc ticket "$$area/job" "$$area/ticket" "$$dir/channel"; \
+	  pc change "$$area/permit" "$$area/owner-change" "$$area/genesis"; \
+	  pc change "$$area/ticket" "$$area/listener-change" "$$area/genesis"; \
+	  apply_role owner; \
+	  pc change "$$area/none" "$$area/withdraw-change" "$$area/revision"; \
+	  job_run "$$area/none" "$$area/job" "$$area/no-listener"; check_route "$$area/no-listener" provider.unserved inbox.paused; empty; \
+	  apply_role listener; \
+	  ./ck text provider/offer.ck 3<"$$dir/channel" <"$$area/job" >"$$area/prepared"; \
+	  apply_role withdraw; \
+	  job_run "$$area/none" "$$area/job" "$$area/cancelled"; check_route "$$area/cancelled" provider.unserved share.ungranted; empty; \
+	  setup active; \
+	  apply_role owner; apply_role listener; \
+	  job_run "$$area/none" "$$area/other" "$$area/wrong"; check_route "$$area/wrong" provider.unserved share.different; empty; \
+	  job_run "$$area/none" "$$area/job" "$$area/sent"; check_route "$$area/sent" provider.external inbox.accepted; \
+	  cp "$$area/decision" "$$area/dispatch"; set -- "$$dir/letters/"*; test "$$#" = 1; cp "$$1" "$$area/letter"; \
+	  pc bytes-exact "$$area/letter" "$$area/exact" "$$area/job"; testword "$$area/exact" yes; \
+	  ./ck text provider/answer.ck 3<"$$area/model" 4<"$$area/roster" <"$$area/letter" >"$$area/answer"; \
+	  if ./ck text provider/answer.ck 3<"$$area/model" 4<"$$area/alt-roster" <"$$area/letter" >"$$area/wrong-episode" 2>"$$area/recipient-error"; then exit 1; fi; \
+	  test "$$(cat "$$area/wrong-episode")" = "fault $$(word e.id)"; \
+	  pc generated "$$area/answer" "$$area/match"; testword "$$area/match" yes; \
+	  seal() { pc "$$1" "$$area/none" "$$area/signature-node"; ./ck text "$$area/signature-node" >"$$area/raw-sig"; ./ck text provider/seal.ck 4<"$$area/raw-sig" <"$$2" >"$$3"; }; \
+	  seal answer-signature "$$area/answer" "$$area/attested"; \
+	  seal wrong-signature "$$area/answer" "$$area/wrong-role"; \
+	  pc changed-answer "$$area/answer" "$$area/changed-answer"; \
+	  seal answer-signature "$$area/changed-answer" "$$area/altered"; \
+	  pc ledger "$$area/job" "$$area/ledger"; \
+	  unchanged() { pc was-untouched "$$area/settlement" "$$area/unchanged" "$$area/ledger"; testword "$$area/unchanged" yes; }; \
+	  consume() { ./ck text provider/resume.ck 3<"$$dir/channel" 4<"$$1" 7<"$$area/dispatch" 8<"$$area/ledger" <"$${2:-$$area/attested}" >"$$area/settlement"; pc settled "$$area/settlement" "$$area/status"; }; \
+	  consume "$$area/job" "$${PROVIDER_WITNESS:-$$area/attested}"; testword "$$area/status" share.allowed; pc completed "$$area/settlement" "$$area/completed" "$$area/answer"; testword "$$area/completed" yes; \
+	  for envelope in altered wrong-role; do consume "$$area/job" "$$area/$$envelope"; testword "$$area/status" ed25519.invalid-signature; unchanged; done; \
+	  consume "$$area/other"; testword "$$area/status" e.id; unchanged; \
+	  job_run "$$area/none" "$$area/job" "$$area/repeated"; check_route "$$area/repeated" provider.external inbox.replayed; cmp "$$1" "$$area/letter"; \
+	  apply_role withdraw; \
+	  consume "$$area/job"; testword "$$area/status" share.ungranted; unchanged; \
+	  setup renewed alt-; \
+	  pc permit "$$area/job" "$$area/alt-permit" "$$dir/channel"; pc ticket "$$area/job" "$$area/alt-ticket" "$$dir/channel"; \
+	  pc change "$$area/alt-permit" "$$area/alt-owner-change" "$$area/genesis"; \
+	  pc change "$$area/alt-ticket" "$$area/alt-listener-change" "$$area/genesis"; \
+	  apply_role owner; apply_role listener; \
+	  job_run "$$area/none" "$$area/job" "$$area/renewed-turn"; check_route "$$area/renewed-turn" provider.external inbox.accepted; \
+	  cp "$$area/dispatch" "$$area/first-decision"; cp "$$area/decision" "$$area/dispatch"; \
+	  consume "$$area/job"; testword "$$area/status" e.id; unchanged; \
+	  ./ck text provider/answer.ck 3<"$$area/model" 4<"$$area/alt-roster" <"$$(find "$$dir/letters" -type f)" >"$$area/renewed-answer"; \
+	  if cmp -s "$$area/answer" "$$area/renewed-answer"; then exit 1; fi; \
+	  for record in "$$area/active/private"/route-*; do if cmp -s "$$record" "$$area/first-decision"; then cp "$$record" "$$dir/private/"; fi; done; \
+	  cp "$$area/first-decision" "$$area/dispatch"; consume "$$area/job"; testword "$$area/status" e.id; unchanged; \
+	  setup local; \
+	  apply_role owner; apply_role listener; \
+	  ./ck text nums/pack.ck <ground/nums-image.ck >"$$area/image"; \
+	  mkfifo "$$area/requests" "$$area/returns"; ./seed-run "$$area/image" <"$$area/requests" >"$$area/returns" & pid=$$!; \
+	  ./ck text provider/dispatch.ck 5>"$$area/requests" <"$$area/returns" 3<"$$dir/channel" 4<"$$area/local-policy" 7<"$$area/job" >"$$area/served"; \
+	  wait "$$pid"; pc decision "$$area/served" "$$area/decision"; pc selected "$$area/decision" "$$area/kind"; testword "$$area/kind" provider.local; verify_trace; empty; \
+	  pc local-answer "$$area/served" "$$area/local-answer"; pc local-value "$$area/local-answer" "$$area/value"; testword "$$area/value" 42; \
+	  ./ck text provider/dispatch.ck 5>/dev/null </dev/null 3<"$$dir/channel" 4<"$$area/local-policy" 7<"$$area/job" >"$$area/uncertain-local"; \
+	  check_route "$$area/uncertain-local" provider.unserved '(list provider.local e.short)'; empty; \
+	  printf 'received canonical letter bytes: '; wc -c <"$$area/letter"; \
+	  printf 'refused provider inbox bytes: '; find "$$area/refused/letters" -type f -exec cat {} + | wc -c; \
+	  echo "provider: exact dispatch, signed answer, epoch change, late refusal and local preference agreed"
+
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  mkdir "$$work/private" "$$work/letters"; \
+	  printf '#32' >"$$work/none"; printf %s "$$work" >"$$work/location"; \
+	  cp "$$work/none" "$$work/private/authority"; cp "$$work/none" "$$work/private/listening"; \
+	  word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  g() { printf %s "$$1" >"$$work/mode"; ./ck text ground/circle-exchange.ck 3<"$$work/mode" 4<"$$work/$${4:-none}" <"$$work/$$2" >"$$work/$$3"; }; \
+	  g channel location channel; g identity none genesis; \
+	  fmt='(voice.format 16000 1 voice.s16le)'; \
+	  turn='[bytes 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f]'; \
+	  printf '\001\002\003\004' >"$$work/en.pcm"; printf '\212\214' >"$$work/old.pcm"; printf '\005\006' >"$$work/id.pcm"; \
+	  if [ -n "$${VOICE_SAMPLES:-}" ]; then cp "$$VOICE_SAMPLES/english.pcm" "$$work/en.pcm"; cp "$$VOICE_SAMPLES/indonesian.pcm" "$$work/id.pcm"; cp "$$VOICE_SAMPLES/original.pcm" "$$work/old.pcm"; fi; \
+	  offer() { word "(voice.request (voice.line (voice.segment $$turn $$2 $$fmt) \"$$3\" \"$$4\" \"$$5\") 0 0x7fffffffffffffff)" >"$$work/request"; ./ck text voice/prepare.ck 3<"$$work/channel" 4<"$$work/$$1.pcm" <"$$work/request" >"$$work/$$1-permit"; ./ck text voice/ticket.ck <"$$work/$$1-permit" >"$$work/$$1-ticket"; ./ck text voice/expect.ck <"$$work/$$1-permit" >"$$work/$$1-id"; }; \
+	  control() { g change "$$2" change "$$3"; ./ck text "circle/$$1.ck" 3<"$$work/channel" <"$$work/change" >"$$work/$$4"; }; \
+	  receive() { ./ck text circle/receive.ck 3<"$$work/channel" <"$$work/$$1-ticket" >"$$work/reply"; g status reply status; test "$$(cat "$$work/status")" = "$$(word "$$2")"; }; \
+	  clip() { proof=$$(./ck text lens/to-words.ck lens/all.ck <"$$work/$$2-id"); printf '(voice.clip "%s" %s)' "$$1" "$$proof"; }; \
+	  queue() { word "(voice.queue $$turn $$fmt (list $$1))" >"$$work/queue"; }; \
+	  play() { ./ck text voice/render.ck 5>"$$work/sound" <"$$work/queue" >"$$work/receipt"; }; \
+	  offer en 0 en "We may listen before we speak." Samantha; \
+	  offer old 1 id "Kita boleh berbagi cerita." Damayanti; \
+	  offer id 1 id "Kami boleh berbagi cerita." Damayanti; \
+	  control authorize en-permit genesis a; control listen en-ticket genesis b; receive en inbox.accepted; \
+	  set -- "$$work/letters/"*; test "$$#" = 1; first=$$1; queue "$$(clip "$$first" en) $$(clip "$$first" en)"; play; cmp "$$work/sound" "$$work/en.pcm"; \
+	  kind=$$(word inbox.letter); printf '(%s %s [#1 aabbccdd])' "$$kind" "$$(cat "$$work/en-ticket")" >"$$work/substituted"; \
+	  queue "$$(clip "$$work/substituted" en)"; rc=0; play || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/receipt")" = "fault $$(word voice.different)"; test ! -s "$$work/sound"; queue "$$(clip "$$first" en)"; \
+	  control authorize old-permit a a; control listen old-ticket b b; control authorize none a a; receive old share.ungranted; \
+	  set -- "$$work/letters/"*; test "$$#" = 1; play; cmp "$$work/sound" "$$work/en.pcm"; \
+	  control authorize id-permit a a; receive id inbox.paused; \
+	  control listen id-ticket b b; receive id inbox.accepted; receive id inbox.replayed; \
+	  set -- "$$work/letters/"*; test "$$#" = 2; if test "$$first" -ef "$$1"; then second=$$2; else second=$$1; fi; \
+	  queue "$$(clip "$$second" id)"; rc=0; play || rc=$$?; test "$$rc" = 1; test "$$(cat "$$work/receipt")" = "fault $$(word voice.gap)"; test ! -s "$$work/sound"; \
+	  queue "$$(clip "$$first" en) $$(clip "$$second" id) $$(clip "$$first" en)"; play; cat "$$work/en.pcm" "$$work/id.pcm" >"$$work/expected"; cmp "$$work/expected" "$$work/sound"; \
+	  length=$$(wc -c <"$$work/expected"); test "$$(cat "$$work/receipt")" = "$$(word "(voice.result 2 $$length $$((length/2)) 0 voice.accepted)")"; \
+	  if [ -n "$${VOICE_RENDERED:-}" ]; then cp "$$work/sound" "$$VOICE_RENDERED"; fi; \
+	  ./ck text ground/voice-short.ck 5>"$$work/short-sound" <"$$work/queue" >"$$work/short"; head -c 1 "$$work/expected" | cmp - "$$work/short-sound"; \
+	  test "$$(cat "$$work/short")" = "$$(word '(voice.result 0 1 0 1 voice.short)')"; \
+	  control authorize old-permit a a; control listen old-ticket b b; receive old inbox.conflict; play; cmp "$$work/expected" "$$work/sound"; \
+	  echo "voice: both owners controlled the two ordered slots; withdrawal emitted no second clip, replay produced identical PCM, a short write retained its exact frame remainder"
+
+	@test "$$(./ck run ground/translation-reference.ck)" = 'node #33'
+
 # The resident model image and its matching native runtime are deployment inputs.
 .PHONY: resident-replay
 resident-replay: ck
@@ -404,3 +792,21 @@ clean:
 	rm -f ck fb kg seed-run .ck-header .ck-check.ice .ck-check.rec .ck-watch.rec .ck-hardened
 
 .PHONY: all metal-image check test-inventory $(CHECK_FLOWS) $(FULL_ONLY) check-full ground-isolated ground-together watch clean header
+
+.PHONY: translate-local
+translate-local: ck
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  model=$${TRANSLATION_MODEL:?set TRANSLATION_MODEL to a local MLX checkpoint directory}; input=$${TRANSLATION_UTTERANCE:?set TRANSLATION_UTTERANCE to the owned utterance file}; \
+	  model=$$(cd "$$model" && pwd -P); test -r "$$input"; engine=$$(command -v mlx_lm.generate); \
+	  fingerprint() { root=$$1; mkdir "$$root"; (cd "$$model"; test -f model.safetensors; set -- *.safetensors; test "$$#" -eq 1; test -f tokenizer.json; openssl dgst -sha256 -binary model.safetensors >"$$root/weights"; openssl dgst -sha256 -binary tokenizer.json >"$$root/vocabulary"; for file in *.json *.model *.tiktoken *.jinja; do if test -f "$$file"; then shasum -a 256 "$$file"; fi; done) >"$$root/assets"; }; \
+	  fingerprint "$$work/before"; printf '%s' "$${TRANSLATION_MODEL_NAME:-local MLX checkpoint}" >"$$work/name"; \
+	  { (cd "$$(dirname "$$engine")" && shasum -a 256 "$$(basename "$$engine")"); interpreter=$$(sed -n '1s/^#!//p' "$$engine"); prefix=$$(dirname "$$(dirname "$$interpreter")"); for meta in "$$prefix"/lib/python*/site-packages/mlx_lm-*.dist-info/METADATA "$$prefix"/lib/python*/site-packages/mlx-*.dist-info/METADATA; do if test -f "$$meta"; then sed -n -e '/^Name: /p' -e '/^Version: /p' "$$meta"; fi; done; } >"$$work/engine"; \
+	  ./ck text translation/model.ck 3<"$$work/name" 4<"$$work/before/weights" 5<"$$work/before/vocabulary" 6<"$$work/engine" <"$$work/before/assets" >"$$work/model"; \
+	  { printf '@review\n'; cat "$$input"; } >"$$work/open"; ./ck text lens/translate.ck 3<"$$work/model" <"$$work/open" >"$$work/request"; \
+	  ./ck text translation/prompt.ck <"$$work/request" >"$$work/prompt"; ./ck text translation/settings.ck <"$$work/request" >"$$work/settings"; \
+	  if test -s "$$work/prompt"; then set -- --model "$$model" --prompt -; while IFS= read -r arg; do set -- "$$@" "$$arg"; done <"$$work/settings"; \
+	    if HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 "$$engine" "$$@" <"$$work/prompt" >"$$work/answer" 2>"$$work/diagnostic"; then status=1; code=0; else code=$$?; status=2; fi; \
+	    fingerprint "$$work/after"; for part in weights vocabulary assets; do cmp "$$work/before/$$part" "$$work/after/$$part" || { echo 'Model files changed during translation.' >&2; exit 1; }; done; \
+	  else status=0; code=0; : >"$$work/answer"; : >"$$work/diagnostic"; fi; \
+	  printf '%s' "$$code" | ./ck text lens/to-nodes.ck lens/all.ck >"$$work/code"; printf '%s' "$$status" | ./ck text lens/to-nodes.ck lens/all.ck >"$$work/status"; ./ck text translation/respond.ck 3<"$$work/request" 4<"$$work/status" 5<"$$work/code" 6<"$$work/diagnostic" <"$$work/answer" >"$$work/reply"; \
+	  ./ck text translation/review.ck 3<"$$work/request" <"$$work/reply"

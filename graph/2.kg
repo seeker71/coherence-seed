@@ -411,3 +411,51 @@ is: This fixture constructs source and derivative authority for the full admissi
 path: coherence-seed/ground/teaching-case.ck
 got: 2026-11-28
 at: 2026-11-28
+
+n: 2.30.33
+name: world-reference.ck
+kind: source
+is: 32 binary histories compare independently accumulated errors to the predictions and revisions.
+path: coherence-seed/ground/world-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.34
+name: continuation-reference.ck
+kind: source
+is: The resumed two-letter job is compared to independently captured grants, invitations, paths and bytes.
+path: coherence-seed/ground/continuation-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.35
+name: cases.ck
+kind: source
+is: The stewardship comparison reconstructs service and gift receipts at the channel boundary.
+path: coherence-seed/value/cases.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.36
+name: provider-case.ck
+kind: source
+is: Two signed enrollment episodes route a job and verify a complete return.
+path: coherence-seed/ground/provider-case.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.37
+name: voice-short.ck
+kind: source
+is: A bounded physical sink measures a single byte consumed from an accepted spoken turn.
+path: coherence-seed/ground/voice-short.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.38
+name: translation-reference.ck
+kind: source
+is: Retained local model proposals and source-edition references exercise invitation, interpretation and owner correction.
+path: coherence-seed/ground/translation-reference.ck
+got: 2026-11-28
+at: 2026-11-28
