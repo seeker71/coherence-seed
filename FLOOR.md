@@ -613,6 +613,18 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `emit.floor`, the emitter's floor mode: stores anywhere in the process's own areas and the
   head, bounded by what each holds, a load or store of the head at a constant place as one
   instruction, and no entry check, since the leaves lie beneath every binding.
+  - In floor mode a comparison of values that cannot be nothing (a constant, an argument, a
+    let of one, a head place, the handle of a seeded entry, which is known when the code is
+    made) is a compare and a branch, with no status kept around it, and an `if`'s test is a
+    chain of branches. A call is skipped by one `cbnz` while the status is set, which ends the
+    process. The rows after the first are called only by the leaf itself: they keep x27 and x28
+    as the caller has them, save x19 to x26 and the arguments they read, and give the status as
+    it is. An area's base and bound are read once for a run of loads and stores of it in a
+    `seq` or `let`, and again after the slow path. An inlined callee's constant or argument is
+    put in place of its slot.
+  - In every mode, a part is spilled only when the registers it can use do not fit, a constant
+    area and width are put in registers only on the slow path, and add and sub of a constant
+    under 4,096 take it as an immediate.
   - The cell of `frame` holds `walk.ret`, the walker's return: it pops the frame as the C did
     (the frames and links above it given back when no open choice returns to them, the
     activations made since given back), takes a sequence's next step, links an argument's
@@ -633,7 +645,7 @@ Each line here is held by a program in `make check-full`, or names how it was se
   - The seed is built by the system: `form/seed.ck` reads `form/walk.ck`, which compiles both
     leaves, and writes the list with `bin.write`. `make header` writes it, and `check-header`
     builds it again on the seed itself, walking with its own return, and compares the bytes:
-    the same 30,287, leaves of 11,164 and 19,020 bytes. `check-held-back` holds that leaves the
+    the same 23,839, leaves of 8,996 and 14,740 bytes. `check-held-back` holds that leaves the
     run compiles again and holds mid-run return and restore as the seed's do.
   - Held: the catalogue answered alike under the C walker of `733d27a` and under the seed's
     return, each of the 77 programs' outcome and its verdict, one process each at the default
@@ -652,12 +664,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
     process). A refusal at the stack's floor inside code is now said to the caller, where
     before the caller read the argument it gave as the answer.
   - Cost, measured with `/usr/bin/time -l`, N rounds against 2N: a round of a counting loop
-    `{n | (if (n = 0) 0 (call (self) (n - 1)))}` took about 10,200 instructions against 4,590
-    with the C return, crossing from the C walker into the leaf 7 times a round, about 800
-    instructions a crossing; a round of a range with a choice failed twice (three restores)
-    about 4,470 against 4,580. The restore cost less once a head place became one load; the
-    return is the walker's step and costs 2.2 times the C until `eval` is in compiled code too
-    and a run stays inside it.
+    `{n | (if (n = 0) 0 (call (self) (n - 1)))}` takes about 7,800 instructions against 4,420
+    with the C return of `733d27a`, and a call of `fib` about 9,100 against 4,650 (10,000 and
+    11,800 before the floor mode above). The return is the walker's step and costs about twice
+    the C until `eval` is in compiled code too and a run stays inside it.
   When the seed is lost or broken: every seed is in git, and `make header` with the previous one
   builds the current. With none that runs, the last commit whose C walker returns and restores a
   fail alone, with no seed (`4d7b155`), builds a seed from the nodes, and that seed builds the next.
