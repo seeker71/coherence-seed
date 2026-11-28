@@ -459,8 +459,10 @@ number different meanings. In the image example, token 1 calls the word instance
 The resident decoder accepts a sparse vocabulary per lane. The owner calls
 `stream.attach-tokens(lane, map)` after starting the worker. A `nums.token-map`
 holds sorted, disjoint `nums.token-window(firstToken, targets)` ranges. Each target
-is a resident recipe ID or `no`. An empty map clears the binding. Attaching
-validates the complete map and clears the lane’s previous tool result.
+is the content ID of a resident recipe or panel descriptor, or `no` for an ordinary
+token. Attaching resolves the whole map, including each panel planner, before
+replacing the lane’s binding and clearing its previous tool result. An empty map
+clears the binding.
 
 A generation request accepts the previous prediction. An ordinary token enters
 the embedding gather directly. A mapped token calls its recipe by ID with a
@@ -494,8 +496,30 @@ argmax. The first result was `[12, 7, 3]`, the second `[2, -1, -1]`.
 Both operators used the same continuation. It read the winning Float32 value
 and looked it up in a numeric table of the model’s tokens for integers 0 to 20,
 returning the tokens for `12` and `2`. Both subsequent predictions matched
-llama.cpp supplied with those feedback tokens. Each effect completes before
-the shared decode batch advances.
+llama.cpp supplied with those feedback tokens.
+
+A token bound to `nums.panel-call(plannerID, input)` offers its argument to a
+shared recipe. During one socket poll, ready calls with the same planner ID
+form an ordered list of `nums.panel-input(invocation, input)` records. An idle
+lane or ordinary vocabulary token leaves the group open. Another planner, a
+scalar tool, or the end of the poll closes it. The worker submits the ready
+group immediately, including a singleton. A scalar tool runs after the
+preceding group has published its results.
+
+The planner receives the list by ID and supplies a yield per member in that
+order. It can also supply one `nums.metal-effect`; its continuation receives
+the same list and the GPU readbacks and returns the yields. The planner owns
+the kernel geometry, data packing and result partition. A planning fault or
+wrong result count reaches every member of that group. An invalid feedback
+token reaches just its lane. Each socket retains its own reply and result ID.
+
+On an M4 Max with eight ready clients, eight scalar add/argmax tools and one
+Llama decode used nine command buffers and 484 compute dispatches. The shared
+planner ran one vector addition across all eight inputs, eight independent
+argmax dispatches and the same 468-dispatch decode, in two command buffers.
+Across batch widths one through eight, all 36 signed-vector results, feedback
+tokens, next predictions and content IDs agreed with scalar execution.
+The decode still waits for the feedback from the tool batch.
 
 A recipe body has an immutable id. Its instance has a binding that a trial can replace.
 A candidate genome can therefore hold recipes or typed subtrees. Development fills a template,

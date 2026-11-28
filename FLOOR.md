@@ -111,6 +111,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   ID. Two local clients elicited different operators from the same mounted Llama
   model. Each recipe assembled a Metal frame, returned its result by content ID
   and fed a token into its own next prediction. Both predictions matched llama.cpp.
+  Ready tools that name the same panel planner share a Metal submission. Eight
+  add/argmax calls and their next decode used two command buffers. Their eight
+  replies were byte-identical to the nine-buffer scalar run.
   [Recipe tokens and live variants](spec/nums.md#recipe-tokens-and-live-variants)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
