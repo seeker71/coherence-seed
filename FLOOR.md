@@ -458,7 +458,10 @@ Each line here is held by a program in `make check-full`, or names how it was se
   last act of a leaf `native` runs, where a room's store may compile: asked of `serve`, a `store`
   or `cas` on an area answers nothing unwritten, so code that would go on declines before it
   writes and the walker writes once; such a leaf calls no definition, itself included, so a
-  declined leaf run again never writes twice. The heads, which place the areas, are only read. `ground/rooms.ck`
+  declined leaf run again never writes twice. The heads, which place the areas, are only read; the
+  bytes of other areas are the bootstrap's own records, and a program that rewrites a node's offset
+  makes the next read of that node fault the process, as a `host` call of `memset` can: area writes
+  are as trusted as `host` until only the store's own leaf writes them. `ground/rooms.ck`
   reads seven areas at four widths at and past their edges, writes and swaps a word of a room and
   of the lane's own record at every width over nine values, walked and as code, and answers no case
   that differs; a counter swapped and then a read past the edge, and a recursion that swaps and then
