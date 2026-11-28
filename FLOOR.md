@@ -445,7 +445,14 @@ Each line here is held by a program in `make check-full`, or names how it was se
   would return past it with no choice of the walker's to undo it; so where compiled code would
   keep a store the walker undoes, the emitter refuses. `ground/encoding-in-form.ck` runs both room
   operations at every width over rooms of six sizes at and past their edges, compiled and walked,
-  and a narrowed bound and a wrong width planted in the emitter each made cases differ.
+  and a narrowed bound and a wrong width planted in the emitter each made cases differ. Code
+  trails every word it writes in a room that stood before it began, under a choice or not, and a
+  leaf that declines has those put back and the rooms it took given back whole before the walker
+  runs it again (the machine's `fresh` says where its own rooms begin), so a declined leaf leaves
+  no room effect: `ground/rooms.ck` bumps a room at each width and offset 0 to 8 and then
+  declines, and the room's bytes, writer and count of writes are the walker's, and a leaf that
+  takes a room and declines leaves one room taken, not two; with either putting back taken out
+  the count rose twice, the bumped value was bumped twice, or two rooms stood.
 - **Code reads and writes the region's areas, and swaps a word of the substrate in one step.**
   `load`, `store` and `cas` (entry 97) take an area's number where they take a room: the region's
   own bytes at an offset, within what the area holds at its peak or its count, never trailed. Where the area and

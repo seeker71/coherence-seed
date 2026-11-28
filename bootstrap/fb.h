@@ -53,7 +53,7 @@ enum { F_NONE, F_SEQ, F_ARGS, F_CUT, F_FAIL, F_ALL, F_NEED, F_RECOVER, F_HANDLER
 #define FB_FRAME_NAMES "?", "seq", "args", "cut", "fail", "all", "need", "recover", "handler", "outcome", "layer", "let", "aside", 
 enum { M_EVAL, M_RET, M_FAILED, M_FAULT, M_DONE, M_COUNT };
 #define FB_MODE_NAMES "eval", "ret", "failed", "fault", "done", 
-typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t one; uint32_t ncode; H handed; uint32_t handeds; uint8_t pad[4]; uint64_t step; uint64_t code; uint64_t serve; } Machine;
+typedef struct { H bp; H by; uint32_t mode; H at; H x; H v; H reason; uint32_t env; uint32_t cut; uint32_t k; uint32_t outcome; uint32_t gathers; uint32_t ids; uint32_t one; uint32_t ncode; H handed; uint32_t handeds; uint32_t fresh; uint64_t step; uint64_t code; uint64_t serve; } Machine;
 typedef struct { H bp; H by; H of; uint32_t size; uint64_t peak; uint64_t off; uint64_t cap; uint64_t n; } Area;
 typedef struct { H bp; H by; uint32_t ida; uint8_t comp; uint8_t settled; uint8_t pad[2]; uint64_t n; uint64_t off; } Node;
 typedef struct { H bp; H by; uint32_t t; H node; uint32_t i; uint32_t env; uint32_t cut; uint32_t vals; uint32_t k; uint32_t aux; uint32_t mact; uint32_t mlink; } Frame;
@@ -73,7 +73,7 @@ typedef struct { H bp; H by; uint64_t who; uint64_t start; uint32_t n; uint32_t 
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; Member me; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
-#define FB_VERSION 29u
+#define FB_VERSION 30u
 #define FB_CATALOGUE UINT64_C(63731160999100191)
 #define FB_PAGE 16384u
 #define FB_HUE 128u

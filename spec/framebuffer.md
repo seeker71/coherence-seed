@@ -137,7 +137,7 @@ function of what was read, and is saved once; every later start with the same na
 
 ## What is in it
 
-The first page is the **head**: a magic word, the layout version (28), the writer's process id, the
+The first page is the **head**: a magic word, the layout version (30), the writer's process id, the
 walker's registers (the **machine**), one **area** entry per table, the doors, and the **member** part: where
 the substrate lies (`share`), how many pages the tables keyed by handle have charged, the
 process's lane, the node a member runs last (`leave`), and the name of the substrate it is a member of, empty for a process alone. An area entry says what its records are, how large one is, the most it has held,
@@ -181,7 +181,7 @@ table, by the layout's rows, and the member part after them.
 | after | words | calls held back until every open choice is closed: for each, how many words follow, the recipe and its values |
 | noted | words | notes written by code that has not answered yet: a cell and what it will hold, in pairs |
 | rooms | bytes | rooms: each a head, its blueprint, the node that last stored into it, how many stores it has had and its size, then its bytes, changed in place (`spec/core-operations.md`, entries 113 to 117) |
-| room-trail | room-trail | while a choice is open, the four bytes of a room as they were before each store, and its writer and count, so a fail puts them back |
+| room-trail | room-trail | while a choice is open, and while code runs, the four bytes of a room as they were before each store, and its writer and count, so a fail, or code that declines, puts them back; code does not keep them for a room it took itself |
 | gives | words | how many times a fail gave nodes back, and the choice, the mark and the top of the last time |
 | ids | bytes | each content id once asked for: the node's handle, then the id's 32 bytes; when a fail gives nodes back, the ids of those that stay move down with them; in the lane |
 | values | words | the values in hand: those of a node's children while its operation runs, and what a call is given; all given back at the walker's next step |
