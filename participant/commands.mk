@@ -7,6 +7,25 @@ PARTICIPANT_PUB = openssl pkey -in "$${KEY_DIR:?set KEY_DIR to your own director
 
 .PHONY: circle-key circle-join circle-retract circle-resume circle-source circle-record circle-correct circle-show circle-edition circle-select-return circle-select circle-preview circle-ticket circle-owner-head circle-listener-head circle-sign circle-verify circle-submit circle-read
 .PHONY: circle-recovery-enroll circle-recovery-cancel circle-recovery-apply
+.PHONY: circle-turn-open circle-turn-inspect circle-turn-sign circle-turn-advance
+export TURN_HEAD SOURCE_LANGUAGE TARGET_LANGUAGE READING_ID
+TURN_RUN = ./ck text participant/turn.ck 3<"$$scratch/mode" 4<"$${ROSTER:?set ROSTER to the agreed roster}"
+
+circle-turn-open: ck
+	@$(PARTICIPANT_TMP); printf open >"$$scratch/mode"; printf %s "$${SOURCE_LANGUAGE:?set SOURCE_LANGUAGE}" >"$$scratch/from"; printf %s "$${TARGET_LANGUAGE:?set TARGET_LANGUAGE}" >"$$scratch/into"; \
+	  $(TURN_RUN) 6<"$$scratch/from" 7<"$$scratch/into"
+
+circle-turn-inspect circle-turn-advance: ck
+	@$(PARTICIPANT_TMP); printf %s '$(@:circle-turn-%=%)' >"$$scratch/mode"; $(TURN_RUN) 5<"$${TURN_HEAD:?set TURN_HEAD to the locally accepted turn file}"
+
+circle-turn-sign: ck
+	@$(PARTICIPANT_TMP); $(PARTICIPANT_PUB); cp "$${ROSTER:?set ROSTER}" "$$scratch/roster"; ROSTER="$$scratch/roster"; cp "$${TURN_HEAD:?set TURN_HEAD}" "$$scratch/head"; \
+	  printf %s "$${ACTION:?set ACTION to propose, correct, refuse or silence}" >"$$scratch/action"; printf %s "$$READING_ID" >"$$scratch/reading"; \
+	  turn_step() { printf %s "$$1" >"$$scratch/mode"; $(TURN_RUN) 5<"$$scratch/head" 6<"$$scratch/action" 7<"$$scratch/reading" 8<"$$scratch/signature" 9<"$$scratch/public" <"$$2" >"$$3" || { code=$$?; cat "$$3"; exit "$$code"; }; }; \
+	  : >"$$scratch/signature"; turn_step draft /dev/null "$$scratch/choice"; turn_step digest "$$scratch/choice" "$$scratch/digest"; \
+	  openssl pkeyutl -sign -rawin -inkey "$$KEY_DIR/signing.pem" -in "$$scratch/digest" -out "$$scratch/signature"; \
+	  turn_step seal "$$scratch/choice" "$$scratch/packet"; cat "$$scratch/packet"
+
 circle-key: ck
 	@$(PARTICIPANT_TMP); mkdir "$${KEY_DIR:?set KEY_DIR to a new private directory}"; mkdir "$$KEY_DIR/journal"; \
 	  openssl genpkey -algorithm ED25519 -out "$$KEY_DIR/signing.pem"; $(PARTICIPANT_PUB); cp "$$scratch/public" "$$KEY_DIR/public"
