@@ -40,14 +40,15 @@ views: ck
 
 # bootstrap/fb.h is made from nodes: the catalogue's words and the layout of the region's records. So is
 # region/places.ck, the places of the head that machine code reads, as numbers, so code made from it holds no words.
-PLACES = printf '(seq (step (read (file "region/layout.ck"))) (fb.places))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-places.run && ./ck run .ck-places.run | sed 's/^node //' | $(NODES)
+# Each program answers its records, written by bin.write, and 'ck text' writes them: no print is read back.
+PLACES = printf '(seq (step (read (file "form/nodes.ck"))) (step (read (file "region/layout.ck"))) (bin.write (fb.places)))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-places.run && ./ck text .ck-places.run
 # form/print.ck, the printer of the answer line, is made by form/printer.ck: the walked printer and, beside it, the leaf
 # the emitter compiles of the printer for AArch64, run where the layout version is the one it was made for.
-PRINTER = ./ck run form/printer.ck | sed 's/^node //' | $(NODES)
+PRINTER = printf '(seq (step (read (file "form/nodes.ck"))) (bin.write (step (read (file "form/printer.ck")))))' | ./ck text lens/to-nodes.ck lens/all.ck > .ck-printer.run && ./ck text .ck-printer.run
 header: ck
 	./ck text region/header.ck > .ck-header && mv .ck-header bootstrap/fb.h
 	$(PLACES) > .ck-places && mv .ck-places region/places.ck; rm -f .ck-places.run
-	$(PRINTER) > .ck-print && mv .ck-print form/print.ck
+	$(PRINTER) > .ck-print && mv .ck-print form/print.ck; rm -f .ck-printer.run
 	./ck text form/seed.ck > .ck-seed && mv .ck-seed ice/seed.ck
 
 # Wait until the region named $name stands, for at most ten seconds.
@@ -149,7 +150,7 @@ check-image: seed-run
 
 check-live: ck fb
 	@name=/ck.ask.$$$$; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; budget=33554432; (CK_MEMORY_BYTES=$$budget CK_FB=$$name ./ck run $(LONG) > /dev/null &) ; $(up); \
-	  ask() { printf '%s\n%s' "$$name" "$$1" | ./ck text region/ask.ck | tr -d '()\n'; }; \
+	  ask() { printf '%s\n%s' "$$name" "$$1" | ./ck text region/ask.ck region/all.ck | tr -d '()\n'; }; \
 	  on=$$(ask '(seq (need ((recover (seq (take u8 '"$$((budget - 4096))"') no) {reason | reason}) = (list "full" "rooms"))) (bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $$0)))))'); \
 	  one=$$(ask '(held #1002)'); two=$$(ask '(held #1002)'); off=$$(ask '(unbind add)'); three=$$(ask '(held #1002)'); four=$$(ask '(held #1002)'); \
 	  printf '(seq (step (read (file "region/all.ck"))) (let named (file "/dev/stdin") watched (fb.watch (pack text (all (let c (lens.bytes-of named) (when (32 < c) c))))) m (held fb.mapped) size (far.size m) (tuple ((far.bytes m 0 8) = [bytes 434b4642310a0000]) ((count (far.bytes m (size - 8) 8)) = 8) ((fb.num (fb.offset (fb.kind "head") "bytes") 8) = size) (count (far.bytes m 0 0)) (outcome (far.bytes m (size - 7) 8)) (outcome (far.bytes m -1 1)) (outcome (far.bytes m 0 -1)))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/edges"; \
@@ -177,8 +178,8 @@ check-header: ck
 	  for input in invalid trailing; do rc=0; ./ck text lens/show-canonical.ck lens/all.ck <"$$work/$$input" >"$$work/refusal" || rc=$$?; \
 	    test "$$rc" = 1; case "$$input" in invalid) expected='fault [#2 73796e746178]';; trailing) expected='fault [#2 747261696c696e67]';; esac; \
 	    test "$$(cat "$$work/refusal")" = "$$expected"; done
-	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && rm -f .ck-places.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck and the seed ice/seed.ck are what the nodes generate, the seed built again on itself the same bytes" || \
-	  { rm -f .ck-places.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck or ice/seed.ck is not what the nodes write; run make header"; exit 1; }
+	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && rm -f .ck-places.run .ck-printer.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck and the seed ice/seed.ck are what the nodes generate, the seed built again on itself the same bytes" || \
+	  { rm -f .ck-places.run .ck-printer.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck or ice/seed.ck is not what the nodes write; run make header"; exit 1; }
 
 
 # A process is a member of the substrate CK_SHARE names when it runs after the prelude $(MEMBER), which loads the host's and

@@ -444,7 +444,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   bootstrap's operations, 1.0 s on four machine-code leaves and 9.9 s on four written in form.
 - **From outside the run.** A binding made outside is seen at every layer and is not undone by
   a fail. A second process asks a running program to evaluate a node and gets back how it
-  ended: it put a counter on every addition, read it twice as it rose and took it off.
+  ended: it put a counter on every addition, read it twice as it rose and took it off. The
+  asker takes `region/all.ck` as its start, so every ask after the first enters its image: about
+  240 M instructions an ask against 2,370 M when it stepped the file itself, the same answers.
 - **The encoding.** All of it is written in form from its page: the reader and printer of the
   print, the canonical bytes, SHA-256 and the id, and the reader of bytes. Bound in place of the
   bootstrap's own they hold the 142 vectors, ids among them; on the reader and printer every
@@ -452,7 +454,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
 - **The print left C.** The bootstrap reads stored records only; the reader and the printer of
   the canonical print are `form/read.ck` and `form/print.ck`, and entry 77 unbound is the fault
   `unbound`. Machines exchange records: the asked service, the check an image keeps, the BML and
-  ice outputs fed to `ck run`, and the Makefile's prints, made records by `form/from-print.ck`.
+  ice outputs fed to `ck run`. `region/places.ck` and `form/print.ck` are written by their
+  programs as records (`bin.write`) and `ck text` writes them out, so no print is read back to
+  make them: measured with a region of 64 MiB, 330 M instructions for the places against 638 M
+  (112 M to run and print, 526 M to read the print), and 6.8 G for the printer against 9.4 G;
+  `check-header` holds the same bytes.
   The answer line of `ck run` is printed by the recipe `form/print.ck` answers, read from beside
   the executable (a link followed) and run on the bootstrap's code alone, so what the program bound
   does not change it; a copy of `ck` takes `form/print.ck` with it, and `region/rest.ck`'s saver

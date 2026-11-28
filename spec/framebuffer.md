@@ -425,11 +425,11 @@ refused with `kind`. The answer is what `outcome` gives: `(list "node" v)`, `(li
 `(list "fault" reason)`. A request that cannot be read, or one whose writing fails or does not fit
 in `answered`, is answered with no bytes, and the asker answers `(list "nothing" "unanswered")`.
 
-`region/ask.ck`, written in form, is the asker. Its first line of input is the region's name and
+`region/ask.ck`, written in form, is the asker, run with `region/all.ck` as its start. Its first line of input is the region's name and
 the rest a node in the lens's words:
 
 ```bash
-printf '/ck.demo\n(bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $0))))' | ./ck text region/ask.ck
+printf '/ck.demo\n(bind add (lazy (seq (note #1002 (add 1 (if (held #1002) (held #1002) 0))) (base $0))))' | ./ck text region/ask.ck region/all.ck
 ```
 
 puts a counter on every addition the program makes from then on, `(held #1002)` reads it while

@@ -96,7 +96,7 @@ words, and gets back how it ended, while the run goes on: put a counter on every
 the count, take the counter off again.
 
 ```bash
-printf '/ck.demo\n(held #1002)' | ./ck text region/ask.ck
+printf '/ck.demo\n(held #1002)' | ./ck text region/ask.ck region/all.ck
 ```
 
 It can be told to make itself faster. Start a recursion that takes a quarter of a minute, and from
