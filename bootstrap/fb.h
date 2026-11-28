@@ -66,19 +66,19 @@ typedef struct { H bp; H by; H entry; H impl; uint32_t prev; uint32_t sees; H fa
 typedef struct { H bp; H by; H key; H old; } Trail;
 typedef struct { H bp; H by; uint32_t writes; uint8_t pad[4]; uint64_t size; } Room;
 typedef struct { H bp; H by; uint32_t old; uint8_t pad[4]; uint64_t at; } RoomTrail;
-typedef struct { uint64_t symbol; uint64_t adopt; uint64_t region; } Doors;
+typedef struct { uint64_t symbol; uint64_t adopt; uint64_t region; uint8_t cells[512]; } Doors;
 typedef struct { uint64_t share; uint64_t charged; uint32_t lane; H leave; uint8_t name[32]; uint64_t allowance; uint32_t taken; uint8_t pad[4]; } Member;
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t lanes; uint32_t pid; uint64_t share; uint64_t bytes; uint64_t ids; uint64_t start; uint64_t made; uint64_t allowance; uint64_t charged; uint64_t buried; uint64_t tide; uint64_t catalogue; Area a[S_COUNT]; } Substrate;
 typedef struct { H bp; H by; uint64_t who; uint64_t start; uint32_t n; uint32_t sw; uint64_t charged; uint64_t forwarded; uint8_t pad[16]; } Lane;
 typedef struct { uint8_t magic[8]; H bp; H by; uint32_t version; uint32_t areas; uint32_t pid; uint32_t floor; uint64_t bytes; Machine m; Area a[A_COUNT]; Doors d; Member me; } Head;
 #define FB_MAGIC "CKFB1\n\0"
 #define FB_SUBSTRATE_MAGIC "CKSUB1\n\0"
-#define FB_VERSION 30u
+#define FB_VERSION 31u
 #define FB_CATALOGUE UINT64_C(63731160999100191)
 #define FB_PAGE 16384u
 #define FB_HUE 128u
 enum { FB_LANE, FB_HANDLES, FB_STACK, FB_BITS };   /* a reservation made by the bootstrap */
 #define FB_AREA_ROWS {NODE, sizeof(Node), FB_LANE}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {FRAME, sizeof(Frame), 1073741824ull}, {LINK, sizeof(Link), 1073741824ull}, {ACTIVATION, sizeof(Activation), 1073741824ull}, {WORD_TABLE, 4, 1073741824ull}, {CHOICE_POINT, sizeof(ChoicePoint), 1073741824ull}, {GATHERED, sizeof(Gathered), 1073741824ull}, {CODE, sizeof(Code), 268435456ull}, {BINDING, sizeof(Binding), 268435456ull}, {WORD_TABLE, 4, FB_HANDLES}, {BINDING, sizeof(Binding), 3556ull}, {WORD_TABLE, 4, FB_HANDLES}, {TRAIL, sizeof(Trail), 1073741824ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 1073741824ull}, {BYTE_TABLE, 1, 1073741824ull}, {WORD_TABLE, 4, FB_HANDLES}, {BYTE_TABLE, 1, 1073741824ull}, {BYTE_TABLE, 1, FB_STACK}, {BYTE_TABLE, 1, 268435456ull}, {BYTE_TABLE, 1, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {WORD_TABLE, 4, 268435456ull}, {BYTE_TABLE, 1, 4294967296ull}, {ROOM_TRAIL, sizeof(RoomTrail), 1073741824ull}, {WORD_TABLE, 4, 16ull}, {BYTE_TABLE, 1, FB_LANE}, {WORD_TABLE, 4, 1073741824ull}, {WORD_TABLE, 4, 1024ull}, {BYTE_TABLE, 1, FB_BITS}, {LANE, sizeof(Lane), 64ull}, {NODE, sizeof(Node), 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {BYTE_TABLE, 1, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, {WORD_TABLE, 4, 4294967296ull}, 
-#define FB_OWN(X) X(fb->pid) X(fb->bytes) X(W->code) X(W->serve) X(fb->d.symbol) X(fb->d.adopt) X(fb->d.region) X(fb->me.allowance) X(fb->a[A_STACK]) X(sub->pid) X(sub->allowance) X(sub->bytes) X(ln->who) 
+#define FB_OWN(X) X(fb->pid) X(fb->bytes) X(W->code) X(W->serve) X(fb->d.symbol) X(fb->d.adopt) X(fb->d.region) X(fb->d.cells) X(fb->me.allowance) X(fb->a[A_STACK]) X(sub->pid) X(sub->allowance) X(sub->bytes) X(ln->who) 
 #define FB_KEPT(X) X(fb->a[A_BINDINGS]) X(fb->a[A_BOUND_BY_NODE]) X(fb->a[A_CELLS]) X(fb->a[A_ROOMS]) X(fb->a[A_GIVES]) X(fb->a[A_TOUCHED]) X(sub->a[S_LANES]) X(sub->a[S_NODES]) X(sub->a[S_LEAF_BYTES]) X(sub->a[S_CHILDREN]) X(sub->a[S_IDS]) X(sub->a[S_BY_CONTENT]) X(sub->a[S_BY_ID]) 
 #endif
