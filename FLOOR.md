@@ -500,9 +500,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   2,000 and 4,000 finds less the loop alone; runs vary); of a find, about 1,100 are the walker's
   call of code and about 57 each call inside it, and so the C's make stays the store.
 - **A node is made in Form as code, and only as code.** `store.joined` makes what `join` makes:
-  it copies the children past the area's count, finds the content, writes the record past the
-  node count, and then writes the children's count, the index's place and the node count in one
-  act. Walked it cannot be right, since its own integers are nodes made at the place it writes
+  it finds the content by the list's own children, and only to make it copies them past the
+  children's count and writes the record past the node count, and then writes the children's
+  count, the index's place and the node count in one act. Walked it cannot be right, since its own integers are nodes made at the place it writes
   (seen: the record it wrote was an integer's); compiled it makes none. So it runs only as a leaf
   `native` runs, where it answers `no` for what only the C can do (a member, a settling make, an
   index or an area that must grow, content the rule may refuse), and the C's `join` makes it. The
@@ -519,9 +519,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
   blueprints, and every one agrees: refused, new or the same node, the count after it, the
   children's count, blueprint, kind, length, place, children, the record's flags, and that the
   index finds it; an index place one past, a children's count not raised, a length one more, a
-  settled flag and a rule that takes the catalogue's blueprints, each planted, made cases differ. A make from walked code costs about 2,700
-  instructions against about 380 for the C's `join` (2,000 and 4,000 makes of new content, less
-  the loop), so the C's make stays the store.
+  settled flag and a rule that takes the catalogue's blueprints, each planted, made cases differ. A make from walked code costs 2,700 to 5,200
+  instructions against 400 to 2,400 for the C's `join` over four runs (2,000 and 4,000 makes of
+  new content, less the loop; runs vary), so the C's make stays the store.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record,
   and any case they do not take calls `serve` as before; `handle` keeps what `adopt` asks of it in
