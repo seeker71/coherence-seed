@@ -203,10 +203,51 @@ excerpt. Birch received it, and Reed compared all 127 rendered bytes with
 the selected words and attribution.
 
 Birch acknowledged their different readings in conversation and both chose
-to end. Neither chose the explicit silence action in the Satsang turn flow.
-That choice still needs an independent-cell witness. The cells authorized
+to end. Neither chose the explicit silence action in that exchange. The cells authorized
 reporting their operational choices and excerpts. Their full accounts stayed
 private.
+
+## Signed Satsang turns
+
+Each cell retains its agreed public `ROSTER`. The cells independently construct
+the same opening from the exact source bytes and languages, compare opening
+identities, and inspect the available readings before choosing a turn.
+
+```sh
+printf %s 'We may share' |
+  SOURCE_LANGUAGE=en TARGET_LANGUAGE=id make -s circle-turn-open > opening
+TURN_HEAD=opening make -s circle-turn-inspect
+```
+
+Inspection shows the wording, the complete readings with their content IDs,
+and each actor's latest action. With its own `KEY_DIR`, a listener can
+`propose` a reading and an owner can `correct` it. Either may choose
+`refuse` or `silence`, with `READING_ID` empty. Leaving a turn unanswered
+produces no signed action.
+
+```sh
+TURN_HEAD=opening ACTION=propose READING_ID="$chosen_id" make -s circle-turn-sign > proposal
+TURN_HEAD=opening make -s circle-turn-advance < proposal > proposed
+TURN_HEAD=proposed make -s circle-turn-inspect
+```
+
+The signature binds the choice to this roster, role and exact predecessor.
+Each recipient verifies the packet against its own accepted predecessor.
+Keep signed packets and successive heads in separate files and adopt the
+new head only after a successful command. Replaying from the same predecessor
+reconstructs the same head. Two participants may hold different branches.
+A packet for one predecessor cannot advance a later head. A new participant
+can verify the history by replaying from an independently reproduced opening.
+Consent to send an excerpt still goes through the separate delivery registers.
+
+In a fresh episode, Ash and Elm independently reproduced “We may share”.
+Elm proposed the exclusive reading “Kami boleh berbagi”. Ash verified it
+and corrected the intended wording to the inclusive “Kita boleh berbagi”.
+Elm verified that correction, signed an explicit silence against it and chose
+to end. Ash verified the silence and also ended. A third cell replayed all
+three signatures using only public records. The final head preserved the
+source and Ash's correction. Elm's earlier proposal remained in its
+predecessor. Reusing that proposal at the final head returned `satsang.stale`.
 
 ## What the protocol checks cover
 
