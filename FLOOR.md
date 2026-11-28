@@ -591,7 +591,9 @@ Each line here is held by a program in `make check-full`, or names how it was se
     reaches it and the walker answers 100,000. Under `check-full`'s 64 MB stack both pass. `ground/need-moves-on.ck` returns through 200,000 frames of `need` in a row:
     the loop of returns is a jump, so it runs in a constant stack. Planted in `walk.ret`, each
     made a program differ or the process end: `no` let through a `need` (the answer `no`
-    where 7 is pinned, and the lens loops), a pushed frame's link mark taken from the
+    where 7 is pinned, the lens loops, and `ground/check-one.ck` names the path it judged in
+    place of `#33`: its verdict is picked by the handle of one comparison, not by a branch, so
+    it does not stand on the `need` it checks), a pushed frame's link mark taken from the
     activations (no answer line), a frame dropped though a choice can return to it (faults of
     kind), a layer's bindings seeing one fewer (`ground/loop-in-place.ck`), and the loop of
     returns made a call that is not a jump (the stack's floor is met, and the C ends the
