@@ -924,7 +924,11 @@ and compares both its history and the returned list with five explicit
 references. The emitted Python, C#, TypeScript and Java ran against ordinary
 language observers with the same results. One result contained both false
 and integer zero. An unselected branch with an observable method call stayed
-unvisited. The target fixtures provide the small part of each runtime used
+unvisited. A sixth invocation uses a concrete receiver whose field changes the result.
+The caller names a local `answer2` and a parameter `answer2_`. The extra first iterator
+required by query syntax uses the same normalized clause and name allocator as the other
+iterators. Its generated binding becomes `answer2__`. The caller observes the receiver’s
+field in all four profiles. The target fixtures provide the small part of each runtime used
 by this package. They run in `make check-held-back` when their toolchain is
 available. `JAVA_HOME` can select a JDK.
 Different declarations of the same name fault. A native search target can declare an operation's

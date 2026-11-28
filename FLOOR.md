@@ -146,22 +146,12 @@ Each line here is held by a program in `make check-full`, or names how it was se
   itself, from the same nodes, as Python, C#, TypeScript, Java and BML: generators, LINQ and
   `function*` for searches in the first three, `Stream` with `flatMap` in Java, Form's own
   `choice` and `fail` in BML. `ground/lens-round-trip.ck` writes all five and reads the BML back
-  into a syntax tree with the BML reader. Through `nums/write-text.ck` the writer writes itself
-  as 2,949 lines of Python, 4,980 of C#, 3,374 of TypeScript, 3,522 of Java and 2,916 of BML.
-  Python's parser takes the Python, and ruff finds in it no undefined name, redefinition, unused
-  local or comparison with `None`, `True` or `False`. Against a stub of the runtime that types
-  every name `any`, Deno's checker refuses 81 places in the TypeScript, 77 of them a value of type
-  unknown used where a type is needed; against small stubs, javac 21 refuses 121 and Roslyn 349.
-  A member read is cast to the shape it reads where the receiver's static type is another, and a
-  value of unknown type to the type its place declares. Numbers the package names are written by
-  name, and long argument lists are broken at the language's width. The BML is written as
-  `section [form.search]`, which the BML reader takes beside `[form.bml]`, and its first lines say
-  it reads as Form reads its nodes, where `choice` answers every option; no reader yet lowers
-  those searches to recipes. The encoder's package, `nums/arm.ck`, and the compiler's,
-  `nums/compile.ck`, are written by the same writer in all five; the compiler's Python parses and
-  its BML reads back. The compiler takes the encoder's functions and the runtime's as recipes.
-  The writer also accepts dependency packages for a linked view. It follows referenced
-  declarations to determine whether a call can produce several answers.
+  into a syntax tree with the BML reader. The portable comparison executes typed methods with
+  ordered choice and failure after reading their emitted BML. It compares these with native
+  evaluation on successful and empty branches. The encoder and compiler also project in all five
+  languages. Reading those larger packages as syntax trees and executing a supported method are
+  separate checks. For a linked projection, the writer follows referenced declarations to
+  determine whether each call can yield several answers. [Component views](spec/nums.md)
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -360,20 +350,18 @@ running compiled code against frames all the way down).
   produced one acceptance and seven replay receipts. This witnesses local process behavior.
   Participants' experience of trust and vitality remains an open question.
   [Local inbox and its boundaries](spec/core-operations.md#local-inbox)
-- **A consent decision can cross machines without sharing the broker's private directory.**
-  An x86-64 Linux guest generated a listener key in RAM, reviewed a fixture invitation and
-  signed its commitment. The macOS broker verified it against a preprovisioned public roster.
-  The receiving directory stayed empty until the owner supplied its own signed grant. The guest
-  checked the returned ticket and status over a serial link. The receipt itself was unsigned.
-  The maintained flow also checks the exact bilingual payload, retained signatures and stale
-  grant replay after withdrawal. [Signed consent controls](spec/core-operations.md#signed-consent-controls)
-- **A broker remembers the expiry it observed.** Two local brokers received the same signed
-  grant for seconds 100 through 109. One received the withdrawal and declined at 100. The
-  other delivered at 100. In a separate run it reached 110 before publication, restarted at
-  109 and still left the receiving directory empty. Restoring an older copy of its private
-  directory allowed delivery again. An owner can verify the exact signed window and
-  withdrawal offline. Evidence of when each broker applied them remains open.
-  [Signed consent controls](spec/core-operations.md#signed-consent-controls)
+- **A receiving broker can attest what arrived across machines.** A Linux guest signed its
+  invitation using an independently enrolled listener key. A signed owner grant and listener
+  invitation permitted publication of a 137-byte letter. The guest signed its observation of
+  those bytes, and the macOS sender verified the 591-byte receipt against the original
+  expectation. [Signed controls](spec/core-operations.md#signed-consent-controls) and
+  [receipt verification](spec/mesh-receipts.md)
+- **What a broker knows depends on which controls reached it.** A broker with a withdrawal
+  refused a delivery that a disconnected peer still allowed. Retaining the highest observed time
+  stopped a clock rollback at that broker. A separate witness that retained the latest control
+  revisions also stopped a restored receiver from publishing under a superseded grant. A
+  withdrawal still held only by its owner cannot inform the receiver or witness.
+  [Time and control revisions](spec/mesh-receipts.md#independent-time-and-control-revisions)
 - **Seed can train its own causal language model and generate with the saved weights.**
   Eighteen synthetic sentences trained a 15-token model. A new process generated the
   expected verb and an end token for all six withheld adjective and noun combinations.
@@ -411,6 +399,8 @@ The same delivery and evidence boundaries now support these observed runs.
 | Does the model respect evidence and a stop request? | On four synthetic prompts, the local 3B model accepted a false premise and invented a motive. The hosted session identified the superseded source. Both followed the source switch and respected the stop. [Prompts and observed answers](spec/model-behavior.md) |
 | Can a locally trained model reach a consumer under explicit permission? | The owned model improved from 0/6 to 6/6 held-out completions, reached inference through an independent derivative grant and became unavailable to a fresh consumer after withdrawal. Three further 3B comparisons improved aggregate results while each lost a protected owner pair. [Local learning](spec/local-learning.md) |
 | Can a gauge reading keep its uncertainty? | Two independent readers agreed on 12,090 mV in eight overlapping windows. The journal retained both readers' raw values and time brackets, including when the declared allowance crossed the interpretation boundary. [Instrument evidence](spec/observations.md) |
+| Can a fitted adapter improve its task and preserve unrelated behavior? | A step-by-step gate let generated text activate the adapter during an unrelated request. Binding the single adapted decision to the original caller context produced 22/22 expected results, including longer protected continuations. Its parent and matched control produced 16/22 each. Withdrawing the grant prevented a fresh use. [Native rank adapter](spec/rank-adapter.md) |
+| Who can replace a lost key? | An owner can enroll an independent delegate and later cancel that authority. A chartered transition established a new episode after a worker interruption and refused old controls. A disconnected copy still acted on the old episode. [Key recovery](spec/key-recovery.md) |
 
 ## Not there
 

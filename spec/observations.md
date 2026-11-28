@@ -54,3 +54,6 @@ placed all eight in the overlap class. Substituted duplicate evidence,
 nonoverlapping windows, a substituted reader and overflowing interval
 endpoints were refused. The allowance is an input to the interpretation.
 Establishing physical calibration needs evidence independent of that gauge.
+An advancing sequence also requires advancing acquisition evidence. A
+reversed reader clock or a repeated pair of time brackets cannot add a new
+physical observation to the history.

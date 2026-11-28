@@ -650,3 +650,27 @@ conf: mid
 why: Python, TypeScript, Java and C# matched five native answer and effect traces. A sibling made an earlier zero succeed and an untaken branch throw.
 limit: These observations cover the checked constructs and supplied runtimes.
 at: 2026-11-28
+
+n: 5.19.59
+name: the-origin-of-a-request-can-bound-a-trained-specialist
+kind: observation
+is: An adapter selected from its caller’s original context can change a declared decision while preserving unrelated, longer continuations.
+status: observed
+from: 5.19.55
+src: 2.30.45
+conf: mid
+why: A runner that reconsidered scope after each generated token changed five previously correct continuations. The origin-bound fitted composition achieved 22 exact results with zero regressions versus 16 each for its parent and control. Withdrawal blocked a new use.
+limit: This comparison concerns a synthetic finite language and its registered outputs. It does not establish that a general 3B adapter passes a different evaluation.
+at: 2026-11-28
+
+n: 5.19.60
+name: key-loss-can-be-handled-by-prior-recovery-authority
+kind: observation
+is: A broker can recover from the loss of an owner key using authority that the original owner enrolled and can revoke before transition.
+status: observed
+from: 5.19.53
+src: 2.30.46
+conf: mid
+why: A delegate and successor signed the new episode. A worker exited after changing the roster; neither generation could deliver until recovery resumed. The new episode then accepted fresh controls and rejected the old proofs.
+limit: This used independent synthetic keys. Initial identification of real people and informing a disconnected broker are separate events.
+at: 2026-11-28

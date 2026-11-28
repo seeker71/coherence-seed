@@ -507,3 +507,19 @@ is: A native observer records which branches executed and what a nested search r
 path: coherence-seed/ground/search-trace.ck
 got: 2026-11-28
 at: 2026-11-28
+
+n: 2.30.45
+name: rank-reference.ck
+kind: source
+is: Dense-logit comparisons and factor-training evidence exercise the owned low-rank derivative.
+path: coherence-seed/ground/rank-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.46
+name: recovery-case.ck
+kind: source
+is: Signed enrollment, cancellation, interrupted application and stale proof cases drive a local key handover.
+path: coherence-seed/ground/recovery-case.ck
+got: 2026-11-28
+at: 2026-11-28
