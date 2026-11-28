@@ -75,18 +75,22 @@ Each line here is held by a program in `make check-full`, or names how it was se
   again into a buffer of its size. The same 12 requests of `make check-image` answer the same
   12,427 bytes cold and from the image, and six more cases (an id of none, a request cut short,
   a count over two requests, a reply of the whole image of 1,931,700 bytes, a part of the image,
-  a request after a refused one) the same bytes and the same exit code as the C port did. Measured
-  by `/usr/bin/time -l`, instructions retired: a start with no request 2,760.9 M, and 12 and 24
-  requests of the image flow 3,035.9 M and 3,251.5 M (the C port: 3,030.0 M and 3,240.2 M); one
-  request of 3,032 bytes of reply repeated 50 and 100 times costs 0.42 M each (the C port: 1.6 M,
-  of which the writes of a record each are most). Not built: the closure's listing in Form. Walked
-  (`ice.freeze`'s own marks, `encode` of each part and the bytes packed) it costs 7 M a request of
-  37 parts, against the C's 1 M: a walked recursion step is 8,000 instructions, a `join` 6,400, so
-  a part costs 100,000; a leaf of the emitter would cost about 5,000 a part (estimated: eight asks of the bootstrap at
-  1,600), but it did not compile two small leaves that `hold` a mark (one that `held` alone did), and
-  `note` keeps what it marks beyond the reply, so the marks would be a table of handles in a room, as
-  the printer's are. The reading of an id's node is the emitter's `node`, not a
-  new part of C.
+  a request after a refused one) the same bytes and the same exit code as the C port did.
+  Measured by `/usr/bin/time -l`, instructions retired (the C port in brackets): a start with no
+  request 2,762.6 M (2,760.9 M), 12 and 24 requests of the image flow 3,042.3 M and 3,264.3 M
+  (3,030.0 M and 3,240.2 M); from the image, 40.2 M with none and 325.9 M and 548.1 M with 12
+  and 24 (38.9 M, 312.5 M, 522.6 M); a request for a leaf 0.39 M each (0.09 M), a request
+  of 3,032 bytes of reply 0.41 M each (1.63 M, which wrote each record on its own). So the Form
+  port costs more than the C on the image's flows, 0.4% to 0.7% cold and 4.3% to 4.9% warm, by
+  640 to 1,100 steps of the walker a request. Not built: the closure's
+  listing in Form. Walked (`ice.freeze`'s own marks, `encode` of each part and the bytes packed) it
+  costs 7 M a request of 37 parts, against the C's 1 M: a walked recursion step is 8,000
+  instructions, a `join` 6,400, so a part costs 100,000; a leaf of the emitter would cost about
+  5,000 a part (estimated: eight asks of the bootstrap at 1,600), but it did not compile two
+  small leaves that `hold` a mark (one that `held` alone did), and `note` keeps what it marks
+  beyond the reply, so the marks would be a table of handles in a room, as the printer's are.
+  Not built either: running a request from Form with no choice open (`walk` is not re-entered), so
+  C still runs each one.
 - **The engine runs by id.** `seed-run` loads a numeric image and accepts recipe and argument
   ids. Its packed image contains zero text leaves. One process constructed a cell and stored
   and read back 42 using its ID. An image packed on Apple silicon compiled a scalar recipe by ID
