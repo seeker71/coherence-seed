@@ -293,12 +293,15 @@ For a resident model, `metal.mount` takes a `metal.model` containing a library a
 allocation descriptors. It returns the content ID of that declaration. Within a worker,
 mounting the same declaration again returns the same ID and keeps the existing state.
 The caller keeps the mapped weight file stable for the lifetime of the model.
-`metal.advance` takes that ID, a batch with an empty library field, and the desired
+`metal.advance` takes that ID, a batch (or an input frame wrapping it), and the desired
 readbacks. At mount, each allocation gets a numeric binding with its Metal buffer
 handle, logical length and starting byte offset. Both stage views and readbacks
 resolve ranges through that binding. Turns reuse the device, library, pipeline
-cache, buffers and queue. Each turn binds its command encoder once. The stage
-views select each stream's own scratch and KV allocations. `metal.retire`
+cache, buffers and queue. On first use, Form resolves the batch into a list of Metal calls under its content ID.
+Subsequent frames replay that list on a fresh encoder. The station owns the cache,
+so eviction or a fresh mount can prepare the list again. A `metal.input-frame`
+pairs the batch with byte updates to declared scratch views. This lets one plan
+serve changing rotary positions, KV slots, masks and initial token IDs. `metal.retire`
 releases the worker's ownership and makes the ID available for a fresh mount.
 
 Each resident turn runs at a committed boundary. Before encoding, a host memory
@@ -331,13 +334,13 @@ showed fusion, which can absorb several graph operations into one encoder call.
 
 | ggml operation | Calls per turn | Seed execution in the measured image |
 | --- | ---: | --- |
-| `GET_ROWS` | 4 | Eight packed embedding-row reads. The ggml trace also contains a mixed-input lookup and two final output-row gathers. Seed returns dense rows for this batch. |
+| `GET_ROWS` | 4 | One packed Q6_K row gather reads eight GPU-selected token IDs. The ggml trace also contains a mixed-input lookup and two final output-row gathers. Seed returns dense rows for this batch. |
 | `DUP` | 1 | ggml builds a mixed embedding buffer. The Seed replay takes token IDs directly. |
 | `RMS_NORM`, `MUL` | 57 each | The two operations share one upstream weighted RMS dispatch at each site. |
 | `MUL_MAT` | 197 | All 197 bound weight offsets matched the graph's source tensor in the GGUF directory. The stored types selected 168 Q4_K and 29 Q6_K dispatches. |
 | `ROPE` | 56 | One upstream normal Float32 rotation per Q or K tensor, covering all streams. |
-| `SET_ROWS` | 57 | ggml writes 56 K/V tensors and populates the mixed-input buffer once. Seed writes 448 separate stream slices into Float32 KV storage. The reference used Float16 KV storage. |
-| `FLASH_ATTN_EXT` | 28 | Seed dispatches its grouped-query decode kernel once per stream per layer, 224 times. |
+| `SET_ROWS` | 57 | ggml writes 56 K/V tensors and populates the mixed-input buffer once. Seed uses the same 56 indexed Float16 writes into the shared K and V buffers. |
+| `FLASH_ATTN_EXT` | 28 | Each layer runs one Float16 vector attention dispatch and its reduction across the eight streams. |
 | `ADD` | 56 | Seed uses 56 binary-map stages. The reference encoder fuses 55 residual additions into matrix operations for this batch. |
 | `GLU` | 28 | Seed dispatches SwiGLU across each contiguous activation panel. |
 | `RESHAPE`, `VIEW`, `PERMUTE` | 168, 140, 84 | Seed expresses the measured layouts through allocation offsets, dimensions and strides. General tensor-view equivalence remains open. |
@@ -345,35 +348,25 @@ showed fusion, which can absorb several graph operations into one encoder call.
 Sampling sits outside that ggml graph. The Seed token replay uses two argmax stages per
 stream. [Llama graph builder](https://github.com/ggml-org/llama.cpp/blob/620d2225cc436ab0b001e3200e590e3b286ef9ab/src/models/llama.cpp)
 
-With the same 128 first-layer K/V input rows and slot indices, Seed preserved all
-131,072 Float32 values. The ggml cache contained their exact Float16 conversions.
-Rounding changed 131,057 values before attention read the cache.
+A `metal.flash128-layout` describes the query and KV heads, stream count, padded
+cache capacity and scale for the upstream 128-wide vector kernel. The decode frame
+maps each stream's current position to an indexed cache row and writes its Float16
+causal mask. Positions and tokens can change while the batch ID stays the same.
+The next embedding gather reads the preceding GPU argmax results.
 
-The Metal calls at Seed revision `a2f9997` show where the eight-stream turn spends its
-time on the 40-core M4 Max.
-With identical fixed input IDs at eight positions, four warm runs gave 28.35 aggregate
-tokens/s in Seed and 763.41 in llama.cpp. In 32 separately timed warm turns the median
-interval from command-buffer creation to final submission was 254.22 ms for Seed and
-0.39 ms for llama.cpp. The GPU occupied 29.76 ms and 8.78 ms respectively. Both paths
-waited once. Seed made one compute encoder with 1,090 dispatches. llama.cpp made two
-compute encoders with 453 dispatches and a blit encoder to copy the logits.
+For Llama 3.2 3B Q4_K_M on the 40-core M4 Max, the encoder trace matched all 112
+attention-family dispatches per turn in order, kernel entry, grid, threadgroup,
+shared memory and defined inline argument bytes. On identical captured operands,
+the two processes produced identical bits for all 131,072 Float16 cache entries
+and all 196,608 Float32 attention outputs across eight positions. Seed reproduced
+the comparison under both the native arm64 and translated x86_64 process ABIs.
 
-A diagnostic replay sent the same 8,707 compute commands per turn directly to Metal,
-preserving Seed's argument bytes, buffer offsets, pipeline states, barriers and grids.
-Across all eight positions the median host encoding time was 0.38 ms. After clearing
-the destinations, every replay reproduced all 1,026,048 logits and eight token IDs
-for its position. This locates the main host cost in preparing and issuing the
-resolved schedule through the Form walker. The production turn still takes that path.
-
-The stored Float32 grouped-query attention kernel also accounts for the increase in GPU
-time with context length. In a separate replay, Metal timestamp samples around its 28
-groups measured 5.39 ms at position zero and 36.09 ms at position seven. The rest of
-the turn took 9.96 and 10.16 ms. The live buffer bindings identified the same 197 packed
-weight tensors in both programs. Among the corresponding matrix dispatches, the archived
-Apple GPU instruction bytes matched for the final projection alone. The full launch
-geometry differed at all 197. A GPU checksum over those 2,010,839,040 weight bytes
-measured 501 GB/s, with every tensor sum verified on the CPU. This measures a read pass
-through the checkpoint. Decode also performs the matrix products, attention and sampling.
+Eight concurrent streams generated eight tokens each through Seed's numeric port.
+All 64 selected tokens matched llama.cpp for a shared start and all 64 matched for
+independently seeded streams. The resident image issued 523 compute dispatches per
+turn against 453 in llama.cpp. Residual-add fusion and differences in the packed
+matrix launches remain visible in the trace. This measurement covers short-context
+decode on one model. The first turn includes call-list preparation.
 
 A `metal.rotary-panel` holds a compact Float32 layout (head width, heads, tokens),
 scaling parameters, source, positions, frequency factors, destination and barrier.
