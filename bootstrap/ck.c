@@ -419,7 +419,9 @@ static int local_code(H leaf); static void *birth(H leaf);
 static void sha256(const uint8_t *msg, size_t len, uint8_t out[32]) {
   H door = USED(A_CELLS, E(ID)) ? held[E(ID)] : 0; void *fn = door && local_code(door) ? birth(door) : NULL;
   if (!fn) die("the cell of id holds no digest for this processor");
-  uint64_t mark = ntext; int in = msg >= text && msg + len <= text + ntext; uint8_t *w = talloc(480 + (in ? 0 : len));
+  size_t at = msg >= text ? (size_t)(msg - text) : ~(size_t)0; int in = at <= ntext && len <= ntext - at;
+  if (!in && (at < fb->a[A_TEXT].cap || len > text_limit())) die("a message to hash lies in the text beyond what it uses, or is larger than the text");
+  uint64_t mark = ntext; uint8_t *w = talloc(480 + (in ? 0 : len));
   if (!in) { memcpy(w + 480, msg, len); msg = w + 480; }
   int64_t arg[8] = { msg - text, (int64_t)len, w - text, 0, 0, 0, (int64_t)(intptr_t)fb, 3 };
   if (host.call(fn, arg).k) die("the leaf of id did not run");

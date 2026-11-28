@@ -678,22 +678,21 @@ Each line here is held by a program in `make check-full`, or names how it was se
   builds the current. With none that runs, the last commit whose C walker returns and restores a
   fail alone, with no seed (`4d7b155`), builds a seed from the nodes, and that seed builds the next.
 - **SHA-256 of an id runs in Form the seed carries; the C has none.** `form/digest.ck` compiles the
-  hash with `emit.floor` and holds it in the cell of `id`: the message lies in the text (a message
-  lying elsewhere is copied there by the C first), the leaf is given its place, its length and a
-  scratch of 480 bytes in the text, and leaves the digest first in it. It does the blocks, the
-  padding and the length itself; `form/id.ck`'s walked `sha.of` is its reference.
-  `ground/encoding-in-form.ck` makes 31 byte leaves of 0 to 1,000 bytes (messages of 33 to 1,033,
-  around every padding edge) and has the operation `id`, the leaf, answer what the walked Form does:
-  none differs. Planted in the leaf, each made cases differ: a wrong rotation (all but a few), the
-  pad edge taken one early (the leaves of 22 and 86 bytes, the messages of 55 and 119), the length
-  of the message in bits taken as half, a pad byte 129, and a changed start value. Measured
-  (`/usr/bin/time -l`, instructions retired): the leaf takes about 40,000 a block where the C took
-  about 1,300; a cold start of the numeric port, which makes the ids of the catalogue and of what
-  it answers, takes 3.0 G where it took 1.4 G (0.10 s against 0.06 s), the replies the same 12,427
-  bytes; entered from its image, where the ids are kept, 307 M where it took 303 M. Walking is not
-  touched: a node is made without its id. A seed that does not hold the cell, or whose leaf does not
-  run, is refused at the first id. With no seed that runs, the last commit that hashes in C
-  builds one.
+  hash by `emit.floor` into the cell of `id`. The message lies in the text (the C copies one that
+  lies elsewhere), the leaf is given its place, its length and a scratch of 480 bytes there, does
+  the blocks, the padding and the length itself, and leaves the digest first in the scratch.
+  `form/id.ck`'s walked `sha.of` is its reference: `ground/encoding-in-form.ck` makes 42 byte
+  leaves of 0 to 65,537 bytes (messages of 33 to 65,570, around every padding edge, the second
+  tail block and the carries of the length field) and has the operation `id` and the walked Form
+  answer alike. Planted in the leaf, each made cases differ: a wrong rotation, the pad edge one
+  early (the messages of 55 and 119 bytes alone), the length taken as half, a pad byte of 129, a
+  changed start value. A leaf that does not compile stops the seed build at its first id, and a
+  seed without the cell or with a leaf that does not run is refused at the first id with a plain
+  line. The leaf takes about 40,000 instructions a block where the C took about 1,300
+  (`/usr/bin/time -l`): a cold start of the numeric port, which makes the ids of the catalogue and of
+  what it answers, takes 3.0 G where it took 1.4 G (0.10 s against 0.06 s) with the same replies;
+  entered from its image, where the ids are kept, 307 M against 303 M. Making a node needs no id.
+  Where no seed runs, the last commit that hashes in C (`5d30285`) builds one.
 - **A node's parts are read by instructions, and code checks at entry what it assumed.** `count`,
   `byte`, `child`, `blueprint`, `leaf`, `handle` and `at` compile to reads of the node's record
   (`at` of a handle of the process's own lane, in any lane), and any case they do not take calls
