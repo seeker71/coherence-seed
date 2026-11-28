@@ -343,8 +343,8 @@ one resident batch. It sleeps in the host poll when every client is idle. A
 paused sequence keeps its KV history while other sequences advance or start.
 The Metal plan still dispatches its declared panel width.
 
-Load `nums/projection.ck` and `host/streams.ck` through `part.load` after the
-resident Metal bindings. Construct `stream.decode-model` with the model ID,
+After the resident Metal bindings, load `nums/projection.ck`, `nums/by-id.ck`
+and `host/streams.ck` in that order through `part.load`. Construct `stream.decode-model` with the model ID,
 batch, flash layout, decode input views, one disjoint four-byte feedback
 readback per lane, and vocabulary size. Each readback addresses the token used by
 that lane's next embedding gather. The model owner mounts once, calls
@@ -356,15 +356,15 @@ control or timeout, and minus one after the last lane closes. The owner keeps
 the model mounted and the descriptors open through service, then retires the
 model and closes its descriptors.
 
-Each client sends one eight-byte datagram and reads one eight-byte reply. Both
-contain two little-endian unsigned 32-bit words. One request permits one token
+Each request contains two little-endian unsigned 32-bit words. Ordinary replies
+use the same layout. Clients with recipe tokens enabled receive up to 48 bytes. One request permits one token
 step, so a client can pause simply by waiting before its next request.
 
 | Request word | Second word | Effect on the lane |
 | --- | --- | --- |
 | 0 | Token ID | Start a new context at position zero |
 | 1 | Token ID | Append a prompt token at the next position |
-| 2 | Ignored | Feed the previous prediction into the next position |
+| 2 | Ignored | Accept the previous prediction and advance one position |
 | 3 | Ignored | Finish using this channel |
 
 Reply status 0 carries the predicted token. Status 1 rejects the datagram and
@@ -378,7 +378,9 @@ worker, including staggered arrivals, pause and resume, and reuse of a lane.
 All 106 prompt and generation positions matched llama.cpp at the same batch
 width on both supported macOS process architectures. The maintained Metal image
 comparison drives two socket pairs through the same service and checks the
-results against an identity batch. Endpoint discovery, assignment beyond the
+ordinary predictions against an identity batch. A mapped prediction constructs
+a Metal input frame, runs a compiled NUMS polynomial, feeds back the result and
+returns its content ID while the other socket continues. Endpoint discovery, assignment beyond the
 provisioned sockets, variable-width panels, sharing complete prefix blocks and
 cross-worker memory reservations remain open.
 
@@ -454,7 +456,46 @@ a list of target ids with `no` in ordinary token slots. A mapped token produces 
 request as a direct call. An ordinary token or an index outside the vocabulary answers nothing
 with `e.unbound`. The vocabulary has its own content id, so two models can give the same token
 number different meanings. In the image example, token 1 calls the word instance of subtraction.
-A model decoder feeding the reply to its next prediction is still to be connected.
+The resident decoder accepts a sparse vocabulary per lane. The owner calls
+`stream.attach-tokens(lane, map)` after starting the worker. A `nums.token-map`
+holds sorted, disjoint `nums.token-window(firstToken, targets)` ranges. Each target
+is a resident recipe ID or `no`. An empty map clears the binding. Attaching
+validates the complete map and clears the lane’s previous tool result.
+
+A generation request accepts the previous prediction. An ordinary token enters
+the embedding gather directly. A mapped token calls its recipe by ID with a
+`stream.invocation(modelID, lane, position, prediction, previousResultID)`.
+The first invocation carries `no` for the previous result. The recipe can look up
+a node with `nums.node-by-id(id)`, assemble a composite with
+`nums.node-form(blueprintID, childIDs).assemble()`, and invoke a target with
+`nums.call-by-id(targetID, argumentIDs)`. These use the resident content index.
+Each argument reaches the target as a value.
+
+A planner returns `stream.yield(value, feedbackToken)` or
+`nums.metal-effect(commands, readbacks, continuationID)`. For an effect the
+worker submits the frame or batch to the mounted model through `metal.advance`.
+The continuation receives the invocation and readbacks by ID and returns a yield.
+Planning and completion use Form’s reversible `outcome`. The GPU submission
+runs once between them. The feedback token enters the next decode in that lane.
+Explicit prompt tokens leave intermediate predictions unconsumed.
+
+A successful invocation replies with four little-endian 32-bit words
+`[4, nextPrediction, selectedToken, feedbackToken]` and the 32-byte value ID.
+A lane-local failure replies with `[5, selectedToken, selectedToken, 0]` and the
+32-byte reason ID. The same generation request repeats that failure until the
+client appends a token, resets, or the owner rebinds the map. A reset clears the
+previous result. A full socket queues the materialized reply. If the Metal
+station retires on a device fault, the service uses its terminal model-fault reply.
+
+Two client processes asked one resident Llama 3.2 3B Q4_K_M for the operator
+in “7 plus 5” and “7 minus 5”. The model selected tokens 10 and 12.
+Their Form recipes submitted an addition of signed vectors followed by a GPU
+argmax. The first result was `[12, 7, 3]`, the second `[2, -1, -1]`.
+Both operators used the same continuation. It read the winning Float32 value
+and looked it up in a numeric table of the model’s tokens for integers 0 to 20,
+returning the tokens for `12` and `2`. Both subsequent predictions matched
+llama.cpp supplied with those feedback tokens. Each effect completes before
+the shared decode batch advances.
 
 A recipe body has an immutable id. Its instance has a binding that a trial can replace.
 A candidate genome can therefore hold recipes or typed subtrees. Development fills a template,

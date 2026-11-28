@@ -107,6 +107,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   paused client can resume its own context. Eight clients on nine requests matched
   all 106 predictions from llama.cpp at the same batch width on arm64 and Rosetta.
   [Independent local decode streams](spec/nums.md#independent-local-decode-streams)
+  On Apple Silicon, a generation request can run a model-selected Form recipe by
+  ID. Two local clients elicited different operators from the same mounted Llama
+  model. Each recipe assembled a Metal frame, returned its result by content ID
+  and fed a token into its own next prediction. Both predictions matched llama.cpp.
+  [Recipe tokens and live variants](spec/nums.md#recipe-tokens-and-live-variants)
 - **One word recipe serves signed and unsigned subtraction.** On this host the Form compiler
   attached 252 bytes of code to the resident word instance. The framebuffer showed 18 walker
   steps for the direct call and 5 after compilation, with the same result id at overflow.
