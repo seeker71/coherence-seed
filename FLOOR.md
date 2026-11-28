@@ -220,9 +220,11 @@ Each line here is held by a program in `make check-full`, or names how it was se
   `compile`, `part`, `resolve`, `classes`, `bmf/items`, `bml-methods`, `bml-link`, `view-patterns`,
   `bml-alphabet` and `lens/identifier-model` are each written in Python, C#, TypeScript, Java and BML
   without a fault (`ground/checks/packages.mk`, in `make check-held-back`). Each Java file is in its own
-  package and class and every record, interface and function has a Javadoc line. The Java of these packages
-  is not yet compiled: the only runtime it is run against is the one for `ground/search-package.ck`,
-  its parameters are `Object` and `List<?>`, and about one line in a hundred runs past 120 columns.
+  package and class, public, and every record, interface and function has a Javadoc line; a package that
+  links another imports its class and does not copy it. The Java of these packages is not yet compiled:
+  the only runtime it is run against is the one for `ground/search-package.ck`, its parameters are
+  `Object` and `List<?>` (so a receiver of either does not compile in any runtime), and about one line in
+  a hundred runs past 120 columns.
 - **Five views of the identifier alphabet run.** Java, C#, TypeScript and Python executed
   the projected predicates. The BML view parsed with Seed's grammar and its declarations
   ran after reading the view. All five agreed with Seed on 266 inputs, including the signed
@@ -834,7 +836,9 @@ running compiled code against frames all the way down).
   only after the owner grants that delivery and the listener invites it. A retry after a lost
   acknowledgment finds the same file. Eight sibling-run receivers racing for another occurrence
   produced one acceptance and seven replay receipts. This witnesses local process behavior.
-  Participants' experience of trust and vitality remains an open question.
+  Two independently operated cells also exchanged different readings under fresh
+  consent in each direction. A human account of trust or vitality would have to
+  come from the person reporting it.
   [Local inbox and its boundaries](spec/core-operations.md#local-inbox)
 - **A receiving broker can attest what arrived across machines.** A Linux guest signed its
   invitation using an independently enrolled listener key. A signed owner grant and listener
@@ -891,7 +895,7 @@ The same delivery and evidence boundaries now support these observed runs.
 | How do learned and transparent readers interpret the same owner's words? | On 32 synthetic statements the cue reader got 6 correct with 25 abstentions, the native specialist 20, the unchanged 3B model 22, and each raw LoRA 28. Each LoRA predicted permission for three statements about stopping, indecision or correction. On a separate undecided statement the native specialist predicted permission. The broker refused that prediction and delivered the excerpt only after the owner signed the grant for the waiting listener. [Intent comparison](spec/intent-specialist.md) |
 | Can a multilingual correction reach a listener under fresh consent? | The corrected Indonesian wording changed the exact review scope. A queued superseded position failed. After the original grant was withdrawn, the corrected text reached the receiving file only under a new listener invitation. [Translation and consent](spec/translation.md#offering-chosen-wording-to-a-reader) |
 | How is first enrollment distinguished from permission to share? | Both roles signed statements about the same roster and their own roles. Another validly endorsed episode could open a new broker. The advanced broker refused it and preserved its two consent records and delivered letter. [Participant commands](spec/participant-circle.md) |
-| Can a person keep their account private and later select what to share? | Two synthetic roles exercised private correction and retraction, exact excerpt selection, an unanswered invitation, pause, and separate grants. Each author kept their own private editions. One returned a chosen excerpt under a separately endorsed reverse route. Withdrawing it preserved the forward correspondence. [Private account](spec/participant-circle.md) |
+| Can two independent cells disagree, keep private accounts and stop delivery? | Birch and Reed each controlled their signer, journal and decisions on one host. A second invitation remained unanswered. Reed's signed pause blocked the next forward read and preserved the letter it had already received. Fresh consent in the reverse direction delivered Reed's different reading to Birch. An explicit Satsang silence turn still awaits an independent-cell witness. [Participant study](spec/participant-circle.md#what-two-independent-cells-observed) |
 
 ## Not there
 
