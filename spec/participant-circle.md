@@ -40,7 +40,11 @@ exercise requires neither personal material nor an assessment of their health.
 2. The organizer sets `OWNER`, `LISTENER`, `CIRCLE`, `OWNER_PUBLIC` and
    `LISTENER_PUBLIC`, then runs `make -s circle-propose > roster.ck`. Both
    participants get the same proposed public roster. Each sets `ROSTER` to
-   that file and uses `make -s circle-inspect` to review the proposal.
+   that file and uses `make -s circle-inspect` to review the proposal. The
+   display lists the episode, speaker, circle, listener, speaker’s public key
+   and listener’s public key in that order. Compare both roles and keys against
+   the agreement you intended. Inspection also accepts the roster as CKNODES
+   records and needs only the public roster file.
 3. The owner runs `ROLE=owner make -s circle-endorse > owner.ok` with their
    own `KEY_DIR`. The listener runs `ROLE=listener make -s circle-endorse >
    listener.ok` with theirs. Only endorsements and public material go to the

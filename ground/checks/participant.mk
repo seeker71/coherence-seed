@@ -5,9 +5,14 @@ define verify_participant_account
   p() { $(MAKE) --no-print-directory -s "circle-$$@"; }; \
   word() { printf %s "$$1" | $(CANONICAL_WORDS); }; \
   refuse() { reason=$$1; shift; rc=0; "$$@" >"$$work/failure" 2>"$$work/error" || rc=$$?; test "$$rc" != 0 && test "$$(cat "$$work/failure")" = "fault $$(word "$$reason")" || { echo "participant expected $$reason, received $$(cat "$$work/failure")" >&2; return 1; }; }; \
+  inspect_roster() { (unset KEY_DIR BROKER; p inspect) >"$$work/inspected.words"; \
+    ./ck text form/from-print.ck <"$$ROSTER" >"$$work/roster.records"; ./ck text lens/to-nodes.ck lens/all.ck <"$$work/inspected.words" | cmp - "$$work/roster.records"; \
+    (ROSTER="$$work/roster.records"; p inspect) | cmp - "$$work/inspected.words"; }; \
   OWNER=Juniper; LISTENER=Lark; CIRCLE="Imagined rehearsal"; BROKER="$$work/broker"; ROSTER="$$work/roster"; export OWNER LISTENER CIRCLE BROKER ROSTER; \
   KEY_DIR="$$work/owner"; export KEY_DIR; p key; KEY_DIR="$$work/listener"; p key; \
-  OWNER_PUBLIC="$$work/owner/public"; LISTENER_PUBLIC="$$work/listener/public"; export OWNER_PUBLIC LISTENER_PUBLIC; p propose >"$$ROSTER"; ROLE=owner; KEY_DIR="$$work/owner"; export ROLE; p endorse >"$$work/owner.ok"; ROLE=listener; KEY_DIR="$$work/listener"; p endorse >"$$work/listener.ok"; \
+  OWNER_PUBLIC="$$work/owner/public"; LISTENER_PUBLIC="$$work/listener/public"; export OWNER_PUBLIC LISTENER_PUBLIC; p propose >"$$ROSTER"; inspect_roster; ROLE=owner; KEY_DIR="$$work/owner"; export ROLE; p endorse >"$$work/owner.ok"; ROLE=listener; KEY_DIR="$$work/listener"; p endorse >"$$work/listener.ok"; \
+  dd if="$$work/roster.records" of="$$work/partial-roster" bs=20 count=1 2>/dev/null; (ROSTER="$$work/partial-roster"; refuse '"short"' p inspect); \
+  printf %s same-keys >"$$work/mode"; printf %s '#32' | ./ck text ground/peer-case.ck 3<"$$work/mode" >"$$work/invalid-roster"; (ROSTER="$$work/invalid-roster"; refuse peer.invalid-roster p inspect); \
   OWNER_ENDORSEMENT="$$work/owner.ok"; LISTENER_ENDORSEMENT="$$work/listener.ok"; export OWNER_ENDORSEMENT LISTENER_ENDORSEMENT; \
   rc=0; (OWNER_ENDORSEMENT="$$work/listener.ok"; p establish) >"$$work/refusal" 2>"$$work/failure-reason" || rc=$$?; test "$$rc" != 0; grep -F "fault $$(word ed25519.invalid-signature)" "$$work/failure-reason" >/dev/null; test ! -e "$$BROKER"; \
   mkdir -p "$$BROKER/.seed-enrollment"; printf interrupted >"$$BROKER/.seed-enrollment/authority"; \
@@ -55,7 +60,7 @@ define verify_participant_account
   ./ck text learning/intent-fit.ck <ground/intent-corpus.ck >"$$work/specialist"; ./ck text learning/intent-read.ck 3<"$$work/specialist" <"$$work/input" >"$$work/prediction"; \
   labels=$$(./ck text ground/intent-labels.ck <"$$work/prediction"); test "$$labels" = "$$(word '(list (list "K" "V"))')"; \
   p source <"$$work/back-permit" | cmp - "$$work/listener-words"; KEY_DIR="$$work/owner"; refuse witness.wrong-owner p source <"$$work/back-permit"; refuse witness.wrong-owner p select-return <"$$work/back-excerpt"; p show | cmp - "$$work/third"; \
-  ACTION=share; HEAD="$$work/owner4"; refuse inbox.misdirected p sign <"$$work/back-permit"; ROSTER="$$work/back-roster"; BROKER="$$work/back-broker"; \
+  ACTION=share; HEAD="$$work/owner4"; refuse inbox.misdirected p sign <"$$work/back-permit"; ROSTER="$$work/back-roster"; inspect_roster; BROKER="$$work/back-broker"; \
   KEY_DIR="$$work/listener"; ROLE=owner; p endorse >"$$work/back-owner.ok"; KEY_DIR="$$work/owner"; ROLE=listener; p endorse >"$$work/back-listener.ok"; OWNER_ENDORSEMENT="$$work/back-owner.ok"; LISTENER_ENDORSEMENT="$$work/back-listener.ok"; p establish >"$$work/back-agreement"; \
   p owner-head >"$$work/back-owner0"; p listener-head >"$$work/back-listener0"; p ticket <"$$work/back-permit" >"$$work/back-ticket"; refuse share.ungranted p read <"$$work/back-ticket"; \
   KEY_DIR="$$work/owner"; ACTION=listen; HEAD="$$work/back-listener0"; p sign <"$$work/back-ticket" >"$$work/back-listen"; p submit <"$$work/back-listen" >"$$work/back-listener1"; \
