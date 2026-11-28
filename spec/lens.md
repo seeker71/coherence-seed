@@ -152,8 +152,18 @@ changes to one stored file are merged through their views: the base, ours and th
 reads anything. `lens/all.ck` evaluates the three files of the lens. Inside a program, after
 `(step (read (file "lens/all.ck")))`, `(lens.read t)` answers the node a text leaf shows,
 `(lens.show x)` the one-line text of x, `(lens.lower x)` and `(lens.raise x)` run the rows,
-`(lens.stored raw)` is the node of a file's bytes, records or a print, with its names learned, and
+`(lens.stored raw)` reads stored records and learns their names, and
 `(lens.to-store x)` the bytes of the file that stores x.
+
+For a protocol that exchanges canonical text, the two text lenses preserve the
+value and its optional line of names. This also works for a single catalogue
+entry such as `yes`, whose canonical print is `#33`.
+
+```sh
+printf %s '{left right | (left + right)}' |
+  ./ck text lens/to-canonical.ck lens/all.ck |
+  ./ck text lens/show-canonical.ck lens/all.ck
+```
 
 ## How it is known
 

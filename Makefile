@@ -160,6 +160,15 @@ check-full: check
 	@$(MAKE) -k ground-isolated ground-together $(FULL_ONLY)
 
 check-header: ck
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  for words in yes no '0' '(list yes no 0)' '(let seed-value 4 seed-value)'; do \
+	    printf %s "$$words" | ./ck text lens/to-canonical.ck lens/all.ck >"$$work/protocol"; \
+	    printf '%s\n' "$$words" >"$$work/want"; ./ck text lens/show-canonical.ck lens/all.ck <"$$work/protocol" | cmp - "$$work/want"; \
+	  done; \
+	  printf 'junk' >"$$work/invalid"; printf '#33\n(#16)\nextra' >"$$work/trailing"; \
+	  for input in invalid trailing; do rc=0; ./ck text lens/show-canonical.ck lens/all.ck <"$$work/$$input" >"$$work/refusal" || rc=$$?; \
+	    test "$$rc" = 1; case "$$input" in invalid) expected='fault [#2 73796e746178]';; trailing) expected='fault [#2 747261696c696e67]';; esac; \
+	    test "$$(cat "$$work/refusal")" = "$$expected"; done
 	@./ck text region/header.ck | cmp -s - bootstrap/fb.h && $(PLACES) | cmp -s - region/places.ck && $(PRINTER) | cmp -s - form/print.ck && ./ck text form/seed.ck | cmp -s - ice/seed.ck && rm -f .ck-places.run && echo "header: bootstrap/fb.h, region/places.ck, form/print.ck and the seed ice/seed.ck are what the nodes generate, the seed built again on itself the same bytes" || \
 	  { rm -f .ck-places.run; echo "header: bootstrap/fb.h, region/places.ck, form/print.ck or ice/seed.ck is not what the nodes write; run make header"; exit 1; }
 
