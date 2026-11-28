@@ -167,8 +167,9 @@ check-header: ck
 # the substrate's packages, a start that is saved at rest, and leaves the opening of the door and the joining to run after
 # it. $(call shown,NAME) lists a substrate and its lanes by the same rows, after the start share/load.ck, and fails when none stands.
 MEMBER = share/all.ck
-# After the prelude $(FLOOR) a fail is restored by the walker's restore compiled from Form, not by the C: ground-isolated
-# runs the catalogue so, and ground-together on the C, so both hold every expectation.
+# Once $(FLOOR) is read a fail is restored by the walker's restore compiled from Form, not by the C: ground-isolated
+# runs the catalogue so, and ground-together on the C, so both hold every expectation. A member reads it in its program,
+# after joining: compiling asks for handles, and a start that gave handles is not adopted.
 FLOOR = form/walk.ck
 # A canonical print written here is read by the reader in form and stored as the records ck reads.
 NODES = ./ck text form/from-print.ck
@@ -188,11 +189,12 @@ G = .ck-ground
 # the machine's memory.
 ground-isolated: ck fb
 	@set -e; paths=$$(./ck text ground/paths.ck ground/for-host.ck); name=/ck.ground.$$$$; dead=/ck.ground.$$$$.k; stale=/ck.ground.$$$$.s; images=$(IMAGES); export CK_IMAGES="$$images"; \
-	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; ./fb drop '$$name'.d 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2; exit $$rc' EXIT; \
+	  trap 'rc=$$?; set +e; rm -rf "$$images"; kill -9 $$(cat $(G).victim $(G).victim1 $(G).victim2 2>/dev/null) 2>/dev/null; ./fb drop '$$name' 2>/dev/null; ./fb drop '$$dead' 2>/dev/null; ./fb drop '$$stale' 2>/dev/null; ./fb drop '$$name'.d 2>/dev/null; rm -f $(G).stale $(G).differences $(G).held $(G).lanes $(G).killed $(G).new $(G).victim $(G).victim1 $(G).victim2 $(G).floored; exit $$rc' EXIT; \
+	  printf '(seq (step (read (file "%s"))) (step (read (file "ground/check-one.ck"))))' $(FLOOR) | ./ck text lens/to-nodes.ck lens/all.ck > $(G).floored; \
 	  export CK_SHARE=$$name CK_SHARE_BYTES=536870912; \
 	  { $(call joined,$$name); (CK_MEMORY_BYTES=67108864 ./ck run $(LONG) $(MEMBER) > /dev/null 2>&1 & echo $$! > $(G).victim); \
 	    (sleep 0.4; kill -9 $$(cat $(G).victim) && echo killed > $(G).killed) & \
-	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run ground/check-one.ck $(MEMBER) $(FLOOR) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
+	    printf '%s\n' "$$paths" | tr '\n' '\0' | xargs -0 -n 1 -P 6 sh -c 'got=$$(printf %s "$$0" | ./ck run $(G).floored $(MEMBER) 2>&1); [ "$$got" = "node #33" ] || echo "  $$0: $$got"' > $(G).differences; \
 	    wait; $(call shown,$$name) > $(G).lanes; cat region/one-handle.ck; } | ./ck text /dev/stdin $(MEMBER) > $(G).held; \
 	  differences=$$(cat $(G).differences); held=$$(cat $(G).held); victim=$$(cat $(G).victim); \
 	  if [ -n "$$differences" ]; then printf 'ground differences:\n%s\n' "$$differences"; exit 1; fi; \

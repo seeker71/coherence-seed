@@ -562,7 +562,8 @@ Each line here is held by a program in `make check-full`, or names how it was se
   leaf for another processor (under Rosetta), the C restores. A fault while `emit.floor` compiles
   takes its mode off before it goes on, and a leaf it cannot make faults the reading of
   `form/walk.ck`. `make check-full` holds both over the catalogue: `ground-isolated` runs every
-  program after `form/walk.ck`, `ground-together` on the C, `check-held-back` runs its program
+  program as a member after reading `form/walk.ck` (in the program, after joining: compiling asks
+  for handles, and a start that gave them is not adopted), `ground-together` on the C, `check-held-back` runs its program
   both ways, and `ground/gives-back.ck` answers its cases once each way in one run (two bindings,
   nested cells, room words of three widths, the trail kept after notes, and that a fail deep in
   a call's arguments leaves the frames, links, activations and arguments where a fail at once
