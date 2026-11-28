@@ -7,7 +7,7 @@
 # the errors that remain are the Java's own, and they may not exceed JAVA_ERRORS, which is lowered and never raised.
 # No word of lens/words.ck is written twice (nums/duplicate-words.ck lists them), and a package with no row in
 # nums/packages.ck faults and does not write a header with nothing in it.
-JAVA_ERRORS = 380
+JAVA_ERRORS = 228
 define verify_packages
 @set -eu; \
   work=$$(mktemp -d); \
@@ -41,7 +41,9 @@ define verify_packages
   test -z "$$(printf 'lens/words.ck' | ./ck text nums/duplicate-words.ck)" || { echo "a word of lens/words.ck is written twice"; exit 1; }; \
   printf '(bind lens.words {| (quote (list (list "a" root) (list "b" root) (list "a" root)))})' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/twice.ck"; \
   test "$$(printf '%s' "$$work/twice.ck" | ./ck text nums/duplicate-words.ck)" = a || { echo "a word written twice was not listed"; exit 1; }; \
-  if printf 'nums/names.ck\nnums/lang-java.ck\n' | ./ck text nums/write-text.ck 2>&1 | grep -q '^fault '; then :; else echo "a package with no row in nums/packages.ck was written"; exit 1; fi; \
+  printf '%s\n' lens/participation.ck nums/lang-python.ck nums/view-patterns.ck bmf/items.ck | ./ck text nums/write-text.ck > "$$work/unlisted.python" 2>&1; \
+  if grep -q '^fault ' "$$work/unlisted.python" || ! test -s "$$work/unlisted.python"; then echo "a language that names no package refused a package with no row in nums/packages.ck"; exit 1; fi; \
+  printf '%s\n' lens/participation.ck nums/lang-java.ck nums/view-patterns.ck bmf/items.ck | ./ck text nums/write-text.ck 2>&1 | head -1 | grep -q '^fault ' || { echo "a package with no row in nums/packages.ck was written with a header of nothing"; exit 1; }; \
   jhome=$${JAVA_HOME:-}; javac=$${jhome:+$$jhome/bin/}javac; \
   if "$$javac" -version > /dev/null 2>&1; then \
     parses() { "$$javac" -XDshould-stop.ifError=PARSE -XDshould-stop.ifNoError=PARSE -proc:none -d "$$work/classes" "$$@" > "$$work/javac.out" 2>&1; }; \
@@ -54,7 +56,7 @@ define verify_packages
     for p in $$packages; do f="$$work/$$(basename $$p .ck).java"; pkg=$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f"); cls=$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f"); mkdir -p "$$tree/$$(echo "$$pkg" | tr . /)"; cp "$$f" "$$tree/$$(echo "$$pkg" | tr . /)/$$cls.java"; done; \
     for c in Entry Blueprinted Fault Recipe Node Runtime; do printf '%s' "$$c" | ./ck text nums/runtime-text.ck > "$$tree/form/$$c.java"; done; \
     if printf 'Nothing' | ./ck text nums/runtime-text.ck | grep -q '^fault '; then :; else echo "the runtime writer answered for a class it has no row for"; exit 1; fi; \
-    errors_of() { "$$javac" -proc:none -Xmaxerrs 100000 -d "$$work/built" "$$@" 2>&1 | grep -c 'error:' || true; }; \
+    errors_of() { status=0; out=$$("$$javac" -proc:none -Xmaxerrs 100000 -d "$$work/built" "$$@" 2>&1) || status=$$?; case $$status in 0) echo 0;; 1) n=$$(printf '%s\n' "$$out" | sed -n 's/^\([0-9][0-9]*\) errors\{0,1\}$$/\1/p' | tail -1); echo "$${n:-999999}";; *) echo 999999;; esac; }; \
     mkdir -p "$$work/probe/form"; cp "$$tree"/form/*.java "$$work/probe/form/"; \
     printf 'import static form.Runtime.*;\nclass Clean {\n    static long f(Object x) {\n        return count(x);\n    }\n}\n' > "$$work/probe/Clean.java"; \
     printf 'class Broken {\n    static int f() {\n        return "text";\n    }\n}\n' > "$$work/probe/Broken.java"; \
@@ -64,5 +66,12 @@ define verify_packages
     test "$$errors" -le $(JAVA_ERRORS) || { echo "packages: $$errors javac errors in the Java of the twelve, over the budget of $(JAVA_ERRORS)"; exit 1; }; \
     echo "packages: the Java of the twelve compiles against the runtime made from the nodes with $$errors errors of its own, within the budget of $(JAVA_ERRORS)"; \
   else echo "packages: the Java was not parsed: no JDK found (set JAVA_HOME)"; fi; \
+  if python3 -I -c 'import ast' > /dev/null 2>&1; then \
+    parses_python() { python3 -I -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' "$$1" > /dev/null 2>&1; }; \
+    for f in "$$work"/*.python; do parses_python "$$f" || { echo "the Python of $$(basename "$$f") does not parse"; exit 1; }; done; \
+    printf 'if x:\nelse:\n    y\n' > "$$work/planted.py"; \
+    if parses_python "$$work/planted.py"; then echo "python took an empty block"; exit 1; fi; \
+    echo "packages: the Python of the twelve parses"; \
+  else echo "packages: the Python was not parsed: no python3 found"; fi; \
   echo "packages: each package written in five languages, none faulting; each Java names its own package and class and documents every part"
 endef
