@@ -33,5 +33,14 @@ define verify_packages
   if refers "$$work/copy.java"; then echo "a copy of a linked package was taken for a reference to it"; exit 1; fi; \
   printf 'package form.a;\npublic final class A {\n' > "$$work/one.java"; printf 'package form.a;\npublic final class A {\n' > "$$work/two.java"; \
   test "$$(for f in "$$work/one.java" "$$work/two.java"; do printf '%s %s\n' "$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f")" "$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f")"; done | sort -u | wc -l | tr -d ' ')" = 1; \
+  jhome=$${JAVA_HOME:-}; javac=$${jhome:+$$jhome/bin/}javac; \
+  if "$$javac" -version > /dev/null 2>&1; then \
+    parses() { "$$javac" -XDshould-stop.ifError=PARSE -XDshould-stop.ifNoError=PARSE -proc:none -d "$$work/classes" "$$@" > "$$work/javac.out" 2>&1; }; \
+    jfiles=; for p in $$packages; do jfiles="$$jfiles $$work/$$(basename $$p .ck).java"; done; \
+    parses $$jfiles; \
+    printf 'public final class P {\n    static void f() {\n        true;\n    }\n}\n' > "$$work/Planted.java"; \
+    if parses "$$work/Planted.java"; then echo "javac took a statement that is only true; for Java"; exit 1; fi; \
+    echo "packages: the Java of the twelve parses (JDK $$("$$javac" -version 2>&1))"; \
+  else echo "packages: the Java was not parsed: no JDK found (set JAVA_HOME)"; fi; \
   echo "packages: each package written in five languages, none faulting; each Java names its own package and class and documents every part"
 endef
