@@ -1320,7 +1320,8 @@ the package calls and no package declares is a row of `write.answers`, with how 
 block, a `let` or an `if-else` in a place that holds a value is written as statements that assign a
 declared local where the language has `write.assign`, and as `seq(...)` or `let(value, name -> body)`
 where it does not. Where a language has a `write.doc` row, each record, interface and function is
-preceded by one line made from its name, its package and how often it answers. The twelve packages are
+preceded by one line made from its name, its package and how often it answers. Where the Java rows have `write.composed`, a package that `nums/libraries.ck` links is not written again: its
+class is imported by `import static` and its declarations stay in it. The twelve packages are
 written in all five languages by the check `ground/checks/packages.mk`; the Java of each stands alone
 in its own package and class, and the check refuses a part without its line.
 The nested search in `ground/search-package.ck` calls an observer inside

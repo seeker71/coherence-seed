@@ -27,6 +27,10 @@ define verify_packages
   documented "$$work"/*.java; \
   printf '    static long f(long x) {\n' > "$$work/planted.java"; \
   if documented "$$work/planted.java" > /dev/null; then echo "the Javadoc rule accepted a function without one"; exit 1; fi; \
+  refers() { grep -q '^import static form\.bmf\.Items\.\*;$$' "$$1" && ! grep -q 'record Parser' "$$1"; }; \
+  refers "$$work/part.java"; refers "$$work/bml-link.java"; refers "$$work/bml-methods.java"; \
+  printf 'public record Parser() {}\n' > "$$work/copy.java"; \
+  if refers "$$work/copy.java"; then echo "a copy of a linked package was taken for a reference to it"; exit 1; fi; \
   printf 'package form.a;\npublic final class A {\n' > "$$work/one.java"; printf 'package form.a;\npublic final class A {\n' > "$$work/two.java"; \
   test "$$(for f in "$$work/one.java" "$$work/two.java"; do printf '%s %s\n' "$$(sed -n 's/^package \(.*\);$$/\1/p' "$$f")" "$$(sed -n 's/^public final class \([A-Za-z]*\) {$$/\1/p' "$$f")"; done | sort -u | wc -l | tr -d ' ')" = 1; \
   echo "packages: each package written in five languages, none faulting; each Java names its own package and class and documents every part"
