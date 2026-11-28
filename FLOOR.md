@@ -345,7 +345,7 @@ running compiled code against frames all the way down).
   categorical model. Its predictions select subtraction or comparison. A separate process reads
   the fitted model from the image and uses the actual answers to make the next prediction across
   eighteen calls. A sibling changed one learned continuation and observed the image comparison
-  fail. Neural language inference and LoRA training are still open in seed.
+  fail. The categorical model is separate from the fitted language model below.
 - **A bilingual reading can be shared under an exact grant.** English “We may share” gives two
   actor/action readings. `ground/scoped-delivery.ck` selects the exclusive one and sends “Kami
   boleh berbagi” to an anonymous local stream. The same recipient and bytes under the other
@@ -374,6 +374,24 @@ running compiled code against frames all the way down).
   directory allowed delivery again. An owner can verify the exact signed window and
   withdrawal offline. Evidence of when each broker applied them remains open.
   [Signed consent controls](spec/core-operations.md#signed-consent-controls)
+- **Seed can train its own causal language model and generate with the saved weights.**
+  Eighteen synthetic sentences trained a 15-token model. A new process generated the
+  expected verb and an end token for all six withheld adjective and noun combinations.
+  A separate scalar implementation matched every fitted weight. [Local language learning](spec/local-learning.md)
+- **A resident 3B model consumed the result of a Form recipe.** Changing the subtraction
+  result from token 20 to 22 changed the next prediction from 14 to 56012. A separate
+  local decoder reproduced both. The run used a pinned native Metal worker and GGUF.
+  [Resident inference](spec/resident-inference.md)
+- **Better token loss alone can select the wrong adapter.** On independently written
+  paired dialogues, two locally fitted adapters failed to answer both owners correctly
+  on any pair. The unchanged model given a public codebook and the selected owner's
+  statement succeeded on 16 of 18 fresh pairs. [Measured trials](spec/local-learning.md#measured-3b-adapter-trials)
+- **An owner can grant teaching and still withhold use of the fitted artifact.**
+  The local consumer required an admitted teaching round, a current derivative grant,
+  a passing comparison and the exact selected bytes. A grant for the first fitted 3B
+  adapter left the active selection empty because its evaluation was held. A separate
+  run corrected a false claim against its cited sources and retained the original
+  wording alongside the correction. [Witness and teaching](spec/witness-and-teaching.md)
 - **The graph holds.** `./kg check` reports structural errors, warnings and the review state
   of the claims. The sibling experiments above are behavioral comparisons.
 

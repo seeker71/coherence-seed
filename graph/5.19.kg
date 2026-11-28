@@ -446,3 +446,63 @@ conf: mid
 why: Two local brokers processed the same signed window and received the withdrawal at different times. The maintained comparison checks both receiving directories, retained proofs, exact signed terms, staging across expiry and a fresh process at a lower second.
 limit: Restoring private state from before the observation allowed delivery. There is no independent time source, power-loss guarantee or signed broker acknowledgment.
 at: 2026-11-28
+
+n: 5.19.42
+name: a-small-language-model-learns-from-initial-weights
+kind: observation
+is: A locally initialized causal model learned embedded context and output weights from 18 synthetic sentences and generated six withheld continuations.
+status: observed
+from: 5.19.38
+src: 2.30.28
+conf: mid
+why: Two cold fits agreed. An independent scalar implementation matched all 360 final parameters across 432 observations. A new process generated the correct verb and end on each held-out combination.
+limit: Evidence covers 15 tokens in a synthetic grammar. Broad natural language understanding and original pretraining at scale remain open.
+at: 2026-11-28
+
+n: 5.19.43
+name: a-resident-decoder-can-consume-a-recipe-result
+kind: observation
+is: One mounted 28-layer local language model used a token to select subtraction and consumed the actual result in the same decoding history.
+status: observed
+from: 5.19.38
+src: 2.30.29
+conf: mid
+why: Changing the result from 20 to 22 changed the subsequent prediction from 14 to 56012. A separate local decoder matched both predictions. Concurrent logical requests retain independent model, vocabulary and history identities.
+limit: The test used a one-entry tool vocabulary and a separately built compatible Metal worker. The transport trusts its worker and in-flight KV state is local.
+at: 2026-11-28
+
+n: 5.19.44
+name: paired-decisions-can-refute-a-fitted-adapter
+kind: observation
+is: Two fitted 3B adapters failed the complete owner-swapped decision comparisons even though one improved token loss over its frozen parent.
+status: observed
+from: 5.19.42
+src: 2.30.30
+conf: mid
+why: Independent readers scored unchanged, fitted and shuffled-label arms on common sealed prompts. The unmodified parent given the selected statement and public codebook answered both owners on 16 of 18 fresh pairs. Neither corresponding adapter answered a complete pair.
+limit: The task used synthetic decisions and one model family. It measures specific responses and supplies no evidence about a person’s experience.
+at: 2026-11-28
+
+n: 5.19.45
+name: a-correction-can-retain-its-contested-source
+kind: observation
+is: The reader can retain an original false claim, its cited readings and a correction, then detect a changed review or edition during recall.
+status: observed
+from: 5.19.39
+src: 2.30.31
+conf: mid
+why: The Persian and German source entries both pointed to offer where the submitted interpretation claimed trust. Missing, conflicting and ambiguous evidence stayed unresolved. The listener ground distinguished an unanswered invitation from a withdrawn invitation and an actual stopped delivery.
+limit: These were local sources and synthetic participant accounts. Real human identity, felt vitality and whether an interaction supports trust remain open.
+at: 2026-11-28
+
+n: 5.19.46
+name: training-admission-and-activation-can-be-withdrawn-independently
+kind: observation
+is: A local selection can require an exact consented source round, a separate derivative permission and verified evaluation before admitting the artifact bytes.
+status: observed
+from: 5.19.44
+src: 2.30.32
+conf: mid
+why: The maintained flow exercised recall-only data, held evaluations, different reports and bytes, withdrawal, regrant and physical use. With an otherwise positive permission the first fitted 3B adapter was held by its paired results.
+limit: These controls govern a cooperating local consumer with intact authority state. They do not erase previously learned weights or data already disclosed.
+at: 2026-11-28

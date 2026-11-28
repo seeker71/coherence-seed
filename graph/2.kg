@@ -371,3 +371,43 @@ is: A controlled sequence of host seconds drives signed finite grants through th
 path: coherence-seed/ground/broker-clock.ck
 got: 2026-11-28
 at: 2026-11-28
+
+n: 2.30.28
+name: language-reference.ck
+kind: source
+is: The language update comparison perturbs the weights and checks the direction and clipping of the actual training step.
+path: coherence-seed/ground/language-reference.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.29
+name: resident-neural.ck
+kind: source
+is: The optional native resident replay drives a mounted 3B model through two recipe returns and observes its subsequent tokens.
+path: coherence-seed/ground/resident-neural.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.30
+name: learning-trial.ck
+kind: source
+is: The paired trial compares a fitted artifact against its immediate parent and shuffled control, with exact emissions and integer losses.
+path: coherence-seed/ground/learning-trial.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.31
+name: witness-review.ck
+kind: source
+is: The sourced review and retention ground compares a claim against its exact cited surface rows and checks recall after a change.
+path: coherence-seed/ground/witness-review.ck
+got: 2026-11-28
+at: 2026-11-28
+
+n: 2.30.32
+name: teaching-case.ck
+kind: source
+is: This fixture constructs source and derivative authority for the full admission, activation, withdrawal and byte-use run.
+path: coherence-seed/ground/teaching-case.ck
+got: 2026-11-28
+at: 2026-11-28

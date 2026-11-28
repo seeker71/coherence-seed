@@ -82,6 +82,12 @@ metal-image: ck
 	  mv -f "$$out" "$$METAL_IMAGE"
 
 check-image: seed-run
+	@set -eu; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  [ "$$(./ck run ground/language-reference.ck)" = 'node #33' ]; \
+	  ./ck text learning/train.ck <ground/language-corpus.ck >"$$work/model"; \
+	  ./ck text learning/train.ck <ground/language-corpus.ck | cmp - "$$work/model"; \
+	  [ "$$(./ck run ground/language-replies.ck <"$$work/model")" = 'node #33' ]; \
+	  echo "language: fresh training reproduced the weights and a new process generated each held-out completion"
 	@set -e; root=$$PWD; work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; mkdir "$$work/run"; \
 	  ./ck text nums/pack.ck < ground/nums-image.ck > "$$work/run/image"; \
 	  ./ck text ground/nums-requests.ck > "$$work/requests"; test -s "$$work/requests"; \
@@ -89,6 +95,14 @@ check-image: seed-run
 	  (cd "$$work/run" && "$$root/seed-run" image) < "$$work/requests" > "$$work/replies"; \
 	  got=$$(./ck run ground/nums-replies.ck < "$$work/replies"); \
 	  [ "$$got" = 'node #33' ] || { echo "image replies differed: $$got"; exit 1; }; \
+	  [ "$$(./ck run ground/resident-owners.ck)" = 'node #33' ]; \
+	  for part in policy first second; do printf %s "$$part" | ./ck text ground/resident-case.ck > "$$work/$$part"; done; \
+	  mkfifo "$$work/turns" "$$work/returns"; \
+	  (cd "$$work/run" && exec "$$root/seed-run" image) <"$$work/turns" >"$$work/returns" & worker=$$!; \
+	  exec 5>"$$work/turns" 6<"$$work/returns"; \
+	  for part in first second; do ./ck text resident/call.ck 3<"$$work/policy" 4<"$$work/$$part" <&6 >"$$work/$$part.out"; done; \
+	  exec 5>&- 6<&-; wait "$$worker"; \
+	  [ "$$(printf verify | ./ck text ground/resident-case.ck 3<"$$work/first.out" 4<"$$work/second.out")" = '#33' ]; \
 	  echo "image: the standalone runtime answered by content id from a directory containing only the image"; \
 	  if [ "$$(uname -s)" = Darwin ] && xcrun -sdk macosx metal -v >/dev/null 2>&1; then \
 	    printf '(has-target metal-map64)' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/target"; \
@@ -160,6 +174,8 @@ check-replay: ck fb
 	  else echo "framebuffer: $$frames frames in motion; last frame says '$$last'"; exit 1; fi
 
 check-held-back: ck
+	@test "$$(./ck run ground/learning-trial.ck)" = 'node #33'
+	@test "$$(./ck run ground/witness-review.ck)" = 'node #33'
 	@got=$$(./ck run ground/held-back.ck | tr '\n' ' '); \
 	  if [ "$$got" = "held node (#16 [#4 04] [#2 626f6f6d] [#2 697272657665727369626c65] [#1 340a] (#16 [#4 64] [#4]) (#16 [#2 67] [#4 08] (#16 [#2 66] [#4 01] [#4 02] [#4 03] ^7))) " ]; \
 	  then echo "held back: branch, fault and ordering checks passed. Scoped delivery matched the current grant, selected reading, receipt and bytes in the receiving stream."; \
@@ -179,13 +195,32 @@ check-held-back: ck
 	  gen open none opening; gen propose opening proposal; gen correct proposal correction; \
 	  gen decline correction refusal; gen silence refusal quiet; gen scope quiet scope; gen other-scope proposal alternative; \
 	  gen permit scope offered first; gen ticket scope ticket first; gen ticket alternative wrong first; \
+	  witness_case() { printf %s "$$1" > "$$work/witness-mode"; ./ck text ground/witness-case.ck 3<"$$work/witness-mode" 4<"$$work/$${4:-none}" <"$$work/$$2" >"$$work/$$3"; }; \
+	  witness_word() { printf %s "$$1" | ./ck text lens/to-nodes.ck lens/all.ck; }; \
+	  observe_listener() { ./ck text witness/observe.ck 3<"$$work/invitation" 4<"$$work/$$1" 5<"$$work/private/listening" <"$$work/reply" >"$$work/$$2"; witness_case status "$$2" observed-status; test "$$(cat "$$work/observed-status")" = "$$(witness_word "$$3")"; }; \
+	  witness_case claim none false-claim; witness_word '"source reader"' >"$$work/reader"; \
+	  ./ck text witness/check.ck 3<ground/witness-sources.ck 4<"$$work/reader" <"$$work/false-claim" >"$$work/review"; \
+	  witness_case check-review review checked; test "$$(cat "$$work/checked")" = "$$(witness_word yes)"; \
+	  ./ck text witness/retain.ck 3<"$$work/reader" <"$$work/review" >"$$work/review-receipt"; \
+	  witness_case list review reviews; witness_case list review-receipt review-receipts; \
+	  ./ck text witness/recall.ck 3<ground/witness-sources.ck 4<"$$work/reviews" 5<"$$work/review-receipts" <"$$work/false-claim" | cmp - "$$work/reviews"; \
+	  witness_case invitation scope invitation ticket; \
 	  change authorize offered genesis sender; send receive ticket reply; expect reply inbox.paused; empty; \
+	  observe_listener none unanswered witness.unanswered; \
 	  change listen ticket genesis listener; mkdir -p "$$work/expiry/private" "$$work/expiry/letters"; cp "$$work/private/authority" "$$work/private/listening" "$$work/expiry/private"; \
 	  printf %s "$$work/expiry" > "$$work/expiry-path"; gen channel expiry-path expiry-channel; gen expire-during-stage ticket reply expiry-channel; expect reply share.expired; test -z "$$(ls -A "$$work/expiry/letters")"; \
 	  send receive wrong reply; expect reply share.different; empty; \
+	  cp "$$work/private/listening" "$$work/before-stop"; \
 	  change listen none listener paused; change listen ticket genesis stale; \
 	  [ "$$(cat "$$work/stale")" = "$$(printf inbox.stale | ./ck text lens/to-nodes.ck lens/all.ck)" ]; \
 	  send receive ticket reply; expect reply inbox.paused; empty; \
+	  observe_listener before-stop stopped witness.stopped; \
+	  witness_word '"B"' >"$$work/participant"; witness_word '"synthetic account v1"' >"$$work/first-text"; witness_word '"synthetic account v2"' >"$$work/second-text"; \
+	  witness_case request stopped account-request first-text; \
+	  ./ck text witness/account.ck 3<"$$work/stopped" 4<"$$work/none" 5<"$$work/participant" <"$$work/account-request" >"$$work/account"; \
+	  witness_case request account account-correction second-text; \
+	  ./ck text witness/account.ck 3<"$$work/stopped" 4<"$$work/account" 5<"$$work/participant" <"$$work/account-correction" >"$$work/corrected-account"; \
+	  witness_case check-account corrected-account checked account; test "$$(cat "$$work/checked")" = "$$(witness_word yes)"; \
 	  change listen ticket paused listener; \
 	  interrupt() { printf %s "$$1" > "$$work/phase"; rc=0; ./ck text circle/receive.ck ground/circle-interrupt.ck 3<"$$work/channel" 4<"$$work/phase" <"$$work/ticket" >"$$work/discarded" || rc=$$?; [ "$$rc" = "$$2" ] && [ ! -s "$$work/discarded" ]; }; \
 	  interrupt before 75; empty; interrupt after 76; \
@@ -291,6 +326,74 @@ check-held-back: ck
 	  lease_fresh moving/isolated; lease_receive moving/isolated "(list 104 105 106)" share.clock-unsettled; lease_evidence moving/isolated grant empty; \
 	  lease_receive moving/isolated 105 share.clock-regressed; lease_receive moving/isolated 106 inbox.accepted; lease_evidence moving/isolated grant published; \
 	  echo "finite grant: two signed broker schedules agreed with the grant window, independent withdrawal witnesses, rollback and recipient files"
+
+	@set -eu; \
+	  work=$$(mktemp -d); \
+	  trap 'rm -rf "$$work"' EXIT; \
+	  mkdir "$$work/private" "$$work/letters" "$$work/elsewhere"; \
+	  printf '#32' > "$$work/none"; for register in authority listening adapter-authority; do cp "$$work/none" "$$work/private/$$register"; done; \
+	  printf %s "$$work" > "$$work/location"; printf '[#2 31]' > "$$work/nonce"; \
+	  case_value() { printf %s "$$2" > "$$work/mode"; ./ck text "ground/$$1.ck" 3<"$$work/mode" 4<"$$work/$${5:-none}" <"$$work/$$3" >"$$work/$$4"; }; \
+	  g() { case_value circle-exchange "$$@"; }; \
+	  t() { case_value teaching-case "$$@"; }; \
+	  change() { g change "$$2" update "$$3"; ./ck text "$$1.ck" 3<"$$work/channel" <"$$work/update" >"$$work/$$4"; }; \
+	  begin() { ./ck text learning/teach.ck 3<"$$work/$${2:-channel}" <"$$work/$$1"; }; \
+	  offer() { ./ck text learning/artifact-scope.ck 3<"$$work/plan" 4<"$$work/parent" 5<"$$work/$$2" 6<"$$work/control" <"$$work/$$1"; }; \
+	  activate() { ./ck text learning/activate.ck 3<"$$work/channel" 4<"$$work/plan" 5<"$$work/parent" 6<"$$work/$$2" 7<"$$work/control" <"$$work/$$1"; }; \
+	  use() { ./ck text learning/use.ck 3<"$$work/$${2:-channel}" <"$$work/$$1"; }; \
+	  denied() { reason=$$1; shift; rc=0; "$$@" >"$$work/denied" || rc=$$?; expected=$$(printf %s "$$reason" | ./ck text lens/to-nodes.ck lens/all.ck); [ "$$rc" = 1 ] && [ "$$(cat "$$work/denied")" = "fault $$expected" ] || { echo "learning: expected $$reason, received $$(cat "$$work/denied")" >&2; return 1; }; }; \
+	  g channel location channel; g identity none genesis; t wrong-location channel elsewhere-channel; \
+	  for item in plan parent fit hold-fit other-fit control weights dataset; do t "$$item" none "$$item"; done; \
+	  t source channel source plan; t recall source recall-only; \
+	  g permit recall-only recall-permit nonce; g ticket recall-only recall-ticket nonce; \
+	  g permit source source-permit nonce; g ticket source source-ticket nonce; \
+	  change circle/authorize recall-permit genesis issued; change circle/listen recall-ticket genesis listened; \
+	  denied teach.wrong-purpose begin recall-ticket; test -z "$$(ls -A "$$work/letters")"; \
+	  change circle/authorize source-permit issued issued; change circle/listen source-ticket listened listened; \
+	  denied teach.wrong-location begin source-ticket elsewhere-channel; \
+	  t capture channel reconstructed source-ticket; offer reconstructed fit > "$$work/unadmitted-scope"; g permit unadmitted-scope unadmitted-permit nonce; change learning/allow unadmitted-permit genesis unadmitted-revision; \
+	  denied teach.not-admitted activate reconstructed fit; test ! -e "$$work/private/active-adapter"; test -z "$$(ls -A "$$work/letters")"; \
+	  begin source-ticket > "$$work/round"; set -- "$$work/letters/"*; test "$$#" = 1; cat "$$1" > "$$work/letter"; g bytes letter observed; cmp "$$work/dataset" "$$work/observed"; \
+	  offer round fit > "$$work/scope"; t bad-sha scope bad-scope; g permit bad-scope bad-permit nonce; g change bad-permit update unadmitted-revision; denied teach.mismatch ./ck text learning/allow.ck 3<"$$work/channel" <"$$work/update"; g permit scope artifact-permit nonce; change learning/allow artifact-permit unadmitted-revision approved; \
+	  t path round artifact-path plan; model_path=$$(cat "$$work/artifact-path"); cp "$$work/weights" "$$model_path"; \
+	  denied teach.not-eligible activate round hold-fit; test ! -e "$$work/private/active-adapter"; \
+	  denied share.different activate round other-fit; test ! -e "$$work/private/active-adapter"; \
+	  change circle/authorize none issued stopped; denied share.ungranted activate round fit; test ! -e "$$work/private/active-adapter"; \
+	  change circle/authorize source-permit stopped issued; denied teach.stale activate round fit; test ! -e "$$work/private/active-adapter"; \
+	  begin source-ticket > "$$work/listener-round"; offer listener-round fit > "$$work/scope"; g permit scope artifact-permit nonce; change learning/allow artifact-permit approved approved; \
+	  change circle/listen none listened silence; denied inbox.paused activate listener-round fit; test ! -e "$$work/private/active-adapter"; \
+	  change circle/listen source-ticket silence listened; denied teach.stale activate listener-round fit; test ! -e "$$work/private/active-adapter"; \
+	  begin source-ticket > "$$work/new-round"; offer new-round fit > "$$work/scope"; g permit scope artifact-permit nonce; change learning/allow artifact-permit approved approved; \
+	  rm "$$model_path"; denied teach.inactive activate new-round fit; test ! -e "$$work/private/active-adapter"; \
+	  provider=$$(./ck run ground/ed25519.ck); unavailable=$$(printf ed25519.unavailable | ./ck text lens/to-nodes.ck lens/all.ck); \
+	  if [ "$$provider" = "node $$unavailable" ]; then cp "$$work/weights" "$$model_path"; denied teach.unavailable activate new-round fit; test ! -e "$$work/private/active-adapter"; echo "learning: missing verification provider kept the adapter inactive"; exit 0; fi; \
+	  printf 'changed' > "$$model_path"; denied teach.mismatch activate new-round fit; test ! -e "$$work/private/active-adapter"; \
+	  cp "$$work/weights" "$$model_path"; activate new-round fit > "$$work/selection"; use selection > "$$work/verified"; cmp "$$work/weights" "$$work/verified"; \
+	  denied teach.wrong-location use selection elsewhere-channel; \
+	  printf 'changed' > "$$model_path"; denied teach.mismatch use selection; cp "$$work/weights" "$$model_path"; \
+	  change learning/allow none approved held; denied share.ungranted use selection; \
+	  change learning/allow artifact-permit held approved; denied teach.stale use selection; \
+	  activate new-round fit > "$$work/selection"; change circle/authorize none issued stopped; denied share.ungranted use selection; \
+	  echo "learning: recall-only, held evidence, withdrawal, later grants and changed model bytes denied; selected fixture bytes reached only the explicit local consumer"
+
+# The resident model image and its matching native runtime are deployment inputs.
+.PHONY: resident-replay
+resident-replay: ck
+	@set -eu; : "$${RESIDENT_NATIVE:?Set RESIDENT_NATIVE to the built 55b5b95 checkout}" "$${RESIDENT_MANIFEST:?Set RESIDENT_MANIFEST to its single-bos manifest}" "$${RESIDENT_GGUF:?Set RESIDENT_GGUF to the mounted 3B GGUF}"; \
+	  root=$$PWD; native=$$(cd "$$RESIDENT_NATIVE" && pwd); work=$$(mktemp -d); trap 'rm -rf "$$work"' EXIT; \
+	  test "$$(shasum -a 256 "$$RESIDENT_GGUF" | cut -d' ' -f1)" = dba8d50e3c63bde16cd918bb4de8e7cde6c5a2dae9a8360bd14480e71d8d7fa4; \
+	  printf %s "$$RESIDENT_GGUF" > "$$work/path"; cp "$$RESIDENT_MANIFEST" "$$work/source"; \
+	  ./ck text lens/to-words.ck lens/all.ck < ground/resident-inputs.ck > "$$work/inputs.words"; \
+	  (cd "$$native"; ./ck text lens/to-nodes.ck lens/all.ck < "$$work/inputs.words" > "$$work/inputs"; \
+	    printf '%s' '(seq (step (read (file "lens/all.ck"))) (lens.to-store (step (read (file "/dev/fd/3")))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/build"; \
+	    ./ck text "$$work/build" 3<"$$work/inputs" 4<"$$work/path" < "$$work/source" > "$$work/manifest"; \
+	    ./ck text nums/pack.ck < "$$work/manifest" > "$$work/image"; \
+	    printf '%s' '(let keys (child (read (file "/dev/stdin")) 1) (pack bytes (all (let digest (id (child keys (range 0 (count keys)))) (byte digest (range 0 32))))))' | ./ck text lens/to-nodes.ck lens/all.ck > "$$work/exports"; \
+	    ./ck text "$$work/exports" < "$$work/manifest" > "$$work/ids"); \
+	  mkfifo "$$work/turns" "$$work/returns"; \
+	  CK_IMAGES= CK_MEMORY_BYTES=6442450944 "$$native/seed-run" "$$work/image" <"$$work/turns" >"$$work/returns" & worker=$$!; \
+	  "$$root/ck" text ground/resident-neural.ck 5>"$$work/turns" <"$$work/returns" 3<"$$work/ids" >"$$work/observed"; wait "$$worker"; \
+	  ./ck text lens/to-words.ck lens/all.ck < "$$work/observed"
 
 check-bare: ck
 	@n=$$(./ck text ground/reads-by-number.ck | head -1); \
