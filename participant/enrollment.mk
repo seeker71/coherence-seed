@@ -9,7 +9,7 @@ circle-propose-return: ck
 	@./ck text participant/return.ck <"$${ROSTER:?set ROSTER to the original public roster}"
 
 circle-inspect: ck
-	@./ck text lens/to-words.ck lens/all.ck <"$${ROSTER:?set ROSTER to the proposed public roster}"
+	@$(PARTICIPANT_TMP); printf inspect >"$$scratch/mode"; ./ck text participant/establish.ck 3<"$$scratch/mode" 4<"$${ROSTER:?set ROSTER to the proposed public roster}"
 
 circle-endorse: ck
 	@$(PARTICIPANT_TMP); $(PARTICIPANT_PUB); printf endorse >"$$scratch/mode"; printf %s "$${ROLE:?set ROLE to owner or listener}" >"$$scratch/role"; \
