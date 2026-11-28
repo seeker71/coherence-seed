@@ -28,8 +28,8 @@ call a recipe by ID. [Native coverage and backend interface](spec/nums.md#execut
 `ck` is the bootstrap: [`bootstrap/ck.c`](bootstrap/ck.c) with the memory layout
 [`bootstrap/fb.h`](bootstrap/fb.h), whose lines the build counts. It holds a node store, a reader
 of stored records, a walker over the operations in [`spec/core-operations.md`](spec/core-operations.md),
-and the birth of machine-code pages. Every process first runs the seed, `ice/seed.ck` beside the
-executable: compiled Form the walker stands on, built by [`form/seed.ck`](form/seed.ck) and
+and the birth of machine-code pages. Every process first holds the leaves of the seed, `ice/seed.ck` beside the
+executable, in their cells: compiled Form the walker stands on (its return and its restore of a fail), built by [`form/seed.ck`](form/seed.ck) and
 built again on itself to the same bytes. The seed carries AArch64 code; other processors are refused. The authoring commands are
 `ck run` and `ck text`. The standalone `seed-run` executable and `ck execute` accept a frozen
 image and calls by content id. A client can reuse a returned cell id or invoke the compiler
